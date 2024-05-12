@@ -2,7 +2,7 @@
 best online store for selling your products!
 
 ## Create virtual environment for backend
-cd backend <br\>
+cd backend <br/>
 python -m venv .venv <br/>
 **linux/mac**: source .venv/bin/activate <br/>
 **windows**: .venv\Scripts\activate <br/>
