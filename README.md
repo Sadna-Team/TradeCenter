@@ -2,10 +2,10 @@
 best online store for selling your products!
 
 ## Create virtual environment for backend
-cd backend <br/>
-python -m venv .venv <br/>
-**linux/mac**: source .venv/bin/activate <br/>
-**windows**: .venv\Scripts\activate <br/>
+change directory to backend <br/>
+python -m venv .backendvenv <br/>
+**linux/mac**: source .backendvenv/bin/activate <br/>
+**windows**: .backendvenv\Scripts\activate <br/>
 **windows**: if the line above causes errors, run: <br/>
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass<br/> 
 before, and then try running the line above again.<br/>
