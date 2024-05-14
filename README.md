@@ -14,3 +14,7 @@ best online store for selling your products! <br/>
 * pip install -r requirements.txt <br/>
 
 ### Adding A Dependencie
+* Activate the virtual environment as above
+* pip install the new dependencie
+* Update requirements.txt:
+  `pip freeze > requirements.txt`
