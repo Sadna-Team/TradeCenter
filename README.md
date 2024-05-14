@@ -1,12 +1,16 @@
 # TradeCenter
-best online store for selling your products!
+best online store for selling your products! <br/>
 
-## Create virtual environment for backend
-change directory to backend <br/>
-python -m venv .backendvenv <br/>
-**linux/mac**: source .backendvenv/bin/activate <br/>
-**windows**: .backendvenv\Scripts\activate <br/>
-**windows**: if the line above causes errors, run: <br/>
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass<br/> 
-before, and then try running the line above again.<br/>
-pip install -r requirements.txt
+## Dependencies
+### Create Virtual Environment For Backend
+* change directory to backend
+* Create environment: `python -m venv .backendvenv`
+* Activate Environment:
+ * **linux/mac**: source .backendvenv/bin/activate
+ * **windows**: .backendvenv\Scripts\activate  
+ **windows**: if the line above causes errors, run:
+   `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
+   before, and then try running the line above again.
+* pip install -r requirements.txt <br/>
+
+### Adding A Dependencie
