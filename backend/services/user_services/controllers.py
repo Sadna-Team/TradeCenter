@@ -15,21 +15,6 @@ class UserService():
         """
         pass
 
-    def register(self, token, register_credentials):
-        """
-            Use Case 2.1.3:
-            Register a new user
-
-            Args:
-                token (?): token of the user
-                register_credentials (?): credentials of the new user required for registration
-
-            Returns:
-                ?
-        """
-        pass
-
-
     def add_product_to_basket(self, token, product_id, amount):
         """
             Use Case 2.2.3:
@@ -142,6 +127,7 @@ class AuthenticationService():
             Returns:
                 ?
         """
+
     pass
 
     def logout(self, token):
@@ -155,4 +141,18 @@ class AuthenticationService():
             Returns:
                 ?
         """
-    pass
+        pass
+
+    def register(self, token, register_credentials):
+        """
+            Use Case 2.1.3:
+            Register a new user
+
+            Args:
+                token (?): token of the user
+                register_credentials (?): credentials of the new user required for registration
+
+            Returns:
+                ?
+        """
+        pass
