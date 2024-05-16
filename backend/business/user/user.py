@@ -1,6 +1,7 @@
 from . import c
 from typing import Optional, List
 import datetime
+from abc import ABC, abstractmethod
 
 
 class ShoppingBasket:
@@ -17,7 +18,16 @@ class SoppingCart:
         self.__shopping_baskets: List[ShoppingBasket] = []
 
 
-class Member:
+class State(ABC):
+    pass
+
+
+class Guest(State):
+    def __init__(self):
+        pass
+
+
+class Member(State):
     def __init__(self, location_id: int, email: str, username, year: int, month: int, day: int, phone: str) -> None:
         #  try to convert the birth
 
@@ -42,4 +52,6 @@ class User:
 
         self.__id: int = user_id
         self.__currency: str = currency
-        self.__member: Optional[Member] = None
+        self.__member: State = Guest()
+        self.__ShoppingCart: SoppingCart = SoppingCart(user_id)
+        self.__notifications: List[Notification] = []
