@@ -131,6 +131,9 @@ class User:
     def remove_product_from_cart(self, store_id: int, product_id: int, amount: int) -> None:
         self.__shopping_cart.remove_product_from_cart(store_id, product_id, amount)
 
+    def clear_basket(self):
+        self.__shopping_cart = SoppingCart(self.__id)
+
 
 class UserFacade:
     # singleton
@@ -176,3 +179,6 @@ class UserFacade:
 
     def remove_product_from_cart(self, user_id: int, store_id: int, product_id: int, amount: int) -> None:
         self.__get_user(user_id).remove_product_from_cart(store_id, product_id, amount)
+
+    def clear_basket(self, user_id: int):
+        self.__get_user(user_id).clear_basket()
