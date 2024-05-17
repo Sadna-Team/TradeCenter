@@ -4,4 +4,4 @@ from currency_converter import CurrencyConverter
 c = CurrencyConverter()
 
 # Import the User class so it's accessible from the package
-from .user import User
+from .user import UserFacade
