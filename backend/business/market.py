@@ -47,8 +47,9 @@ class MarketFacade:
         return self.user_facade.get_notifications(user_id)
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
-        if self.store_facade.check_product_availability(store_id, product_id, amount):
-            self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
+        with MarketFacade.__lock:
+            if self.store_facade.check_product_availability(store_id, product_id, amount):
+                self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
 
     def checkout(self, user_id: int, payment_details: Dict):
         basket = self.user_facade.get_shopping_cart(user_id)
@@ -77,3 +78,7 @@ class MarketFacade:
         # TODO: create a purchase
         # TODO: deliver the products
         # TODO: notify (?)
+
+    def add_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
+        # TODO:
+        pass

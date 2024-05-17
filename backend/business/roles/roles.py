@@ -138,6 +138,8 @@ class RolesFacade:
             self._initialized = True
             self.__stores_to_roles: Dict[int, Tree] = {}
             self.__system_roles: List[SystemRole] = []
+            # TODO: add system nominations
+            # self.__systems_nominations: Dict[int, List[]]
 
     def add_system_manger(self, user_id: int) -> None:
         system_manager = SystemManager(user_id)
