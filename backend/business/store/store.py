@@ -1,3 +1,4 @@
+from typing import Dict
 class StoreFacade:
     # singleton
     __instance = None
@@ -11,3 +12,12 @@ class StoreFacade:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             # here you can add fields
+
+    def check_product_availability(self, store_id, product_id, amount) -> bool:
+        pass
+
+    def calculate_total_price(self, basket: Dict[int, Dict[int, int]]) -> int: # store_id, product_id, amount
+        pass
+
+    def remove_product(self, store_id, product_id, amount) -> None:
+        pass

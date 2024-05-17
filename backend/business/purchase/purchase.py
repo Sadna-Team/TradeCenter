@@ -11,3 +11,4 @@ class PurchaseFacade:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             # here you can add fields
+
