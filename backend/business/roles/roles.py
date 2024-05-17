@@ -11,3 +11,6 @@ class RolesFacade:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             # here you can add fields
+
+    # TODO: when you assign a new role to a user, please use the function "sign_Listener" in the notifier.
+    
