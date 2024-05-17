@@ -5,7 +5,6 @@ from _collections import defaultdict
 from abc import ABC, abstractmethod
 import threading
 
-
 class ShoppingBasket:
     # id of ShoppingBasket is (user_id, store_id)
     def __init__(self, store_id: int) -> None:
