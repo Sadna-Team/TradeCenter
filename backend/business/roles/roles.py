@@ -44,6 +44,7 @@ class StoreOwner(StoreRole):
 
 class StoreManager(StoreRole):
     def __init__(self, user_id: int):
+        super().__init__(user_id)
         self.__permissions: Permissions = Permissions()
 
     @property
