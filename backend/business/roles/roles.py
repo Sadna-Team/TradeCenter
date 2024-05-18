@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 class Permissions:
@@ -139,7 +139,7 @@ class RolesFacade:
             self.__stores_to_roles: Dict[int, Tree] = {}
             self.__system_roles: List[SystemRole] = []
             # TODO: add system nominations
-            # self.__systems_nominations: Dict[int, List[]]
+            self.__systems_nominations: Dict[int, List[Tuple[int, StoreRole]]] = {}  # Dict[sore_id, List[Tuple[appointer_id, StoreRole]]]
 
     def add_system_manger(self, user_id: int) -> None:
         system_manager = SystemManager(user_id)
@@ -175,7 +175,7 @@ class RolesFacade:
             raise ValueError("Appointer does not exist")
 
         if not isinstance(appointer, StoreOwner):
-            raise ValueError("Appointer does not have permissions to add a role")
+            raise ValueError("Appointer does not have permissions to add an owner")
 
         if not self.__stores_to_roles[store_id].find(owner_id) is None:
             raise ValueError("Owner already exists in store")
@@ -198,6 +198,21 @@ class RolesFacade:
             raise ValueError("Remover didnt appoint the role")
 
         self.__stores_to_roles[store_id].remove_role(role_id)
+
+    def nominate_store_owner(self, store_id: int, owner_id: int, appointer_id: int) -> None:
+        self.__validate_store_id(store_id)
+
+        appointer = self.__stores_to_roles[store_id].find(appointer_id)
+        if appointer is None:
+            raise ValueError("Appointer does not exist")
+
+        if not isinstance(appointer, StoreOwner):
+            raise ValueError("Appointer does not have permissions to add an owner")
+
+        owner = StoreOwner(owner_id)
+        if store_id not in self.__systems_nominations:
+            self.__systems_nominations[store_id] = []
+        self.__systems_nominations[store_id].append((appointer_id, owner))
 
     def close_store(self, store_id: int) -> None:
         self.__validate_store_id(store_id)
