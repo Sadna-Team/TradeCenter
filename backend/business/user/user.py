@@ -5,6 +5,7 @@ from _collections import defaultdict
 from abc import ABC, abstractmethod
 import threading
 
+
 class ShoppingBasket:
     # id of ShoppingBasket is (user_id, store_id)
     def __init__(self, store_id: int) -> None:
@@ -61,21 +62,33 @@ class State(ABC):
     def __init__(self):
         pass
 
+    @abstractmethod
+    def get_password(self):
+        pass
+
 
 class Guest(State):
     def __init__(self):
         pass
 
+    def get_password(self):
+        raise ValueError("User is not registered")
+
 
 class Member(State):
-    def __init__(self, location_id: int, email: str, username, year: int, month: int, day: int, phone: str) -> None:
+    def __init__(self, location_id: int, email: str, username, password: str, year: int, month: int, day: int,
+                 phone: str) -> None:
         #  try to convert the birth
 
         self.__locationId: int = location_id
         self.__email: str = email
         self.__username: str = username
+        self.__password: str = password
         self.__birthdate: datetime = datetime.date(year, month, day)
         self.__phone: str = phone
+
+    def get_password(self):
+        return self.__password
 
 
 class NotificationDTO:
@@ -105,7 +118,7 @@ class Notification:
 
 
 class User:
-    def __init__(self, user_id: int, currency: str) -> None:
+    def __init__(self, user_id: int, currency: str = 'USD') -> None:
         if currency not in c.currencies:
             raise ValueError("Currency not supported")
 
@@ -124,15 +137,18 @@ class User:
     def get_shopping_cart(self) -> Dict[int, Dict[int, int]]:
         return self.__shopping_cart.get_dto()
 
-    def register(self, location_id: int, email: str, username: str, year: int, month: int, day: int,
+    def register(self, location_id: int, email: str, username: str, password: str, year: int, month: int, day: int,
                  phone: str) -> None:
-        self.__member = Member(location_id, email, username, year, month, day, phone)
+        self.__member = Member(location_id, email, username, password, year, month, day, phone)
 
     def remove_product_from_cart(self, store_id: int, product_id: int, amount: int) -> None:
         self.__shopping_cart.remove_product_from_cart(store_id, product_id, amount)
 
     def clear_basket(self):
         self.__shopping_cart = SoppingCart(self.__id)
+
+    def get_password(self):
+        return self.__member.get_password()
 
 
 class UserFacade:
@@ -150,6 +166,7 @@ class UserFacade:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             self.__users: Dict[int, User] = {}
+            self.__usernames: Dict[str, int] = {}  # username -> user_id
 
     def create_user(self, currency: str = "USD") -> int:
         with UserFacade.__lock:
@@ -159,9 +176,10 @@ class UserFacade:
         self.__users[new_id] = user
         return new_id
 
-    def register_user(self, user_id: int, location_id: int, email: str, username: str, year: int, month: int, day: int,
-                      phone: str) -> None:
-        self.__get_user(user_id).register(location_id, email, username, year, month, day, phone)
+    def register_user(self, user_id: int, location_id: int, email: str, username: str, password: str,
+                      year: int, month: int, day: int, phone: str) -> None:
+        self.__get_user(user_id).register(location_id, email, username, password, year, month, day, phone)
+        self.__usernames[username] = user_id
 
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
         return [notification.get_notification_dto() for notification in self.__get_user(user_id).get_notifications()]
@@ -180,5 +198,19 @@ class UserFacade:
     def remove_product_from_cart(self, user_id: int, store_id: int, product_id: int, amount: int) -> None:
         self.__get_user(user_id).remove_product_from_cart(store_id, product_id, amount)
 
-    def clear_basket(self, user_id: int):
+    def clear_basket(self, user_id: int) -> None:
         self.__get_user(user_id).clear_basket()
+
+    def get_password(self, username: str) -> (int, str):
+        if username not in self.__usernames:
+            raise ValueError("User not found")
+        user_id = self.__usernames.get(username)
+        return user_id, self.__get_user(user_id).get_password()
+
+    def remove_user(self, user_id: int):
+        if user_id in self.__users:
+            del self.__users[user_id]
+        for username, id in self.__usernames.items():
+            if id == user_id:
+                del self.__usernames[username]
+                break

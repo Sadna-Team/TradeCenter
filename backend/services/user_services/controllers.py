@@ -1,5 +1,5 @@
 # communication with business logic
-
+from backend.business.authentication.authentication import Authentication
 
 class UserService:
     def show_notifications(self, token):
@@ -107,6 +107,15 @@ class UserService:
 
 
 class AuthenticationService:
+    #singleton
+    instance = None
+    def __new__(cls):
+        if cls.instance is None:
+            cls.instance = super(AuthenticationService, cls).__new__(cls)
+            cls.instance.authentication = Authentication()
+        return cls.instance
+    def __init__(self):
+        self.authentication = Authentication()
     def start_app(self):
         """
             Use Case 1.1:
@@ -115,6 +124,16 @@ class AuthenticationService:
             Returns:
                 ?
         """
+
+    def guest_login(self):
+        """
+            Use Case 1.2:
+            Login as a guest
+
+            Returns:
+                ?
+        """
+        return self.authentication.register_guest()
 
     def login(self, token, user_credentials):
         """
