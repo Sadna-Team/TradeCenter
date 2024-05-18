@@ -18,32 +18,28 @@ class Permissions:
 
 class SystemRole(ABC):
     @abstractmethod
-    def __init__(self, user_id: int):
-        self.__user_id = user_id
+    def __init__(self):
+        pass
 
 
 class SystemManager(SystemRole):
-    def __init__(self, user_id: int):
-        super().__init__(user_id)
+    def __init__(self):
+        super().__init__()
 
 
 class StoreRole(ABC):
     @abstractmethod
-    def __init__(self, user_id: int):
-        self.__user_id = user_id
-
-    @property
-    def user_id(self) -> int:
-        return self.__user_id
+    def __init__(self):
+        pass
 
 
 class StoreOwner(StoreRole):
-    def __init__(self, user_id: int):
-        super().__init__(user_id)
+    def __init__(self):
+        super().__init__()
 
 
 class StoreManager(StoreRole):
-    def __init__(self, user_id: int):
+    def __init__(self):
         self.__permissions: Permissions = Permissions()
 
     @property
@@ -140,101 +136,3 @@ class RolesFacade:
             self.__system_roles: List[SystemRole] = []
             # TODO: add system nominations
             self.__systems_nominations: Dict[int, List[Tuple[int, StoreRole]]] = {}  # Dict[sore_id, List[Tuple[appointer_id, StoreRole]]]
-
-    def add_system_manger(self, user_id: int) -> None:
-        system_manager = SystemManager(user_id)
-        self.__system_roles.append(system_manager)
-
-    def add_store(self, store_id: int, owner_id: int) -> None:
-        owner = StoreOwner(owner_id)
-        root = Node(owner)
-        tree = Tree(root)
-        self.__stores_to_roles[store_id] = tree
-
-    def add_store_manager(self, store_id: int, manager_id: int, appointer_id: int) -> None:
-        self.__validate_store_id(store_id)
-
-        appointer = self.__stores_to_roles[store_id].find(appointer_id)
-        if appointer is None:
-            raise ValueError("Appointer does not exist")
-
-        if isinstance(appointer, StoreManager) and not appointer.permissions.add_role:
-            raise ValueError("Appointer does not have permissions to add a role")
-
-        if not self.__stores_to_roles[store_id].find(manager_id) is None:
-            raise ValueError("Manager already exists in store")
-
-        manager = StoreManager(manager_id)
-        self.__stores_to_roles[store_id].add_role(manager, appointer_id)
-
-    def add_store_owner(self, store_id: int, owner_id: int, appointer_id: int) -> None:
-        self.__validate_store_id(store_id)
-
-        appointer = self.__stores_to_roles[store_id].find(appointer_id)
-        if appointer is None:
-            raise ValueError("Appointer does not exist")
-
-        if not isinstance(appointer, StoreOwner):
-            raise ValueError("Appointer does not have permissions to add an owner")
-
-        if not self.__stores_to_roles[store_id].find(owner_id) is None:
-            raise ValueError("Owner already exists in store")
-
-        owner = StoreOwner(owner_id)
-        self.__stores_to_roles[store_id].add_role(owner, appointer_id)
-
-    def remove_store_role(self, store_id: int, role_id: int, remover_id: int) -> None:
-        self.__validate_store_id(store_id)
-
-        remover = self.__stores_to_roles[store_id].find(remover_id)
-        if remover is None:
-            raise ValueError("Remover does not exist")
-
-        role = self.__stores_to_roles[store_id].find(role_id)
-        if role is None:
-            raise ValueError("Role does not exist")
-
-        if role_id != remover_id and self.__stores_to_roles[store_id].is_child(remover_id, role_id):
-            raise ValueError("Remover didnt appoint the role")
-
-        self.__stores_to_roles[store_id].remove_role(role_id)
-
-    def nominate_store_owner(self, store_id: int, owner_id: int, appointer_id: int) -> None:
-        self.__validate_store_id(store_id)
-
-        appointer = self.__stores_to_roles[store_id].find(appointer_id)
-        if appointer is None:
-            raise ValueError("Appointer does not exist")
-
-        if not isinstance(appointer, StoreOwner):
-            raise ValueError("Appointer does not have permissions to add an owner")
-
-        owner = StoreOwner(owner_id)
-        if store_id not in self.__systems_nominations:
-            self.__systems_nominations[store_id] = []
-        self.__systems_nominations[store_id].append((appointer_id, owner))
-
-    def close_store(self, store_id: int) -> None:
-        self.__validate_store_id(store_id)
-        del self.__stores_to_roles[store_id]
-
-    # TODO: add permission changing methods
-
-    def is_store_owner(self, store_id: int, user_id: int) -> bool:
-        self.__validate_store_id(store_id)
-        role = self.__stores_to_roles[store_id].find(user_id)
-        return (role is not None
-                and isinstance(role, StoreOwner))
-
-    def is_store_manager(self, store_id: int, user_id: int) -> bool:
-        self.__validate_store_id(store_id)
-        role = self.__stores_to_roles[store_id].find(user_id)
-        return (role is not None
-                and isinstance(role, StoreManager))
-
-    def __validate_store_id(self, store_id: int) -> None:
-        if not self.__store_exists(store_id):
-            raise ValueError("Store does not exist")
-
-    def __store_exists(self, store_id: int) -> bool:
-        return store_id in self.__stores_to_roles
