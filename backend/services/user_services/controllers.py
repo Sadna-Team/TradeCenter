@@ -109,6 +109,7 @@ class UserService:
 class AuthenticationService:
     #singleton
     instance = None
+
     def __new__(cls):
         if cls.instance is None:
             cls.instance = super(AuthenticationService, cls).__new__(cls)
