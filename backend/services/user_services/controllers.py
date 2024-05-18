@@ -117,24 +117,16 @@ class AuthenticationService:
         return cls.instance
     def __init__(self):
         self.authentication = Authentication()
-    def start_app(self):
-        """
-            Use Case 1.1:
-            Start the application and generate token for user
-
-            Returns:
-                ?
-        """
-
     def guest_login(self):
         """
             Use Case 1.2:
-            Login as a guest
+            Start the application and generate token for guest
 
             Returns:
-                ?
+                token (str): token of the guest
         """
-        return self.authentication.register_guest()
+        return self.authentication.start_guest()
+
 
     def login(self, token, user_credentials):
         """
@@ -164,16 +156,17 @@ class AuthenticationService:
         """
         pass
 
-    def register(self, token, register_credentials):
+    def register(self, user_id, register_credentials):
         """
             Use Case 2.1.3:
             Register a new user
 
             Args:
-                token (?): token of the user
+                user_id (int): id of the user
                 register_credentials (?): credentials of the new user required for registration
 
             Returns:
                 ?
         """
-        pass
+        self.authentication.register_user(user_id, register_credentials)
+

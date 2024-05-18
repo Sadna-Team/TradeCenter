@@ -3,12 +3,18 @@ from datetime import datetime, timedelta
 from flask import current_app
 from backend.business.user.user import UserFacade
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-from backend import bcrypt
+from backend import bcrypt, jwt
 
 
 class Authentication:
     def __init__(self, secret_key=None):
         self.user_facade = UserFacade()
+        self.blacklist = set()
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_in_blacklist(self, jwt_header, jwt_payload):
+        jti = jwt_payload['jti']
+        return jti in self.blacklist
 
     def generate_token(self, user_id):
         token = create_access_token(identity=user_id, expires_delta=timedelta(days=1))
@@ -34,12 +40,18 @@ class Authentication:
         # db.session.add(new_user)
         # db.session.commit()
 
-    def register_guest(self) -> str:
+    def start_guest(self) -> str:
         new_user_id = self.user_facade.create_user()
         token = self.generate_token(new_user_id)
         return token
 
     # @jwt_required()
-    def login_user(self, token: str, username: str, password: str):
-        userid = get_jwt_identity()
-        print(userid)
+    def login_user(self, user_id: int, username: str, password: str):
+        user_id, hashed_password = self.user_facade.get_password(username)
+        if self.verify_password(password, hashed_password):
+            return self.generate_token(user_id)
+        else:
+            raise ValueError("Invalid credentials")
+
+    def logout_user(self, jti):
+        self.blacklist.add(jti)

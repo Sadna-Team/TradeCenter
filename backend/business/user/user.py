@@ -178,6 +178,10 @@ class UserFacade:
 
     def register_user(self, user_id: int, location_id: int, email: str, username: str, password: str,
                       year: int, month: int, day: int, phone: str) -> None:
+        if username in self.__usernames:
+            raise ValueError("Username already exists")
+        if user_id not in self.__users:
+            raise ValueError("User not found")
         self.__get_user(user_id).register(location_id, email, username, password, year, month, day, phone)
         self.__usernames[username] = user_id
 
