@@ -1,6 +1,10 @@
+#---------- Imports ------------#
 from enum import Enum
 from typing import List
 import datetime
+
+#-------- Magic Numbers --------#
+POUNDS_PER_KILOGRAM = 2.20462
 
 class StoreFacade:
     # singleton
@@ -19,7 +23,7 @@ class StoreFacade:
 
 
 
-# enumeration for product condition
+#---------------------productCondition Enum---------------------#
 class productCondition(Enum):
     NEW = 1
     USED = 2
@@ -27,6 +31,7 @@ class productCondition(Enum):
 productCondition = Enum('productCondition', ['NEW', 'USED'])
 
 
+#---------------------product class---------------------#
 class product:
     # id of product is productId. It is unique for each physical product
     def __init__(self, productId: int, storeId: int, specificationId: int, expirationDate: datetime,
@@ -36,7 +41,7 @@ class product:
         self.__specificationId = specificationId
         self.__expirationDate = expirationDate
         self.__condition = condition
-        self.__price = price
+        self.__price = price # price is in dollars
 
 
     #---------------------getters and setters---------------------
@@ -98,8 +103,158 @@ class product:
         '''
         return self.__expirationDate < datetime.datetime.now()
 
- 
 
+#---------------------productSpecification class---------------------#
+class productSpecification:
+    # id of product specification is specificationId. It is unique for each product specification
+    # it is assumed that weight is stored in kilograms
+    def __init__(self, specificationId: int, productName: str, weight: float, description: str, tags: List[str], manufacturer: str, storeIds: List[int] = []): 
+        self.__specificationId = specificationId
+        self.__productName = productName
+        self.__weight = weight
+        self.__description = description 
+        self.__tags = tags
+        self.__manufacturer = manufacturer
+        self.__storeIds = storeIds
+
+
+    #---------------------getters and setters---------------------
+    @property
+    def get_specificationId(self) -> int:
+        return self.__specificationId
+
+    @property
+    def set_specificationId(self, specificationId: int):
+        self.__specificationId = specificationId
+
+    @property
+    def get_productName(self) -> str:
+        return self.__productName
+
+    @property
+    def set_productName(self, productName: str):
+        self.__productName = productName
+
+    @property
+    def get_weight(self) -> float:
+        return self.__weight
+
+    @property
+    def set_weight(self, weight: float):
+        self.__weight = weight
+
+    @property
+    def get_description(self) -> str:
+        return self.__description
+
+    @property
+    def set_description(self, description: str):
+        self.__description = description
+
+    @property
+    def get_tags(self) -> List[str]:
+        return self.__tags
+
+    @property
+    def set_tags(self, tags: List[str]):
+        self.__tags = tags
+
+    @property
+    def get_manufacturer(self) -> str:
+        return self.__manufacturer
+
+    @property
+    def set_manufacturer(self, manufacturer: str):
+        self.__manufacturer = manufacturer
+
+    @property
+    def get_storeIds(self) -> List[int]:
+        return self.__storeIds
+    
+    @property
+    def set_storeIds(self, storeIds: List[int]):
+        self.__storeIds = storeIds
+
+
+    #---------------------methods-------------------------------- 
+    def addTag(self, tag: str) -> bool:
+        ''' 
+        * Parameters: tag
+        * This function adds a tag to the product specification
+        * Returns: true if successfully added tag, false otherwise
+        '''
+        if tag is not None:
+            if tag not in self.__tags:
+                self.__tags.append(tag)
+                return True
+        return False
+    
+
+    def removeTag(self, tag: str) -> bool:
+        ''' 
+        * Parameters: tag
+        * This function removes a tag from the product specification
+        * Returns: none
+        '''
+        if tag is not None:
+            if tag in self.__tags:
+                self.__tags.remove(tag)
+                return True
+        return False
+    
+
+    def hasTag(self, tag: str) -> bool:
+        ''' 
+        * Parameters: tag
+        * This function checks if the product specification has a given tag
+        * Returns: true if the product specification has the given tag, false otherwise
+        '''
+        return tag in self.__tags
+
+
+    def addStoreId(self, storeId: int) -> bool:
+        ''' 
+        * Parameters: storeId
+        * This function adds a store id to the product specification
+        * Returns: true if successfully added store id, false otherwise
+        '''
+        if storeId is not None:
+            if storeId not in self.__storeIds:
+                self.__storeIds.append(storeId)
+                return True
+        return False
+
+
+    def removeStoreId(self, storeId: int) -> bool:
+        ''' 
+        * Parameters: storeId
+        * This function removes a store id from the product specification
+        * Returns: true if successfully removed store id, false otherwise
+        '''
+        if storeId is not None:
+            if storeId in self.__storeIds:
+                self.__storeIds.remove(storeId)
+                return True
+        return False
+
+
+    def isSoldByStore(self, storeId: int) -> bool:
+        ''' 
+        * Parameters: storeId
+        * This function checks if the product specification is sold at given store
+        * Returns: true if sold by store, false otherwise
+        '''
+        return storeId in self.__storeIds
+    
+    # weight conversion from kilograms to pounds and vice versa for locations that use pounds instead of kilograms
+    def get_weight_in_pounds(self) -> float:
+        return self.__weight * POUNDS_PER_KILOGRAM   # assuming weight is in kilograms
+
+    def set_weight_in_pounds(self, weight_in_pounds: float):
+        self.__weight = weight_in_pounds / POUNDS_PER_KILOGRAM 
+    
+
+#---------------------category class---------------------#
 class category:
     # id of category is categoryId. It is unique for each category. Products are stored in either the category or found in one of its subcategories
     # important to note: a category can only have one parentcategory, and a category can't have a subcategory that is already a subcategory of a subcategory.
