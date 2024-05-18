@@ -1,26 +1,10 @@
 #---------- Imports ------------#
 from enum import Enum
-from typing import List
+from typing import List, Dict
 import datetime
 
 #-------- Magic Numbers --------#
 POUNDS_PER_KILOGRAM = 2.20462
-
-class StoreFacade:
-    # singleton
-    __instance = None
-
-    def __new__(cls):
-        if StoreFacade.__instance is None:
-            StoreFacade.__instance = object.__new__(cls)
-        return StoreFacade.__instance
-
-    def __init__(self):
-        if not hasattr(self, '_initialized'):
-            self._initialized = True
-            # here you can add fields
-
-
 
 
 #---------------------productCondition Enum---------------------#
@@ -440,18 +424,307 @@ class category:
     
     
     
+#---------------------store class---------------------#
+class store: 
+    # id of store is storeId. It is unique for each store
+    def __init__(self, storeId: int, locationId: int, storeName: str, storeFounderId: int,  
+                 isActive: bool, storeProducts: List[product] = [], discounts: List[discountStrategy] = [],
+                   purchasePolicies: List[purchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(), 
+                   ratingsOfProductSpecId: Dict[int, int] = {}):
+        self.__storeId = storeId
+        self.__locationId = locationId
+        self.__storeName = storeName
+        self.__storeFounderId = storeFounderId
+        self.__rating = 0
+        self.__isActive = isActive
+        self.__storeProducts = storeProducts
+        self.__discounts = discounts
+        self.__purchasePolicies = purchasePolicies
+        self.__foundedDate = foundedDate        
+        self.__ratingsOfProductSpecId = ratingsOfProductSpecId
+        
 
+    #---------------------getters and setters---------------------#
+    @property
+    def get_storeId(self) -> int:
+        return self.__storeId
+    
+    @property
+    def set_storeId(self, storeId: int):
+        self.__storeId = storeId
 
+    @property
+    def get_locationId(self) -> int:
+        return self.__locationId
+    
+    @property
+    def set_locationId(self, locationId: int):
+        self.__locationId = locationId
+
+    @property
+    def get_storeName(self) -> str:
+        return self.__storeName
+    
+    @property
+    def set_storeName(self, storeName: str):
+        self.__storeName = storeName
+
+    @property
+    def get_storeFounderId(self) -> int:
+        return self.__storeFounderId
+    
+    @property
+    def set_storeFounderId(self, storeFounderId: int):
+        self.__storeFounderId = storeFounderId
+
+    @property
+    def get_rating(self) -> int:
+        return self.__rating
+    
+    @property
+    def set_rating(self, rating: int):
+        self.__rating = rating
+
+    @property
+    def get_isActive(self) -> bool:
+        return self.__isActive
+    
+    @property
+    def set_isActive(self, isActive: bool):
+        self.__isActive = isActive
+
+    @property
+    def get_storeProducts(self) -> List[product]:
+        return self.__storeProducts
+    
+    @property
+    def set_storeProducts(self, storeProducts: List[product]):
+        self.__storeProducts = storeProducts
+
+    @property
+    def get_discounts(self) -> List[discountStrategy]:
+        return self.__discounts
+    
+    @property
+    def set_discounts(self, discounts: List[discountStrategy]):
+        self.__discounts = discounts
+
+    @property
+    def get_purchasePolicies(self) -> List[purchasePolicyStrategy]:
+        return self.__purchasePolicies
+    
+    @property
+    def set_purchasePolicies(self, purchasePolicies: List[purchasePolicyStrategy]):
+        self.__purchasePolicies = purchasePolicies
+
+    @property
+    def get_foundedDate(self) -> datetime:
+        return self.__foundedDate
+    
+    @property
+    def set_foundedDate(self, foundedDate: datetime):
+        self.__foundedDate = foundedDate
+
+    @property
+    def get_ratingsOfProductSpecId(self) -> Dict[int, int]:
+        return self.__ratingsOfProductSpecId
     
 
-
+    #---------------------methods--------------------------------
+    def isActive(self) -> bool:
+        ''' 
+        * Parameters: none
+        * This function checks if the store is active or not
+        * Returns: True if the store is active, False otherwise
+        '''
+        return self.__isActive
     
 
+    def closeStore(self, userId: int) -> bool:
+        ''' 
+        * Parameters: userId
+        * This function closes the store
+        * Returns: True if the store is closed, False otherwise
+        '''
+        if userId == self.__storeFounderId:
+            self.set_isActive(False)
+            return True
+        return False
+    
 
- 
+    # We assume that the marketFacade verified that the user attempting to add the product is a store Owner
+    def addProduct(self, product: product) -> bool:
+        ''' 
+        * Parameters: product
+        * This function adds a product to the store, and initializes the rating of the product to 0
+        * Returns: True if the product is added successfully, False otherwise
+        '''
+        if product is not None:
+            if product not in self.__storeProducts:
+                self.__storeProducts.append(product)
+                self.__ratingsOfProductSpecId[product.get_specificationId()] = 0
+                return True
+        return False
+    
+    # We assume that the marketFacade verified that the user attempting to remove the product is a store owner/purchased by a user
+    def removeProduct(self, product: product) -> bool:
+        ''' 
+        * Parameters: product
+        * This function removes a product from the store
+        * Returns: True if the product is removed successfully, False otherwise
+        '''
+        if product is not None:
+            if product in self.__storeProducts:
+                self.__storeProducts.remove(product)
+                return True
+        return False
 
+    # we assume that the marketFacade verified that the user has necessary permissions to add a discount    
+    def addDiscount(self, discount: discountStrategy) -> bool:
+        ''' 
+        * Parameters: discount
+        * This function adds a discount to the store
+        * Returns: True if the discount is added successfully, False otherwise
+        '''
+        if discount is not None:
+            if discount not in self.__discounts:
+                self.__discounts.append(discount)
+                return True
+        return False
+    
+    # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
+    def removeDiscount(self, discount: discountStrategy) -> bool:
+        ''' 
+        * Parameters: discount
+        * This function removes a discount from the store
+        * Returns: True if the discount is removed successfully, False otherwise
+        '''
+        if discount is not None:
+            if discount in self.__discounts:
+                self.__discounts.remove(discount)
+                return True
+        return False
+    
+
+    # we assume that the marketFacade verified that the user has necessary permissions to add a purchase policy
+    def addPurchasePolicy(self, purchasePolicy: purchasePolicyStrategy) -> bool:
+        ''' 
+        * Parameters: purchasePolicy
+        * This function adds a purchase policy to the store
+        * Returns: True if the purchase policy is added successfully, False otherwise
+        '''
+        if purchasePolicy is not None:
+            if purchasePolicy not in self.__purchasePolicies:
+                self.__purchasePolicies.append(purchasePolicy)
+                return True
+        return False
+    
+
+    # we assume that the marketFacade verified that the user has necessary permissions to remove a purchase policy
+    def removePurchasePolicy(self, purchasePolicy: purchasePolicyStrategy) -> bool:
+        ''' 
+        * Parameters: purchasePolicy
+        * This function removes a purchase policy from the store
+        * Returns: True if the purchase policy is removed successfully, False otherwise
+        '''
+        if purchasePolicy is not None:
+            if purchasePolicy in self.__purchasePolicies:
+                self.__purchasePolicies.remove(purchasePolicy)
+                return True
+        return False
+    
+
+    def updateStoreRating(self, newRating: int) -> bool:
+        ''' 
+        * Parameters: newRating
+        * This function updates the rating of the store
+        * Returns: True if the rating is updated successfully, False otherwise
+        '''
+        if newRating >= 0 and newRating <= 5:
+            self.set_rating(newRating)
+            return True
+        return False
+    
+
+    def updateProductSpecRating(self, productSpecId: int, newRating: int) -> bool:
+        ''' 
+        * Parameters: productSpecId, newRating
+        * This function updates the rating of the product
+        * Returns: True if the rating is updated successfully, False otherwise
+        '''
+        if newRating >= 0 and newRating <= 5:
+            self.__ratingsOfProductSpecId[productSpecId] = newRating
+            return True
+        return False
+    
+
+#---------------------storeFacade class---------------------#
+class StoreFacade:
+    # singleton
+    __instance = None
+
+    def __new__(cls):
+        if StoreFacade.__instance is None:
+            StoreFacade.__instance = object.__new__(cls)
+        return StoreFacade.__instance
+
+    def __init__(self):
+        if not hasattr(self, '_initialized'):
+            self._initialized = True
+            self.categories = []  # List to store categories
+            self.productSpecifications = []  # List to store product specifications
+            self.stores = []  # List to store stores
+            self.categoryIdCounter = 0  # Counter for category IDs
+            self.productSpecificationIdCounter = 0  # Counter for product specification IDs
+            self.storeIdCounter = 0  # Counter for store IDs
 
     
+    #---------------------methods--------------------------------
+    def addCategory(self, categoryName: str, parentCategoryId: int = None) -> bool:
+        ''' 
+        * Parameters: categoryName, parentCategoryId
+        * This function adds a category to the store
+        * Returns: True if the category is added successfully, False otherwise
+        '''
+        if categoryName is not None:
+            category = category(self.categoryIdCounter, categoryName, parentCategoryId)
+            self.categories.append(category)
+            self.categoryIdCounter += 1
+            return True
+        return False
+    
+
+    def removeCategory(self, categoryId: int) -> bool:
+        ''' 
+        * Parameters: categoryId
+        * This function removes a category from the store removing all connections of the category with other categories
+        * Returns: True if the category is removed successfully, False otherwise
+        '''
+        if categoryId is not None:
+            for category in self.categories:
+                if category.get_categoryId() == categoryId:
+                    for subCategory in category.get_subCategories():
+                        subCategory.removeParentCategory()
+                    if category.hasParentCategory():
+                        parentCategory = self.getCategoryById(category.get_parentCategoryId())
+                        parentCategory.removeSubCategory(category)
+                    self.categories.remove(category)
+                    return True
+        return False
+
+    def getCategoryById(self, categoryId: int) -> category:
+        ''' 
+        * Parameters: categoryId
+        * This function gets a category by its ID
+        * Returns: the category with the given ID
+        '''
+        for category in self.categories:
+            if category.get_categoryId() == categoryId:
+                return category
+        return None
+    
+    //add subCategory to category, make sure to also add the parentCategory
+
 
 
     
