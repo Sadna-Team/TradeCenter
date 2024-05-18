@@ -8,6 +8,12 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jw
 auth_bp = Blueprint('auth', __name__)
 authentication = Authentication()
 
+user_bp = Blueprint('user', __name__)
+user_facade = UserFacade()
+
+
+#---------------------------------------------------------------authentication usecase routes---------------------------------------------------------------
+
 
 @auth_bp.route('/', methods=['GET'])
 def start():
@@ -48,7 +54,7 @@ def register():
         return jsonify({'message': str(e)}), 400
 
 
-@auth_bp.route('/login', methods=['POST'])
+@user_bp.route('/', methods=['POST'])
 @jwt_required()
 def login():
     data = request.get_json()
@@ -62,15 +68,12 @@ def login():
         return jsonify({'message': str(e)}), 400
 
 
-@auth_bp.route('/logout', methods=['POST'])
+@auth_bp.route('/', methods=['POST'])
 @jwt_required()
 def logout():
     """
             Use Case 2.3.1:
             Logout a user
-
-            Data
-                token (?): token of the user
 
             Returns:
                 ?
@@ -83,3 +86,26 @@ def logout():
         return response, 200
     except Exception as e:
         return jsonify({'message': str(e)}), 400
+
+
+#---------------------------------------------------------------user usecase routes---------------------------------------------------------------
+
+
+@user_bp.route('/', methods=['GET'])
+@jwt_required()
+def show_stores_info():
+    """
+                Use Case 2.2.1.1:
+                recieve information about the stores in the market
+
+                Returns:
+                    data (str): info about the stores
+    """
+    user_id = get_jwt_identity()
+    if user_id:
+        #TODO: store facade returns default stores info
+        info = ""
+        return jsonify({'info': info}), 200
+    return jsonify({'message': 'show_stores_info -- failed'}), 400
+
+
