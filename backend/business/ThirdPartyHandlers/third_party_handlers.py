@@ -9,7 +9,7 @@ class PaymentStrategy(ABC):
         * Each pay method is an adapter for a specific external payment gateway.
     """
     @abstractmethod
-    def pay(self, amount: int) -> bool:
+    def pay(self, amount: float) -> bool:
         """
             * pay is an abstract method that should be implemented by concrete payment strategies.
             * pay should return True if the payment was successful, and False / raise exception otherwise otherwise.
@@ -17,7 +17,7 @@ class PaymentStrategy(ABC):
         pass
 
 class BogoPayment(PaymentStrategy):
-    def pay(self, amount: int) -> bool:
+    def pay(self, amount: float) -> bool:
         """
             * For testing purposes, BogoPayment always returns True.
         """
@@ -29,13 +29,13 @@ class PaymentHandler:
             * _resolve_payment_strategy is a private method that resolves a payment strategy based on the payment method.
             * _resolve_payment_strategy should return an instance of a PaymentStrategy subclass.
         """
-        method = payment_details.get("payment method")
-        if method == "bogo":
+        method = payment_details.get("payment method") # NOTE: << should make the requested value a constant >>
+        if method == "bogo": # NOTE: << should make the requested value a constant >>
             return BogoPayment()
         else:
             raise ValueError("Invalid payment method")
 
-    def process_payment(self, amount: int, payment_details: Dict) -> bool:
+    def process_payment(self, amount: float, payment_details: Dict) -> bool:
         """
             * process_payment is a method that processes a payment using the PaymentHandler's PaymentStrategy object.
             * process_payment should return True if the payment was successful, and False / raise exception otherwise.
