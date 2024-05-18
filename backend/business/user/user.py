@@ -186,6 +186,6 @@ class UserFacade:
         user = self.__get_user(user_id)
         user.remove_product_from_cart(store_id, product_id, amount)
 
-    def notify_user(self, user_id: int, msg: str) ->None:
+    def notify_user(self, user_id: int, dict: Dict) ->None:
         # TODO
         pass
