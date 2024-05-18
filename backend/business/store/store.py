@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class StoreFacade:
     # singleton
     __instance = None
@@ -11,3 +14,14 @@ class StoreFacade:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             # here you can add fields
+
+
+
+
+
+# enumeration for product condition
+class productCondition(Enum):
+    NEW = 1
+    USED = 2
+
+productCondition = Enum('productCondition', ['NEW', 'USED'])
