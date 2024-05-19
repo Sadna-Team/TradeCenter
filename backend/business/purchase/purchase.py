@@ -161,6 +161,7 @@ class Purchase(ABC):
         self.dateOfPurchase = dateOfPurchase
         self.totalPrice = totalPrice
         self.status = status
+        
  
     @abstractmethod
     def updateStatus(self, status: PurchaseStatus):
@@ -172,6 +173,10 @@ class Purchase(ABC):
 
     @abstractmethod
     def calculateTotalPrice(self) -> float:
+        pass
+    
+    @abstractmethod
+    def checkIfCompletedPurchase(self) -> bool:
         pass
 
 #-----------------ImmediateSubPurchases class-----------------#
@@ -279,9 +284,11 @@ class ImmediatePurchase(Purchase):
     # purchaseId is the unique identifier of the immediate purchase, purchase by a user of their shoppingCart
     # Note: storeId is -1 since immediatePurchase is not directly related to a store
     # Note: List[Tuple[Tuple[int,float],List[int]]] -> List of shoppingBaskets where shoppingBasket is a tuple of a tuple of storeId and totalPrice and a list of productIds
-    def __init__(self, purchaseId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, deliveryDate: datetime, shoppingCart: List[Tuple[Tuple[int,float],List[int]]], totalPriceAfterDiscounts: float = -1):
+    def __init__(self, purchaseId: int, userId: int, totalPrice: float, shoppingCart: List[Tuple[Tuple[int,float],List[int]]], totalPriceAfterDiscounts: float = -1):
+        dateOfPurchase = None #for now, it will be updated once a purchase was accepted
+        status = PurchaseStatus.onGoing #for now, it will be updated once a purchase was accepted
         super().__init__(purchaseId, userId, -1, dateOfPurchase, totalPrice, status)
-        self.deliveryDate = deliveryDate
+        self.deliveryDate = None  #for now, it will be updated once a purchase was accepted
         self.totalPriceAfterDiscounts = totalPriceAfterDiscounts
         for shoppingBasket in shoppingCart:
             self.immediateSubPurchases.append(ImmediateSubPurchases(purchaseId, userId, shoppingBasket[0][0], dateOfPurchase, shoppingBasket[0][1], status, shoppingBasket[1]))
@@ -391,7 +398,7 @@ class ImmediatePurchase(Purchase):
             totalPrice += subPurchase.calculateTotalPrice()
         return totalPrice
 
-    def calculateTotalPriceAfterDiscounts(self) -> float:
+    def calculateTotalPriceAfterDiscounts(self, discounts: List[int]) -> float: #for now discounts is not properly declared
         '''
         * Parameters: none
         * This function is responsible for calculating the total price of the products in the shoppingCart after discount
@@ -399,16 +406,52 @@ class ImmediatePurchase(Purchase):
         '''
         # call method of shoppingCart to calculate the total price of the products in the shoppingCart after discount
         return self.calculateTotalPrice() #for now not implemented
+    
+    def validatedPurchase(self, deliveryDate: datetime):
+        '''
+        * Parameters: none
+        * This function is responsible for validating that the purchase is valid
+        * Returns: none
+        '''
+        self.updateStatus(PurchaseStatus.accepted)
+        self.updateDateOfPurchase(datetime.datetime.now())
+        self.__set_deliveryDate(deliveryDate)
+        //
+        
+    def invalidPurchase(self):
+        '''
+        * Parameters: none
+        * This function is responsible for invalidating the purchase
+        * Returns: none
+        '''
+        self.updateStatus(PurchaseStatus.failed)
+        self.updateDateOfPurchase(None)
+        self.__set_deliveryDate(None)
+        //
+    
+    def checkIfCompletedPurchase(self) -> bool: #maybe later on, notify the user and ask if they received the purchase and only then we can go to completed
+        '''
+        * Parameters: none
+        * This function is responsible for checking if the purchase is completed, and updating if it is
+        * Returns: true if completed, false otherwise
+        '''
+        if self.get_status() == PurchaseStatus.accepted:
+            if self.get_deliveryDate() < datetime.datetime.now():
+                self.updateStatus(PurchaseStatus.completed)
+                return True
+        return False
+    //
 
 
 #-----------------BidPurchase class-----------------#
 class BidPurchase(Purchase):
     # purchaseId and productId are the unique identifiers for the product rating, productSpec used to retrieve the details of product   
-    def __init__(self, purchaseId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, proposedPrice: float, productId: int, productSpecId: int, storeId: int, isOfferToStore: bool = True):
-        super().__init__(purchaseId, userId,storeId ,dateOfPurchase, totalPrice, status)
+    def __init__(self, purchaseId: int, userId: int, proposedPrice: float, productId: int, productSpecId: int, storeId: int, isOfferToStore: bool = True):
+        super().__init__(purchaseId, userId,storeId, None, -1, PurchaseStatus.onGoing)
         self.proposedPrice = proposedPrice
         self.productId = productId
         self.productSpecId = productSpecId
+        self.deliveryDate = None
         self.isOfferToStore = isOfferToStore
 
 #---------------------------------Getters and Setters---------------------------------#
@@ -483,6 +526,14 @@ class BidPurchase(Purchase):
     @property
     def __set_storeId(self, storeId: int):
         self.storeId = storeId
+        
+    @property
+    def get_deliveryDate(self):
+        return self.deliveryDate
+    
+    @property
+    def __set_deliveryDate(self, deliveryDate: datetime):
+        self.deliveryDate = deliveryDate
 
     @property
     def get_isOfferToStore(self):
@@ -502,23 +553,28 @@ class BidPurchase(Purchase):
         self.__set_status(status) 
 
 
-    def StoreAcceptOffer(self):
+    def StoreAcceptOffer(self, deliveryDate: datetime, totalPrice: float):
         '''
         * Parameters: 
-        * Validate that all store owners and managers with permissions accepted the offer
+        * Validate that all store owners and managers with permissions accepted the offer and price paid and delivery works
         * Returns: none
         '''
-        self.__set_status(PurchaseStatus.accepted)
+        self.updateStatus(PurchaseStatus.accepted)
+        self.updateDateOfPurchase(datetime.datetime.now())
+        self.__set_deliveryDate(deliveryDate)
+                
 
     
-    def UseracceptOffer(self, userId: int):
+    def UseracceptOffer(self, userId: int, deliveryDate: datetime, totalPrice: float):
         '''
         * Parameters: userId
         * Function to accept the offer by the store
         * Returns: none
         '''
         if userId == self.get_userId():
-            self.__set_status(PurchaseStatus.accepted)
+            self.updateStatus(PurchaseStatus.accepted)
+            self.updateDateOfPurchase(datetime.datetime.now())
+            self.__set_deliveryDate(deliveryDate)
         
 
     def StoreRejectOffer(self):
@@ -536,7 +592,7 @@ class BidPurchase(Purchase):
         * Returns: none
         '''
         if userId == self.get_userId():
-            self.__set_status(PurchaseStatus.accepted)
+            self.__set_status(PurchaseStatus.failed)
 
 
     def StoreCounterOffer(self, counterOffer: float):
@@ -578,6 +634,19 @@ class BidPurchase(Purchase):
         * Returns: float of proposed price
         '''
         return self.get_proposedPrice()
+    
+    def checkIfCompletedPurchase(self) -> bool:
+        '''
+        * Parameters: none
+        * This function is responsible for checking if the purchase is completed, and updating if it is
+        * Returns: true if completed, false otherwise
+        '''
+        if self.get_status() == PurchaseStatus.accepted:
+            if self.get_deliveryDate() < datetime.datetime.now():
+                self.updateStatus(PurchaseStatus.completed)
+                return True
+        return False
+    //
     
 
 #-----------------AuctionPurchase class-----------------#
@@ -1078,7 +1147,7 @@ class PurchaseFacade:
                 pass
 
 
-    def createImmediatePurchase(self, userId: int, dateOfPurchase: datetime, totalPrice: float, deliveryDate: datetime, shoppingCart: List[Tuple[Tuple[int,float],List[int]]]) -> bool:
+    def createImmediatePurchase(self, userId: int, totalPrice: float, shoppingCart: List[Tuple[Tuple[int,float],List[int]]]) -> bool:
         '''
         * Parameters: userId, dateOfPurchase, deliveryDate, shoppingCart, totalPriceAfterDiscounts
         * This function is responsible for creating an immediate purchase
@@ -1086,34 +1155,31 @@ class PurchaseFacade:
         * Returns: ImmediatePurchase object
         '''
         if userId is not None: 
-            if dateOfPurchase is not None:
-                if totalPrice is not None and totalPrice >= 0:
-                    if deliveryDate is not None and deliveryDate > dateOfPurchase:
-                        if shoppingCart is not None:
-                            totalPriceAfterDiscounts = -1
-                            immediatePurchase = ImmediatePurchase(self.get_purchasesIdCounter(), userId, dateOfPurchase, totalPrice, PurchaseStatus.onGoing, deliveryDate, shoppingCart, totalPriceAfterDiscounts)
-                            self.get_purchases.append(immediatePurchase)
-                            self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
-                            return True
+            if totalPrice is not None and totalPrice >= 0:
+                if shoppingCart is not None:
+                    totalPriceAfterDiscounts = -1
+                    immediatePurchase = ImmediatePurchase(self.get_purchasesIdCounter(), userId, totalPrice, PurchaseStatus.onGoing, shoppingCart, totalPriceAfterDiscounts)
+                    self.get_purchases.append(immediatePurchase)
+                    self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
+                    return True
         return False
         
 
-    def createBidPurchase(self, userId: int, dateOfPurchase: datetime, proposedPrice: float, productId: int, productSpecId: int, storeId: int, isOfferToStore: bool = True) -> bool:
+    def createBidPurchase(self, userId: int, proposedPrice: float, productId: int, productSpecId: int, storeId: int, isOfferToStore: bool = True) -> bool:
         '''
-        * Parameters: userId, dateOfPurchase, proposedPrice, productId, productSpecId, storeId, isOfferToStore
+        * Parameters: userId, proposedPrice, productId, productSpecId, storeId, isOfferToStore
         * This function is responsible for creating a bid purchase
         * Note: totalPrice initialized as -1 until it is accepted!
         * Returns: BidPurchase object
         '''
         if userId is not None:
-            if dateOfPurchase is not None:
-                if proposedPrice is not None and proposedPrice >= 0:
-                    if productId is not None and productSpecId is not None and storeId is not None:
-                        totalPrice = -1
-                        bidPurchase = BidPurchase(self.get_purchasesIdCounter(), userId, dateOfPurchase, totalPrice, PurchaseStatus.onGoing, proposedPrice, productId, productSpecId, storeId, isOfferToStore)
-                        self.get_purchases.append(bidPurchase)
-                        self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
-                        return True
+            if proposedPrice is not None and proposedPrice >= 0:
+                if productId is not None and productSpecId is not None and storeId is not None:
+                    totalPrice = -1
+                    bidPurchase = BidPurchase(self.get_purchasesIdCounter(), userId, proposedPrice, productId, productSpecId, storeId, isOfferToStore)
+                    self.get_purchases.append(bidPurchase)
+                    self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
+                    return True
         return False
         
 
