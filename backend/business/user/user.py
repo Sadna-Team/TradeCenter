@@ -12,6 +12,7 @@ class ShoppingBasket:
         self.__store_id: int = store_id
         self.__products: Dict[int, int] = defaultdict(int)
 
+
     def add_product(self, product_id: int, amount: int) -> None:
         if amount < 0:
             raise ValueError("Amount must be positive")
@@ -218,3 +219,7 @@ class UserFacade:
             if id == user_id:
                 del self.__usernames[username]
                 break
+
+    def notify_user(self, user_id: int, dict: Dict) ->None:
+        # TODO
+        pass
