@@ -103,8 +103,6 @@ class product:
     
     
 
-
-
 #---------------------productSpecification class---------------------#
 class productSpecification:
     # id of product specification is specificationId. It is unique for each product specification
