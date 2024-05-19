@@ -4,6 +4,8 @@ from flask import current_app
 from .. import UserFacade
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from backend import bcrypt, jwt
+import redis
+
 
 
 class Authentication:
@@ -18,10 +20,12 @@ class Authentication:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             self.user_facade = UserFacade()
-            self.blacklist = set()
+            self.jwt_redis_blocklist = redis.StrictRedis(
+                host="localhost", port=6379, db=0, decode_responses=True
+            )
 
     @jwt.token_in_blocklist_loader
-    def check_if_token_in_blacklist(self, jwt_header, jwt_payload):
+    def check_if_token_in_blacklist(self, jwt_payload):
         jti = jwt_payload['jti']
         return jti in self.blacklist
 

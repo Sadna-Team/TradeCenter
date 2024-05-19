@@ -2,8 +2,8 @@ from typing import Dict
 #---------- Imports ------------#
 from enum import Enum
 from typing import List, Dict
-from store.DiscountStrategy import DiscountStrategy
-from store.PurchasePolicyStrategy import PurchasePolicyStrategy
+from .DiscountStrategy import DiscountStrategy
+from .PurchasePolicyStrategy import PurchasePolicyStrategy
 import datetime
 
 #-------- Magic Numbers --------#
@@ -704,7 +704,7 @@ class store:
                 return policy
         return None
 
-
+    """
     def checkPolicies(self, basket: shoppingBasketDTO) -> bool:
         ''' 
         * Parameters: none
@@ -715,7 +715,7 @@ class store:
             if not policy.checkConstraint(shoppingBasketDTO):
                return False
         return True #TO IMPLEMENT
-    
+    """ 
 
     def updateStoreRating(self, newRating: int) -> bool:
         ''' 
@@ -740,7 +740,7 @@ class store:
             return True
         return False
     
-
+    """
     def getTotalPriceOfBasketBeforeDiscount(self, basket: shoppingBasketDTO) -> float:
         ''' 
         * Parameters: basket
@@ -751,7 +751,7 @@ class store:
         
     def getTotalPriceOfBasketAfterDiscount(self, basket: shoppingBasketDTO) -> float:
         return self.getTotalPriceIfBasketBeforeDiscount(basket) #for now we assume that there is no discount
-
+    """
 #---------------------storeFacade class---------------------#
 class StoreFacade:
     # singleton
@@ -759,8 +759,8 @@ class StoreFacade:
 
     def __new__(cls):
         if StoreFacade.__instance is None:
-            StoreFacade.__instance = object.__new__(cls)
-        return StoreFacade.__instance
+            StoreFacade.__instance = super(StoreFacade, cls).__new__(cls)
+        return cls.__instance
 
     def __init__(self):
         if not hasattr(self, '_initialized'):
@@ -1180,10 +1180,10 @@ class StoreFacade:
 
     def updatePurchasePolicyOfStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
         pass
-
+    """
     def checkPoliciesOfStore(self, storeId: int, basket: shoppingBasketDTO) -> bool:
         return True #in the meantime
-
+    """
     def updateStoreRating(self, storeId: int, newRating: int) -> bool:
         '''
         * Parameters: storeId, newRating
@@ -1294,7 +1294,7 @@ class StoreFacade:
             if discount.getDiscountId() == discountId:
                 return discount
         return None
-
+    """
     def applyDiscounts(self, shoppingCart: ShoppingCartDTO) -> float:
         # not implemented yet
         pass
@@ -1307,6 +1307,6 @@ class StoreFacade:
 
     def getTotalPriceAfterDiscount(self, shoppingCart: ShoppingCartDTO) -> float:
         return self.getTotalPriceBeforeDiscount(shoppingCart) # not implemented yet
-        
+    """        
 
  

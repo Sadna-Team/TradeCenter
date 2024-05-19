@@ -1,7 +1,7 @@
 from . import c
 from typing import Optional, List, Dict
 import datetime
-from _collections import defaultdict
+from collections import defaultdict
 from abc import ABC, abstractmethod
 import threading
 
