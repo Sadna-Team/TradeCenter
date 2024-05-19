@@ -8,13 +8,15 @@ class PaymentStrategy(ABC):
         * Concrete implementations of PaymentStrategy should implement the pay method.
         * Each pay method is an adapter for a specific external payment gateway.
     """
+
     @abstractmethod
     def pay(self, amount: float) -> bool:
         """
             * pay is an abstract method that should be implemented by concrete payment strategies.
-            * pay should return True if the payment was successful, and False / raise exception otherwise otherwise.
+            * pay should return True if the payment was successful, and False / raise exception otherwise.
         """
         pass
+
 
 class BogoPayment(PaymentStrategy):
     def pay(self, amount: float) -> bool:
@@ -23,14 +25,15 @@ class BogoPayment(PaymentStrategy):
         """
         return True
 
+
 class PaymentHandler:
     def _resolve_payment_strategy(self, payment_details: Dict) -> PaymentStrategy:
         """
-            * _resolve_payment_strategy is a private method that resolves a payment strategy based on the payment method.
+            * _resolve_payment_strategy is a method that resolves a payment strategy based on the payment method.
             * _resolve_payment_strategy should return an instance of a PaymentStrategy subclass.
         """
-        method = payment_details.get("payment method") # NOTE: << should make the requested value a constant >>
-        if method == "bogo": # NOTE: << should make the requested value a constant >>
+        method = payment_details.get("payment method")  # NOTE: << should make the requested value a constant >>
+        if method == "bogo":  # NOTE: << should make the requested value a constant >>
             return BogoPayment()
         else:
             raise ValueError("Invalid payment method")
@@ -42,7 +45,6 @@ class PaymentHandler:
         """
         # NOTE: << should log payment here >>
         return self._resolve_payment_strategy(payment_details).pay(amount)
-        
 
 
 class SupplyStrategy(ABC):
@@ -51,13 +53,15 @@ class SupplyStrategy(ABC):
         * Concrete implementations of SupplyStrategy should implement the pay method.
         * Each pay method is an adapter for a specific external payment gateway.
     """
+
     @abstractmethod
-    def order(self, package_details: Dict, user_id: int) -> str:
+    def order(self, package_details: Dict, user_id: int) -> bool:
         """
             * order is an abstract method that should be implemented by concrete supply strategies.
             * order should return True if the order was successful, and False / raise exception otherwise.
         """
         pass
+
 
 class BogoSupply(SupplyStrategy):
     def order(self, package_details: Dict, user_id: int) -> bool:
@@ -65,7 +69,8 @@ class BogoSupply(SupplyStrategy):
             * For testing purposes, BogoSupply always returns True.
         """
         return True
-    
+
+
 class SupplyHandler:
     def _resolve_supply_strategy(self, package_details: Dict) -> SupplyStrategy:
         """
