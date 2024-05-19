@@ -128,13 +128,13 @@ class AuthenticationService:
         return self.authentication.start_guest()
 
 
-    def login(self, token, user_credentials):
+    def login(self, user_id, user_credentials):
         """
             Use Case 2.1.4:
             Login a user
 
             Args:
-                token (?): token of the user
+                user_id (?): user_id of the user
                 user_credentials (?): credentials of the user required for login
 
             Returns:
