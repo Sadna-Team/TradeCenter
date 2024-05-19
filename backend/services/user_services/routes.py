@@ -1,15 +1,17 @@
 # API endpoints and their corresponding route handlers
 
 from flask import Blueprint, request, jsonify
-from backend.business.authentication.authentication import Authentication
-from backend.business.user.user import UserFacade
+#from backend.business.authentication.authentication import Authentication
+#from backend.business.user.user import UserFacade
+from .controllers import UserService, AuthenticationService
+
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
 
 auth_bp = Blueprint('auth', __name__)
-authentication = Authentication()
+authentication = AuthenticationService()
 
 user_bp = Blueprint('user', __name__)
-user_facade = UserFacade()
+user_facade = UserService()
 
 
 #---------------------------------------------------------------authentication usecase routes---------------------------------------------------------------
@@ -24,7 +26,7 @@ def start():
                 Returns:
                     token (str): token of the guest
     """
-    user_token = authentication.start_guest()
+    user_token = authentication.guest_login()
     if user_token:
         return jsonify({'token': user_token}), 200
     return jsonify({'message': 'App start failed'}), 400
@@ -48,7 +50,7 @@ def register():
     userid = get_jwt_identity()
     register_credentials = data.get('register_credentials')
     try:
-        authentication.register_user(userid, register_credentials)
+        authentication.register(userid, register_credentials)
         return jsonify({'message': 'User registered successfully - great success'}), 201
     except Exception as e:
         return jsonify({'message': str(e)}), 400
@@ -60,9 +62,9 @@ def login():
     data = request.get_json()
     try:
         user_id = get_jwt_identity()
-        username = data.get('username')
-        password = data.get('password')
-        user_token = authentication.login_user(user_id, username, password)
+        """username = data.get('username')
+        password = data.get('password')"""
+        user_token = authentication.login(user_id, data)
         return jsonify({'message': 'OK', 'token': user_token}), 200
     except Exception as e:
         return jsonify({'message': str(e)}), 400
@@ -80,7 +82,7 @@ def logout():
     """
     try:
         jti = get_jwt()['jti']
-        authentication.logout_user(jti)
+        authentication.logout(jti)
         response = jsonify({'message': 'User logged out successfully'})
         unset_jwt_cookies(response)
         return response, 200

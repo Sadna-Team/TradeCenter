@@ -138,10 +138,8 @@ class AuthenticationService:
                 user_credentials (?): credentials of the user required for login
 
             Returns:
-                ?
+                session_token (?): token of the session
         """
-
-        
 
     pass
 
