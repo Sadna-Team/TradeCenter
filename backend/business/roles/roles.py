@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 
 class Permissions:
@@ -10,6 +10,7 @@ class Permissions:
         self.__change_discount_policy: bool = False
         self.__change_discount_types: bool = False
         self.__add_manager: bool = False
+        self.__get_bid: bool = False
 
     @property
     def add_product(self) -> bool:
@@ -35,16 +36,20 @@ class Permissions:
     def add_manager(self) -> bool:
         return self.__add_manager
 
+    @property
+    def get_bid(self) -> bool:
+        return self.__get_bid
 
-class SystemRole(ABC):
-    @abstractmethod
-    def __init__(self):
-        pass
-
-
-class SystemManager(SystemRole):
-    def __init__(self):
-        super().__init__()
+    def set_permissions(self, add_product: bool, change_purchase_policy: bool, change_purchase_types: bool,
+                        change_discount_policy: bool, change_discount_types: bool, add_manager: bool,
+                        get_bid: bool) -> None:
+        self.__add_product = add_product
+        self.__change_purchase_policy = change_purchase_policy
+        self.__change_purchase_types = change_purchase_types
+        self.__change_discount_policy = change_discount_policy
+        self.__change_discount_types = change_discount_types
+        self.__add_manager = add_manager
+        self.__get_bid = get_bid
 
 
 class StoreRole(ABC):
@@ -186,8 +191,9 @@ class RolesFacade:
             self._initialized = True
             self.__stores_to_role_tree: Dict[int, Tree] = {}  # Dict[store_id, Tree[role_id]]
             self.__stores_to_roles: Dict[int, Dict[int, StoreRole]] = {}  # Dict[store_id, Dict[role_id, StoreRole]]
-            self.__system_roles: Dict[int, SystemRole] = {}  # Dict[role_id, SystemRole]
             self.__systems_nominations: Dict[int, Nomination] = {}
+            self.__system_managers: List[int] = []
+            self.__system_admin: int = -1
 
     def add_store(self, store_id: int, owner_id: int) -> None:
         if store_id in self.__stores_to_roles:
@@ -209,26 +215,28 @@ class RolesFacade:
             if nomination.store_id == store_id:
                 del self.__systems_nominations[nomination_id]
 
-    def nominate_owner(self, store_id: int, nominator_id: int, nominee_id: int) -> None:
+    def nominate_owner(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
         self.__check_nomination_validation(store_id, nominator_id, nominee_id)
         # check that nominator is an owner
         if not isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner):
             raise ValueError("Nominator is not an owner")
         nomination = Nomination(store_id, nominator_id, nominee_id, StoreOwner())
         self.__systems_nominations[nomination.nomination_id] = nomination
+        return nomination.nomination_id
 
-    def nominate_manager(self, store_id: int, nominator_id: int, nominee_id: int) -> None:
+    def nominate_manager(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
         self.__check_nomination_validation(store_id, nominator_id, nominee_id)
         # check that nominator is an owner or that he is a manager with permissions to add a manager
         if not self.__authorized_to_add_manager(store_id, nominator_id):
             raise ValueError("Nominator is not authorized to nominate a manager")
         nomination = Nomination(store_id, nominator_id, nominee_id, StoreManager())
         self.__systems_nominations[nomination.nomination_id] = nomination
+        return nomination.nomination_id
 
     def __authorized_to_add_manager(self, store_id: int, nominator_id: int) -> bool:
         return isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner) or \
-               (isinstance(self.__stores_to_roles[store_id][nominator_id], StoreManager) and
-                self.__stores_to_roles[store_id][nominator_id].permissions.add_manager)
+            (isinstance(self.__stores_to_roles[store_id][nominator_id], StoreManager) and
+             self.__stores_to_roles[store_id][nominator_id].permissions.add_manager)
 
     def __check_nomination_validation(self, store_id: int, nominator_id: int, nominee_id: int) -> None:
         if store_id not in self.__stores_to_roles:
@@ -261,7 +269,9 @@ class RolesFacade:
             raise ValueError("Nominee id does not match the nomination")
         del self.__systems_nominations[nomination_id]
 
-    def set_manager_permissions(self, store_id: int, actor_id: int, manager_id: int, permissions: Permissions) -> None:
+    def set_manager_permissions(self, store_id: int, actor_id: int, manager_id: int, add_product: bool,
+                                change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
+                                change_discount_types: bool, add_manager: bool, get_bid: bool) -> None:
         if store_id not in self.__stores_to_roles:
             raise ValueError("Store does not exist")
         if manager_id not in self.__stores_to_roles[store_id]:
@@ -270,7 +280,9 @@ class RolesFacade:
             raise ValueError("User is not a manager")
         if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, manager_id):
             raise ValueError("Actor is not a owner/manager of the manager")
-        self.__stores_to_roles[store_id][manager_id].permissions = permissions
+        (self.__stores_to_roles[store_id][manager_id].permissions
+         .set_permissions(add_product, change_purchase_policy, change_purchase_types, change_discount_policy,
+                          change_discount_types, add_manager, get_bid))
 
     def remove_role(self, store_id: int, actor_id: int, removed_id: int) -> None:
         if store_id not in self.__stores_to_roles:
@@ -287,3 +299,28 @@ class RolesFacade:
         for user_id in removed:
             del self.__stores_to_roles[store_id][user_id]
 
+    def is_system_manager(self, user_id: int) -> bool:
+        return user_id in self.__system_managers
+
+    def add_system_manager(self, actor: int, user_id: int) -> None:
+        if not self.is_system_manager(actor):
+            raise ValueError("Actor is not a system manager")
+        self.__system_managers.append(user_id)
+
+    def remove_system_manager(self, actor: int, user_id: int) -> None:
+        if user_id == self.__system_admin:
+            raise ValueError("Cannot remove the system admin")
+        if not self.is_system_manager(actor):
+            raise ValueError("Actor is not a system manager")
+        if user_id not in self.__system_managers:
+            raise ValueError("User is not a system manager")
+        self.__system_managers.remove(user_id)
+
+    def add_admin(self, user_id: int) -> None:
+        """
+        this method should not be called (but the facade initializtion)
+        Add the first system manager to the system
+        :return:
+        """
+        self.__system_managers.append(user_id)
+        self.__system_admin = user_id

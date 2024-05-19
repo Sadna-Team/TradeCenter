@@ -5,6 +5,8 @@ from _collections import defaultdict
 from abc import ABC, abstractmethod
 import threading
 
+from .. import NotificationDTO
+
 
 class ShoppingBasket:
     # id of ShoppingBasket is (user_id, store_id)
@@ -17,6 +19,7 @@ class ShoppingBasket:
         if product_id in self.__products:
             raise ValueError("Product already exists in the basket")
         self.__products.add(product_id)
+
 
     def get_dto(self) -> List[int]:
         return list(self.__products)
@@ -69,11 +72,10 @@ class Guest(State):
 
 
 class Member(State):
-    def __init__(self, location_id: int, email: str, username, password: str, year: int, month: int, day: int,
+    def __init__(self, email: str, username, password: str, year: int, month: int, day: int,
                  phone: str) -> None:
         #  try to convert the birth
 
-        self.__locationId: int = location_id
         self.__email: str = email
         self.__username: str = username
         self.__password: str = password
@@ -84,20 +86,7 @@ class Member(State):
         return self.__password
 
 
-class NotificationDTO:
-    def __init__(self, notification_id: int, message: str, date: datetime) -> None:
-        self.__notification_id: int = notification_id
-        self.__message: str = message
-        self.__date: datetime = date
 
-    def get_notification_id(self) -> int:
-        return self.__notification_id
-
-    def get_message(self) -> str:
-        return self.__message
-
-    def get_date(self) -> datetime:
-        return self.__date
 
 
 class Notification:
@@ -130,9 +119,9 @@ class User:
     def get_shopping_cart(self) -> Dict[int, List[int]]:
         return self.__shopping_cart.get_dto()
 
-    def register(self, location_id: int, email: str, username: str, password: str, year: int, month: int, day: int,
+    def register(self, email: str, username: str, password: str, year: int, month: int, day: int,
                  phone: str) -> None:
-        self.__member = Member(location_id, email, username, password, year, month, day, phone)
+        self.__member = Member(email, username, password, year, month, day, phone)
 
     def remove_product_from_cart(self, store_id: int, product_id: int) -> None:
         self.__shopping_cart.remove_product_from_cart(store_id, product_id)
@@ -169,17 +158,23 @@ class UserFacade:
         self.__users[new_id] = user
         return new_id
 
-    def register_user(self, user_id: int, location_id: int, email: str, username: str, password: str,
+    def register_user(self, user_id: int, email: str, username: str, password: str,
                       year: int, month: int, day: int, phone: str) -> None:
         if username in self.__usernames:
             raise ValueError("Username already exists")
         if user_id not in self.__users:
             raise ValueError("User not found")
-        self.__get_user(user_id).register(location_id, email, username, password, year, month, day, phone)
+        self.__get_user(user_id).register(email, username, password, year, month, day, phone)
         self.__usernames[username] = user_id
 
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
-        return [notification.get_notification_dto() for notification in self.__get_user(user_id).get_notifications()]
+        notifications: List[NotificationDTO] = [notification.get_notification_dto()
+                                                for notification in self.__get_user(user_id).get_notifications()]
+        self.__clear_notifications(user_id)
+        return notifications
+
+    def __clear_notifications(self, user_id: int) -> None:
+        self.__get_user(user_id).get_notifications().clear()
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int) -> None:
         self.__get_user(user_id).add_product_to_basket(store_id, product_id)
@@ -212,6 +207,7 @@ class UserFacade:
                 del self.__usernames[username]
                 break
 
-    def notify_user(self, user_id: int, dict: Dict) ->None:
-        # TODO
-        pass
+    def notify_user(self, user_id: int, notification: NotificationDTO) -> None:
+        (self.__get_user(user_id).get_notifications()
+         .append(Notification(notification.get_notification_id(),
+                              notification.get_message(), notification.get_date())))

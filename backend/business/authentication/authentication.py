@@ -1,15 +1,24 @@
 import os
 from datetime import datetime, timedelta
 from flask import current_app
-from backend.business.user.user import UserFacade
+from .. import UserFacade
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from backend import bcrypt, jwt
 
 
 class Authentication:
-    def __init__(self, secret_key=None):
-        self.user_facade = UserFacade()
-        self.blacklist = set()
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Authentication, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        if not hasattr(self, '_initialized'):
+            self._initialized = True
+            self.user_facade = UserFacade()
+            self.blacklist = set()
 
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blacklist(self, jwt_header, jwt_payload):
@@ -29,14 +38,13 @@ class Authentication:
 
     def register_user(self, user_id, user_credentials):
         hashed_password = self.hash_password(user_credentials['password'])
-        location_id = user_credentials['location_id']
         email = user_credentials['email']
         username = user_credentials['username']
         year = user_credentials['year']
         month = user_credentials['month']
         day = user_credentials['day']
         phone = user_credentials['phone']
-        self.user_facade.register_user(user_id, location_id, email, username, hashed_password, year, month, day, phone)
+        self.user_facade.register_user(user_id, email, username, hashed_password, year, month, day, phone)
         # db.session.add(new_user)
         # db.session.commit()
 
