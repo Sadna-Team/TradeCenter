@@ -10,6 +10,7 @@ class ShoppingBasket:
     def __init__(self, store_id: int) -> None:
         self.__store_id: int = store_id
         self.__products: Dict[int, int] = {}
+    
 
     def add_product(self, product_id: int, amount: int) -> None:
         if amount < 0:
@@ -184,3 +185,7 @@ class UserFacade:
     def remove_product_from_cart(self, user_id: int, store_id: int, product_id: int, amount: int) -> None:
         user = self.__get_user(user_id)
         user.remove_product_from_cart(store_id, product_id, amount)
+
+    def notify_user(self, user_id: int, dict: Dict) ->None:
+        # TODO
+        pass
