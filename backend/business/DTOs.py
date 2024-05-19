@@ -15,3 +15,6 @@ class NotificationDTO:
 
     def get_date(self) -> datetime:
         return self.__date
+
+    def get(self) -> dict:
+        return {"notification_id": self.__notification_id, "message": self.__message, "date": self.__date}

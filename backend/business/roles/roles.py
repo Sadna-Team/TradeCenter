@@ -192,7 +192,8 @@ class RolesFacade:
             self.__stores_to_role_tree: Dict[int, Tree] = {}  # Dict[store_id, Tree[role_id]]
             self.__stores_to_roles: Dict[int, Dict[int, StoreRole]] = {}  # Dict[store_id, Dict[role_id, StoreRole]]
             self.__systems_nominations: Dict[int, Nomination] = {}
-            self.__system_manager_id: int = 0
+            self.__system_managers: List[int] = []
+            self.__system_admin: int = -1
 
     def add_store(self, store_id: int, owner_id: int) -> None:
         if store_id in self.__stores_to_roles:
@@ -299,4 +300,27 @@ class RolesFacade:
             del self.__stores_to_roles[store_id][user_id]
 
     def is_system_manager(self, user_id: int) -> bool:
-        return user_id == self.__system_manager_id
+        return user_id in self.__system_managers
+
+    def add_system_manager(self, actor: int, user_id: int) -> None:
+        if not self.is_system_manager(actor):
+            raise ValueError("Actor is not a system manager")
+        self.__system_managers.append(user_id)
+
+    def remove_system_manager(self, actor: int, user_id: int) -> None:
+        if user_id == self.__system_admin:
+            raise ValueError("Cannot remove the system admin")
+        if not self.is_system_manager(actor):
+            raise ValueError("Actor is not a system manager")
+        if user_id not in self.__system_managers:
+            raise ValueError("User is not a system manager")
+        self.__system_managers.remove(user_id)
+
+    def add_admin(self, user_id: int) -> None:
+        """
+        this method should not be called (but the facade initializtion)
+        Add the first system manager to the system
+        :return:
+        """
+        self.__system_managers.append(user_id)
+        self.__system_admin = user_id
