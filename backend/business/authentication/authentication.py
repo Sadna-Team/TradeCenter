@@ -7,9 +7,18 @@ from backend import bcrypt, jwt
 
 
 class Authentication:
-    def __init__(self, secret_key=None):
-        self.user_facade = UserFacade()
-        self.blacklist = set()
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Authentication, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        if not hasattr(self, '_initialized'):
+            self._initialized = True
+            self.user_facade = UserFacade()
+            self.blacklist = set()
 
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blacklist(self, jwt_header, jwt_payload):
