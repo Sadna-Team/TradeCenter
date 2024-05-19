@@ -44,19 +44,21 @@ class ThirdPartyService():
         """
         pass
 
+class PaymentService():
     def access_payment_service(self, token, payment_method, payment_details, price):
         """
             Use Case 1.3:
             Access a payment service to make a payment
 
             Args:
-                token (int): token of the user
+                token (?): token of the user
                 payment_method (?): payment method to be used
                 payment_details (?): payment details
                 price (float): price to be paid
         """
         pass
 
+class SupplyService():
     def access_supply_service(self, token, package_details, user_id):
         """
             Use Case 1.4:

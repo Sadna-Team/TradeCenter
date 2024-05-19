@@ -1,6 +1,9 @@
 # TradeCenter
 best online store for selling your products! <br/>
 
+## version
+* pip version = 24.0
+
 ## Dependencies
 ### Create Virtual Environment For Backend
 * change directory to backend
