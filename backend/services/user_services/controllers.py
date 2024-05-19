@@ -74,36 +74,24 @@ class UserService:
         """
         pass
 
-    def accept_promotion_to_owner(self, token, store_id, owner_id):
-        """
-            Use Case 2.4.3.2:
-            Accept a promotion to be store owner of a store
 
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                owner_id (int): id of the owner which proposed the promotion
-
-            Returns:
-                ?
-        """
-        pass
-
-    def accept_promotion_to_manager(self, token, store_id, manager_id, permissions):
+    def accept_promotion(self, user_id: int, nomination_id: int, accept: bool):
         """
             Use Case 2.4.6.2:
             Accept a promotion to be store manager of a store with the given permissions
 
             Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                manager_id (int): id of the manager which proposed the promotion
-                permissions (?): permissions of the manager
+                user_id (int): id of the user
+                nomination_id (int): id of the nomination
+                accept (bool): whether to accept the promotion
+
 
             Returns:
                 ?
         """
         pass
+
+
 
 
 class AuthenticationService:

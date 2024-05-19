@@ -1,6 +1,8 @@
-from user.user import UserFacade, NotificationDTO
-from store.store import StoreFacade
-from ThirdPartyHandlers.third_party_handlers import PaymentHandler
+from .user import UserFacade
+from .roles import RolesFacade
+from .DTOs import NotificationDTO
+from .store import StoreFacade
+from .ThirdPartyHandlers import PaymentHandler
 from typing import Optional, List, Dict
 import threading
 
@@ -42,6 +44,7 @@ class MarketFacade:
             self.user_facade = UserFacade()
             self.store_facade = StoreFacade()
             self.payment_handler = PaymentHandler()
+            self.roles_facade = RolesFacade()
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
@@ -79,6 +82,26 @@ class MarketFacade:
         # TODO: deliver the products
         # TODO: notify (?)
 
-    def add_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
-        # TODO:
-        pass
+    def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
+        nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
+        # TODO: different implementation later
+        self.user_facade.notify_user(-1, NotificationDTO(
+            f"You have been nominated to be the owner of store {store_id}", nomination_id))
+
+    def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_id: int):
+        nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
+        self.user_facade.notify_user(-1, NotificationDTO(
+            f"You have been nominated to be the manager of store {store_id}", nomination_id))
+
+    def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
+        if accept:
+            self.roles_facade.accept_nomination(nomination_id, user_id)
+        else:
+            self.roles_facade.decline_nomination(nomination_id, user_id)
+
+    def change_permissions(self, actor_id: int, store_id: int, manager_id: int, add_product: bool,
+                           change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
+                           change_discount_types: bool, add_manager: bool, get_bid: bool):
+        self.roles_facade.set_manager_permissions(store_id, actor_id, manager_id, add_product, change_purchase_policy,
+                                                  change_purchase_types, change_discount_policy, change_discount_types,
+                                                  add_manager, get_bid)
