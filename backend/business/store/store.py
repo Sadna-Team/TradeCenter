@@ -1,7 +1,7 @@
 from typing import Dict
 #---------- Imports ------------#
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from store.DiscountStrategy import DiscountStrategy
 from store.PurchasePolicyStrategy import PurchasePolicyStrategy
 import datetime
@@ -703,16 +703,17 @@ class store:
         return None
 
 
-    def checkPolicies(self, basket: shoppingBasketDTO) -> bool:
+    #LATER WE MIGHT HAVE TO ADD LOCATION OF USER AND DATE OF BIRTH
+    def checkPolicies(self, basket: List[int]) -> bool:
         ''' 
         * Parameters: none
         * This function checks if the purchase policies are satisfied
         * Returns: True if the purchase policies are satisfied, False otherwise
         '''
         for policy in self.__purchasePolicies:
-            if not policy.checkConstraint(shoppingBasketDTO):
+            if not policy.checkConstraint(basket):
                return False
-        return True #TO IMPLEMENT
+        return True #TO IMPLEMENT VERSION 2
     
 
     def updateStoreRating(self, newRating: int) -> bool:
@@ -739,15 +740,20 @@ class store:
         return False
     
 
-    def getTotalPriceOfBasketBeforeDiscount(self, basket: shoppingBasketDTO) -> float:
+    def getTotalPriceOfBasketBeforeDiscount(self, basket: List[int]) -> float:
         ''' 
         * Parameters: basket
         * This function calculates the total price of the basket
         * Returns: the total price of the basket
         '''
-        pass #TO IMPLEMENT
+        totalPrice = 0
+        for productId in basket:
+            product = self.getProductById(productId)
+            if product is not None:
+                totalPrice += product.get_price()
+        return totalPrice
         
-    def getTotalPriceOfBasketAfterDiscount(self, basket: shoppingBasketDTO) -> float:
+    def getTotalPriceOfBasketAfterDiscount(self, basket: List[int]) -> float:
         return self.getTotalPriceIfBasketBeforeDiscount(basket) #for now we assume that there is no discount
 
 #---------------------storeFacade class---------------------#
@@ -773,15 +779,6 @@ class StoreFacade:
             self.discountIdCounter = 0  # Counter for discount IDs
             self.productIdCounter = 0  # Counter for product IDs
 
-    def check_product_availability(self, store_id: int, product_id: int) -> bool:
-        pass
-
-    def calculate_total_price(self, basket: Dict[int, List[int]]) -> int: # store_id, product_id
-        pass
-
-    def remove_product(self, store_id:int, product_id:int) -> bool:
-        pass
-    
     #---------------------methods--------------------------------
     def addCategory(self, categoryName: str, parentCategoryId: int = None) -> bool:
         ''' 
@@ -1179,7 +1176,7 @@ class StoreFacade:
     def updatePurchasePolicyOfStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
         pass
 
-    def checkPoliciesOfStore(self, storeId: int, basket: shoppingBasketDTO) -> bool:
+    def checkPoliciesOfStore(self, storeId: int, basket: List[int]) -> bool:
         return True #in the meantime
 
     def updateStoreRating(self, storeId: int, newRating: int) -> bool:
@@ -1293,18 +1290,32 @@ class StoreFacade:
                 return discount
         return None
 
-    def applyDiscounts(self, shoppingCart: ShoppingCartDTO) -> float:
+    def applyDiscounts(self, shoppingCart: List[Tuple[int,List[int]]]) -> float:
         # not implemented yet
         pass
 
 
-    def getTotalPriceBeforeDiscount(self, shoppingCart: ShoppingCartDTO) -> float:
-        # not implemented yet
-        pass
+    def getTotalPriceBeforeDiscount(self, shoppingCart: List[Tuple[int,List[int]]]) -> float:
+        ''' 
+        * Parameters: shoppingCart
+        * This function calculates the total price of the shopping cart before applying any discounts
+        * Returns: the total price of the shopping cart before applying any discounts
+        '''
+        totalPrice = 0
+        for basket in shoppingCart:
+            store = self.getStoreById(basket[0])
+            totalPrice = store.getTotalPriceOfBasketBeforeDiscount(basket[1])
+        return totalPrice
+            
 
 
-    def getTotalPriceAfterDiscount(self, shoppingCart: ShoppingCartDTO) -> float:
-        return self.getTotalPriceBeforeDiscount(shoppingCart) # not implemented yet
+    def getTotalPriceAfterDiscount(self, shoppingCart: List[Tuple[int,List[int]]]) -> float:
+        '''
+        * Parameters: shoppingCart
+        * This function calculates the total price of the shopping cart after applying all discounts
+        * Returns: the total price of the shopping cart after applying all discounts
+        '''
+        return self.getTotalPriceBeforeDiscount(shoppingCart) # not implemented yet VERSION 2
         
 
  

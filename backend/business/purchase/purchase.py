@@ -584,7 +584,7 @@ class BidPurchase(Purchase):
 class AuctionPurchase(Purchase):
     def __init__(self, purchaseId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, 
                  status: PurchaseStatus, basePrice: float, startingDate: datetime, endingDate: datetime, 
-                 storeId: int ,productId: int, productSpecId: int, usersWithProposedPrices: list[Tuple[int, float]] = []):
+                 storeId: int ,productId: int, productSpecId: int, usersWithProposedPrices: List[Tuple[int, float]] = []):
         super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
         self.basePrice = basePrice
         self.startingDate = startingDate
@@ -688,7 +688,7 @@ class AuctionPurchase(Purchase):
         return self.usersWithProposedPrices
     
     @property
-    def __set_usersWithProposedPrices(self, usersWithProposedPrices: list[Tuple[int, float]]):
+    def __set_usersWithProposedPrices(self, usersWithProposedPrices: List[Tuple[int, float]]):
         self.usersWithProposedPrices = usersWithProposedPrices
 
     #---------------------------------Methods---------------------------------#
@@ -761,7 +761,7 @@ class AuctionPurchase(Purchase):
 #-----------------LotteryPurchase class-----------------#
 class LotteryPurchase(Purchase):
     def __init__(self, purchaseId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, 
-                 fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime,  usersWithPrices: list[Tuple[int, float]] = [], winner: int = None):
+                 fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime,  usersWithPrices: List[Tuple[int, float]] = [], winner: int = None):
         super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
         self.__fullPrice = fullPrice
         self.__productId = productId
@@ -850,7 +850,7 @@ class LotteryPurchase(Purchase):
         return self.__usersWithPrices
     
     @property
-    def __set_usersWithPrices(self, usersWithPrices: list[Tuple[int, float]]):
+    def __set_usersWithPrices(self, usersWithPrices: List[Tuple[int, float]]):
         self.__usersWithPrices = usersWithPrices
 
     @property
@@ -1084,7 +1084,7 @@ class PurchaseFacade:
         return False
         
 
-    def createAuctionPurchase(self, userId: int, dateOfPurchase: datetime, basePrice: float, startingDate: datetime, endingDate: datetime, storeId: int, productId: int, productSpecId: int, usersWithProposedPrices: list[Tuple[int, float]] = []) -> bool:
+    def createAuctionPurchase(self, userId: int, dateOfPurchase: datetime, basePrice: float, startingDate: datetime, endingDate: datetime, storeId: int, productId: int, productSpecId: int, usersWithProposedPrices: List[Tuple[int, float]] = []) -> bool:
         '''
         * Parameters: userId, dateOfPurchase, totalPrice, basePrice, startingDate, endingDate, storeId, productId, productSpecId, usersWithProposedPrices
         * This function is responsible for creating an auction purchase
@@ -1108,7 +1108,7 @@ class PurchaseFacade:
         return False
         
 
-    def createLotteryPurchase(self , userId: int, dateOfPurchase: datetime, fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime, usersWithPrices: list[Tuple[int, float]] = [], winner: int = None) -> LotteryPurchase:
+    def createLotteryPurchase(self , userId: int, dateOfPurchase: datetime, fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime, usersWithPrices: List[Tuple[int, float]] = [], winner: int = None) -> LotteryPurchase:
         '''
         * Parameters: userId, dateOfPurchase, totalPrice, fullPrice, storeId, productId, productSpecId, startingDate, endingDate, usersWithPrices, winner
         * This function is responsible for creating a lottery purchase
