@@ -15,7 +15,7 @@ class UserService:
         """
         pass
 
-    def add_product_to_basket(self, token, store_id, product_id, amount):
+    def add_product_to_basket(self, token, store_id, product_id):
         """
             Use Case 2.2.3:
             Add a product to the basket
@@ -24,7 +24,6 @@ class UserService:
                 token (?): token of the user
                 store_id (int): id of the store
                 product_id (int): id of the product to be added to the basket
-                amount (int): amount of the product to be added to the basket
 
             Returns:
                 ?
@@ -44,7 +43,7 @@ class UserService:
         """
         pass
 
-    def remove_product_from_cart(self, token, product_id, amount):
+    def remove_product_from_cart(self, token, product_id):
         """
             Use Case 2.2.4.2:
             Remove a product from the shopping cart
@@ -52,7 +51,6 @@ class UserService:
             Args:
                 token (?): token of the user
                 product_id (int): id of the product to be removed from the shopping cart
-                amount (int): amount of the product to be removed from the shopping cart
 
             Returns:
                 ?

@@ -46,10 +46,10 @@ class MarketFacade:
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
 
-    def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
+    def add_product_to_basket(self, user_id: int, store_id: int, product_id: int):
         with MarketFacade.__lock:
-            if self.store_facade.check_product_availability(store_id, product_id, amount):
-                self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
+            if self.store_facade.check_product_availability(store_id, product_id):
+                self.user_facade.add_product_to_basket(user_id, store_id, product_id)
 
     def checkout(self, user_id: int, payment_details: Dict):
         basket = self.user_facade.get_shopping_cart(user_id)
@@ -58,8 +58,8 @@ class MarketFacade:
 
             # check if the products are still available
             for store_id, products in basket.items():
-                for product_id, amount in products.items():
-                    if not self.store_facade.check_product_availability(store_id, product_id, amount):
+                for product_id in products:
+                    if not self.store_facade.check_product_availability(store_id, product_id):
                         raise ValueError(f"Product {product_id} is not available in the required amount")
 
             # charge the user
@@ -69,8 +69,8 @@ class MarketFacade:
 
             # remove the products from the store
             for store_id, products in basket.items():
-                for product_id, amount in products.items():
-                    self.store_facade.remove_product(store_id, product_id, amount)
+                for product_id in products:
+                    self.store_facade.remove_product(store_id, product_id)
 
         # clear the basket
         self.user_facade.clear_basket(user_id)

@@ -30,7 +30,7 @@ class TestUserService(unittest.TestCase):
 
     def test_add_product_to_basket(self):
         # Replace with your test case
-        self.assertFalse(self.service.add_product_to_basket('token', 'product_id', 'amount'))
+        self.assertFalse(self.service.add_product_to_basket('token', 'product_id'))
 
     def test_show_shopping_cart(self):
         # Replace with your test case
@@ -38,7 +38,7 @@ class TestUserService(unittest.TestCase):
 
     def test_remove_product_from_cart(self):
         # Replace with your test case
-        self.assertFalse(self.service.remove_product_from_cart('token', 'product_id', 'amount'))
+        self.assertFalse(self.service.remove_product_from_cart('token', 'product_id'))
 
     def test_checkout(self):
         # Replace with your test case

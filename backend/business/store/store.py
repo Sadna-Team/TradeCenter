@@ -679,13 +679,13 @@ class StoreFacade:
             self.productSpecificationIdCounter = 0  # Counter for product specification IDs
             self.storeIdCounter = 0  # Counter for store IDs
 
-    def check_product_availability(self, store_id, product_id, amount) -> bool:
+    def check_product_availability(self, store_id: int, product_id: int) -> bool:
         pass
 
-    def calculate_total_price(self, basket: Dict[int, Dict[int, int]]) -> int: # store_id, product_id, amount
+    def calculate_total_price(self, basket: Dict[int, List[int]]) -> int: # store_id, product_id
         pass
 
-    def remove_product(self, store_id, product_id, amount) -> None:
+    def remove_product(self, store_id:int, product_id:int) -> bool:
         pass
     
     #---------------------methods--------------------------------
