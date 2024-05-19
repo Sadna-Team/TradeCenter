@@ -195,5 +195,3 @@ class StoreService():
                 ?
         """
         pass
-
-    

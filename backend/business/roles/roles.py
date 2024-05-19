@@ -286,3 +286,4 @@ class RolesFacade:
         removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
         for user_id in removed:
             del self.__stores_to_roles[store_id][user_id]
+
