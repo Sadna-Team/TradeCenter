@@ -1,6 +1,7 @@
 #---------- Imports ------------#
 from enum import Enum
 from typing import List, Dict
+from store.DiscountStrategy import DiscountStrategy
 import datetime
 
 #-------- Magic Numbers --------#
@@ -428,7 +429,7 @@ class category:
 class store: 
     # id of store is storeId. It is unique for each store
     def __init__(self, storeId: int, locationId: int, storeName: str, storeFounderId: int,  
-                 isActive: bool, storeProducts: List[product] = [], discounts: List[discountStrategy] = [],
+                 isActive: bool, storeProducts: List[product] = [],
                    purchasePolicies: List[purchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(), 
                    ratingsOfProductSpecId: Dict[int, int] = {}):
         self.__storeId = storeId
@@ -438,7 +439,6 @@ class store:
         self.__rating = 0
         self.__isActive = isActive
         self.__storeProducts = storeProducts
-        self.__discounts = discounts
         self.__purchasePolicies = purchasePolicies
         self.__foundedDate = foundedDate        
         self.__ratingsOfProductSpecId = ratingsOfProductSpecId
@@ -500,14 +500,6 @@ class store:
     @property
     def set_storeProducts(self, storeProducts: List[product]):
         self.__storeProducts = storeProducts
-
-    @property
-    def get_discounts(self) -> List[discountStrategy]:
-        return self.__discounts
-    
-    @property
-    def set_discounts(self, discounts: List[discountStrategy]):
-        self.__discounts = discounts
 
     @property
     def get_purchasePolicies(self) -> List[purchasePolicyStrategy]:
@@ -578,32 +570,6 @@ class store:
                 self.__storeProducts.remove(product)
                 return True
         return False
-
-    # we assume that the marketFacade verified that the user has necessary permissions to add a discount    
-    def addDiscount(self, discount: discountStrategy) -> bool:
-        ''' 
-        * Parameters: discount
-        * This function adds a discount to the store
-        * Returns: True if the discount is added successfully, False otherwise
-        '''
-        if discount is not None:
-            if discount not in self.__discounts:
-                self.__discounts.append(discount)
-                return True
-        return False
-    
-    # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
-    def removeDiscount(self, discount: discountStrategy) -> bool:
-        ''' 
-        * Parameters: discount
-        * This function removes a discount from the store
-        * Returns: True if the discount is removed successfully, False otherwise
-        '''
-        if discount is not None:
-            if discount in self.__discounts:
-                self.__discounts.remove(discount)
-                return True
-        return False
     
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a purchase policy
@@ -671,12 +637,14 @@ class StoreFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.categories = []  # List to store categories
-            self.productSpecifications = []  # List to store product specifications
-            self.stores = []  # List to store stores
+            self.categories: List[category] = []  # List to store categories
+            self.productSpecifications: List[productSpecification] = []  # List to store product specifications
+            self.stores: List[store] = []  # List to store stores
+            self.discounts: List[DiscountStrategy] = []  # List to store discounts
             self.categoryIdCounter = 0  # Counter for category IDs
             self.productSpecificationIdCounter = 0  # Counter for product specification IDs
             self.storeIdCounter = 0  # Counter for store IDs
+            self.discountIdCounter = 0  # Counter for discount IDs
 
     
     #---------------------methods--------------------------------
@@ -730,3 +698,28 @@ class StoreFacade:
     
 
 
+    # we assume that the marketFacade verified that the user has necessary permissions to add a discount    
+    def addDiscount(self, discount: DiscountStrategy) -> bool:
+        ''' 
+        * Parameters: discount
+        * This function adds a discount to the store
+        * Returns: True if the discount is added successfully, False otherwise
+        '''
+        if discount is not None:
+            if discount not in self.__discounts:
+                self.__discounts.append(discount)
+                return True
+        return False
+    
+    # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
+    def removeDiscount(self, discount: DiscountStrategy) -> bool:
+        ''' 
+        * Parameters: discount
+        * This function removes a discount from the store
+        * Returns: True if the discount is removed successfully, False otherwise
+        '''
+        if discount is not None:
+            if discount in self.__discounts:
+                self.__discounts.remove(discount)
+                return True
+        return False
