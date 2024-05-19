@@ -2,6 +2,7 @@
 from enum import Enum
 from typing import List, Dict
 from store.DiscountStrategy import DiscountStrategy
+from store.PurchasePolicyStrategy import PurchasePolicyStrategy
 import datetime
 
 #-------- Magic Numbers --------#
@@ -243,7 +244,7 @@ class productSpecification:
 class category:
     # id of category is categoryId. It is unique for each category. Products are stored in either the category or found in one of its subcategories
     # important to note: a category can only have one parentcategory, and a category can't have a subcategory that is already a subcategory of a subcategory.
-    def __init__(self, categoryId: int, categoryName: str, parentCategoryId: int = None, categoryProducts: List[productSpecificationint] = [], subCategories: List['category'] = []):
+    def __init__(self, categoryId: int, categoryName: str, parentCategoryId: int = None, categoryProducts: List[productSpecification] = [], subCategories: List['category'] = []):
         self.__categoryId = categoryId
         self.__categoryName = categoryName
         self.__parentCategoryId = parentCategoryId
@@ -430,7 +431,7 @@ class store:
     # id of store is storeId. It is unique for each store
     def __init__(self, storeId: int, locationId: int, storeName: str, storeFounderId: int,  
                  isActive: bool, storeProducts: List[product] = [],
-                   purchasePolicies: List[purchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(), 
+                   purchasePolicies: List[PurchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(), 
                    ratingsOfProductSpecId: Dict[int, int] = {}):
         self.__storeId = storeId
         self.__locationId = locationId
@@ -502,11 +503,11 @@ class store:
         self.__storeProducts = storeProducts
 
     @property
-    def get_purchasePolicies(self) -> List[purchasePolicyStrategy]:
+    def get_purchasePolicies(self) -> List[PurchasePolicyStrategy]:
         return self.__purchasePolicies
     
     @property
-    def set_purchasePolicies(self, purchasePolicies: List[purchasePolicyStrategy]):
+    def set_purchasePolicies(self, purchasePolicies: List[PurchasePolicyStrategy]):
         self.__purchasePolicies = purchasePolicies
 
     @property
@@ -520,6 +521,10 @@ class store:
     @property
     def get_ratingsOfProductSpecId(self) -> Dict[int, int]:
         return self.__ratingsOfProductSpecId
+    
+    @property
+    def set_ratingsOfProductSpecId(self, ratingsOfProductSpecId: Dict[int, int]):
+        self.__ratingsOfProductSpecId = ratingsOfProductSpecId
     
 
     #---------------------methods--------------------------------
@@ -573,7 +578,7 @@ class store:
     
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a purchase policy
-    def addPurchasePolicy(self, purchasePolicy: purchasePolicyStrategy) -> bool:
+    def addPurchasePolicy(self, purchasePolicy: PurchasePolicyStrategy) -> bool:
         ''' 
         * Parameters: purchasePolicy
         * This function adds a purchase policy to the store
@@ -587,7 +592,7 @@ class store:
     
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a purchase policy
-    def removePurchasePolicy(self, purchasePolicy: purchasePolicyStrategy) -> bool:
+    def removePurchasePolicy(self, purchasePolicy: PurchasePolicyStrategy) -> bool:
         ''' 
         * Parameters: purchasePolicy
         * This function removes a purchase policy from the store
@@ -598,6 +603,23 @@ class store:
                 self.__purchasePolicies.remove(purchasePolicy)
                 return True
         return False
+    
+
+    def updatePurchasePolicy(self, purchasePolicy: PurchasePolicyStrategy) -> bool:
+        # not implemented yet
+        pass
+
+
+    def checkPolicies(self, basket: shoppingBasket) -> bool:
+        ''' 
+        * Parameters: none
+        * This function checks if the purchase policies are satisfied
+        * Returns: True if the purchase policies are satisfied, False otherwise
+        '''
+        for policy in self.__purchasePolicies:
+            if not policy.checkConstraint(shoppingBasket):
+               return False
+        return True
     
 
     def updateStoreRating(self, newRating: int) -> bool:
@@ -644,8 +666,6 @@ class StoreFacade:
             self.categoryIdCounter = 0  # Counter for category IDs
             self.productSpecificationIdCounter = 0  # Counter for product specification IDs
             self.storeIdCounter = 0  # Counter for store IDs
-            self.discountIdCounter = 0  # Counter for discount IDs
-
     
     #---------------------methods--------------------------------
     def addCategory(self, categoryName: str, parentCategoryId: int = None) -> bool:
@@ -710,7 +730,8 @@ class StoreFacade:
                 self.__discounts.append(discount)
                 return True
         return False
-    
+
+
     # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
     def removeDiscount(self, discount: DiscountStrategy) -> bool:
         ''' 
@@ -723,3 +744,14 @@ class StoreFacade:
                 self.__discounts.remove(discount)
                 return True
         return False
+
+
+    def updateDiscount(self, discount: DiscountStrategy) -> bool:
+        # not implemented yet
+        pass
+
+    def applyDiscounts(self, shoppingCart: ShoppingCart) -> bool:
+        # not implemented yet
+        pass
+
+    

@@ -2,11 +2,12 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 
-#--------------- Discount class ---------------#
+#--------------- PurchasePolicyStrategy class ---------------#
 class PurchasePolicyStrategy(ABC):
     # interface responsible for representing discounts in general. discountId unique verifier.
-    def __init__(self, purchasePolicyId: int):
+    def __init__(self, purchasePolicyId: int, storeId: int):
         self.purchasePolicyId = purchasePolicyId
+        self.storeId = storeId
       
 
     @abstractmethod
