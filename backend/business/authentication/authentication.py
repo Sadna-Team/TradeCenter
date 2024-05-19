@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from flask import current_app
-from backend.business.user.user import UserFacade
+from .. import UserFacade
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from backend import bcrypt, jwt
 

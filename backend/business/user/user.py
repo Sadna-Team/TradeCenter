@@ -5,13 +5,14 @@ from _collections import defaultdict
 from abc import ABC, abstractmethod
 import threading
 
+from .. import NotificationDTO
+
 
 class ShoppingBasket:
     # id of ShoppingBasket is (user_id, store_id)
     def __init__(self, store_id: int) -> None:
         self.__store_id: int = store_id
         self.__products: Dict[int, int] = defaultdict(int)
-
 
     def add_product(self, product_id: int, amount: int) -> None:
         if amount < 0:
@@ -92,20 +93,7 @@ class Member(State):
         return self.__password
 
 
-class NotificationDTO:
-    def __init__(self, notification_id: int, message: str, date: datetime) -> None:
-        self.__notification_id: int = notification_id
-        self.__message: str = message
-        self.__date: datetime = date
 
-    def get_notification_id(self) -> int:
-        return self.__notification_id
-
-    def get_message(self) -> str:
-        return self.__message
-
-    def get_date(self) -> datetime:
-        return self.__date
 
 
 class Notification:
@@ -187,7 +175,13 @@ class UserFacade:
         self.__usernames[username] = user_id
 
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
-        return [notification.get_notification_dto() for notification in self.__get_user(user_id).get_notifications()]
+        notifications: List[NotificationDTO] = [notification.get_notification_dto()
+                                                for notification in self.__get_user(user_id).get_notifications()]
+        self.__clear_notifications(user_id)
+        return notifications
+
+    def __clear_notifications(self, user_id: int) -> None:
+        self.__get_user(user_id).get_notifications().clear()
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, amount: int) -> None:
         self.__get_user(user_id).add_product_to_basket(store_id, product_id, amount)
@@ -220,6 +214,7 @@ class UserFacade:
                 del self.__usernames[username]
                 break
 
-    def notify_user(self, user_id: int, dict: Dict) ->None:
-        # TODO
-        pass
+    def notify_user(self, user_id: int, notification: NotificationDTO) -> None:
+        (self.__get_user(user_id).get_notifications()
+         .append(Notification(notification.get_notification_id(),
+                              notification.get_message(), notification.get_date())))

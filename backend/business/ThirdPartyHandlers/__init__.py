@@ -1,4 +1,1 @@
-from currency_converter import CurrencyConverter
-
-# Initialize CurrencyConverter object
-c = CurrencyConverter()
+from .third_party_handlers import PaymentHandler, SupplyHandler
