@@ -17,6 +17,16 @@ class DiscountStrategy(ABC):
     def calculate_discount(self, price: float) -> float:
         pass
 
+    @abstractmethod 
+    def changeDiscountPercentage(self, newpercentage: float) -> None:
+        pass
+
+    @abstractmethod
+    def changeDiscountDescription(self, newDescription: str) -> None:
+        pass
+
+
+
 
 class categoryDiscount(DiscountStrategy):
     # not implemented at this version
@@ -37,7 +47,7 @@ class productDiscount(DiscountStrategy):
         return self.discountId
     
     @property
-    def setDiscountId(self, discountId):
+    def __setDiscountId(self, discountId):
         self.discountId = discountId
 
     @property
@@ -45,7 +55,7 @@ class productDiscount(DiscountStrategy):
         return self.discountDescription
     
     @property 
-    def setDiscountDescription(self, discountDescription):
+    def __setDiscountDescription(self, discountDescription):
         self.discountDescription = discountDescription
 
     @property
@@ -53,7 +63,7 @@ class productDiscount(DiscountStrategy):
         return self.startingDate
     
     @property
-    def setStartingDate(self, startingDate):
+    def __setStartingDate(self, startingDate):
         self.startingDate = startingDate
 
     @property
@@ -61,7 +71,7 @@ class productDiscount(DiscountStrategy):
         return self.endingDate
     
     @property
-    def setEndingDate(self, endingDate):
+    def __setEndingDate(self, endingDate):
         self.endingDate = endingDate
 
     @property
@@ -69,7 +79,7 @@ class productDiscount(DiscountStrategy):
         return self.percentage
     
     @property
-    def setPercentage(self, percentage):
+    def __setPercentage(self, percentage):
         self.percentage = percentage
 
     @property
@@ -77,7 +87,7 @@ class productDiscount(DiscountStrategy):
         return self.product_id
     
     @property
-    def setProduct_id(self, product_id):
+    def __setProduct_id(self, product_id):
         self.product_id = product_id
 
 
@@ -91,3 +101,24 @@ class productDiscount(DiscountStrategy):
             return price - price * self.percentage
         return price
     
+    def changeDiscountPercentage(self, newpercentage: float) -> bool:
+        '''
+        * Parameters: newpercentage in float
+        * This function is responsible for changing the discount percentage.
+        * Returns: None
+        '''
+        if newpercentage < 0 or newpercentage > 1:
+            return False
+        self.__setPercentage(newpercentage)
+        return True
+
+
+    def changeDiscountDescription(self, newDescription: str) -> bool:
+        '''
+        * Parameters: newDescription in str
+        * This function is responsible for changing the discount description.
+        * Returns: None
+        '''
+        self.__setDiscountDescription(newDescription)
+        return True
+

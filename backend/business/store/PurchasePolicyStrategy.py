@@ -12,7 +12,7 @@ class PurchasePolicyStrategy(ABC):
 
     @abstractmethod
     def checkConstraint(self) -> bool:
-        pass
+        return True #in the meantime
 
 
 class locationPurchasePolicy(PurchasePolicyStrategy):
