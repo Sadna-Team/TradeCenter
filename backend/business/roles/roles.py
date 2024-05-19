@@ -10,6 +10,7 @@ class Permissions:
         self.__change_discount_policy: bool = False
         self.__change_discount_types: bool = False
         self.__add_manager: bool = False
+        self.__get_bid: bool = False
 
     @property
     def add_product(self) -> bool:
@@ -34,6 +35,10 @@ class Permissions:
     @property
     def add_manager(self) -> bool:
         return self.__add_manager
+
+    @property
+    def get_bid(self) -> bool:
+        return self.__get_bid
 
 
 class SystemRole(ABC):
@@ -286,4 +291,8 @@ class RolesFacade:
         removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
         for user_id in removed:
             del self.__stores_to_roles[store_id][user_id]
+
+    def add_system_manger(self, user_id: int):
+        self.__system_roles[user_id] = SystemManager()
+
 
