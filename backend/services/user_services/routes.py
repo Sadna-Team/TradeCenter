@@ -79,6 +79,7 @@ def login():
         return jsonify({'message': str(e)}), 400
 
 
+
 @auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
