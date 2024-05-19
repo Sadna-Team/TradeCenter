@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 import numpy as np
-from np.random import choice
+from numpy.random import choice
 from typing import List, Tuple
 import concurrent.futures
 
@@ -23,7 +23,7 @@ class Rating(ABC):
 
 
 #-----------------StoreRating class-----------------#
-class StoreRating(Rating):
+class StoreRating(Rating): 
     # purchaseId and storeId are the unique identifiers for the store rating, storeId used to retrieve the details of store
     def __init__(self, rating: int, purchaseId: int, description: str, storeId: int, creationDate: datetime = datetime.datetime.now()):
         super().__init__(rating, purchaseId, description, creationDate)
@@ -175,7 +175,7 @@ class Purchase(ABC):
         pass
 
 #-----------------ImmediateSubPurchases class-----------------#
-class immediateSubPurchases(Purchase):
+class ImmediateSubPurchases(Purchase):
     # purchaseId and storeId are unique identifier of the immediate purchase, storeId used to retrieve the details of the store
     def __init__(self, purchaseId: int, storeId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, productIds: List[int]):
         super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
@@ -284,7 +284,7 @@ class ImmediatePurchase(Purchase):
         self.deliveryDate = deliveryDate
         self.totalPriceAfterDiscounts = totalPriceAfterDiscounts
         for shoppingBasket in shoppingCart:
-            self.immediateSubPurchases.append(immediateSubPurchases(purchaseId, userId, shoppingBasket[0][0], dateOfPurchase, shoppingBasket[0][1], status, shoppingBasket[1]))
+            self.immediateSubPurchases.append(ImmediateSubPurchases(purchaseId, userId, shoppingBasket[0][0], dateOfPurchase, shoppingBasket[0][1], status, shoppingBasket[1]))
 
 
 
@@ -359,7 +359,7 @@ class ImmediatePurchase(Purchase):
         return self.immediateSubPurchases
     
     @property
-    def __set_immediateSubPurchases(self, immediateSubPurchases: List[immediateSubPurchases]):
+    def __set_immediateSubPurchases(self, immediateSubPurchases: List[ImmediateSubPurchases]):
         self.immediateSubPurchases = immediateSubPurchases
 
     #---------------------------------Methods---------------------------------#
@@ -584,7 +584,7 @@ class BidPurchase(Purchase):
 class AuctionPurchase(Purchase):
     def __init__(self, purchaseId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, 
                  status: PurchaseStatus, basePrice: float, startingDate: datetime, endingDate: datetime, 
-                 storeId: int ,productId: int, productSpecId: int, usersWithProposedPrices: list[Tuple[int, float]] = []):
+                 storeId: int ,productId: int, productSpecId: int, usersWithProposedPrices: List[Tuple[int, float]] = []):
         super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
         self.basePrice = basePrice
         self.startingDate = startingDate
@@ -688,7 +688,7 @@ class AuctionPurchase(Purchase):
         return self.usersWithProposedPrices
     
     @property
-    def __set_usersWithProposedPrices(self, usersWithProposedPrices: list[Tuple[int, float]]):
+    def __set_usersWithProposedPrices(self, usersWithProposedPrices: List[Tuple[int, float]]):
         self.usersWithProposedPrices = usersWithProposedPrices
 
     #---------------------------------Methods---------------------------------#
@@ -761,7 +761,7 @@ class AuctionPurchase(Purchase):
 #-----------------LotteryPurchase class-----------------#
 class LotteryPurchase(Purchase):
     def __init__(self, purchaseId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, 
-                 fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime,  usersWithPrices: list[Tuple[int, float]] = [], winner: int = None):
+                 fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime,  usersWithPrices: List[Tuple[int, float]] = [], winner: int = None):
         super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
         self.__fullPrice = fullPrice
         self.__productId = productId
@@ -850,7 +850,7 @@ class LotteryPurchase(Purchase):
         return self.__usersWithPrices
     
     @property
-    def __set_usersWithPrices(self, usersWithPrices: list[Tuple[int, float]]):
+    def __set_usersWithPrices(self, usersWithPrices: List[Tuple[int, float]]):
         self.__usersWithPrices = usersWithPrices
 
     @property
@@ -1024,26 +1024,59 @@ class PurchaseFacade:
 
 #-----------------Purchases in general-----------------#
 
-    def handleImmediatePurchase(self):
-        #CURRENTLY NOT IMPLEMENTED
-        pass
-
-    def handleBidPurchase():
-        #CURRENTLY NOT IMPLEMENTED
-        pass        
-
-    def handleAuctionPurchase():
-        #CURRENTLY NOT IMPLEMENTED
-        pass
-
-    def handleLotteryPurchase():
-        #CURRENTLY NOT IMPLEMENTED
-        pass        
+    def handleImmediatePurchase(self, purchase: ImmediatePurchase):
+        '''
+        * Parameters: none
+        * This function is responsible for handling all immediate purchases
+        * Returns: none
+        '''
         
-    def handlePurchases():
-        #CURRENTLY NOT IMPLEMENTED
-        pass
-    
+        
+        
+
+    def handleBidPurchase(self, purchase: BidPurchase):
+        '''
+        * Parameters: none
+        * This function is responsible for handling all bid purchases
+        * Returns: none
+        '''
+        
+
+    def handleAuctionPurchase(self, purchase: AuctionPurchase):
+        '''
+        * Parameters: none
+        * This function is responsible for handling all auction purchases
+        * Returns: none
+        '''
+
+    def handleLotteryPurchase(self, purchase: LotteryPurchase):
+        '''
+        * Parameters: none
+        * This function is responsible for handling all lottery purchases
+        * Returns: none
+        '''
+        
+        
+        
+    def handlePurchases(self): 
+        '''
+        * Parameters: none
+        * This function is responsible for handling all purchases
+        * Returns: none
+        '''        
+        for purchase in self.get_purchases():
+            if purchase is ImmediatePurchase:
+                self.handleImmediatePurchase(purchase)
+            elif purchase is BidPurchase:
+                self.handleBidPurchase(purchase)
+            elif purchase is AuctionPurchase:
+                self.handleAuctionPurchase(purchase)
+            elif purchase is LotteryPurchase:
+                self.handleLotteryPurchase(purchase)
+            else:
+                #log.error("this should not happen")
+                pass
+
 
     def createImmediatePurchase(self, userId: int, dateOfPurchase: datetime, totalPrice: float, deliveryDate: datetime, shoppingCart: List[Tuple[Tuple[int,float],List[int]]]) -> bool:
         '''
@@ -1084,7 +1117,7 @@ class PurchaseFacade:
         return False
         
 
-    def createAuctionPurchase(self, userId: int, dateOfPurchase: datetime, basePrice: float, startingDate: datetime, endingDate: datetime, storeId: int, productId: int, productSpecId: int, usersWithProposedPrices: list[Tuple[int, float]] = []) -> bool:
+    def createAuctionPurchase(self, userId: int, dateOfPurchase: datetime, basePrice: float, startingDate: datetime, endingDate: datetime, storeId: int, productId: int, productSpecId: int, usersWithProposedPrices: List[Tuple[int, float]] = []) -> bool:
         '''
         * Parameters: userId, dateOfPurchase, totalPrice, basePrice, startingDate, endingDate, storeId, productId, productSpecId, usersWithProposedPrices
         * This function is responsible for creating an auction purchase
@@ -1108,7 +1141,7 @@ class PurchaseFacade:
         return False
         
 
-    def createLotteryPurchase(self , userId: int, dateOfPurchase: datetime, fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime, usersWithPrices: list[Tuple[int, float]] = [], winner: int = None) -> LotteryPurchase:
+    def createLotteryPurchase(self , userId: int, dateOfPurchase: datetime, fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime, usersWithPrices: List[Tuple[int, float]] = [], winner: int = None) -> LotteryPurchase:
         '''
         * Parameters: userId, dateOfPurchase, totalPrice, fullPrice, storeId, productId, productSpecId, startingDate, endingDate, usersWithPrices, winner
         * This function is responsible for creating a lottery purchase
