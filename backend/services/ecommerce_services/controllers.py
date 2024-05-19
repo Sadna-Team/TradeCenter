@@ -46,8 +46,6 @@ class PurchaseService:
         """
         pass
 
-
-class SearchService:
     def search_products(self, token, filters):
         """
             Use Case 2.2.2.1:

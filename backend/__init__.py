@@ -24,7 +24,12 @@ def create_app():
     market_facade = MarketFacade()
 
     from services.user_services.routes import auth_bp, user_bp
+    from services.ecommerce_services.routes import market_bp
+    from services.store_services.routes import store_bp
+
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(user_bp, url_prefix='/user')
+    app.register_blueprint(market_bp, url_prefix='/market')
+    app.register_blueprint(store_bp, url_prefix='/store')
 
     return app

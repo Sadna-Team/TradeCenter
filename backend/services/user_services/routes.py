@@ -3,7 +3,7 @@
 from flask import Blueprint, request, jsonify
 from backend.business.authentication.authentication import Authentication
 from backend.business.user.user import UserFacade
-from backend.business.market import MarketFacade
+
 
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
 
@@ -12,9 +12,6 @@ authentication_facade = Authentication()
 
 user_bp = Blueprint('user', __name__)
 user_facade = UserFacade()
-
-market_bp = Blueprint('market', __name__)
-market_facade = MarketFacade()
 
 
 #---------------------------------------------------------------authentication usecase routes---------------------------------------------------------------
@@ -42,7 +39,7 @@ def register():
         Use Case 2.1.3:
         Register a new user
 
-        Args:
+        Data:
             user_id (int): id of the user
             register_credentials (?): credentials of the new user required for registration
 
@@ -53,7 +50,7 @@ def register():
     register_credentials = data.get('register_credentials')
     try:
         userid = get_jwt_identity()
-        authentication_facade.register(userid, register_credentials)
+        authentication_facade.register_user(userid, register_credentials)
         return jsonify({'message': 'User registered successfully - great success'}), 201
     except Exception as e:
         return jsonify({'message': str(e)}), 400
@@ -67,8 +64,8 @@ def login():
         Login a user
 
         Data:
-            user_id (?): user_id of the user
-            user_credentials (?): credentials of the user required for login
+            username ()str: the username of the user
+            password (str): the password of the user
 
         Returns:
             session_token (?): token of the session
@@ -76,9 +73,9 @@ def login():
     data = request.get_json()
     try:
         user_id = get_jwt_identity()
-        """username = data.get('username')
-        password = data.get('password')"""
-        user_token = authentication_facade.login(user_id, data)
+        username = data.get('username')
+        password = data.get('password')
+        user_token = authentication_facade.login_user(user_id, username, password)
         return jsonify({'message': 'OK', 'token': user_token}), 200
     except Exception as e:
         return jsonify({'message': str(e)}), 400
@@ -155,66 +152,5 @@ def show_cart():
         user_id = get_jwt_identity()
         shopping_cart = user_facade.get_shopping_cart(user_id)
         return jsonify({'message': shopping_cart}), 200
-    except Exception as e:
-        return jsonify({'message': str(e)}), 400
-
-
-@market_bp.route('/checkout', methods=['GET'])
-@jwt_required()
-def checkout():
-    try:
-        user_id = get_jwt_identity()
-        data = request.get_json()
-        payment_details = data['payment_details']
-        market_facade.checkout(user_id, payment_details)
-        return jsonify({'message': 'successfully checked out'}), 200
-    except Exception as e:
-        return jsonify({'message': str(e)}), 400
-
-
-@user_bp.route('/promotion', methods=['POST'])
-@jwt_required()
-def accept_promotion():
-    """
-        Use Case 2.4.6.2:
-        Accept a promotion to be store manager of a store with the given permissions
-
-        Args:
-            user_id (int): id of the user
-            nomination_id (int): id of the nomination
-            accept (bool): whether to accept the promotion
-
-
-        Returns:
-            ?
-    """
-    try:
-        user_id = get_jwt_identity()
-        data = request.get_json()
-        nomination_id = data['nomination_id']
-        accept = data['accept']
-        user_facade.accept_promotion(user_id, nomination_id, accept)
-        return jsonify({'message': 'decision registered'}), 200
-    except Exception as e:
-        return jsonify({'message': str(e)}), 400
-
-
-@user_bp.route('/change_permissions', methods=['POST'])
-@jwt_required()
-def change_permissions():
-    try:
-        user_id = get_jwt_identity()
-        data = request.get_json()
-        store_id = data['store_id']
-        manager_id = data['manager_id']
-        add_product = data['add_product']
-        remove_product = data['remove_product']
-        edit_product = data['edit_product']
-        appoint_owner = data['appoint_owner']
-        appoint_manager = data['appoint_manager']
-        remove_owner = data['remove_owner']
-        remove_manager = data['remove_manager']
-        user_facade.change_admin_permissions(user_id, store_id, manager_id, add_product, remove_product, edit_product, appoint_owner, appoint_manager, remove_owner, remove_manager)
-        return jsonify({'message': 'changed permissions'}), 200
     except Exception as e:
         return jsonify({'message': str(e)}), 400

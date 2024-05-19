@@ -38,14 +38,13 @@ class Authentication:
 
     def register_user(self, user_id, user_credentials):
         hashed_password = self.hash_password(user_credentials['password'])
-        location_id = user_credentials['location_id']
         email = user_credentials['email']
         username = user_credentials['username']
         year = user_credentials['year']
         month = user_credentials['month']
         day = user_credentials['day']
         phone = user_credentials['phone']
-        self.user_facade.register_user(user_id, location_id, email, username, hashed_password, year, month, day, phone)
+        self.user_facade.register_user(user_id, email, username, hashed_password, year, month, day, phone)
         # db.session.add(new_user)
         # db.session.commit()
 
