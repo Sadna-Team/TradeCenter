@@ -15,16 +15,16 @@ class PurchasePolicyStrategy(ABC):
         return True #in the meantime
 
 
-class locationPurchasePolicy(PurchasePolicyStrategy):
+class LocationPurchasePolicy(PurchasePolicyStrategy):
     # not implemented at this version
     pass
 
 
-class agePurchasePolicy(PurchasePolicyStrategy):
+class AgePurchasePolicy(PurchasePolicyStrategy):
     # not implemented at this version
     pass
 
-class maxBulkPurchasePolicy(PurchasePolicyStrategy):
+class MaxBulkPurchasePolicy(PurchasePolicyStrategy):
     # not implemented at this version
     pass
 

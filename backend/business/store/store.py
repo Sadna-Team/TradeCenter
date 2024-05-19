@@ -19,7 +19,7 @@ ProductCondition = Enum('ProductCondition', ['NEW', 'USED'])
 
 
 #---------------------product class---------------------#
-class product:
+class Product:
     # id of product is productId. It is unique for each physical product
     def __init__(self, productId: int, storeId: int, specificationId: int, expirationDate: datetime,
                 condition: ProductCondition, price: float):
@@ -104,7 +104,7 @@ class product:
     
 
 #---------------------productSpecification class---------------------#
-class productSpecification:
+class ProductSpecification:
     # id of product specification is specificationId. It is unique for each product specification
     # it is assumed that weight is stored in kilograms
     def __init__(self, specificationId: int, productName: str, weight: float, description: str, tags: List[str], manufacturer: str, storeIds: List[int] = []): 
@@ -299,10 +299,10 @@ class productSpecification:
     
 
 #---------------------category class---------------------#
-class category:
+class Category:
     # id of category is categoryId. It is unique for each category. Products are stored in either the category or found in one of its subcategories
     # important to note: a category can only have one parentcategory, and a category can't have a subcategory that is already a subcategory of a subcategory.
-    def __init__(self, categoryId: int, categoryName: str, parentCategoryId: int = None, categoryProducts: List[productSpecification] = [], subCategories: List['category'] = []):
+    def __init__(self, categoryId: int, categoryName: str, parentCategoryId: int = None, categoryProducts: List[ProductSpecification] = [], subCategories: List['Category'] = []):
         self.__categoryId = categoryId
         self.__categoryName = categoryName
         self.__parentCategoryId = parentCategoryId
@@ -337,19 +337,19 @@ class category:
         self.__parentCategoryId = parentCategoryId
 
     @property
-    def get_categoryProducts(self) -> List[productSpecification]:
+    def get_categoryProducts(self) -> List[ProductSpecification]:
         return self.__categoryProducts
     
     @property
-    def __set_categoryProducts(self, categoryProducts: List[productSpecification]):
+    def __set_categoryProducts(self, categoryProducts: List[ProductSpecification]):
         self.__categoryProducts = categoryProducts
 
     @property
-    def get_subCategories(self) -> List['category']:
+    def get_subCategories(self) -> List['Category']:
         return self.__subCategories
     
     @property
-    def __set_subCategories(self, subCategories: List['category']):
+    def __set_subCategories(self, subCategories: List['Category']):
         self.__subCategories = subCategories
 
     
@@ -375,7 +375,7 @@ class category:
             self.set_parentCategoryId(None)
 
 
-    def addSubCategory(self, subCategory: 'category') -> bool:
+    def addSubCategory(self, subCategory: 'Category') -> bool:
         ''' 
         * Parameters: subCategory
         * This function adds a sub category to the category and adds the current category as the parent category of the sub category
@@ -392,7 +392,7 @@ class category:
         return False
     
 
-    def removeSubCategory(self, subCategory: 'category') -> bool:
+    def removeSubCategory(self, subCategory: 'Category') -> bool:
         ''' 
         * Parameters: subCategory
         * This function removes a sub category from the category and removes the current category as the parent category of the sub category
@@ -407,7 +407,7 @@ class category:
         return False
     
 
-    def isParentCategory(self, category: 'category') -> bool:
+    def isParentCategory(self, category: 'Category') -> bool:
         ''' 
         * Parameters: category
         * This function checks that the given category is the parent category of the current category
@@ -416,7 +416,7 @@ class category:
         return self.__parentCategoryId == category.get_categoryId()
     
 
-    def isSubCategory(self, category: 'category') -> bool:
+    def isSubCategory(self, category: 'Category') -> bool:
         ''' 
         * Parameters: category
         * This function checks that the given category is the sub category of the current category
@@ -433,7 +433,7 @@ class category:
         return self.__parentCategoryId is not None
 
     
-    def addProductToCategory(self, product: productSpecification) -> bool:
+    def addProductToCategory(self, product: ProductSpecification) -> bool:
         ''' 
         * Parameters: product
         * This function adds a product to the category
@@ -446,7 +446,7 @@ class category:
         return False
     
 
-    def removeProductFromCategory(self, product: productSpecification) -> bool:
+    def removeProductFromCategory(self, product: ProductSpecification) -> bool:
         ''' 
         * Parameters: product
         * This function removes a product from the category
@@ -459,7 +459,7 @@ class category:
             return False
     
     
-    def getAllProductsRecursively(self) -> List[productSpecification]:
+    def getAllProductsRecursively(self) -> List[ProductSpecification]:
         ''' 
         * Parameters: none
         * This function returns all the products in the category and its sub categories recursively
@@ -485,10 +485,10 @@ class category:
     
     
 #---------------------store class---------------------#
-class store: 
+class Store: 
     # id of store is storeId. It is unique for each store
     def __init__(self, storeId: int, locationId: int, storeName: str, storeFounderId: int,  
-                 isActive: bool, storeProducts: List[product] = [],
+                 isActive: bool, storeProducts: List[Product] = [],
                    purchasePolicies: List[PurchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(), 
                    ratingsOfProductSpecId: Dict[int, int] = {}):
         self.__storeId = storeId
@@ -553,11 +553,11 @@ class store:
         self.__isActive = isActive
 
     @property
-    def get_storeProducts(self) -> List[product]:
+    def get_storeProducts(self) -> List[Product]:
         return self.__storeProducts
     
     @property
-    def __set_storeProducts(self, storeProducts: List[product]):
+    def __set_storeProducts(self, storeProducts: List[Product]):
         self.__storeProducts = storeProducts
 
     @property
@@ -608,7 +608,7 @@ class store:
     
 
     # We assume that the marketFacade verified that the user attempting to add the product is a store Owner
-    def addProduct(self, product: product) -> bool:
+    def addProduct(self, product: Product) -> bool:
         ''' 
         * Parameters: product
         * This function adds a product to the store, and initializes the rating of the product to 0
@@ -647,7 +647,7 @@ class store:
         return False
     
 
-    def getProductById(self, productId: int) -> product:
+    def getProductById(self, productId: int) -> Product:
         ''' 
         * Parameters: productId
         * This function gets a product by its ID
@@ -769,9 +769,9 @@ class StoreFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.categories: List[category] = []  # List to store categories
-            self.productSpecifications: List[productSpecification] = []  # List to store product specifications
-            self.stores: List[store] = []  # List to store stores
+            self.categories: List[Category] = []  # List to store categories
+            self.productSpecifications: List[ProductSpecification] = []  # List to store product specifications
+            self.stores: List[Store] = []  # List to store stores
             self.discounts: List[DiscountStrategy] = []  # List to store discounts
             self.categoryIdCounter = 0  # Counter for category IDs
             self.productSpecificationIdCounter = 0  # Counter for product specification IDs
@@ -818,7 +818,7 @@ class StoreFacade:
                     return True
         return False
 
-    def getCategoryById(self, categoryId: int) -> category:
+    def getCategoryById(self, categoryId: int) -> Category:
         ''' 
         * Parameters: categoryId
         * This function gets a category by its ID
@@ -888,7 +888,7 @@ class StoreFacade:
 
 
     # used for search!
-    def getProductSpecOfCategory(self, categoryId: int) -> List[productSpecification]:
+    def getProductSpecOfCategory(self, categoryId: int) -> List[ProductSpecification]:
         '''
         * Parameters: categoryId
         * This function gets all the product specifications under a category (including the productSpecs of its subCategories)
@@ -909,7 +909,7 @@ class StoreFacade:
         if productName is not None and productName != "":
             if weight is not None and weight >= 0:
                 if manufacturer is not None and manufacturer != "":
-                    productSpec = productSpecification(self.productSpecificationIdCounter, productName, weight, description, tags, manufacturer, storeIds)
+                    productSpec = ProductSpecification(self.productSpecificationIdCounter, productName, weight, description, tags, manufacturer, storeIds)
                     self.productSpecifications.append(productSpec)
                     self.productSpecificationIdCounter += 1
                     return True
@@ -1005,7 +1005,7 @@ class StoreFacade:
                 return productSpec.get_tags()
 
     # used for searches
-    def getProductSpecsByTag(self, tag: str) -> List[productSpecification]:
+    def getProductSpecsByTag(self, tag: str) -> List[ProductSpecification]:
         '''
         * Parameters: tag
         * This function gets all the product specifications with a given tag
@@ -1016,7 +1016,7 @@ class StoreFacade:
         return []
 
     # used for searches
-    def getProductSpecByName(self, productName: str) -> productSpecification:
+    def getProductSpecByName(self, productName: str) -> ProductSpecification:
         '''
         * Parameters: productName
         * This function gets a product specification by its name
@@ -1027,7 +1027,7 @@ class StoreFacade:
                 return productSpec
         return None
 
-    def getProductSpecById(self, productSpecId: int) -> productSpecification:
+    def getProductSpecById(self, productSpecId: int) -> ProductSpecification:
         '''
         * Parameters: productSpecId
         * This function gets a product specification by its ID
@@ -1039,7 +1039,7 @@ class StoreFacade:
         return None
 
 
-    def addStore(self, locationId: int, storeName: str, storeFounderId: int, isActive: bool, storeProducts: List[product] = [],
+    def addStore(self, locationId: int, storeName: str, storeFounderId: int, isActive: bool, storeProducts: List[Product] = [],
                      purchasePolicies: List[PurchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(),
                         ratingsOfProductSpecId: Dict[int, int] = {}) -> bool:
         '''
@@ -1067,7 +1067,7 @@ class StoreFacade:
                 return store.closeStore(userId)
         return False
     
-    def getStoreById(self, storeId: int) -> store:
+    def getStoreById(self, storeId: int) -> Store:
         '''
         * Parameters: storeId
         * This function gets a store by its ID
