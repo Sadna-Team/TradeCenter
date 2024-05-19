@@ -1,6 +1,4 @@
-import os
 from datetime import datetime, timedelta
-from flask import current_app
 from .. import UserFacade
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from backend import bcrypt, jwt
@@ -54,10 +52,10 @@ class Authentication:
         return token
 
     # @jwt_required()
-    def login_user(self, user_id: int, username: str, password: str):
-        user_id, hashed_password = self.user_facade.get_password(username)
+    def login_user(self,username: str, password: str):
+        new_user_id, hashed_password = self.user_facade.get_password(username)
         if self.verify_password(password, hashed_password):
-            return self.generate_token(user_id)
+            return self.generate_token(new_user_id)
         else:
             raise ValueError("Invalid credentials")
 

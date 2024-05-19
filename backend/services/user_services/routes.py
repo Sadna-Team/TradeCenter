@@ -3,8 +3,6 @@
 from flask import Blueprint, request, jsonify
 from backend.business.authentication.authentication import Authentication
 from backend.business.user.user import UserFacade
-
-
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
 
 auth_bp = Blueprint('auth', __name__)
@@ -72,10 +70,10 @@ def login():
     """
     data = request.get_json()
     try:
-        user_id = get_jwt_identity()
         username = data.get('username')
         password = data.get('password')
-        user_token = authentication_facade.login_user(user_id, username, password)
+        user_token = authentication_facade.login_user(username, password)
+        authentication_facade.logout_user(get_jwt()['jti'])
         return jsonify({'message': 'OK', 'token': user_token}), 200
     except Exception as e:
         return jsonify({'message': str(e)}), 400
@@ -138,8 +136,9 @@ def remove_product_from_basket():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
+        store_id = data['store_id']
         product_id = data['product_id']
-        user_facade.remove_product_from_cart(user_id, product_id)
+        user_facade.remove_product_from_cart(user_id, store_id, product_id)
         return jsonify({'message': 'successfully removed the product from the basket'}), 200
     except Exception as e:
         return jsonify({'message': str(e)}), 400
