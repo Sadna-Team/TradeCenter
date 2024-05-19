@@ -55,18 +55,11 @@ class SoppingCart:
 
 class State(ABC):
     @abstractmethod
-    def __init__(self):
-        pass
-
-    @abstractmethod
     def get_password(self):
         pass
 
 
 class Guest(State):
-    def __init__(self):
-        pass
-
     def get_password(self):
         raise ValueError("User is not registered")
 
