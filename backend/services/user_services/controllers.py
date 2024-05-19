@@ -91,6 +91,9 @@ class UserService:
         """
         pass
 
+    def change_admin_permissions(self, user_id: int, store_id: int, manager_id: int, add_product: bool, remove_product: bool, edit_product: bool, appoint_owner: bool, appoint_manager: bool, remove_owner: bool, remove_manager: bool):
+        pass
+
 
 
 
