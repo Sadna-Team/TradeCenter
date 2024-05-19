@@ -1,5 +1,5 @@
 # communication with business logic
-
+from backend.business.authentication.authentication import Authentication
 
 class UserService:
     def show_notifications(self, token):
@@ -107,14 +107,26 @@ class UserService:
 
 
 class AuthenticationService:
-    def start_app(self):
+    #singleton
+    instance = None
+
+    def __new__(cls):
+        if cls.instance is None:
+            cls.instance = super(AuthenticationService, cls).__new__(cls)
+            cls.instance.authentication = Authentication()
+        return cls.instance
+    def __init__(self):
+        self.authentication = Authentication()
+    def guest_login(self):
         """
-            Use Case 1.1:
-            Start the application and generate token for user
+            Use Case 1.2:
+            Start the application and generate token for guest
 
             Returns:
-                ?
+                token (str): token of the guest
         """
+        return self.authentication.start_guest()
+
 
     def login(self, token, user_credentials):
         """
@@ -128,6 +140,8 @@ class AuthenticationService:
             Returns:
                 ?
         """
+
+        
 
     pass
 
@@ -144,16 +158,17 @@ class AuthenticationService:
         """
         pass
 
-    def register(self, token, register_credentials):
+    def register(self, user_id, register_credentials):
         """
             Use Case 2.1.3:
             Register a new user
 
             Args:
-                token (?): token of the user
+                user_id (int): id of the user
                 register_credentials (?): credentials of the new user required for registration
 
             Returns:
                 ?
         """
-        pass
+        self.authentication.register_user(user_id, register_credentials)
+
