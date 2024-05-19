@@ -619,7 +619,7 @@ class store:
         for policy in self.__purchasePolicies:
             if not policy.checkConstraint(shoppingBasket):
                return False
-        return True
+        return True #TO IMPLEMENT
     
 
     def updateStoreRating(self, newRating: int) -> bool:
@@ -645,6 +645,17 @@ class store:
             return True
         return False
     
+
+    def getTotalPriceOfBasketBeforeDiscount(self, basket: shoppingBasket) -> float:
+        ''' 
+        * Parameters: basket
+        * This function calculates the total price of the basket
+        * Returns: the total price of the basket
+        '''
+        pass #TO IMPLEMENT
+        
+    def getTotalPriceOfBasketAfterDiscount(self, basket: shoppingBasket) -> float:
+        pass #TO IMPLEMENT
 
 #---------------------storeFacade class---------------------#
 class StoreFacade:
@@ -711,8 +722,76 @@ class StoreFacade:
                 return category
         return None
     
-    //add subCategory to category, make sure to also add the parentCategory
+    def addSubCategoryToCategory(self, categoryId: int, subCategoryName: str) -> bool:
+        pass
 
+    
+    def deleteSubCategoryFromCategory(self, categoryId: int, subCategoryId: int) -> bool:
+        pass
+    
+    def assignProductSpecToCategory(self, categoryId: int, productSpecId: int) -> bool:
+        pass
+
+    def removeProductSpecFromCategory(self, categoryId: int, productSpecId: int) -> bool:
+        pass
+
+    def getProductSpecOfCategory(self, categoryId: int) -> List[productSpecification]:
+        pass
+
+
+    def addProductSpecification(self, productName: str, weight: float, description: str, tags: List[str], manufacturer: str, storeIds: List[int] = []) -> bool:
+        pass
+
+    def addTagToProductSpecification(self, productSpecId: int, tag: str) -> bool:
+        pass
+
+    def removeTagsFromProductSpecification(self, productSpecId: int, tag: str) -> bool:
+        pass
+
+    def getTagsOfProductSpecification(self, productSpecId: int) -> List[str]:
+        pass
+
+    def getProductSpecsByTag(self, tag: str) -> List[productSpecification]:
+        pass
+
+    def getProductSpecByName(self, productName: str) -> productSpecification:
+        pass
+
+    def getProductSpecById(self, productSpecId: int) -> productSpecification:
+        pass
+
+
+    def addStore(self, locationId: int, storeName: str, storeFounderId: int, isActive: bool, storeProducts: List[product] = [],
+                     purchasePolicies: List[PurchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(),
+                        ratingsOfProductSpecId: Dict[int, int] = {}) -> bool:
+        pass
+
+    def closeStore(self, storeId: int, userId: int) -> bool:
+        pass
+
+    def addProductToStore(self, storeId: int, product: product) -> bool:
+        pass
+
+    def removeProductFromStore(self, storeId: int, product: product) -> bool:
+        pass
+
+    def addPurchasePolicyToStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
+        pass
+
+    def removePurchasePolicyFromStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
+        pass
+
+    def updatePurchasePolicyOfStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
+        pass
+
+    def checkPoliciesOfStore(self, storeId: int, basket: shoppingBasket) -> bool:
+        pass
+
+    def updateStoreRating(self, storeId: int, newRating: int) -> bool:
+        pass
+
+    def updateProductSpecRating(self, storeId: int, productSpecId: int, newRating: int) -> bool:
+        pass
 
 
     
@@ -750,8 +829,40 @@ class StoreFacade:
         # not implemented yet
         pass
 
+    
+    def getDiscountByStore(self, storeId: int) -> List[DiscountStrategy]:
+        # not implemented yet
+        pass
+
+    def getDiscountByProduct(self, productId: int) -> List[DiscountStrategy]:
+        # not implemented yet
+        pass
+
+    def getDiscountByCategory(self, categoryId: int) -> List[DiscountStrategy]:
+        # not implemented yet
+        pass
+
+    def getDiscountByDiscountId(self, discountId: int) -> DiscountStrategy:
+        '''
+        * Parameters: discountId
+        * This function gets a discount by its ID
+        * Returns: the discount with the given ID
+        '''
+        for discount in self.__discounts:
+            if discount.getDiscountId() == discountId:
+                return discount
+
     def applyDiscounts(self, shoppingCart: ShoppingCart) -> bool:
         # not implemented yet
         pass
 
-    
+
+    def getTotalPriceBeforeDiscount(self, shoppingCart: ShoppingCart) -> float:
+        # not implemented yet
+        pass
+
+
+    def getTotalPriceAfterDiscount(self, shoppingCart: ShoppingCart) -> float:
+        # not implemented yet
+        pass
+
