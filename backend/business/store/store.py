@@ -1,3 +1,4 @@
+from typing import Dict
 #---------- Imports ------------#
 from enum import Enum
 from typing import List, Dict
@@ -678,6 +679,14 @@ class StoreFacade:
             self.productSpecificationIdCounter = 0  # Counter for product specification IDs
             self.storeIdCounter = 0  # Counter for store IDs
 
+    def check_product_availability(self, store_id, product_id, amount) -> bool:
+        pass
+
+    def calculate_total_price(self, basket: Dict[int, Dict[int, int]]) -> int: # store_id, product_id, amount
+        pass
+
+    def remove_product(self, store_id, product_id, amount) -> None:
+        pass
     
     #---------------------methods--------------------------------
     def addCategory(self, categoryName: str, parentCategoryId: int = None) -> bool:
@@ -724,9 +733,3 @@ class StoreFacade:
         return None
     
     //add subCategory to category, make sure to also add the parentCategory
-
-
-
-    
-
-

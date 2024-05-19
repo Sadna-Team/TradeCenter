@@ -1,7 +1,7 @@
 # communication with business logic
 
 
-class UserService():
+class UserService:
     def show_notifications(self, token):
         """
             Use Case 1.5 + 1.6:
@@ -15,13 +15,14 @@ class UserService():
         """
         pass
 
-    def add_product_to_basket(self, token, product_id, amount):
+    def add_product_to_basket(self, token, store_id, product_id, amount):
         """
             Use Case 2.2.3:
             Add a product to the basket
 
             Args:
                 token (?): token of the user
+                store_id (int): id of the store
                 product_id (int): id of the product to be added to the basket
                 amount (int): amount of the product to be added to the basket
 
@@ -105,7 +106,7 @@ class UserService():
         pass
 
 
-class AuthenticationService():
+class AuthenticationService:
     def start_app(self):
         """
             Use Case 1.1:

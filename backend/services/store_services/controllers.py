@@ -118,7 +118,7 @@ class StoreService():
         """
         pass
 
-    def add_store_owner(self, token, store_id, owner_id):
+    def add_store_owner(self, token, store_id, owner_id, new_owner_id):
         """
             Use Case 2.4.3.1:
             Send promototion to a new owner to a store.
@@ -128,6 +128,7 @@ class StoreService():
                 token (?): token of the user
                 store_id (int): id of the store
                 owner_id (int): id of the new owner
+                new_owner_id (int): id of the new owner
 
             Returns:
                 ?

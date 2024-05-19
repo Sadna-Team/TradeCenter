@@ -1,25 +1,21 @@
 from . import c
 from typing import Optional, List, Dict
 import datetime
+from _collections import defaultdict
 from abc import ABC, abstractmethod
 import threading
-
 
 class ShoppingBasket:
     # id of ShoppingBasket is (user_id, store_id)
     def __init__(self, store_id: int) -> None:
         self.__store_id: int = store_id
-        self.__products: Dict[int, int] = {}
-    
+        self.__products: Dict[int, int] = defaultdict(int)
+
 
     def add_product(self, product_id: int, amount: int) -> None:
         if amount < 0:
             raise ValueError("Amount must be positive")
-
-        if product_id in self.__products:
-            self.__products[product_id] += amount
-        else:
-            self.__products[product_id] = amount
+        self.__products[product_id] += amount
 
     def get_dto(self) -> Dict[int, int]:
         return {
@@ -62,7 +58,9 @@ class SoppingCart:
 
 
 class State(ABC):
-    pass
+    @abstractmethod
+    def __init__(self):
+        pass
 
 
 class Guest(State):
@@ -134,6 +132,9 @@ class User:
     def remove_product_from_cart(self, store_id: int, product_id: int, amount: int) -> None:
         self.__shopping_cart.remove_product_from_cart(store_id, product_id, amount)
 
+    def clear_basket(self):
+        self.__shopping_cart = SoppingCart(self.__id)
+
 
 class UserFacade:
     # singleton
@@ -151,7 +152,7 @@ class UserFacade:
             self._initialized = True
             self.__users: Dict[int, User] = {}
 
-    def create_user(self, currency: str) -> int:
+    def create_user(self, currency: str = "USD") -> int:
         with UserFacade.__lock:
             new_id = UserFacade.__id_serializer
             UserFacade.__id_serializer += 1
@@ -161,17 +162,13 @@ class UserFacade:
 
     def register_user(self, user_id: int, location_id: int, email: str, username: str, year: int, month: int, day: int,
                       phone: str) -> None:
-        user = self.__get_user(user_id)
-        user.register(location_id, email, username, year, month, day, phone)
+        self.__get_user(user_id).register(location_id, email, username, year, month, day, phone)
 
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
-        user = self.__get_user(user_id)
-        return [notification.get_notification_dto() for notification in user.get_notifications()]
+        return [notification.get_notification_dto() for notification in self.__get_user(user_id).get_notifications()]
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, amount: int) -> None:
-        user = self.__get_user(user_id)
-
-        user.add_product_to_basket(store_id, product_id, amount)
+        self.__get_user(user_id).add_product_to_basket(store_id, product_id, amount)
 
     def __get_user(self, user_id: int) -> User:
         if user_id not in self.__users:
@@ -179,12 +176,14 @@ class UserFacade:
         return self.__users[user_id]
 
     def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
-        user = self.__get_user(user_id)
-        return user.get_shopping_cart()
+        return self.__get_user(user_id).get_shopping_cart()
 
     def remove_product_from_cart(self, user_id: int, store_id: int, product_id: int, amount: int) -> None:
-        user = self.__get_user(user_id)
-        user.remove_product_from_cart(store_id, product_id, amount)
+        self.__get_user(user_id).remove_product_from_cart(store_id, product_id, amount)
+
+    def clear_basket(self, user_id: int):
+        self.__get_user(user_id).clear_basket()
+
 
     def notify_user(self, user_id: int, dict: Dict) ->None:
         # TODO
