@@ -47,6 +47,11 @@ class MarketFacade:
             self.store_facade = StoreFacade()
             self.roles_facade = RolesFacade()
 
+    def __create_admin(self, currency: str = "USD") -> None:
+        man_id = self.user_facade.create_user(currency)
+        self.user_facade.register_user(man_id, "admin@admin.com", "admin", "admin", 2000, 1, 1, "123456789")
+        self.roles_facade.add_admin(man_id)
+
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
 
@@ -110,3 +115,9 @@ class MarketFacade:
         self.roles_facade.set_manager_permissions(store_id, actor_id, manager_id, add_product, change_purchase_policy,
                                                   change_purchase_types, change_discount_policy, change_discount_types,
                                                   add_manager, get_bid)
+
+    def add_system_manager(self, actor: int, user_id: int):
+        self.roles_facade.add_system_manager(actor, user_id)
+
+    def remove_system_manager(self, actor: int, user_id: int):
+        self.roles_facade.remove_system_manager(actor, user_id)
