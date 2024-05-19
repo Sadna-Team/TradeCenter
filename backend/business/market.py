@@ -41,7 +41,8 @@ class MarketFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            # here you can add fields
+
+            # initialize all the facades
             self.user_facade = UserFacade()
             self.store_facade = StoreFacade()
             self.roles_facade = RolesFacade()

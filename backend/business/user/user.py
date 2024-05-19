@@ -78,11 +78,10 @@ class Guest(State):
 
 
 class Member(State):
-    def __init__(self, location_id: int, email: str, username, password: str, year: int, month: int, day: int,
+    def __init__(self, email: str, username, password: str, year: int, month: int, day: int,
                  phone: str) -> None:
         #  try to convert the birth
 
-        self.__locationId: int = location_id
         self.__email: str = email
         self.__username: str = username
         self.__password: str = password
@@ -126,9 +125,9 @@ class User:
     def get_shopping_cart(self) -> Dict[int, Dict[int, int]]:
         return self.__shopping_cart.get_dto()
 
-    def register(self, location_id: int, email: str, username: str, password: str, year: int, month: int, day: int,
+    def register(self, email: str, username: str, password: str, year: int, month: int, day: int,
                  phone: str) -> None:
-        self.__member = Member(location_id, email, username, password, year, month, day, phone)
+        self.__member = Member(email, username, password, year, month, day, phone)
 
     def remove_product_from_cart(self, store_id: int, product_id: int, amount: int) -> None:
         self.__shopping_cart.remove_product_from_cart(store_id, product_id, amount)
@@ -165,13 +164,13 @@ class UserFacade:
         self.__users[new_id] = user
         return new_id
 
-    def register_user(self, user_id: int, location_id: int, email: str, username: str, password: str,
+    def register_user(self, user_id: int, email: str, username: str, password: str,
                       year: int, month: int, day: int, phone: str) -> None:
         if username in self.__usernames:
             raise ValueError("Username already exists")
         if user_id not in self.__users:
             raise ValueError("User not found")
-        self.__get_user(user_id).register(location_id, email, username, password, year, month, day, phone)
+        self.__get_user(user_id).register(email, username, password, year, month, day, phone)
         self.__usernames[username] = user_id
 
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:

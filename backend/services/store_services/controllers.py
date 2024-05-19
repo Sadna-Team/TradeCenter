@@ -127,7 +127,7 @@ class StoreService():
             Args:
                 token (?): token of the user
                 store_id (int): id of the store
-                owner_id (int): id of the new owner
+                owner_id (int): id of the current owner
                 new_owner_id (int): id of the new owner
 
             Returns:
