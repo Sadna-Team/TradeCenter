@@ -6,7 +6,9 @@ from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
 from typing import Optional, List, Dict
 import threading
+import logging
 
+logger = logging.getLogger('myapp')
 
 class AddressDTO:
     def __init__(self, address_id, address, city, state, country, postal_code):
@@ -46,11 +48,21 @@ class MarketFacade:
             self.user_facade = UserFacade()
             self.store_facade = StoreFacade()
             self.roles_facade = RolesFacade()
+            # create the admin?
 
     def __create_admin(self, currency: str = "USD") -> None:
         man_id = self.user_facade.create_user(currency)
         self.user_facade.register_user(man_id, "admin@admin.com", "admin", "admin", 2000, 1, 1, "123456789")
         self.roles_facade.add_admin(man_id)
+
+    def clean_data(self):
+        """
+        For testing purposes only
+        """
+        self.user_facade.clean_data()
+        self.store_facade.clean_data()
+        self.roles_facade.clean_data()
+        # create the admin?
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
@@ -64,15 +76,16 @@ class MarketFacade:
         cart = self.user_facade.get_shopping_cart(user_id)
         # lock the __lock
         with MarketFacade.__lock:
-
             # check if the products are still available
-            for store_id, products in basket.items():
+            for store_id, products in cart.items():
                 for product_id in products:
                     if not self.store_facade.check_product_availability(store_id, product_id):
                         raise ValueError(f"Product {product_id} is not available in the required amount")
 
             # charge the user
             amount = self.store_facade.calculate_total_price(cart)
+            if "payment method" not in payment_details:
+                raise ValueError("Payment method not specified")
             if not PaymentHandler().process_payment(amount, payment_details):
                 raise ValueError("Payment failed")
 
@@ -80,12 +93,17 @@ class MarketFacade:
             for store_id, products in basket.items():
                 for product_id in products:
                     self.store_facade.remove_product(store_id, product_id)
+
         # clear the cart
         self.user_facade.clear_basket(user_id)
 
         # TODO: create a purchase
 
         package_details = {'shopping cart': cart, 'address': address}
+        if "supply method" not in package_details:
+            raise ValueError("Supply method not specified")
+        if package_details.get("supply method") not in self.supported_supply_methods:
+            raise ValueError("Invalid supply method")
         if not SupplyHandler().process_supply(package_details, user_id):
             raise ValueError("Supply failed")
         for store_id in cart.keys():
@@ -120,3 +138,21 @@ class MarketFacade:
 
     def remove_system_manager(self, actor: int, user_id: int):
         self.roles_facade.remove_system_manager(actor, user_id)
+
+    def add_payment_method(self, method_name: str, payment_config: Dict):
+        PaymentHandler().add_payment_method(method_name, payment_config)
+    
+    def edit_payment_method(self, method_name: str, editing_data: Dict):
+        PaymentHandler().edit_payment_method(method_name, editing_data)
+
+    def remove_payment_method(self, method_name: str):
+        PaymentHandler().remove_payment_method(method_name)
+
+    def add_supply_method(self, method_name: str, supply_config: Dict):
+        SupplyHandler().add_supply_method(method_name, supply_config)
+
+    def edit_supply_method(self, method_name: str, editing_data: Dict):
+        SupplyHandler().edit_supply_method(method_name, editing_data)
+
+    def remove_supply_method(self, method_name: str):
+        SupplyHandler().remove_supply_method(method_name)

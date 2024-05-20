@@ -28,16 +28,16 @@ class DiscountStrategy(ABC):
 
 
 
-class categoryDiscount(DiscountStrategy):
+class CategoryDiscount(DiscountStrategy):
     # not implemented at this version
     pass
 
 
-class storeDiscount(DiscountStrategy):
+class StoreDiscount(DiscountStrategy):
     # not implemented at this version
     pass
 
-class productDiscount(DiscountStrategy):
+class ProductDiscount(DiscountStrategy):
     def __init__(self, discountId: int, discountDescription: str, startingDate: str, endingDate: str, percentage: float, product_id: int):
         super().__init__(discountId, discountDescription, startingDate, endingDate, percentage)
         self.product_id = product_id

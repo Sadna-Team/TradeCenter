@@ -1,7 +1,7 @@
 from . import c
 from typing import Optional, List, Dict,Set
 import datetime
-from _collections import defaultdict
+from collections import defaultdict
 from abc import ABC, abstractmethod
 import threading
 
@@ -142,6 +142,13 @@ class UserFacade:
             self._initialized = True
             self.__users: Dict[int, User] = {}
             self.__usernames: Dict[str, int] = {}  # username -> user_id
+
+    def clean_data(self):
+        """
+        For testing purposes only
+        """
+        self.__users.clear()
+        self.__usernames.clear()
 
     def create_user(self, currency: str = "USD") -> int:
         with UserFacade.__lock:

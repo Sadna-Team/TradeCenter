@@ -1,2 +1,2 @@
 from .DTOs import NotificationDTO
-from .user.user import UserFacade
+from backend.business.user import UserFacade
