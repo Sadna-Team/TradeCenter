@@ -6,6 +6,14 @@ from store.DiscountStrategy import DiscountStrategy
 from store.PurchasePolicyStrategy import PurchasePolicyStrategy
 import datetime
 
+
+#-------------logging configuration----------------
+from logging_config import setup_logging
+import logging
+
+logger = logging.getLogger('myapp')
+#---------------------------------------------------
+
 #-------- Magic Numbers --------#
 POUNDS_PER_KILOGRAM = 2.20462
 
@@ -29,6 +37,9 @@ class Product:
         self.__expirationDate = expirationDate
         self.__condition = condition
         self.__price = price # price is in dollars
+        
+        logger.info('[Product] successfully created product with id: ' + str(productId))
+
 
 
     #---------------------getters and setters---------------------
@@ -96,11 +107,16 @@ class Product:
         * This function changes the price of the product
         * Returns: True if the price is changed successfully, False otherwise
         '''
-        if newPrice is not None and newPrice >= 0:
-            self.__set_price(newPrice) 
-            return True
-        return False
-    
+        if newPrice is not None:
+            if newPrice >= 0:
+                self.__set_price(newPrice) 
+                logger.info('[Product] successfully changed price of product with id: ' + str(self.__productId))
+                return True
+            else:
+                logger.warn('[Product] New price is a negative value')
+                return False
+        else:
+            raise ValueError('New price is not a valid float value')
     
 
 #---------------------productSpecification class---------------------#
@@ -115,6 +131,7 @@ class ProductSpecification:
         self.__tags = tags
         self.__manufacturer = manufacturer
         self.__storeIds = storeIds
+        logger.info('[ProductSpecification] successfully created product specification with id: ' + str(specificationId))
 
 
     #---------------------getters and setters---------------------
@@ -185,8 +202,13 @@ class ProductSpecification:
         if tag is not None:
             if tag not in self.__tags:
                 self.__tags.append(tag)
+                logger.info('[ProductSpecification] successfully added tag to product specification with id: ' + str(self.__specificationId))
                 return True
-        return False
+            else:
+                logger.warn('[ProductSpecification] Tag is already in the list of tags')
+                return False
+        else:
+            raise ValueError('Tag is not a valid string')
     
 
     def removeTag(self, tag: str) -> bool:
@@ -198,8 +220,13 @@ class ProductSpecification:
         if tag is not None:
             if tag in self.__tags:
                 self.__tags.remove(tag)
+                logger.info('[ProductSpecification] successfully removed tag from product specification with id: ' + str(self.__specificationId))  
                 return True
-        return False
+            else:
+                logger.warn('[ProductSpecification] Tag is not in the list of tags')
+                return False
+        else:
+            raise ValueError('Tag is not a valid string')
     
 
     def hasTag(self, tag: str) -> bool:
@@ -220,9 +247,13 @@ class ProductSpecification:
         if storeId is not None:
             if storeId not in self.__storeIds:
                 self.__storeIds.append(storeId)
+                logger.info('[ProductSpecification] successfully added store id to product specification with id: ' + str(self.__specificationId))
                 return True
-        return False
-
+            else:
+                logger.warn('[ProductSpecification] Store id is already in the list of store ids')
+                return False
+        else:
+            raise ValueError('Store id is not a valid integer value')
 
     def removeStoreId(self, storeId: int) -> bool:
         ''' 
@@ -233,8 +264,12 @@ class ProductSpecification:
         if storeId is not None:
             if storeId in self.__storeIds:
                 self.__storeIds.remove(storeId)
+                logger.info('[ProductSpecification] successfully removed store id from product specification with id: ' + str(self.__specificationId))
                 return True
-        return False
+            else:
+                logger.warn('[ProductSpecification] Store id is not in the list of store ids')
+        else:
+            raise ValueError('Store id is not a valid integer value')
 
 
     def isSoldByStore(self, storeId: int) -> bool:
@@ -258,10 +293,17 @@ class ProductSpecification:
         * This function changes the name of the product specification
         * Returns: True if the name is changed successfully, False otherwise
         '''
-        if newName is not None and newName != "":
-            self.__set_productName(newName)
-            return True
-        return False
+        if newName is not None:
+            if newName != "":
+                self.__set_productName(newName)
+                logger.info('[ProductSpecification] successfully changed name of product specification with id: ' + str(self.__specificationId))
+                return True
+            else:
+                logger.warn('[ProductSpecification] New name is an empty string')
+                return False
+            
+        else:
+            raise ValueError('New name is not a valid string')
     
     def changeManufacturerOfProductSpecification(self, newManufacturer: str) -> bool:
         '''
@@ -269,10 +311,16 @@ class ProductSpecification:
         * This function changes the manufacturer of the product specification
         * Returns: True if the manufacturer is changed successfully, False otherwise
         '''
-        if newManufacturer is not None and newManufacturer != "":
-            self.__set_manufacturer(newManufacturer)
-            return True
-        return False
+        if newManufacturer is not None:
+            if newManufacturer != "":
+                self.__set_manufacturer(newManufacturer)
+                logger.info('[ProductSpecification] successfully changed manufacturer of product specification with id: ' + str(self.__specificationId))
+                return True
+            else:
+                logger.warn('[ProductSpecification] New manufacturer is an empty string')
+                return False
+        else:
+            raise ValueError('New manufacturer is not a valid string')
     
     def changeDescriptionOfProductSpecification(self, newDescription: str) -> bool:
         '''
@@ -282,8 +330,10 @@ class ProductSpecification:
         '''
         if newDescription is not None:
             self.__set_description(newDescription)
+            logger.info('[ProductSpecification] successfully changed description of product specification with id: ' + str(self.__specificationId))
             return True
-        return False
+        else:
+            raise ValueError('New description is not a valid string')
     
     def changeWeightOfProductSpecification(self, newWeight: float) -> bool:
         '''
@@ -291,10 +341,16 @@ class ProductSpecification:
         * This function changes the weight of the product specification
         * Returns: True if the weight is changed successfully, False otherwise
         '''
-        if newWeight is not None and newWeight >= 0:
-            self.__set_weight(newWeight)
-            return True
-        return False
+        if newWeight is not None:
+            if newWeight >= 0:
+                self.__set_weight(newWeight)
+                logger.info('[ProductSpecification] successfully changed weight of product specification with id: ' + str(self.__specificationId))
+                return True
+            else: 
+                logger.warn('[ProductSpecification] New weight is a negative value')
+                return False
+        else:
+            raise ValueError('New weight is not a valid float value')
     
     
 
@@ -308,6 +364,7 @@ class Category:
         self.__parentCategoryId = parentCategoryId
         self.__categoryProducts = categoryProducts
         self.__subCategories = subCategories
+        logger.info('[Category] successfully created category with id: ' + str(categoryId))
 
 
 
@@ -363,6 +420,10 @@ class Category:
         '''
         if self.__parentCategoryId is None:
             self.set_parentCategoryId(parentCategoryId)
+            logger.info('[Category] successfully added parent category to category with id: ' + str(self.__categoryId))
+        else:
+            logger.warn('[Category] Category already has a parent category')
+            
 
     
     def removeParentCategory(self):
@@ -373,6 +434,9 @@ class Category:
         '''
         if self.__parentCategoryId is not None:
             self.set_parentCategoryId(None)
+            logger.info('[Category] successfully removed parent category from category with id: ' + str(self.__categoryId))
+        else:
+            raise ValueError('Category does not have a parent category')
 
 
     def addSubCategory(self, subCategory: 'Category') -> bool:
@@ -388,8 +452,14 @@ class Category:
                     if subCategory.get_categoryId() != self.__categoryId:
                         subCategory.addParentCategory(self.__categoryId)
                         self.__subCategories.append(subCategory)
+                        logger.info('[Category] successfully added sub category to category with id: ' + str(self.__categoryId))
                         return True
-        return False
+                else:
+                    logger.warn('[Category] Sub category already has a parent category')
+            else:
+                logger.warn('[Category] Sub category is already a sub category of the current category')
+        else:
+            raise ValueError('Sub category is not a valid category')
     
 
     def removeSubCategory(self, subCategory: 'Category') -> bool:
@@ -403,8 +473,14 @@ class Category:
                 if subCategory.isParentCategory(self):
                     subCategory.removeParentCategory()
                     self.__subCategories.remove(subCategory)
+                    logger.info('[Category] successfully removed sub category from category with id: ' + str(self.__categoryId))
                     return True
-        return False
+                else:
+                    logger.warn('[Category] Sub category is not a sub category of the current category')
+            else:
+                logger.warn('[Category] Sub category is not in the list of sub categories')
+        else:
+            raise ValueError('Sub category is not a valid category')
     
 
     def isParentCategory(self, category: 'Category') -> bool:
@@ -430,7 +506,7 @@ class Category:
         * This function checks that the current category has a parent category or not
         * Returns: True if the current category has a parent category, False otherwise
         '''
-        return self.__parentCategoryId is not None
+        return self.__parentCategoryId is not None and self.__parentCategoryId >= 0
 
     
     def addProductToCategory(self, product: ProductSpecification) -> bool:
@@ -442,8 +518,12 @@ class Category:
         if product is not None:
             if product not in self.getAllProductsRecursively():
                 self.__categoryProducts.append(product)
+                logger.info('[Category] successfully added product to category with id: ' + str(self.__categoryId))
                 return True
-        return False
+            else:
+                logger.warn('[Category] Product is already in the list of products')
+        else:   
+            raise ValueError('Product is not a valid product')
     
 
     def removeProductFromCategory(self, product: ProductSpecification) -> bool:
@@ -455,8 +535,12 @@ class Category:
         if product is not None:
             if product in self.__categoryProducts:
                 self.__categoryProducts.remove(product)
+                logger.info('[Category] successfully removed product from category with id: ' + str(self.__categoryId))
                 return True
-            return False
+            else:
+                logger.warn('[Category] Product is not in the list of products')
+        else:    
+            raise ValueError('Product is not a valid product')
     
     
     def getAllProductsRecursively(self) -> List[ProductSpecification]:
@@ -490,7 +574,7 @@ class Store:
     def __init__(self, storeId: int, locationId: int, storeName: str, storeFounderId: int,  
                  isActive: bool, storeProducts: List[Product] = [],
                    purchasePolicies: List[PurchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(), 
-                   ratingsOfProductSpecId: Dict[int, int] = {}):
+                   ratingsOfProductSpecId: Dict[int, float] = {}):
         self.__storeId = storeId
         self.__locationId = locationId
         self.__storeName = storeName
@@ -501,6 +585,7 @@ class Store:
         self.__purchasePolicies = purchasePolicies
         self.__foundedDate = foundedDate        
         self.__ratingsOfProductSpecId = ratingsOfProductSpecId
+        logger.info('[Store] successfully created store with id: ' + str(storeId))
         
 
     #---------------------getters and setters---------------------#
@@ -537,11 +622,11 @@ class Store:
         self.__storeFounderId = storeFounderId
 
     @property
-    def get_rating(self) -> int:
+    def get_rating(self) -> float:
         return self.__rating
     
     @property
-    def __set_rating(self, rating: int):
+    def __set_rating(self, rating: float):
         self.__rating = rating
 
     @property
@@ -581,7 +666,7 @@ class Store:
         return self.__ratingsOfProductSpecId
     
     @property
-    def __set_ratingsOfProductSpecId(self, ratingsOfProductSpecId: Dict[int, int]):
+    def __set_ratingsOfProductSpecId(self, ratingsOfProductSpecId: Dict[int, float]):
         self.__ratingsOfProductSpecId = ratingsOfProductSpecId
     
 
@@ -603,7 +688,9 @@ class Store:
         '''
         if userId == self.__storeFounderId:
             self.set_isActive(False)
+            logger.info('[Store] successfully closed store with id: ' + str(self.__storeId))
             return True
+        logger.warn('[Store] User is not the founder of the store')
         return False
     
 
@@ -618,8 +705,12 @@ class Store:
             if product not in self.__storeProducts:
                 self.__storeProducts.append(product)
                 self.__ratingsOfProductSpecId[product.get_specificationId()] = 0
+                logger.info('[Store] successfully added product to store with id: ' + str(self.__storeId))
                 return True
-        return False
+            else:
+                logger.warn('[Store] Product is already in the list of products')
+        else:
+            raise ValueError('Product is not a valid product')
     
     # We assume that the marketFacade verified that the user attempting to remove the product is a store owner/purchased by a user
     def removeProduct(self, productId: int) -> bool:
@@ -629,10 +720,12 @@ class Store:
         * Returns: True if the product is removed successfully, False otherwise
         '''
         if productId is not None:
-                product = self.getProductById(productId)
-                self.__storeProducts.remove(product)
-                return True
-        return False
+            product = self.getProductById(productId)
+            self.__storeProducts.remove(product)
+            logger.info('[Store] successfully removed product from store with id: ' + str(self.__storeId))
+            return True
+        else:
+            raise ValueError('Product is not a valid product')
     
     def changePriceOfProduct(self, productId: int, newPrice: float) -> bool:
         ''' 
@@ -642,9 +735,11 @@ class Store:
         '''
         if productId is not None:
             product = self.getProductById(productId)
-            if product is not None:
+            if product is not None:            
+                logger.info('[Store] successfully changed price of product with id: ' + str(productId))
                 return product.changePrice(newPrice)
-        return False
+            else:
+                raise ValueError('Product is not a valid product')
     
 
     def getProductById(self, productId: int) -> Product:
@@ -669,7 +764,10 @@ class Store:
         if purchasePolicy is not None:
             if purchasePolicy not in self.__purchasePolicies:
                 self.__purchasePolicies.append(purchasePolicy)
+                logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__storeId))
                 return True
+        else: 
+            raise ValueError('Purchase policy is not a valid purchase policy')
         return False
     
 
@@ -683,7 +781,11 @@ class Store:
         if purchasePolicy is not None:
             if purchasePolicy in self.__purchasePolicies:
                 self.__purchasePolicies.remove(purchasePolicy)
+                logger.info('[Store] successfully removed purchase policy from store with id: ' + str(self.__storeId))
                 return True
+        
+        else: 
+            raise ValueError('Purchase policy is not a valid purchase policy')
         return False
     
 
@@ -703,7 +805,7 @@ class Store:
         return None
 
 
-    #LATER WE MIGHT HAVE TO ADD LOCATION OF USER AND DATE OF BIRTH
+    #LATER WE MIGHT HAVE TO ADD LOCATION OF USER AND DATE OF BIRTH, AND ADD LOGGING
     def checkPolicies(self, basket: List[int]) -> bool:
         ''' 
         * Parameters: none
@@ -716,27 +818,32 @@ class Store:
         return True #TO IMPLEMENT VERSION 2
     
 
-    def updateStoreRating(self, newRating: int) -> bool:
+    def updateStoreRating(self, newRating: float) -> bool: 
         ''' 
         * Parameters: newRating
         * This function updates the rating of the store
         * Returns: True if the rating is updated successfully, False otherwise
         '''
-        if newRating >= 0 and newRating <= 5:
+        if newRating >= 0.0 and newRating <= 5.0:
             self.set_rating(newRating)
+            logger.info('[Store] successfully updated rating of store with id: ' + str(self.__storeId))
             return True
+        else:
+            logger.warn('[Store] New rating is not a valid float value')
         return False
     
 
-    def updateProductSpecRating(self, productSpecId: int, newRating: int) -> bool:
+    def updateProductSpecRating(self, productSpecId: int, newRating: float) -> bool:
         ''' 
         * Parameters: productSpecId, newRating
         * This function updates the rating of the product
         * Returns: True if the rating is updated successfully, False otherwise
         '''
-        if newRating >= 0 and newRating <= 5:
+        if newRating >= 0.0 and newRating <= 5.0:
             self.__ratingsOfProductSpecId[productSpecId] = newRating
+            logger.info('[Store] successfully updated rating of product specification with id: ' + str(productSpecId))
             return True
+        logger.warn('[Store] New rating is not a valid integer value')
         return False
     
 
@@ -778,6 +885,7 @@ class StoreFacade:
             self.storeIdCounter = 0  # Counter for store IDs
             self.discountIdCounter = 0  # Counter for discount IDs
             self.productIdCounter = 0  # Counter for product IDs
+            logger.info('successfully created storeFacade')
 
     #---------------------methods--------------------------------
     def addCategory(self, categoryName: str, parentCategoryId: int = None) -> bool:
@@ -786,12 +894,14 @@ class StoreFacade:
         * This function adds a category to the store
         * Returns: True if the category is added successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to add category')
         if categoryName is not None:
             category = category(self.categoryIdCounter, categoryName, parentCategoryId)
             self.categories.append(category)
             self.categoryIdCounter += 1
             return True
-        return False
+        else:
+            raise ValueError('Category name is not a valid string')
     
 
     def removeCategory(self, categoryId: int) -> bool:
@@ -801,6 +911,7 @@ class StoreFacade:
         * Note: The subcategories of the category will be moved to the parent category of the category
         * Returns: True if the category is removed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to remove category')
         hasParent = False
         if category.hasParentCategory():
             hasParent = True
@@ -816,6 +927,8 @@ class StoreFacade:
                         parentCategory.removeSubCategory(category)
                     self.categories.remove(category)
                     return True
+        else:
+            raise ValueError('Category id is not a valid integer value')
         return False
 
     def getCategoryById(self, categoryId: int) -> Category:
@@ -836,12 +949,21 @@ class StoreFacade:
         * Note: the parent category is assigned in the method addSubCategory of the category class
         * Returns: True if the subcategory is assigned successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to assign subcategory to category')
         if subCategoryId is not None:
             if categoryId is not None:
                 subCategory = self.getCategoryById(subCategoryId)
                 category = self.getCategoryById(categoryId)
                 if subCategory is not None and category is not None:
                     return category.addSubCategory(subCategory)
+                else:
+                    logger.warn('[StoreFacade] Subcategory or category is not found')
+                    return False
+            else:
+                raise ValueError('Category id is not a valid integer value')
+        else:
+            raise ValueError('Subcategory id is not a valid integer value')
+            
     
 
     def deleteSubCategoryFromCategory(self, categoryId: int, subCategoryId: int) -> bool:
@@ -851,13 +973,20 @@ class StoreFacade:
         * Note: the parent category is removed in the method removeSubCategory of the category class
         * Returns: True if the subcategory is deleted successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to delete subcategory from category')
         if categoryId is not None:
             if subCategoryId is not None:
                 category = self.getCategoryById(categoryId)
                 subCategory = self.getCategoryById(subCategoryId)
                 if category is not None and subCategory is not None:
                     return category.removeSubCategory(subCategory)
-        return False
+                else:
+                    logger.warn('[StoreFacade] Subcategory or category is not found')
+                    return False
+            else:
+                raise ValueError('Subcategory id is not a valid integer value')
+        else:
+            raise ValueError('Category id is not a valid integer value')
     
     def assignProductSpecToCategory(self, categoryId: int, productSpecId: int) -> bool:
         '''
@@ -865,6 +994,7 @@ class StoreFacade:
         * This function assigns a product specification to a category
         * Returns: True if the product specification is assigned successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to assign product specification to category')
         if categoryId is not None:
             if productSpecId is not None:
                 category = self.getCategoryById(categoryId)
@@ -879,6 +1009,7 @@ class StoreFacade:
         * Note: the product specification can only be removed if it is stored in the category itself, not in subcategories
         * Returns: True if the product specification is removed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to remove product specification from category')
         if categoryId is not None:
             if productSpecId is not None:
                 category = self.getCategoryById(categoryId)
@@ -906,6 +1037,7 @@ class StoreFacade:
         * This function adds a product specification to the store
         * Returns: True if the product specification is added successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to add product specification')
         if productName is not None and productName != "":
             if weight is not None and weight >= 0:
                 if manufacturer is not None and manufacturer != "":
@@ -921,6 +1053,7 @@ class StoreFacade:
         * This function changes the weight of the product specification
         * Returns: True if the weight is changed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to change weight of product specification')
         if productSpecId is not None:
             productSpec = self.getProductSpecById(productSpecId)
             if productSpec is not None:
@@ -934,6 +1067,7 @@ class StoreFacade:
         * This function changes the description of the product specification
         * Returns: True if the description is changed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to change description of product specification')
         if productSpecId is not None:
             productSpec = self.getProductSpecById(productSpecId)
             if productSpec is not None:
@@ -947,6 +1081,7 @@ class StoreFacade:
         * This function changes the manufacturer of the product specification
         * Returns: True if the manufacturer is changed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to change manufacturer of product specification')
         if productSpecId is not None:
             productSpec = self.getProductSpecById(productSpecId)
             if productSpec is not None:
@@ -960,6 +1095,7 @@ class StoreFacade:
         * This function changes the name of the product specification
         * Returns: True if the name is changed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to change name of product specification')
         if productSpecId is not None:
             productSpec = self.getProductSpecById(productSpecId)
             if productSpec is not None:
@@ -973,6 +1109,7 @@ class StoreFacade:
         * This function adds a tag to the product specification
         * Returns: True if the tag is added successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to add tag to product specification')
         if productSpecId is not None:
             if tag is not None:
                 productSpec = self.getProductSpecById(productSpecId)
@@ -986,6 +1123,7 @@ class StoreFacade:
         * This function removes a tag from the product specification
         * Returns: True if the tag is removed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to remove tag from product specification')
         if productSpecId is not None:
             if tag is not None:
                 productSpec = self.getProductSpecById(productSpecId)
@@ -1047,6 +1185,7 @@ class StoreFacade:
         * This function adds a store to the store
         * Returns: True if the store is added successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to add store')
         if storeName is not None and storeName != "":
             store = store(self.storeIdCounter, locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate, ratingsOfProductSpecId)
             self.stores.append(store)
@@ -1061,6 +1200,7 @@ class StoreFacade:
         * Note: the store verifies whether the userId is the id of the founder, only the founder can close the store
         * Returns: True if the store is closed, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to close store')
         if storeId is not None:
             store = self.getStoreById(storeId)
             if store is not None:
@@ -1087,6 +1227,7 @@ class StoreFacade:
         * Note: the condition is converted to a ProductCondition via the following: 1 = new, 2 = used
         * Returns: True if the product is added successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to add product to store')
         if storeId is not None:
             if productSpecificationId is not None:
                 store = self.getStoreById(storeId)
@@ -1116,6 +1257,7 @@ class StoreFacade:
         * Note: the marketFacade is responsible for verifying whether the product is removed by someone with the necessary permissions.
         * Returns: True if the product is removed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to remove product from store')
         if storeId is not None:
             if productId is not None:
                 store = self.getStoreById(storeId)
@@ -1131,6 +1273,7 @@ class StoreFacade:
         * Note: the marketFacade is responsible for verifying whether the price is changed by someone with the necessary permissions.
         * Returns: True if the price is changed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to change price of product')
         if storeId is not None:
             if productId is not None:
                 if newPrice is not None:
@@ -1149,6 +1292,7 @@ class StoreFacade:
         * Note: the marketFacade is responsible for verifying whether the purchase policy is added by someone with the necessary permissions.
         * Returns: True if the purchase policy is added successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to add purchase policy to store')
         if storeId is not None:
             if purchasePolicy is not None:
                 store = self.getStoreById(storeId)
@@ -1163,6 +1307,7 @@ class StoreFacade:
         * Note: the marketFacade is responsible for verifying whether the purchase policy is removed by someone with the necessary permissions.
         * Returns: True if the purchase policy is removed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to remove purchase policy from store')
         if storeId is not None:
             if purchasePolicyId is not None:
                 store = self.getStoreById(storeId)
@@ -1185,6 +1330,7 @@ class StoreFacade:
         * This function updates the rating of the store
         * Returns: True if the rating is updated successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to update rating of store')
         if storeId is not None:
             if newRating is not None and newRating >= 0 and newRating <= 5:
                 store = self.getStoreById(storeId)
@@ -1199,6 +1345,7 @@ class StoreFacade:
         * This function updates the rating of the product specification
         * Returns: True if the rating is updated successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to update rating of product specification')
         if storeId is not None:
             if productSpecId is not None:
                 if newRating is not None and newRating >= 0 and newRating <= 5:
@@ -1215,6 +1362,7 @@ class StoreFacade:
         * This function adds a discount to the store
         * Returns: True if the discount is added successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to add discount')
         if description is not None:
             if startDate is not None:
                 if endingDate is not None and endingDate > startDate:
@@ -1234,6 +1382,7 @@ class StoreFacade:
         * This function removes a discount from the store
         * Returns: True if the discount is removed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to remove discount')
         if discountId is not None:
             discount = self.getDiscountByDiscountId(discountId)
             if discount is not None:
@@ -1247,6 +1396,7 @@ class StoreFacade:
         * This function changes the percentage of the discount
         * Returns: True if the percentage is changed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to change percentage of discount')
         if discountId is not None:
             if newPercentage is not None:
                 discount = self.getDiscountByDiscountId(discountId)
@@ -1260,6 +1410,7 @@ class StoreFacade:
         * This function changes the description of the discount
         * Returns: True if the description is changed successfully, False otherwise
         '''
+        logger.info('[StoreFacade] attempting to change description of discount')
         if discountId is not None:
             if newDescription is not None:
                 discount = self.getDiscountByDiscountId(discountId)
