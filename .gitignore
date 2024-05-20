@@ -2,7 +2,7 @@
 .vscode/
 .pytest_cache/
 
-tests/__pycache__/
+backend/tests/__pycache__/
 backend/__pycache__/
 backend/business/__pycache__/
 backend/business/authentication/__pycache__/
