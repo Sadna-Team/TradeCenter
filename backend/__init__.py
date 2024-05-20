@@ -42,3 +42,7 @@ def create_app():
         return authentication.check_if_token_in_blacklist(jwt_header, jwt_payload)
 
     return app
+
+def clean_data():
+    MarketFacade().clean_data()
+    Authentication().clean_data()

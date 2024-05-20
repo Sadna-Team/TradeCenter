@@ -195,6 +195,16 @@ class RolesFacade:
             self.__system_managers: List[int] = []
             self.__system_admin: int = -1
 
+    def clean_data(self):
+        """
+        For testing purposes only
+        """
+        self.__stores_to_role_tree.clear()
+        self.__stores_to_roles.clear()
+        self.__systems_nominations.clear()
+        self.__system_managers.clear()
+        self.__system_admin = -1
+
     def add_store(self, store_id: int, owner_id: int) -> None:
         if store_id in self.__stores_to_roles:
             raise ValueError("Store already exists")

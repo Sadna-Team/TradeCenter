@@ -46,11 +46,21 @@ class MarketFacade:
             self.user_facade = UserFacade()
             self.store_facade = StoreFacade()
             self.roles_facade = RolesFacade()
+            # create the admin?
 
     def __create_admin(self, currency: str = "USD") -> None:
         man_id = self.user_facade.create_user(currency)
         self.user_facade.register_user(man_id, "admin@admin.com", "admin", "admin", 2000, 1, 1, "123456789")
         self.roles_facade.add_admin(man_id)
+
+    def clean_data(self):
+        """
+        For testing purposes only
+        """
+        self.user_facade.clean_data()
+        self.store_facade.clean_data()
+        self.roles_facade.clean_data()
+        # create the admin?
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)

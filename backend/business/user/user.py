@@ -143,6 +143,13 @@ class UserFacade:
             self.__users: Dict[int, User] = {}
             self.__usernames: Dict[str, int] = {}  # username -> user_id
 
+    def clean_data(self):
+        """
+        For testing purposes only
+        """
+        self.__users.clear()
+        self.__usernames.clear()
+
     def create_user(self, currency: str = "USD") -> int:
         with UserFacade.__lock:
             new_id = UserFacade.__id_serializer

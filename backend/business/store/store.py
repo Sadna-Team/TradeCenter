@@ -773,6 +773,21 @@ class StoreFacade:
             self.discountIdCounter = 0  # Counter for discount IDs
             self.productIdCounter = 0  # Counter for product IDs
 
+
+    def clean_data(self):
+        """
+        For testing purposes only
+        """
+        self.categories = []
+        self.productSpecifications = []
+        self.stores = []
+        self.discounts = []
+        self.categoryIdCounter = 0
+        self.productSpecificationIdCounter = 0
+        self.storeIdCounter = 0
+        self.discountIdCounter = 0
+        self.productIdCounter = 0
+
     def check_product_availability(self, store_id: int, product_id: int) -> bool:
         pass
 
