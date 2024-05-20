@@ -1,4 +1,4 @@
-# logging_config.py
+# logging configuration
 import logging
 from logging.config import dictConfig
 

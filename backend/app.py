@@ -10,5 +10,5 @@ app = create_app()
 #app.register_blueprint(api_routes)
 
 if __name__ == "__main__":
+    app.logger.info("Starting app...")
     app.run(debug=True)
-    
