@@ -1,9 +1,9 @@
 from typing import Dict
 #---------- Imports ------------#
 from enum import Enum
-from typing import List, Dict, Tuple
-from store.DiscountStrategy import DiscountStrategy
-from store.PurchasePolicyStrategy import PurchasePolicyStrategy
+from typing import List, Dict
+from .DiscountStrategy import DiscountStrategy
+from .PurchasePolicyStrategy import PurchasePolicyStrategy
 import datetime
 
 
@@ -358,6 +358,7 @@ class ProductSpecification:
 class Category:
     # id of category is categoryId. It is unique for each category. Products are stored in either the category or found in one of its subcategories
     # important to note: a category can only have one parentcategory, and a category can't have a subcategory that is already a subcategory of a subcategory.
+
     def __init__(self, categoryId: int, categoryName: str, parentCategoryId: int = None, categoryProducts: List[ProductSpecification] = [], subCategories: List['Category'] = []):
         self.__categoryId = categoryId
         self.__categoryName = categoryName
@@ -804,8 +805,7 @@ class Store:
                 return policy
         return None
 
-
-    #LATER WE MIGHT HAVE TO ADD LOCATION OF USER AND DATE OF BIRTH, AND ADD LOGGING
+    #LATER WE MIGHT HAVE TO ADD LOCATION OF USER AND DATE OF BIRTH
     def checkPolicies(self, basket: List[int]) -> bool:
         ''' 
         * Parameters: none
@@ -815,6 +815,7 @@ class Store:
         for policy in self.__purchasePolicies:
             if not policy.checkConstraint(basket):
                return False
+
         return True #TO IMPLEMENT VERSION 2
     
 
@@ -847,6 +848,7 @@ class Store:
         return False
     
 
+
     def getTotalPriceOfBasketBeforeDiscount(self, basket: List[int]) -> float:
         ''' 
         * Parameters: basket
@@ -862,7 +864,6 @@ class Store:
         
     def getTotalPriceOfBasketAfterDiscount(self, basket: List[int]) -> float:
         return self.getTotalPriceIfBasketBeforeDiscount(basket) #for now we assume that there is no discount
-
 #---------------------storeFacade class---------------------#
 class StoreFacade:
     # singleton
@@ -870,8 +871,8 @@ class StoreFacade:
 
     def __new__(cls):
         if StoreFacade.__instance is None:
-            StoreFacade.__instance = object.__new__(cls)
-        return StoreFacade.__instance
+            StoreFacade.__instance = super(StoreFacade, cls).__new__(cls)
+        return cls.__instance
 
     def __init__(self):
         if not hasattr(self, '_initialized'):
@@ -887,6 +888,29 @@ class StoreFacade:
             self.productIdCounter = 0  # Counter for product IDs
             logger.info('successfully created storeFacade')
 
+
+    def clean_data(self):
+        """
+        For testing purposes only
+        """
+        self.categories = []
+        self.productSpecifications = []
+        self.stores = []
+        self.discounts = []
+        self.categoryIdCounter = 0
+        self.productSpecificationIdCounter = 0
+        self.storeIdCounter = 0
+        self.discountIdCounter = 0
+        self.productIdCounter = 0
+
+    def check_product_availability(self, store_id: int, product_id: int) -> bool:
+        pass
+
+    def calculate_total_price(self, basket: Dict[int, List[int]]) -> int: # store_id, product_id
+        pass
+
+    def remove_product(self, store_id:int, product_id:int) -> bool:
+        pass
     #---------------------methods--------------------------------
     def addCategory(self, categoryName: str, parentCategoryId: int = None) -> bool:
         ''' 
@@ -1424,6 +1448,7 @@ class StoreFacade:
     def updatePurchasePolicyOfStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
         pass
 
+
     def checkPoliciesOfStore(self, storeId: int, basket: List[int]) -> bool:
         return True #in the meantime
 
@@ -1603,6 +1628,7 @@ class StoreFacade:
                 return discount
         return None
 
+
     def applyDiscounts(self, shoppingCart: List[Tuple[int,List[int]]]) -> float:
         # not implemented yet
         pass
@@ -1620,7 +1646,6 @@ class StoreFacade:
             totalPrice = store.getTotalPriceOfBasketBeforeDiscount(basket[1])
         return totalPrice
             
-
     def getTotalPriceAfterDiscount(self, shoppingCart: List[Tuple[int,List[int]]]) -> float:
         '''
         * Parameters: shoppingCart
@@ -1628,3 +1653,4 @@ class StoreFacade:
         * Returns: the total price of the shopping cart after applying all discounts
         '''
         return self.getTotalPriceBeforeDiscount(shoppingCart) # not implemented yet VERSION 2
+      

@@ -48,11 +48,21 @@ class MarketFacade:
             self.user_facade = UserFacade()
             self.store_facade = StoreFacade()
             self.roles_facade = RolesFacade()
+            # create the admin?
 
     def __create_admin(self, currency: str = "USD") -> None:
         man_id = self.user_facade.create_user(currency)
         self.user_facade.register_user(man_id, "admin@admin.com", "admin", "admin", 2000, 1, 1, "123456789")
         self.roles_facade.add_admin(man_id)
+
+    def clean_data(self):
+        """
+        For testing purposes only
+        """
+        self.user_facade.clean_data()
+        self.store_facade.clean_data()
+        self.roles_facade.clean_data()
+        # create the admin?
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
@@ -66,66 +76,55 @@ class MarketFacade:
         cart = self.user_facade.get_shopping_cart(user_id)
         # lock the __lock
         with MarketFacade.__lock:
-
-            #@@@@@@@@@@@@@@log lock aquisation@@@@@@@@@@@@@@
-
             # check if the products are still available
             for store_id, products in cart.items():
                 for product_id in products:
                     if not self.store_facade.check_product_availability(store_id, product_id):
-                        
-                        #@@@@@@@@@@@@@@log failure@@@@@@@@@@@@@@
-                        
                         raise ValueError(f"Product {product_id} is not available in the required amount")
 
             # charge the user
             amount = self.store_facade.calculate_total_price(cart)
+            if "payment method" not in payment_details:
+                raise ValueError("Payment method not specified")
             if not PaymentHandler().process_payment(amount, payment_details):
-                #@@@@@@@@@@@@@@log failure@@@@@@@@@@@@@@
                 raise ValueError("Payment failed")
-            #@@@@@@@@@@@@@@log purchase@@@@@@@@@@@@@@
 
             # remove the products from the store
             for store_id, products in basket.items():
                 for product_id in products:
                     self.store_facade.remove_product(store_id, product_id)
-            #@@@@@@@@@@@@@@log removed products@@@@@@@@@@@@@@
 
         # clear the cart
         self.user_facade.clear_basket(user_id)
-        #@@@@@@@@@@@@@@log basket cleared@@@@@@@@@@@@@@
 
         # TODO: create a purchase
 
         package_details = {'shopping cart': cart, 'address': address}
+        if "supply method" not in package_details:
+            raise ValueError("Supply method not specified")
+        if package_details.get("supply method") not in self.supported_supply_methods:
+            raise ValueError("Invalid supply method")
         if not SupplyHandler().process_supply(package_details, user_id):
             raise ValueError("Supply failed")
-            #@@@@@@@@@@@@@@log supply failed@@@@@@@@@@@@@@
         for store_id in cart.keys():
             Notifier().notify_new_purchase(store_id, user_id)
-        #@@@@@@@@@@@@@@log purchase notification@@@@@@@@@@@@@@
-
-        #@@@@@@@@@@@@@@log success@@@@@@@@@@@@@@
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
         # TODO: different implementation later
         self.user_facade.notify_user(-1, NotificationDTO(
             f"You have been nominated to be the owner of store {store_id}", nomination_id))
-        #@@@@@@@@@@@@@@log nomination suggested@@@@@@@@@@@@@@
 
     def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_id: int):
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
         self.user_facade.notify_user(-1, NotificationDTO(
             f"You have been nominated to be the manager of store {store_id}", nomination_id))
-        #@@@@@@@@@@@@@@log nomination suggested@@@@@@@@@@@@@@
 
     def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
         if accept:
             self.roles_facade.accept_nomination(nomination_id, user_id)
         else:
             self.roles_facade.decline_nomination(nomination_id, user_id)
-        #@@@@@@@@@@@@@@log nomination decision@@@@@@@@@@@@@@
 
     def change_permissions(self, actor_id: int, store_id: int, manager_id: int, add_product: bool,
                            change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
@@ -133,12 +132,27 @@ class MarketFacade:
         self.roles_facade.set_manager_permissions(store_id, actor_id, manager_id, add_product, change_purchase_policy,
                                                   change_purchase_types, change_discount_policy, change_discount_types,
                                                   add_manager, get_bid)
-        #@@@@@@@@@@@@@@log permissions changed@@@@@@@@@@@@@@
 
     def add_system_manager(self, actor: int, user_id: int):
         self.roles_facade.add_system_manager(actor, user_id)
-        #@@@@@@@@@@@@@@log system manager added@@@@@@@@@@@@@@
 
     def remove_system_manager(self, actor: int, user_id: int):
         self.roles_facade.remove_system_manager(actor, user_id)
-        #@@@@@@@@@@@@@@log system manager removed@@@@@@@@@@@@@@
+
+    def add_payment_method(self, method_name: str, payment_config: Dict):
+        PaymentHandler().add_payment_method(method_name, payment_config)
+    
+    def edit_payment_method(self, method_name: str, editing_data: Dict):
+        PaymentHandler().edit_payment_method(method_name, editing_data)
+
+    def remove_payment_method(self, method_name: str):
+        PaymentHandler().remove_payment_method(method_name)
+
+    def add_supply_method(self, method_name: str, supply_config: Dict):
+        SupplyHandler().add_supply_method(method_name, supply_config)
+
+    def edit_supply_method(self, method_name: str, editing_data: Dict):
+        SupplyHandler().edit_supply_method(method_name, editing_data)
+
+    def remove_supply_method(self, method_name: str):
+        SupplyHandler().remove_supply_method(method_name)

@@ -3,7 +3,7 @@ module for testing the user services
 '''
 
 import unittest
-from services.user_services.controllers import UserService, AuthenticationService
+from backend.services.user_services.controllers import UserService, AuthenticationService
 
 class TestUserService(unittest.TestCase):
     '''

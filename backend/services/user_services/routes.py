@@ -78,6 +78,8 @@ def login():
     logger.info('recieved request to login a user')
     data = request.get_json()
     try:
+        if not 'username' in data or not 'password' in data:
+            raise ValueError('Missing username or password')
         username = data.get('username')
         password = data.get('password')
         user_token = authentication_facade.login_user(username, password)
@@ -87,6 +89,7 @@ def login():
     except Exception as e:
         logger.error('login - ' + str(e))
         return jsonify({'message': str(e)}), 400
+
 
 
 @auth_bp.route('/logout', methods=['POST'])
@@ -99,7 +102,8 @@ def logout():
     logger.info('recieved request to logout a user')
     try:
         jti = get_jwt()['jti']
-        authentication_facade.logout_user(jti)
+        user_id = get_jwt_identity()
+        authentication_facade.logout_user(jti, user_id)
         response = jsonify({'message': 'User logged out successfully'})
         unset_jwt_cookies(response)
         logger.info('User logged out successfully')
