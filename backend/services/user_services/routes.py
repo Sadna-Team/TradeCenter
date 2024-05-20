@@ -64,7 +64,7 @@ def register():
         return jsonify({'message': str(e)}), 400
 
 
-@user_bp.route('/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST'])
 @jwt_required()
 def login():
     """
@@ -83,7 +83,7 @@ def login():
         username = data.get('username')
         password = data.get('password')
         user_token = authentication_facade.login_user(username, password)
-        authentication_facade.logout_user(get_jwt()['jti'])
+        authentication_facade.logout_guest(get_jwt()['jti'], get_jwt_identity())
         logger.info('User logged in successfully')
         return jsonify({'message': 'OK', 'token': user_token}), 200
     except Exception as e:
