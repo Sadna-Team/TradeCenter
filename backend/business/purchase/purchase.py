@@ -1385,7 +1385,7 @@ class PurchaseFacade:
         * This function is responsible for calculating the new rating of the store
         * Returns: the new value of the rating of the store
         '''
-        ratings = [rating for rating in self.ratings if rating.get_storeId() == storeId]
+        ratings = [rating for rating in self.ratings if rating is StoreRating and rating.get_storeId() == storeId]
         return sum([rating.get_rating() for rating in ratings]) / len(ratings)
     
     def calculateNewProductRating(self, productSpecId: int) -> float:
@@ -1394,10 +1394,9 @@ class PurchaseFacade:
         * This function is responsible for calculating the new rating of the product
         * Returns: the new value of the rating of the product
         '''
-        ratings = [rating for rating in self.ratings if rating.get_productSpecId() == productSpecId]
+        ratings = [rating for rating in self.ratings if rating is ProductRating and rating.get_productSpecId() == productSpecId]
         return sum([rating.get_rating() for rating in ratings]) / len(ratings)
     
-            
     
     def rateStore(self, purchaseId: int, userId: int, storeId: int, rating: float, description: str) -> float:
         '''
@@ -1411,10 +1410,10 @@ class PurchaseFacade:
                 if purchase.get_status() == PurchaseStatus.completed:
                     if not self.hasUserAlreadyRatedStore(purchaseId, userId, storeId):
                         if purchase.get_userId() == userId:
-                            storeRating = StoreRating(self.get_ratingIdCounter(), userId, storeId, purchaseId, rating, description)
+                            storeRating = StoreRating(self.get_ratingIdCounter(), rating, purchaseId, userId, description, storeId)
                             self.ratings.append(storeRating)
                             self.__set_ratingIdCounter(self.get_ratingIdCounter() + 1)
-                            return calculateNewStoreRating(storeId)
+                            return self.calculateNewStoreRating(storeId)
                                 
                     
                     return purchase.rateStore(userId, rating)
@@ -1431,10 +1430,10 @@ class PurchaseFacade:
             if purchase.get_status() == PurchaseStatus.completed:
                 if not self.hasUserAlreadyRatedProduct(purchaseId, userId, productSpecId):
                     if purchase.get_userId() == userId:
-                        productRating = ProductRating(self.get_ratingIdCounter(), userId, productSpecId, purchaseId, rating, description)
+                        productRating = ProductRating(self.get_ratingIdCounter(), rating, purchaseId, userId, description, productSpecId)
                         self.ratings.append(productRating)
                         self.__set_ratingIdCounter(self.get_ratingIdCounter() + 1)
-                        return calculateNewProductRating(productSpecId)
+                        return self.calculateNewProductRating(productSpecId)
         return None
     
     
