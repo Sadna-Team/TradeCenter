@@ -1001,6 +1001,14 @@ class StoreFacade:
                 productSpec = self.getProductSpecById(productSpecId)
                 if category is not None and productSpec is not None:
                     return category.addProductToCategory(productSpec)
+                else:
+                    logger.warn('[StoreFacade] Product specification or category is not found')
+                    return False
+            else:
+                raise ValueError('Product specification id is not a valid integer value')
+            
+        else:
+            raise ValueError('Category id is not a valid integer value')
 
     def removeProductSpecFromCategory(self, categoryId: int, productSpecId: int) -> bool:
         '''
@@ -1016,6 +1024,13 @@ class StoreFacade:
                 productSpec = self.getProductSpecById(productSpecId)
                 if category is not None and productSpec is not None:
                     return category.removeProductFromCategory(productSpec)
+                else:
+                    logger.warn('[StoreFacade] Product specification or category is not found')
+                    return False
+            else:
+                raise ValueError('Product specification id is not a valid integer value')
+        else:
+            raise ValueError('Category id is not a valid integer value')
 
 
     # used for search!
@@ -1038,14 +1053,26 @@ class StoreFacade:
         * Returns: True if the product specification is added successfully, False otherwise
         '''
         logger.info('[StoreFacade] attempting to add product specification')
-        if productName is not None and productName != "":
-            if weight is not None and weight >= 0:
-                if manufacturer is not None and manufacturer != "":
-                    productSpec = ProductSpecification(self.productSpecificationIdCounter, productName, weight, description, tags, manufacturer, storeIds)
-                    self.productSpecifications.append(productSpec)
-                    self.productSpecificationIdCounter += 1
-                    return True
-        return False
+        if productName is not None:
+            if productName != "":
+                if weight is not None:
+                    if weight >= 0:
+                        if manufacturer is not None and manufacturer != "":
+                            productSpec = ProductSpecification(self.productSpecificationIdCounter, productName, weight, description, tags, manufacturer, storeIds)
+                            self.productSpecifications.append(productSpec)
+                            self.productSpecificationIdCounter += 1
+                            logger.info('[StoreFacade] successfully added product specification')
+                            return True
+                    else:
+                        logger.warn('[StoreFacade] Weight is a negative value')
+                        return False
+                else:
+                    raise ValueError('Weight is not a valid float value')
+            else:
+                logger.warn('[StoreFacade] Product name is an empty string')
+                return False
+        else:
+            raise ValueError('Product name is not a valid string')
     
     def changeWeightOfProductSpecification(self, productSpecId: int, newWeight: float) -> bool:
         '''
@@ -1059,7 +1086,11 @@ class StoreFacade:
             if productSpec is not None:
                 productSpec.changeWeightOfProductSpecification(newWeight)
                 return True
-        return False
+            else:
+                logger.warn('[StoreFacade] Product specification is not found')
+                return False
+        else:
+            raise ValueError('Product specification id is not a valid integer value')
     
     def changeDescriptionOfProductSpecification(self, productSpecId: int, newDescription: str) -> bool:
         '''
@@ -1087,7 +1118,11 @@ class StoreFacade:
             if productSpec is not None:
                 productSpec.changeManufacturerOfProductSpecification(newManufacturer)
                 return True
-        return False
+            else:
+                logger.warn('[StoreFacade] Product specification is not found')
+                return False
+        else:
+            raise ValueError('Product specification id is not a valid integer value')
     
     def changeNameOfProductSpecification(self, productSpecId: int, newName: str) -> bool:
         '''
@@ -1101,7 +1136,11 @@ class StoreFacade:
             if productSpec is not None:
                 productSpec.changeNameOfProductSpecification(newName)
                 return True
-        return False
+            else:
+                logger.warn('[StoreFacade] Product specification is not found')
+                return False
+        else:
+            raise ValueError('Product specification id is not a valid integer value')
 
     def addTagToProductSpecification(self, productSpecId: int, tag: str) -> bool:
         '''
@@ -1115,6 +1154,13 @@ class StoreFacade:
                 productSpec = self.getProductSpecById(productSpecId)
                 if productSpec is not None:
                     return productSpec.addTag(tag)
+                else:
+                    logger.warn('[StoreFacade] Product specification is not found')
+                    return False
+            else:
+                raise ValueError('Tag is not a valid string')
+        else:
+            raise ValueError('Product specification id is not a valid integer value')
 
 
     def removeTagsFromProductSpecification(self, productSpecId: int, tag: str) -> bool:
@@ -1129,7 +1175,14 @@ class StoreFacade:
                 productSpec = self.getProductSpecById(productSpecId)
                 if productSpec is not None:
                     return productSpec.removeTag(tag)
-
+                else:
+                    logger.warn('[StoreFacade] Product specification is not found')
+                    return False
+            else:
+                raise ValueError('Tag is not a valid string')
+        else:
+            raise ValueError('Product specification id is not a valid integer value')
+        
 
     def getTagsOfProductSpecification(self, productSpecId: int) -> List[str]:
         '''
@@ -1141,6 +1194,11 @@ class StoreFacade:
             productSpec = self.getProductSpecById(productSpecId)
             if productSpec is not None:
                 return productSpec.get_tags()
+            else:
+                logger.warn('[StoreFacade] Product specification is not found')
+                return []
+        else:
+            raise ValueError('Product specification id is not a valid integer value')
 
     # used for searches
     def getProductSpecsByTag(self, tag: str) -> List[ProductSpecification]:
@@ -1151,7 +1209,8 @@ class StoreFacade:
         '''
         if tag is not None:
             return [productSpec for productSpec in self.productSpecifications if productSpec.hasTag(tag)]
-        return []
+        else:
+            raise ValueError('Tag is not a valid string')
 
     # used for searches
     def getProductSpecByName(self, productName: str) -> ProductSpecification:
@@ -1186,12 +1245,17 @@ class StoreFacade:
         * Returns: True if the store is added successfully, False otherwise
         '''
         logger.info('[StoreFacade] attempting to add store')
-        if storeName is not None and storeName != "":
-            store = store(self.storeIdCounter, locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate, ratingsOfProductSpecId)
-            self.stores.append(store)
-            self.storeIdCounter += 1
-            return True
-        return False
+        if storeName is not None:
+            if storeName != "":
+                store = store(self.storeIdCounter, locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate, ratingsOfProductSpecId)
+                self.stores.append(store)
+                self.storeIdCounter += 1
+                return True
+            else:
+                logger.warn('[StoreFacade] Store name is an empty string')
+                return False
+        else:
+            raise ValueError('Store name is not a valid string')
 
     def closeStore(self, storeId: int, userId: int) -> bool:
         '''
@@ -1205,7 +1269,10 @@ class StoreFacade:
             store = self.getStoreById(storeId)
             if store is not None:
                 return store.closeStore(userId)
-        return False
+            else:
+                raise ValueError('Store id is not a valid integer value')
+        else:
+            raise ValueError('Store id is not a valid integer value')
     
     def getStoreById(self, storeId: int) -> Store:
         '''
@@ -1247,8 +1314,19 @@ class StoreFacade:
                             store.addProduct(product)
                             self.productIdCounter += 1
                             return True
-        return False
-
+                        else:
+                            logger.warn('[StoreFacade] Price is a negative value')
+                            return False
+                    else:
+                        logger.warn('[StoreFacade] Expiration date is in the past')
+                        return False
+                else:
+                    raise ValueError('Product specification id is not a valid integer value')
+            else:
+                raise ValueError('Product specification id is not a valid integer value')
+        else:
+            raise ValueError('Store id is not a valid integer value')
+        
 
     def removeProductFromStore(self, storeId: int, productId: int) -> bool:
         '''
@@ -1263,7 +1341,12 @@ class StoreFacade:
                 store = self.getStoreById(storeId)
                 if store is not None:
                     return store.removeProduct(productId)
-        return False
+                else:
+                    raise ValueError('Store not found')
+            else:
+                raise ValueError('Product id is not a valid integer value')
+        else:
+            raise ValueError('Store id is not a valid integer value')
 
         
     def changePriceOfProduct(self, storeId: int, productId: int, newPrice: float) -> bool:
@@ -1282,7 +1365,16 @@ class StoreFacade:
                         product = store.getProductById(productId)
                         if product is not None:
                             return store.changePriceOfProduct(productId, newPrice)
-        return False
+                        else:
+                            raise ValueError('Product not found')
+                    else:
+                        raise ValueError('Store not found')
+                else:
+                    raise ValueError('New price is not a valid float value')
+            else:
+                raise ValueError('Product id is not a valid integer value')
+        else:
+            raise ValueError('Store id is not a valid integer value')
 
 
     def addPurchasePolicyToStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
@@ -1298,7 +1390,12 @@ class StoreFacade:
                 store = self.getStoreById(storeId)
                 if store is not None:
                     return store.addPurchasePolicy(purchasePolicy)
-        return False
+                else:
+                    raise ValueError('Store not found')
+            else:
+                raise ValueError('Purchase policy is not a valid purchase policy')
+        else:
+            raise ValueError('Store id is not a valid integer value')
 
     def removePurchasePolicyFromStore(self, storeId: int, purchasePolicyId: int) -> bool:
         '''
@@ -1315,8 +1412,14 @@ class StoreFacade:
                     purchasePolicy = store.getPurchasePolicyById(purchasePolicyId)
                     if purchasePolicy is not None:
                         return store.removePurchasePolicy(purchasePolicy)
-        return False
-
+                    else:
+                        raise ValueError('Purchase policy not found')
+                else:
+                    raise ValueError('Store not found')
+            else:
+                raise ValueError('Purchase policy id is not a valid integer value')
+        else:
+            raise ValueError('Store id is not a valid integer value')
 
     def updatePurchasePolicyOfStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
         pass
@@ -1324,7 +1427,7 @@ class StoreFacade:
     def checkPoliciesOfStore(self, storeId: int, basket: List[int]) -> bool:
         return True #in the meantime
 
-    def updateStoreRating(self, storeId: int, newRating: int) -> bool:
+    def updateStoreRating(self, storeId: int, newRating: float) -> bool:
         '''
         * Parameters: storeId, newRating
         * This function updates the rating of the store
@@ -1332,14 +1435,27 @@ class StoreFacade:
         '''
         logger.info('[StoreFacade] attempting to update rating of store')
         if storeId is not None:
-            if newRating is not None and newRating >= 0 and newRating <= 5:
-                store = self.getStoreById(storeId)
-                if store is not None:
-                    return store.updateStoreRating(newRating)
-                
-        return False
+            if newRating is not None:
+                if newRating >= 0.0:
+                    if newRating <= 5.0:
+                        store = self.getStoreById(storeId)
+                        if store is not None:
+                            return store.updateStoreRating(newRating)
+                        else:
+                            raise ValueError('Store not found')
+                    else:
+                        logger.warn('[StoreFacade] New rating is greater than 5')
+                        return False
+                else:
+                    logger.warn('[StoreFacade] New rating is negative')
+                    return False
+            else:
+                raise ValueError('New rating is not a valid float value')
+        else:
+            raise ValueError('Store id is not a valid integer value')
 
-    def updateProductSpecRating(self, storeId: int, productSpecId: int, newRating: int) -> bool:
+
+    def updateProductSpecRating(self, storeId: int, productSpecId: int, newRating: float) -> bool:
         '''
         * Parameters: storeId, productSpecId, newRating
         * This function updates the rating of the product specification
@@ -1348,11 +1464,26 @@ class StoreFacade:
         logger.info('[StoreFacade] attempting to update rating of product specification')
         if storeId is not None:
             if productSpecId is not None:
-                if newRating is not None and newRating >= 0 and newRating <= 5:
-                    store = self.getStoreById(storeId)
-                    if store is not None:
-                        return store.updateProductSpecRating(productSpecId, newRating)
-        return False
+                if newRating is not None:
+                    if newRating >= 0.0: 
+                        if newRating <= 5.0:
+                            store = self.getStoreById(storeId)
+                            if store is not None:
+                                return store.updateProductSpecRating(productSpecId, newRating)
+                            else:
+                                raise ValueError('Store not found')
+                        else:
+                            logger.warn('[StoreFacade] New rating is greater than 5')
+                            return False
+                    else:
+                        logger.warn('[StoreFacade] New rating is negative')
+                        return False
+                else:
+                    raise ValueError('New rating is not a valid float value')
+            else:
+                raise ValueError('Product specification id is not a valid integer value')
+        else:
+            raise ValueError('Store id is not a valid integer value')
 
     
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount    
@@ -1365,14 +1496,28 @@ class StoreFacade:
         logger.info('[StoreFacade] attempting to add discount')
         if description is not None:
             if startDate is not None:
-                if endingDate is not None and endingDate > startDate:
-                    if percentage is not None and percentage >= 0.0 and percentage <= 1.0:
-                        discount = DiscountStrategy(self.discountIdCounter, description, startDate, endingDate, percentage)
-                        self.discounts.append(discount)
-                        self.discountIdCounter += 1
-                        return True
-                    
-        return False
+                if endingDate is not None:
+                    if endingDate > startDate:
+                        if percentage is not None:
+                            if percentage >= 0.0 and percentage <= 1.0:
+                                discount = DiscountStrategy(self.discountIdCounter, description, startDate, endingDate, percentage)
+                                self.discounts.append(discount)
+                                self.discountIdCounter += 1
+                                return True
+                            else:
+                                logger.warn('[StoreFacade] Percentage is not between 0 and 1')
+                                return False
+                        else:
+                            raise ValueError('Percentage is not a valid float value')
+                    else:
+                        logger.warn('[StoreFacade] Ending date is before start date')
+                        return False
+                else:
+                    raise ValueError('Ending date is not a valid datetime value')
+            else:
+                raise ValueError('Start date is not a valid datetime value')
+        else:
+            raise ValueError('Description is not a valid string')
 
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
@@ -1388,7 +1533,11 @@ class StoreFacade:
             if discount is not None:
                 self.__discounts.remove(discount)
                 return True
-        return False
+            else:
+                logger.warn('[StoreFacade] Discount not found')
+                return False
+        else:
+            raise ValueError('Discount id is not a valid integer value')
 
     def changeDiscountPercentage(self, discountId: int, newPercentage: float) -> bool:
         '''
@@ -1402,7 +1551,14 @@ class StoreFacade:
                 discount = self.getDiscountByDiscountId(discountId)
                 if discount is not None:
                     return discount.changeDiscountPercentage(newPercentage)
-        return False
+                else:
+                    logger.warn('[StoreFacade] Discount not found')
+                    return False
+            else:
+                raise ValueError('New percentage is not a valid float value')
+        else:
+            raise ValueError('Discount id is not a valid integer value')
+        
     
     def changeDiscountDescription(self, discountId: int, newDescription: str) -> bool:
         '''
@@ -1416,7 +1572,13 @@ class StoreFacade:
                 discount = self.getDiscountByDiscountId(discountId)
                 if discount is not None:
                     return discount.changeDiscountDescription(newDescription)
-        return False
+                else:
+                    logger.warn('[StoreFacade] Discount not found')
+                    return False
+            else:
+                raise ValueError('New description is not a valid string')
+        else:
+            raise ValueError('Discount id is not a valid integer value')
     
     def getDiscountByStore(self, storeId: int) -> List[DiscountStrategy]:
         # not implemented yet
@@ -1459,7 +1621,6 @@ class StoreFacade:
         return totalPrice
             
 
-
     def getTotalPriceAfterDiscount(self, shoppingCart: List[Tuple[int,List[int]]]) -> float:
         '''
         * Parameters: shoppingCart
@@ -1467,6 +1628,3 @@ class StoreFacade:
         * Returns: the total price of the shopping cart after applying all discounts
         '''
         return self.getTotalPriceBeforeDiscount(shoppingCart) # not implemented yet VERSION 2
-        
-
- 
