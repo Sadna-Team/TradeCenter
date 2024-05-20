@@ -649,7 +649,7 @@ class BidPurchase(Purchase):
         * This function is responsible for updating the date of the purchase
         * Returns: none
         '''
-        self.__set_dateOfPurchase(dateOfPurchase)
+        self.__set_dateOfPurchase(dateOfPurchase) 
         
 
     def calculateTotalPrice(self) -> float:
@@ -676,114 +676,124 @@ class BidPurchase(Purchase):
 
 #-----------------AuctionPurchase class-----------------#
 class AuctionPurchase(Purchase):
-    def __init__(self, purchaseId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, 
-                 status: PurchaseStatus, basePrice: float, startingDate: datetime, endingDate: datetime, 
+    #Note: userId of purchase is not initialized as user is determined at the end of auction.
+    #Note: totalPrice is not known as determined by auction
+    def __init__(self, purchaseId: int, basePrice: float, startingDate: datetime, endingDate: datetime, 
                  storeId: int ,productId: int, productSpecId: int, usersWithProposedPrices: List[Tuple[int, float]] = []):
-        super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
-        self.basePrice = basePrice
-        self.startingDate = startingDate
-        self.endingDate = endingDate
-        self.productId = productId
-        self.productSpecId = productSpecId
-        self.usersWithProposedPrices = usersWithProposedPrices
+        super().__init__(purchaseId, -1, storeId, None, -1, PurchaseStatus.onGoing)
+        self.__basePrice = basePrice
+        self.__startingDate = startingDate
+        self.__endingDate = endingDate
+        self.__productId = productId
+        self.__productSpecId = productSpecId
+        self.__deliveryDate = None
+        self.__usersWithProposedPrices = usersWithProposedPrices
 
 
     #---------------------------------Getters and Setters---------------------------------#
     @property
     def get_purchaseId(self):
-        return self.purchaseId
+        return self.__purchaseId
     
     @property
     def __set_purchaseId(self, purchaseId: int):
-        self.purchaseId = purchaseId
+        self.__purchaseId = purchaseId
 
     @property
     def get_userId(self):
-        return self.userId
+        return self.__userId
     
     @property
     def __set_userId(self, userId: int):
-        self.userId = userId
+        self.__userId = userId
 
     @property
     def get_dateOfPurchase(self):
-        return self.dateOfPurchase
+        return self.__dateOfPurchase
     
     @property
     def __set_dateOfPurchase(self, dateOfPurchase: datetime):
-        self.dateOfPurchase = dateOfPurchase
+        self.__dateOfPurchase = dateOfPurchase
 
     @property
     def get_totalPrice(self):
-        return self.totalPrice
+        return self.__totalPrice
     
     @property
     def __set_totalPrice(self, totalPrice: float):
-        self.totalPrice = totalPrice
+        self.__totalPrice = totalPrice
 
     @property
     def get_status(self):
-        return self.status
+        return self.__status
     
     @property
     def __set_status(self, status: PurchaseStatus):
-        self.status = status
+        self.__status = status
 
     @property
     def get_basePrice(self):
-        return self.basePrice
+        return self.__basePrice
     
     @property
     def __set_basePrice(self, basePrice: float):
-        self.basePrice = basePrice
+        self.__basePrice = basePrice
 
     @property
     def get_startingDate(self):
-        return self.startingDate
+        return self.__startingDate
     
     @property
     def __set_startingDate(self, startingDate: datetime):
-        self.startingDate = startingDate
+        self.__startingDate = startingDate
 
     @property
     def get_endingDate(self):
-        return self.endingDate
+        return self.__endingDate
     
     @property
     def __set_endingDate(self, endingDate: datetime):
-        self.endingDate = endingDate
+        self.__endingDate = endingDate
 
     @property
     def get_storeId(self):
-        return self.storeId
+        return self.__storeId
     
     @property
     def __set_storeId(self, storeId: int):
-        self.storeId = storeId
+        self.__storeId = storeId
 
     @property
     def get_productId(self):
-        return self.productId
+        return self.__productId
     
     @property
     def __set_productId(self, productId: int):
-        self.productId = productId
+        self.__productId = productId
 
     @property
     def get_productSpecId(self):
-        return self.productSpecId
+        return self.__productSpecId
     
     @property
     def __set_productSpecId(self, productSpecId: int):
-        self.productSpecId = productSpecId
+        self.__productSpecId = productSpecId
+
+    @property
+    def get_deliveryDate(self):
+        return self.__deliveryDate
+    
+    @property
+    def __set_deliveryDate(self, deliveryDate: datetime):
+        self.__deliveryDate = deliveryDate
 
     @property
     def get_usersWithProposedPrices(self):
-        return self.usersWithProposedPrices
+        return self.__usersWithProposedPrices
     
     @property
     def __set_usersWithProposedPrices(self, usersWithProposedPrices: List[Tuple[int, float]]):
-        self.usersWithProposedPrices = usersWithProposedPrices
+        self.__usersWithProposedPrices = usersWithProposedPrices
 
     #---------------------------------Methods---------------------------------#
     def updateStatus(self, status: PurchaseStatus):
@@ -837,7 +847,7 @@ class AuctionPurchase(Purchase):
         * This function is responsible for returning the highest bidding offer
         * Returns: float of highest bidding offer
         '''
-        return max(self.get_usersWithProposedPrices(), key = lambda x : x[1])[1]
+        return max(self.get_usersWithProposedPrices(), key = lambda x : x[1])[1] //
         
 
     def calculateRemainingTime(self) -> datetime:
@@ -849,26 +859,72 @@ class AuctionPurchase(Purchase):
         if self.get_startingDate() < datetime.datetime.now():
             if self.get_endingDate() > datetime.datetime.now():
                 return datetime.datetime.now() - self.get_endingDate()
-        return datetime.timedelta(0)
+        return datetime.timedelta(0) // 
     
+    def checkIfAuctionEnded(self) -> bool:
+        '''
+        * Parameters: none
+        * This function is responsible for checking if the auction has ended
+        * Returns: true if ended, false if not
+        '''
+        if self.get_status() == PurchaseStatus.onGoing and self.get_endingDate() < datetime.datetime.now():
+            if self.get_usersWithProposedPrices() != []:
+                userWithHighestBid = max(self.get_usersWithProposedPrices(), key = lambda x : x[1])
+                self.__set_userId(userWithHighestBid[0])
+                self.__set_totalPrice(userWithHighestBid[1])
+            
+            self.__set_status(PurchaseStatus.failed)
+            return True
+        return False // 
     
-    //update userId to be the highestbidding offer: set winner
+    def validatePurchaseOfUser(self, userId: int, deliveryDate: datetime):
+        '''
+        * Parameters: userId
+        * This function is responsible for validating that the user with the highest bid successfully paid for the product and the product is underway
+        * Returns: none
+        '''
+        if self.get_userId() == userId:
+            self.__set_status(PurchaseStatus.accepted)
+            self.__set_dateOfPurchase(datetime.datetime.now())
+            self.__set_deliveryDate(deliveryDate)
+            return True
+        return False // 
     
-    def
+    def invalidatePurchaseOfUser(self, userId: int):
+        '''
+        * Parameters: userId
+        * This function is responsible for invalidating the purchase of the user with the highest bid, whether it be due to not paying or not able to deliver
+        * Returns: none
+        '''
+        if self.get_userId() == userId:
+            self.__set_status(PurchaseStatus.failed)
+            return True
+        return False //
+    
+    def checkIfCompletedPurchase(self) -> bool:
+        '''
+        * Parameters: none
+        * This function is responsible for checking if the purchase is completed, and updating if it is
+        * Returns: true if completed, false otherwise
+        '''
+        if self.get_status() == PurchaseStatus.accepted:
+            if self.get_deliveryDate() < datetime.datetime.now():
+                self.updateStatus(PurchaseStatus.completed)
+                return True
+        return False //
     
 
 #-----------------LotteryPurchase class-----------------#
 class LotteryPurchase(Purchase):
-    def __init__(self, purchaseId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, 
-                 fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime,  usersWithPrices: List[Tuple[int, float]] = [], winner: int = None):
-        super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status) //WINNER SHOULD UPDATE USERID TO WINNER AND IN AUCTION THE SAME
+    def __init__(self, purchaseId: int, fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime,  usersWithPrices: List[Tuple[int, float]] = []):
+        super().__init__(purchaseId, -1, storeId, None, 0, PurchaseStatus.onGoing)
         self.__fullPrice = fullPrice
         self.__productId = productId
         self.__productSpecId = productSpecId
         self.__usersWithPrices = usersWithPrices
         self.__startingDate = startingDate
         self.__endingDate = endingDate
-        self.__winner = winner
+        self.__deliveryDate = None
 
 
 #---------------------------------Getters and Setters---------------------------------#
@@ -967,14 +1023,14 @@ class LotteryPurchase(Purchase):
     @property
     def __set_endingDate(self, endingDate: datetime):
         self.__endingDate = endingDate
-
+        
     @property
-    def get_winner(self):
-        return self.__winner
+    def get_deliveryDate(self):
+        return self.__deliveryDate
     
     @property
-    def __set_winner(self, winner: int):
-        self.__winner = winner
+    def __set_deliveryDate(self, deliveryDate: datetime):
+        self.__deliveryDate = deliveryDate
 
 
 #---------------------------------Methods---------------------------------#
@@ -1060,6 +1116,17 @@ class LotteryPurchase(Purchase):
                 return False
             #log.error("this should not happen")
 
+    def checkIfLotteryEndedSuccessfully(self) -> bool:
+        '''
+        * Parameters: none
+        * This function is responsible for checking if the lottery has ended
+        * Returns: true if ended, false if not
+        '''
+        if self.get_status() == PurchaseStatus.onGoing and self.get_endingDate() < datetime.datetime.now():
+            if self.get_totalPrice() != self.get_fullPrice():
+                self.updateStatus(PurchaseStatus.failed)
+            return True
+        return False
 
     def pickWinner(self) -> int:
         '''
@@ -1067,28 +1134,57 @@ class LotteryPurchase(Purchase):
         * This function is responsible for picking the winner of the lottery
         * Returns: userId of the winner
         '''
-        if self.get_status() == PurchaseStatus.accepted:
-            usersWithPrices = self.get_usersWithPrices()
-            uniqueUsersWithSumOfPrices: List[Tuple[int, float]] = []
-            for user in usersWithPrices:
-                if user[0] not in [x[0] for x in uniqueUsersWithSumOfPrices]:
-                    uniqueUsersWithSumOfPrices.append((user[0], sum([x[1] for x in usersWithPrices if x[0] == user[0]])))
-            
-            #in the case of only one user
-            if len(uniqueUsersWithSumOfPrices) == 1:
-                self.__set_winner(uniqueUsersWithSumOfPrices[0][0])
-                return uniqueUsersWithSumOfPrices[0][0]
-            else:
-                #in the case of multiple users
-                userWinner = np.random.choice([x[0] for x in uniqueUsersWithSumOfPrices], p=[x[1] / self.get_fullPrice() for x in uniqueUsersWithSumOfPrices]) 
-                self.__set_winner(userWinner)
-                return userWinner
-           
+        if self.checkIfLotteryEndedSuccessfully():
+            if self.get_status() != PurchaseStatus.failed:
+                usersWithPrices = self.get_usersWithPrices()
+                uniqueUsersWithSumOfPrices: List[Tuple[int, float]] = []
+                for user in usersWithPrices:
+                    if user[0] not in [x[0] for x in uniqueUsersWithSumOfPrices]:
+                        uniqueUsersWithSumOfPrices.append((user[0], sum([x[1] for x in usersWithPrices if x[0] == user[0]])))
+                
+                #in the case of only one user
+                if len(uniqueUsersWithSumOfPrices) == 1:
+                    self.__set_userId(uniqueUsersWithSumOfPrices[0][0])
+                    return uniqueUsersWithSumOfPrices[0][0]
+                else:
+                    #in the case of multiple users
+                    userWinner = np.random.choice([x[0] for x in uniqueUsersWithSumOfPrices], p=[x[1] / self.get_fullPrice() for x in uniqueUsersWithSumOfPrices]) 
+                    self.__set_userId(userWinner)
+                    return userWinner
         return None
     
+    def validateDeliveryOfWinner(self, userId: int, deliveryDate: datetime):
+        '''
+        * Parameters: userId, deliveryDate
+        * This function is responsible for validating that the winner of the lottery received the product
+        * Returns: none
+        '''
+        if userId == self.get_userId():
+            self.__set_status(PurchaseStatus.accepted)
+            self.__set_dateOfPurchase(datetime.datetime.now())
+            self.__set_deliveryDate(deliveryDate)
     
-    //WINNER SHOULD UPDATE USERID TO WINNER AND IN AUCTION THE SAME:
+    def invalidateDeliveryOfWinner(self, userId: int):
+        '''
+        * Parameters: userId
+        * This function is responsible for invalidating the delivery of the winner of the lottery
+        * Returns: none
+        '''
+        if userId == self.get_userId():
+            self.__set_status(PurchaseStatus.failed)
     
+    
+    def checkIfCompletedPurchase(self) -> bool:
+        '''
+        * Parameters: none
+        * This function is responsible for checking if the purchase is completed, and updating if it is
+        * Returns: true if completed, false otherwise
+        '''
+        if self.get_status() == PurchaseStatus.accepted:
+            if self.get_deliveryDate() < datetime.datetime.now():
+                self.updateStatus(PurchaseStatus.completed)
+                return True
+        return False
     
     
     
@@ -1158,7 +1254,7 @@ class PurchaseFacade:
             if totalPrice is not None and totalPrice >= 0:
                 if shoppingCart is not None:
                     totalPriceAfterDiscounts = -1
-                    immediatePurchase = ImmediatePurchase(self.get_purchasesIdCounter(), userId, totalPrice, PurchaseStatus.onGoing, shoppingCart, totalPriceAfterDiscounts)
+                    immediatePurchase = ImmediatePurchase(self.get_purchasesIdCounter(), userId, totalPrice, shoppingCart, totalPriceAfterDiscounts)
                     self.get_purchases.append(immediatePurchase)
                     self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
                     return True
@@ -1175,7 +1271,6 @@ class PurchaseFacade:
         if userId is not None:
             if proposedPrice is not None and proposedPrice >= 0:
                 if productId is not None and productSpecId is not None and storeId is not None:
-                    totalPrice = -1
                     bidPurchase = BidPurchase(self.get_purchasesIdCounter(), userId, proposedPrice, productId, productSpecId, storeId, isOfferToStore)
                     self.get_purchases.append(bidPurchase)
                     self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
@@ -1183,56 +1278,42 @@ class PurchaseFacade:
         return False
         
 
-    def createAuctionPurchase(self, userId: int, dateOfPurchase: datetime, basePrice: float, startingDate: datetime, endingDate: datetime, storeId: int, productId: int, productSpecId: int, usersWithProposedPrices: List[Tuple[int, float]] = []) -> bool:
+    def createAuctionPurchase(self, basePrice: float, startingDate: datetime, endingDate: datetime, storeId: int, productId: int, productSpecId: int, usersWithProposedPrices: List[Tuple[int, float]] = []) -> bool:
         '''
-        * Parameters: userId, dateOfPurchase, totalPrice, basePrice, startingDate, endingDate, storeId, productId, productSpecId, usersWithProposedPrices
+        * Parameters: basePrice, startingDate, endingDate, storeId, productId, productSpecId, usersWithProposedPrices
         * This function is responsible for creating an auction purchase
         * Returns: AuctionPurchase object
         '''
-        status = PurchaseStatus.onGoing
-        if startingDate > datetime.datetime.now():
-            status = PurchaseStatus.notStarted
-        
-        if userId is not None:
-            if dateOfPurchase is not None:
-                if basePrice is not None and basePrice >= 0:
-                    if startingDate is not None and startingDate > dateOfPurchase:
-                        if endingDate is not None and endingDate > startingDate:
-                            if storeId is not None and productId is not None and productSpecId is not None:
-                                totalPrice = -1
-                                auctionPurchase = AuctionPurchase(self.get_purchasesIdCounter(), userId, dateOfPurchase, totalPrice, status, basePrice, startingDate, endingDate, storeId, productId, productSpecId, usersWithProposedPrices)
-                                self.get_purchases.append(auctionPurchase)
-                                self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
-                                return True
+        if basePrice is not None and basePrice >= 0:
+            if startingDate is not None:
+                if endingDate is not None and endingDate > startingDate:
+                    if storeId is not None and productId is not None and productSpecId is not None:
+                        auctionPurchase = AuctionPurchase(self.get_purchasesIdCounter(), basePrice, startingDate, endingDate, storeId, productId, productSpecId, usersWithProposedPrices)
+                        self.get_purchases.append(auctionPurchase)
+                        self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
+                        return True
         return False
         
 
-    def createLotteryPurchase(self , userId: int, dateOfPurchase: datetime, fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime, usersWithPrices: List[Tuple[int, float]] = [], winner: int = None) -> LotteryPurchase:
+    def createLotteryPurchase(self , userId: int, fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime, usersWithPrices: List[Tuple[int, float]] = []) -> LotteryPurchase:
         '''
-        * Parameters: userId, dateOfPurchase, totalPrice, fullPrice, storeId, productId, productSpecId, startingDate, endingDate, usersWithPrices, winner
+        * Parameters: userId, totalPrice, fullPrice, storeId, productId, productSpecId, startingDate, endingDate, usersWithPrices
         * This function is responsible for creating a lottery purchase
         * Note: totalPrice initialized as 0 until people bought lottery tickets!
         * Returns: LotteryPurchase object
         '''
-        status = PurchaseStatus.onGoing
-        if startingDate > datetime.datetime.now():
-            status = PurchaseStatus.notStarted
 
         if userId is not None:
-            if dateOfPurchase is not None:
-                    if fullPrice is not None and fullPrice >= 0:
-                        if storeId is not None and productId is not None and productSpecId is not None:
-                            if startingDate is not None and startingDate > dateOfPurchase:
-                                if endingDate is not None and endingDate > startingDate:
-                                    totalPrice = 0 
-                                    lotteryPurchase = LotteryPurchase(self.get_purchasesIdCounter(), userId, dateOfPurchase, totalPrice, status, fullPrice, storeId, productId, productSpecId, startingDate, endingDate, usersWithPrices, winner)
-                                    self.get_purchases.append(lotteryPurchase)
-                                    self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
-                                    return True
+            if fullPrice is not None and fullPrice >= 0:
+                if storeId is not None and productId is not None and productSpecId is not None:
+                    if startingDate is not None:
+                        if endingDate is not None and endingDate > startingDate:
+                            lotteryPurchase = LotteryPurchase(self.get_purchasesIdCounter(), fullPrice, storeId, productId, productSpecId, startingDate, endingDate, usersWithPrices)
+                            self.get_purchases.append(lotteryPurchase)
+                            self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
+                            return True
         return False
         
-
-
 
     def getPurchasesOfUser(self, userId: int) -> List[Purchase]:
         '''
