@@ -7,15 +7,6 @@ from numpy.random import choice
 from typing import List, Tuple
 import concurrent.futures
 
-
-#-------------logging configuration----------------
-from logging_config import setup_logging
-import logging
-
-logger = logging.getLogger('myapp')
-#---------------------------------------------------
-
-
 #-----------------Rating class-----------------#
 class Rating(ABC):
     def __init__(self, ratingId: int ,rating: float, purchaseId: int, userId: int, description: str, creationDate: datetime):
@@ -28,7 +19,6 @@ class Rating(ABC):
         self.__description = description
         self.__creationDate = creationDate
 
-
     @abstractmethod
     def calculate_rating(self):
         pass
@@ -40,7 +30,6 @@ class StoreRating(Rating):
     def __init__(self, ratingId: int ,rating: float, purchaseId: int, userId: int, description: str, storeId: int, creationDate: datetime = datetime.datetime.now()):
         super().__init__(ratingId, rating, purchaseId, userId, description, creationDate)
         self.__storeId = storeId
-        logger.info('[StoreRating] successfully created store rating object with rating id: %s', ratingId)
 
     #---------------------------------Getters and Setters---------------------------------#
     @property
@@ -108,10 +97,10 @@ class StoreRating(Rating):
 #-----------------ProductRating class-----------------#
 class ProductRating(Rating):
     # purchaseId and productId are the unique identifiers for the product rating, productSpec used to retrieve the details of product
-    def __init__(self,ratingId: int, rating: float, purchaseId: int, userId: int, description: str, productSpecId: int, creationDate: datetime = datetime.datetime.now()):
+    def __init__(self,ratingId: int, rating: float, purchaseId: int, userId: int, description: str, storeId: int, productSpecId: int, creationDate: datetime = datetime.datetime.now()):
         super().__init__(ratingId, rating, purchaseId, userId, description, creationDate)
+        self.__storeId = storeId
         self.__productSpecId = productSpecId
-        logger.info('[ProductRating] successfully created product rating object with rating id: %s', ratingId)
 
     #---------------------------------Getters and Setters---------------------------------#
     @property
@@ -161,6 +150,15 @@ class ProductRating(Rating):
     @property
     def __set_creationDate(self, creationDate: datetime):
         self.__creationDate = creationDate
+
+    @property
+    def get_storeId(self):
+        return self.__storeId
+    
+    @property
+    def __set_storeId(self, storeId: int):
+        self.__storeId = storeId
+
 
     @property
     def get_productSpecId(self):
@@ -222,7 +220,6 @@ class ImmediateSubPurchases(Purchase):
     def __init__(self, purchaseId: int, storeId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, productIds: List[int]):
         super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
         self.productIds = productIds
-        logger.info('[ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: %s', purchaseId)
 
 
     #---------------------------------Getters and Setters---------------------------------#
@@ -330,7 +327,6 @@ class ImmediatePurchase(Purchase):
         self.totalPriceAfterDiscounts = totalPriceAfterDiscounts
         for shoppingBasket in shoppingCart:
             self.immediateSubPurchases.append(ImmediateSubPurchases(purchaseId, userId, shoppingBasket[0][0], dateOfPurchase, shoppingBasket[0][1], status, shoppingBasket[1]))
-        logger.info('[ImmediatePurchase] successfully created immediate purchase object with purchase id: %s', purchaseId)
 
 
 
@@ -416,7 +412,6 @@ class ImmediatePurchase(Purchase):
         * Returns: none
         '''
         self.__set_status(status) 
-        logger.info('[ImmediatePurchase] attempting to update status of immediate purchase with purchase id: %s', self.get_purchaseId())
 
     def updateDateOfPurchase(self, dateOfPurchase: datetime):
         ''' 
@@ -425,7 +420,6 @@ class ImmediatePurchase(Purchase):
         * Returns: none
         '''
         self.__set_dateOfPurchase(dateOfPurchase)
-        logger.info('[ImmediatePurchase] attempting to update date of purchase of immediate purchase with purchase id: %s', self.get_purchaseId())
         
 
     def calculateTotalPrice(self) -> float:
@@ -459,7 +453,6 @@ class ImmediatePurchase(Purchase):
         self.__set_deliveryDate(deliveryDate)
         
         
-        
     def invalidPurchase(self):
         '''
         * Parameters: none
@@ -480,9 +473,7 @@ class ImmediatePurchase(Purchase):
         if self.get_status() == PurchaseStatus.accepted:
             if self.get_deliveryDate() < datetime.datetime.now():
                 self.updateStatus(PurchaseStatus.completed)
-                logger.info('[ImmediatePurchase] purchase with purchase id: %s has been completed', self.get_purchaseId())
                 return True
-        logger.warn('[ImmediatePurchase] purchase with purchase id: %s has not been completed', self.get_purchaseId())
         return False
     
 
@@ -497,7 +488,6 @@ class BidPurchase(Purchase):
         self.productSpecId = productSpecId
         self.deliveryDate = None
         self.isOfferToStore = isOfferToStore
-        logger.info('[BidPurchase] successfully created bid purchase object with purchase id: %s', purchaseId)
 
 #---------------------------------Getters and Setters---------------------------------#
     @property
@@ -596,7 +586,6 @@ class BidPurchase(Purchase):
         * Returns: none
         '''
         self.__set_status(status) 
-        logger.info('[BidPurchase] attempting to update status of bid purchase with purchase id: %s', self.get_purchaseId())
 
 
     def StoreAcceptOffer(self, deliveryDate: datetime, totalPrice: float):
@@ -608,7 +597,6 @@ class BidPurchase(Purchase):
         self.updateStatus(PurchaseStatus.accepted)
         self.updateDateOfPurchase(datetime.datetime.now())
         self.__set_deliveryDate(deliveryDate)
-        logger.info('[BidPurchase] store accepted offer of bid purchase with purchase id: %s', self.get_purchaseId())
                 
 
     
@@ -622,8 +610,6 @@ class BidPurchase(Purchase):
             self.updateStatus(PurchaseStatus.accepted)
             self.updateDateOfPurchase(datetime.datetime.now())
             self.__set_deliveryDate(deliveryDate)
-            logger.info('[BidPurchase] user accepted offer of bid purchase with purchase id: %s', self.get_purchaseId())
-        
         
 
     def StoreRejectOffer(self):
@@ -633,7 +619,6 @@ class BidPurchase(Purchase):
         * Returns: none
         '''
         self.__set_status(PurchaseStatus.failed)
-        logger.info('[BidPurchase] store rejected offer of bid purchase with purchase id: %s', self.get_purchaseId())
 
     def UserRejectOffer(self, userId: int):
         '''
@@ -643,7 +628,6 @@ class BidPurchase(Purchase):
         '''
         if userId == self.get_userId():
             self.__set_status(PurchaseStatus.failed)
-            logger.info('[BidPurchase] user rejected offer of bid purchase with purchase id: %s', self.get_purchaseId())
 
 
     def StoreCounterOffer(self, counterOffer: float):
@@ -656,9 +640,6 @@ class BidPurchase(Purchase):
             if counterOffer >= 0:
                 self.__set_counterOffer(counterOffer)
                 self.__set_isOfferToStore(False)
-                logger.info('[BidPurchase] store counter offer of bid purchase with purchase id: %s', self.get_purchaseId())
-            else:
-                raise ValueError("Counter offer must be a positive float")
 
     def UserCounterOffer(self, counterOffer: float):
         ''' 
@@ -670,9 +651,6 @@ class BidPurchase(Purchase):
             if counterOffer >= 0:
                 self.__set_counterOffer(counterOffer)
                 self.__set_isOfferToStore(True)
-                logger.info('[BidPurchase] user counter offer of bid purchase with purchase id: %s', self.get_purchaseId())
-            else:
-                raise ValueError("Counter offer must be a positive float")
 
 
     def updateDateOfPurchase(self, dateOfPurchase: datetime):
@@ -681,7 +659,6 @@ class BidPurchase(Purchase):
         * This function is responsible for updating the date of the purchase
         * Returns: none
         '''
-        logger.info('[BidPurchase] attempting to update date of purchase of bid purchase with purchase id: %s', self.get_purchaseId())
         self.__set_dateOfPurchase(dateOfPurchase) 
         
 
@@ -702,7 +679,6 @@ class BidPurchase(Purchase):
         if self.get_status() == PurchaseStatus.accepted:
             if self.get_deliveryDate() < datetime.datetime.now():
                 self.updateStatus(PurchaseStatus.completed)
-                logger.info('[BidPurchase] purchase with purchase id: %s has been completed', self.get_purchaseId())
                 return True
         return False
     
@@ -722,7 +698,6 @@ class AuctionPurchase(Purchase):
         self.__productSpecId = productSpecId
         self.__deliveryDate = None
         self.__usersWithProposedPrices = usersWithProposedPrices
-        logger.info('[AuctionPurchase] successfully created auction purchase object with purchase id: %s', purchaseId)
 
 
     #---------------------------------Getters and Setters---------------------------------#
@@ -837,7 +812,6 @@ class AuctionPurchase(Purchase):
         * This function is responsible for updating the status of the purchase
         * Returns: none
         '''
-        logger.info('[AuctionPurchase] attempting to update status of auction purchase with purchase id: %s', self.get_purchaseId())
         self.__set_status(status) 
 
     def updateDateOfPurchase(self, dateOfPurchase: datetime):
@@ -846,7 +820,6 @@ class AuctionPurchase(Purchase):
         * This function is responsible for updating the date of the purchase
         * Returns: none
         '''
-        logger.info('[AuctionPurchase] attempting to update date of purchase of auction purchase with purchase id: %s', self.get_purchaseId())
         self.__set_dateOfPurchase(dateOfPurchase)
         
 
@@ -862,14 +835,10 @@ class AuctionPurchase(Purchase):
             if self.calculatedRemainingTime() > datetime.timedelta(0) and self.get_status() == PurchaseStatus.onGoing:
                 if self.get_usersWithProposedPrices() == [] and proposedPrice > self.basePrice:
                     self.__set_usersWithProposedPrices(self.get_usersWithProposedPrices().append((userId, proposedPrice)))
-                    logger.info('[AuctionPurchase] user with user id: %s added bid to auction purchase with purchase id: %s', userId, self.get_purchaseId())
                     return True
                 if proposedPrice > self.viewHighestBiddingOffer(): #MAYBE ADD LATER ON SOME LIKE CONSTRAINTS THAT THE STORE CAN DECLARE, FOR EXAMPLE, CAN ONLY BID ATLEAST 5 DOLLARS MORE THAN HIGHEST.
                     self.__set_usersWithProposedPrices(self.get_usersWithProposedPrices().append((userId, proposedPrice)))
-                    logger.info('[AuctionPurchase] user with user id: %s added bid to auction purchase with purchase id: %s', userId, self.get_purchaseId())
                     return True
-            else:
-                logger.warn('[AuctionPurchase] user with user id: %s could not add bid to auction purchase with purchase id: %s', userId, self.get_purchaseId())
         return False
 
 
@@ -879,7 +848,6 @@ class AuctionPurchase(Purchase):
         * This function is responsible for returning the highest bidding offer
         * Returns: float of highest bidding offer
         '''
-        logger.info('[AuctionPurchase] calculating total price of auction purchase with purchase id: %s', self.get_purchaseId())
         return self.viewHighestBiddingOffer()
 
 
@@ -889,7 +857,6 @@ class AuctionPurchase(Purchase):
         * This function is responsible for returning the highest bidding offer
         * Returns: float of highest bidding offer
         '''
-        logger.info('[AuctionPurchase] viewing highest bidding offer of auction purchase with purchase id: %s', self.get_purchaseId())
         return max(self.get_usersWithProposedPrices(), key = lambda x : x[1])[1] 
         
 
@@ -899,7 +866,6 @@ class AuctionPurchase(Purchase):
         * This function is responsible for calculating the remaining time for the auction
         * Returns: datetime of remaining time
         '''
-        logger.info('[AuctionPurchase] calculating remaining time of auction purchase with purchase id: %s', self.get_purchaseId())
         if self.get_startingDate() < datetime.datetime.now():
             if self.get_endingDate() > datetime.datetime.now():
                 return datetime.datetime.now() - self.get_endingDate()
@@ -916,10 +882,8 @@ class AuctionPurchase(Purchase):
                 userWithHighestBid = max(self.get_usersWithProposedPrices(), key = lambda x : x[1])
                 self.__set_userId(userWithHighestBid[0])
                 self.__set_totalPrice(userWithHighestBid[1])
-                logger.info('[AuctionPurchase] auction purchase with purchase id: %s has ended', self.get_purchaseId())
-            else:
-                self.__set_status(PurchaseStatus.failed)
-                logger.info('[AuctionPurchase] auction purchase failed with purchase id: %s', self.get_purchaseId())
+            
+            self.__set_status(PurchaseStatus.failed)
             return True
         return False 
     
@@ -933,9 +897,7 @@ class AuctionPurchase(Purchase):
             self.__set_status(PurchaseStatus.accepted)
             self.__set_dateOfPurchase(datetime.datetime.now())
             self.__set_deliveryDate(deliveryDate)
-            logger.info('[AuctionPurchase] user with user id: %s validated purchase of auction purchase with purchase id: %s', userId, self.get_purchaseId())
             return True
-        logger.warn('[AuctionPurchase] user with user id: %s could not validate purchase of auction purchase with purchase id: %s', userId, self.get_purchaseId())
         return False  
     
     def invalidatePurchaseOfUser(self, userId: int):
@@ -946,7 +908,6 @@ class AuctionPurchase(Purchase):
         '''
         if self.get_userId() == userId:
             self.__set_status(PurchaseStatus.failed)
-            logger.info('[AuctionPurchase] user with user id: %s invalidated purchase of auction purchase with purchase id: %s', userId, self.get_purchaseId())
             return True
         return False 
     
@@ -959,7 +920,6 @@ class AuctionPurchase(Purchase):
         if self.get_status() == PurchaseStatus.accepted:
             if self.get_deliveryDate() < datetime.datetime.now():
                 self.updateStatus(PurchaseStatus.completed)
-                logger.info('[AuctionPurchase] purchase with purchase id: %s has been completed', self.get_purchaseId())
                 return True
         return False 
     
@@ -975,7 +935,6 @@ class LotteryPurchase(Purchase):
         self.__startingDate = startingDate
         self.__endingDate = endingDate
         self.__deliveryDate = None
-        logger.info('[LotteryPurchase] successfully created lottery purchase object with purchase id: %s', purchaseId)
 
 
 #---------------------------------Getters and Setters---------------------------------#
@@ -1091,7 +1050,6 @@ class LotteryPurchase(Purchase):
         * This function is responsible for updating the status of the purchase
         * Returns: none
         '''
-        logger.info('[LotteryPurchase] attempting to update status of lottery purchase with purchase id: %s', self.get_purchaseId())
         self.__set_status(status) 
 
     def updateDateOfPurchase(self, dateOfPurchase: datetime):
@@ -1100,7 +1058,6 @@ class LotteryPurchase(Purchase):
         * This function is responsible for updating the date of the purchase
         * Returns: none
         '''
-        logger.info('[LotteryPurchase] attempting to update date of purchase of lottery purchase with purchase id: %s', self.get_purchaseId())
         self.__set_dateOfPurchase(dateOfPurchase)
         
     def calculateTotalPrice(self) -> float:
@@ -1109,7 +1066,6 @@ class LotteryPurchase(Purchase):
         * This function is responsible for returning the current total price paid in the lottery
         * Returns: float of total price so far
         '''
-        logger.info('[LotteryPurchase] calculating total price of lottery purchase with purchase id: %s', self.get_purchaseId())
         return sum([x[1] for x in self.get_usersWithPrices()])
 
 
@@ -1140,16 +1096,8 @@ class LotteryPurchase(Purchase):
 
                     if proposedPrice + self.get_totalPrice() == self.get_fullPrice():
                         self.__set_status(PurchaseStatus.accepted)
-                        logger.info('[LotteryPurchase] user with user id: %s added bid to lottery purchase with purchase id: %s', userId, self.get_purchaseId())    
                     return True
-                else:
-                    logger.warn('[LotteryPurchase] user with user id: %s could not add bid to lottery purchase with purchase id: %s', userId, self.get_purchaseId())
-                    return False
-
-            else:
-                raise ValueError("Lottery has ended")
-        else:
-            raise ValueError("User id is invalid")
+        return False
 
 
     def calculateProbabilityOfUser(self, userId: int) -> float:
@@ -1158,7 +1106,6 @@ class LotteryPurchase(Purchase):
         * This function is responsible for calculating the probability of the user winning the lottery
         * Returns: float of probability
         '''
-        logger.info('[LotteryPurchase] calculating probability of user with user id: %s in lottery purchase with purchase id: %s', userId, self.get_purchaseId())
         if userId is not None:
             if self.get_status() == PurchaseStatus.completed:
                 return sum([x[1] for x in self.get_usersWithPrices() if x[0] == userId]) / self.get_fullPrice()
@@ -1173,11 +1120,9 @@ class LotteryPurchase(Purchase):
         if self.get_endingDate() < datetime.datetime.now():
             if self.get_totalPrice() == self.get_fullPrice():
                 self.__set_status(PurchaseStatus.accepted)
-                logger.info('[LotteryPurchase] all users have paid the full price of lottery purchase with purchase id: %s', self.get_purchaseId())
                 return True
             if self.get_totalPrice() < self.get_fullPrice():
                 self.__set_status(PurchaseStatus.failed)
-                logger.info('[LotteryPurchase] all users have not paid the full price of lottery purchase with purchase id: %s', self.get_purchaseId())
                 return False
             #log.error("this should not happen")
 
@@ -1190,9 +1135,6 @@ class LotteryPurchase(Purchase):
         if self.get_status() == PurchaseStatus.onGoing and self.get_endingDate() < datetime.datetime.now():
             if self.get_totalPrice() != self.get_fullPrice():
                 self.updateStatus(PurchaseStatus.failed)
-                logger.info('[LotteryPurchase] lottery purchase failed with purchase id: %s', self.get_purchaseId())
-            else:
-                logger.info('[LotteryPurchase] lottery purchase with purchase id: %s has ended', self.get_purchaseId())
             return True
         return False
 
@@ -1219,10 +1161,7 @@ class LotteryPurchase(Purchase):
                     userWinner = np.random.choice([x[0] for x in uniqueUsersWithSumOfPrices], p=[x[1] / self.get_fullPrice() for x in uniqueUsersWithSumOfPrices]) 
                     self.__set_userId(userWinner)
                     return userWinner
-            logger.info('[LotteryPurchase] could not pick winner of lottery purchase with purchase id: %s', self.get_purchaseId())
-        else:
-            logger.info('[LotteryPurchase] could not pick winner of lottery purchase with purchase id: %s', self.get_purchaseId())
-            return None
+        return None
     
     def validateDeliveryOfWinner(self, userId: int, deliveryDate: datetime):
         '''
@@ -1230,12 +1169,10 @@ class LotteryPurchase(Purchase):
         * This function is responsible for validating that the winner of the lottery received the product
         * Returns: none
         '''
-        logger.info('[LotteryPurchase] validating delivery of winner of lottery purchase with purchase id: %s', self.get_purchaseId())
         if userId == self.get_userId():
             self.__set_status(PurchaseStatus.accepted)
             self.__set_dateOfPurchase(datetime.datetime.now())
             self.__set_deliveryDate(deliveryDate)
-            
     
     def invalidateDeliveryOfWinner(self, userId: int):
         '''
@@ -1243,7 +1180,6 @@ class LotteryPurchase(Purchase):
         * This function is responsible for invalidating the delivery of the winner of the lottery
         * Returns: none
         '''
-        logger.info('[LotteryPurchase] invalidating delivery of winner of lottery purchase with purchase id: %s', self.get_purchaseId())
         if userId == self.get_userId():
             self.__set_status(PurchaseStatus.failed)
     
@@ -1257,9 +1193,7 @@ class LotteryPurchase(Purchase):
         if self.get_status() == PurchaseStatus.accepted:
             if self.get_deliveryDate() < datetime.datetime.now():
                 self.updateStatus(PurchaseStatus.completed)
-                logger.info('[LotteryPurchase] purchase with purchase id: %s has been completed', self.get_purchaseId())
                 return True
-            raise ValueError("Delivery date is not valid")
         return False
     
     
@@ -1283,7 +1217,6 @@ class PurchaseFacade:
             self.ratings = []
             self.purchasesIdCounter = 0
             self.ratingIdCounter = 0
-            logger.info('[PurchaseFacade] successfully created purchase facade object')
 
 
     @property
@@ -1325,7 +1258,7 @@ class PurchaseFacade:
         * Parameters: userId, dateOfPurchase, deliveryDate, shoppingCart, totalPriceAfterDiscounts
         * This function is responsible for creating an immediate purchase
         * Note: totalPriceAfterDiscounts is not calculated yet! Initialized as -1!
-        * Returns: bool
+        * Returns: ImmediatePurchase object
         '''
         if userId is not None: 
             if totalPrice is not None and totalPrice >= 0:
@@ -1334,15 +1267,8 @@ class PurchaseFacade:
                     immediatePurchase = ImmediatePurchase(self.get_purchasesIdCounter(), userId, totalPrice, shoppingCart, totalPriceAfterDiscounts)
                     self.get_purchases.append(immediatePurchase)
                     self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
-                    logger.info('[PurchaseFacade] created immediate purchase with purchase id: %s', immediatePurchase.get_purchaseId())
                     return True
-                else:
-                    raise ValueError("Shopping cart is invalid")
-            else:
-                raise ValueError("Total price is invalid")
-        else:
-            raise ValueError("User id is invalid")
-        
+        return False
         
 
     def createBidPurchase(self, userId: int, proposedPrice: float, productId: int, productSpecId: int, storeId: int, isOfferToStore: bool = True) -> bool:
@@ -1350,7 +1276,7 @@ class PurchaseFacade:
         * Parameters: userId, proposedPrice, productId, productSpecId, storeId, isOfferToStore
         * This function is responsible for creating a bid purchase
         * Note: totalPrice initialized as -1 until it is accepted!
-        * Returns: bool
+        * Returns: BidPurchase object
         '''
         if userId is not None:
             if proposedPrice is not None and proposedPrice >= 0:
@@ -1358,21 +1284,15 @@ class PurchaseFacade:
                     bidPurchase = BidPurchase(self.get_purchasesIdCounter(), userId, proposedPrice, productId, productSpecId, storeId, isOfferToStore)
                     self.get_purchases.append(bidPurchase)
                     self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
-                    logger.info('[PurchaseFacade] created bid purchase with purchase id: %s', bidPurchase.get_purchaseId())
                     return True
-                else:
-                    raise ValueError("Product id, product spec id or store id is invalid")
-            else:
-                raise ValueError("Proposed price is invalid")
-        else:
-            raise ValueError("User id is invalid")
+        return False
         
 
     def createAuctionPurchase(self, basePrice: float, startingDate: datetime, endingDate: datetime, storeId: int, productId: int, productSpecId: int, usersWithProposedPrices: List[Tuple[int, float]] = []) -> bool:
         '''
         * Parameters: basePrice, startingDate, endingDate, storeId, productId, productSpecId, usersWithProposedPrices
         * This function is responsible for creating an auction purchase
-        * Returns: bool
+        * Returns: AuctionPurchase object
         '''
         if basePrice is not None and basePrice >= 0:
             if startingDate is not None:
@@ -1381,16 +1301,8 @@ class PurchaseFacade:
                         auctionPurchase = AuctionPurchase(self.get_purchasesIdCounter(), basePrice, startingDate, endingDate, storeId, productId, productSpecId, usersWithProposedPrices)
                         self.get_purchases.append(auctionPurchase)
                         self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
-                        logger.info('[PurchaseFacade] created auction purchase with purchase id: %s', auctionPurchase.get_purchaseId())
                         return True
-                    else:
-                        raise ValueError("Store id, product id or product spec id is invalid")
-                else:
-                    raise ValueError("Ending date is invalid")
-            else:
-                raise ValueError("Starting date is invalid")
-        else:
-            raise ValueError("Base price is invalid")
+        return False
         
 
     def createLotteryPurchase(self , userId: int, fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime, usersWithPrices: List[Tuple[int, float]] = []) -> LotteryPurchase:
@@ -1398,7 +1310,7 @@ class PurchaseFacade:
         * Parameters: userId, totalPrice, fullPrice, storeId, productId, productSpecId, startingDate, endingDate, usersWithPrices
         * This function is responsible for creating a lottery purchase
         * Note: totalPrice initialized as 0 until people bought lottery tickets!
-        * Returns: bool
+        * Returns: LotteryPurchase object
         '''
 
         if userId is not None:
@@ -1409,18 +1321,8 @@ class PurchaseFacade:
                             lotteryPurchase = LotteryPurchase(self.get_purchasesIdCounter(), fullPrice, storeId, productId, productSpecId, startingDate, endingDate, usersWithPrices)
                             self.get_purchases.append(lotteryPurchase)
                             self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
-                            logger.info('[PurchaseFacade] created lottery purchase with purchase id: %s', lotteryPurchase.get_purchaseId())
                             return True
-                        else
-                            raise ValueError("Ending date is invalid")
-                    else:
-                        raise ValueError("Starting date is invalid")
-                else:
-                    raise ValueError("Store id, product id or product spec id is invalid")
-            else:
-                raise ValueError("Full price is invalid")
-        else:
-            raise ValueError("User id is invalid")
+        return False
         
 
     def getPurchasesOfUser(self, userId: int) -> List[Purchase]:
@@ -1431,8 +1333,7 @@ class PurchaseFacade:
         '''
         if userId is not None:
             return [purchase for purchase in self.purchases if purchase.get_userId() == userId]
-        else:
-            raise ValueError("User id is invalid")
+        return None
 
 
     def getPurchasesOfStore(self, storeId: int) -> List[Purchase]:
@@ -1470,7 +1371,6 @@ class PurchaseFacade:
         * This function is responsible for returning the ongoing purchases
         * Returns: list of Purchase objects
         '''
-        logger.info('[PurchaseFacade] attempting to get ongoing purchases')
         return [purchase for purchase in self.purchases if purchase.get_status() == PurchaseStatus.onGoing]
         
 
@@ -1480,7 +1380,6 @@ class PurchaseFacade:
         * This function is responsible for returning the completed purchases
         * Returns: list of Purchase objects
         '''
-        logger.info('[PurchaseFacade] attempting to get completed purchases')
         return [purchase for purchase in self.purchases if purchase.get_status() == PurchaseStatus.completed]
 
     def getFailedPurchases(self) -> List[Purchase]:
@@ -1489,7 +1388,6 @@ class PurchaseFacade:
         * This function is responsible for returning the failed purchases
         * Returns: list of Purchase objects
         '''
-        logger.info('[PurchaseFacade] attempting to get failed purchases')
         return [purchase for purchase in self.purchases if purchase.get_status() == PurchaseStatus.failed]
 
     def getAcceptedPurchases(self) -> List[Purchase]:
@@ -1498,7 +1396,6 @@ class PurchaseFacade:
         * This function is responsible for returning the accepted purchases
         * Returns: list of Purchase objects
         '''
-        logger.info('[PurchaseFacade] attempting to get accepted purchases')
         return [purchase for purchase in self.purchases if purchase.get_status() == PurchaseStatus.accepted]
 
         
@@ -1512,8 +1409,7 @@ class PurchaseFacade:
             for purchase in self.purchases:
                 if purchase.get_purchaseId() == purchaseId:
                     return purchase
-        else:
-            raise ValueError("Purchase id is invalid")
+        return None
     
 
     def updateStatus(self, purchaseId: int, status: PurchaseStatus):
@@ -1522,7 +1418,6 @@ class PurchaseFacade:
         * This function is responsible for updating the status of the purchase
         * Returns: none
         '''
-        logger.info('[PurchaseFacade] attempting to update status of purchase with purchase id: %s', purchaseId)
         purchase = self.getPurchaseById(purchaseId)
         if purchase is not None:
             purchase.updateStatus(status)
@@ -1533,7 +1428,6 @@ class PurchaseFacade:
         * This function is responsible for updating the date of the purchase
         * Returns: none
         '''
-        logger.info('[PurchaseFacade] attempting to update date of purchase of purchase with purchase id: %s', purchaseId)
         purchase = self.getPurchaseById(purchaseId)
         if purchase is not None:
             purchase.updateDateOfPurchase(dateOfPurchase)
@@ -1545,14 +1439,10 @@ class PurchaseFacade:
         * This function is responsible for calculating the total price of the purchase
         * Returns: float of total price
         '''
-        logger.info('[PurchaseFacade] calculating total price of purchase with purchase id: %s', purchaseId)
         purchase = self.getPurchaseById(purchaseId)
         if purchase is not None:
             return purchase.calculateTotalPrice()
-        else:
-            raise ValueError("Purchase id is invalid")
-
-
+        return None
         
     def hasUserAlreadyRatedStore(self, purchaseId: int, userId: int, storeId: int) -> bool:
         '''
@@ -1560,7 +1450,6 @@ class PurchaseFacade:
         * This function is responsible for checking if the user has already rated the store in a given purchase (this does not stop the user from rating the same store twice if they have two purchases)
         * Returns: true if rated, false if not
         '''
-        logger.info('[PurchaseFacade] checking if user with user id: %s has already rated store with store id: %s in purchase with purchase id: %s', userId, storeId, purchaseId)
         for rating in self.ratings:
             if rating is StoreRating:
                 if rating.get_purchaseId() == purchaseId and rating.get_userId() == userId and rating.get_storeId() == storeId:
@@ -1574,7 +1463,6 @@ class PurchaseFacade:
         * Note: this does not stop the user from rating the product twice if they bought the product more than once
         * Returns: true if rated, false if not
         '''
-        logger.info('[PurchaseFacade] checking if user with user id: %s has already rated product with product spec id: %s in purchase with purchase id: %s', userId, productSpecId, purchaseId)
         for rating in self.ratings:
             if rating is ProductRating:
                 if rating.get_purchaseId() == purchaseId and rating.get_userId() == userId and rating.get_productSpecId() == productSpecId:
@@ -1588,12 +1476,8 @@ class PurchaseFacade:
         * This function is responsible for calculating the new rating of the store
         * Returns: the new value of the rating of the store
         '''
-        logger.info('[PurchaseFacade] calculating new rating of store with store id: %s', storeId)
         ratings = [rating for rating in self.ratings if rating is StoreRating and rating.get_storeId() == storeId]
         return sum([rating.get_rating() for rating in ratings]) / len(ratings)
-    
-    
-    
     
     def calculateNewProductRating(self, productSpecId: int) -> float:
         '''
@@ -1601,10 +1485,8 @@ class PurchaseFacade:
         * This function is responsible for calculating the new rating of the product
         * Returns: the new value of the rating of the product
         '''
-        logger.info('[PurchaseFacade] calculating new rating of product with product spec id: %s', productSpecId)
         ratings = [rating for rating in self.ratings if rating is ProductRating and rating.get_productSpecId() == productSpecId]
         return sum([rating.get_rating() for rating in ratings]) / len(ratings)
-    
     
     
     def rateStore(self, purchaseId: int, userId: int, storeId: int, rating: float, description: str) -> float:
@@ -1623,19 +1505,12 @@ class PurchaseFacade:
                             self.ratings.append(storeRating)
                             self.__set_ratingIdCounter(self.get_ratingIdCounter() + 1)
                             return self.calculateNewStoreRating(storeId)
-                        else:
-                            raise ValueError("User id is invalid")
-                    else:
-                        raise ValueError("User has already rated store")
-                else:
-                    raise ValueError("Purchase is not completed")
-            else:
-                raise ValueError("Store id is invalid")
-        else:
-            raise ValueError("Purchase id is invalid")
-                        
+                                
+                    
+                    return purchase.rateStore(userId, rating)
+        return None
     
-    def rateProduct(self, purchaseId: int, userId: int, productSpecId: int, rating: float, description: str) -> float:
+    def rateProduct(self, purchaseId: int, userId: int, storeId: int, productSpecId: int, rating: float, description: str) -> float:
         '''
         * Parameters: purchaseId, userId, rating, productSpecId
         * This function is responsible for rating the product
@@ -1646,19 +1521,11 @@ class PurchaseFacade:
             if purchase.get_status() == PurchaseStatus.completed:
                 if not self.hasUserAlreadyRatedProduct(purchaseId, userId, productSpecId):
                     if purchase.get_userId() == userId:
-                        productRating = ProductRating(self.get_ratingIdCounter(), rating, purchaseId, userId, description, productSpecId)
+                        productRating = ProductRating(self.get_ratingIdCounter(), rating, purchaseId, userId, description, storeId ,productSpecId)
                         self.ratings.append(productRating)
                         self.__set_ratingIdCounter(self.get_ratingIdCounter() + 1)
                         return self.calculateNewProductRating(productSpecId)
-                    else:
-                        raise ValueError("User id is invalid")
-                else:
-                    raise ValueError("User has already rated product")
-            else:
-                raise ValueError("Purchase is not completed")
-        else:
-            raise ValueError("Purchase id is invalid")
-        
+        return None
     
     def checkIfCompletedPurchase(self, purchaseId: int) -> bool:
         '''
@@ -1669,8 +1536,7 @@ class PurchaseFacade:
         purchase = self.getPurchaseById(purchaseId)
         if purchase is not None:
             return purchase.checkIfCompletedPurchase()
-        else:
-            raise ValueError("Purchase id is invalid")
+        return False
     
     
 
@@ -1687,10 +1553,7 @@ class PurchaseFacade:
         if immediatePurchase is ImmediatePurchase:
             if immediatePurchase.get_status() == PurchaseStatus.onGoing or immediatePurchase.get_status() == PurchaseStatus.accepted:
                 return immediatePurchase.calculateTotalPriceAfterDiscounts()
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not immediate")
+        return None
     
     
     def validatePurchaseOfUser(self, purchaseId: int, userId: int, deliveryDate: datetime):
@@ -1702,8 +1565,6 @@ class PurchaseFacade:
         immediatePurchase = self.getPurchaseById(purchaseId)
         if immediatePurchase is ImmediatePurchase:
             immediatePurchase.validatePurchaseOfUser(userId, deliveryDate)
-        else:
-            raise ValueError("Purchase is not immediate")
     
     
     def invalidatePurchaseOfUser(self, purchaseId: int, userId: int):
@@ -1715,8 +1576,6 @@ class PurchaseFacade:
         immediatePurchase = self.getPurchaseById(purchaseId)
         if immediatePurchase is ImmediatePurchase:
             immediatePurchase.invalidatePurchaseOfUser(userId)
-        else:
-            raise ValueError("Purchase is not immediate")
                 
         
     
@@ -1733,10 +1592,6 @@ class PurchaseFacade:
         if bidPurchase is BidPurchase:
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                  bidPurchase.StoreAcceptOffer()
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not bid")
     
 
         
@@ -1750,10 +1605,6 @@ class PurchaseFacade:
         if bidPurchase is BidPurchase:
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                  bidPurchase.UseracceptOffer(userId)
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not bid")
     
 
     
@@ -1767,10 +1618,6 @@ class PurchaseFacade:
         if bidPurchase is BidPurchase:
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                  bidPurchase.StoreRejectOffer()
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not bid")
     
 
     def userRejectOffer(self, purchaseId: int, userId: int) :
@@ -1783,10 +1630,6 @@ class PurchaseFacade:
         if bidPurchase is BidPurchase:
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                 bidPurchase.UserRejectOffer(userId)
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not bid")
 
 
     
@@ -1800,10 +1643,6 @@ class PurchaseFacade:
         if bidPurchase is BidPurchase:
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                  bidPurchase.StoreCounterOffer(counterOffer)
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not bid")
   
 
     
@@ -1818,10 +1657,6 @@ class PurchaseFacade:
         if bidPurchase is BidPurchase:
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                 bidPurchase.UserCounterOffer(counterOffer)
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not bid")
     
 
 
@@ -1837,10 +1672,7 @@ class PurchaseFacade:
         if auctionPurchase is AuctionPurchase:
             if auctionPurchase.get_status() == PurchaseStatus.onGoing:
                 return auctionPurchase.addAuctionBid(userId, proposedPrice)
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not auction")
+        return False
    
 
 
@@ -1854,11 +1686,8 @@ class PurchaseFacade:
         if auctionPurchase is AuctionPurchase:
             if auctionPurchase.get_status() == PurchaseStatus.onGoing or auctionPurchase.get_status() == PurchaseStatus.accepted:
                 return auctionPurchase.viewHighestBiddingOffer()
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not auction")
-   
+        return None
+    
         
 
     def calculateRemainingTime(self, purchaseId: int) -> datetime:
@@ -1871,10 +1700,7 @@ class PurchaseFacade:
         if auctionPurchase is AuctionPurchase:
             if auctionPurchase.get_status() == PurchaseStatus.onGoing:
                 return auctionPurchase.calculateRemainingTime()
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not auction")
+        return datetime.timedelta(0)
     
     
     def checkIfAuctionEnded(self, purchaseId: int) -> bool:
@@ -1886,8 +1712,7 @@ class PurchaseFacade:
         auctionPurchase = self.getPurchaseById(purchaseId)
         if auctionPurchase is AuctionPurchase:
             return auctionPurchase.checkIfAuctionEnded()
-        else:
-            raise ValueError("Purchase is not auction")
+        return False
     
     
     def validatePurchaseOfUser(self, purchaseId: int, userId: int, deliveryDate: datetime):
@@ -1899,8 +1724,6 @@ class PurchaseFacade:
         auctionPurchase = self.getPurchaseById(purchaseId)
         if auctionPurchase is AuctionPurchase:
             auctionPurchase.validatePurchaseOfUser(userId, deliveryDate)
-        else:
-            raise ValueError("Purchase is not auction")
             
     
     def invalidatePurchaseOfUser(self, purchaseId: int, userId: int):
@@ -1912,8 +1735,6 @@ class PurchaseFacade:
         auctionPurchase = self.getPurchaseById(purchaseId)
         if auctionPurchase is AuctionPurchase:
             auctionPurchase.invalidatePurchaseOfUser(userId)
-        else:
-            raise ValueError("Purchase is not auction")
             
     
     
@@ -1929,10 +1750,7 @@ class PurchaseFacade:
         if lotteryPurchase is LotteryPurchase:
             if lotteryPurchase.get_status() == PurchaseStatus.onGoing:
                 return lotteryPurchase.calculateRemainingTime()
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not lottery")
+        return datetime.timedelta(0)
    
         
 
@@ -1947,10 +1765,7 @@ class PurchaseFacade:
         if lotteryPurchase is LotteryPurchase:
             if lotteryPurchase.get_status() == PurchaseStatus.onGoing:
                 return lotteryPurchase.addLotteryOffer(userId, proposedPrice)
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not lottery")
+        return False
     
         
 
@@ -1964,10 +1779,7 @@ class PurchaseFacade:
         if lotteryPurchase is LotteryPurchase:
             if lotteryPurchase.get_status() == PurchaseStatus.onGoing or lotteryPurchase.get_status() == PurchaseStatus.accepted:
                 return lotteryPurchase.calculateProbabilityOfUser(userId)
-            else:
-                raise ValueError("Purchase is not ongoing")
-        else:
-            raise ValueError("Purchase is not lottery")
+        return None
      
         
 
@@ -1982,11 +1794,7 @@ class PurchaseFacade:
         if lotteryPurchase is LotteryPurchase:
             if lotteryPurchase.get_endingDate() < datetime.datetime.now:
                 return lotteryPurchase.validateUserOffers()
-            else:
-                raise ValueError("Lottery has ended")
-        else:
-            raise ValueError("Purchase is not lottery")
-        
+        return False
    
 
         
@@ -2001,10 +1809,7 @@ class PurchaseFacade:
         if lotteryPurchase is LotteryPurchase:
             if lotteryPurchase.get_status() == PurchaseStatus.accepted:
                 return lotteryPurchase.pickWinner()
-            else:
-                raise ValueError("Purchase is not accepted")
-        else:
-            raise ValueError("Purchase is not lottery")
+        return None
     
     
     def validateDeliveryOfWinner(self, purchaseId: int, userId: int, deliveryDate: datetime):
@@ -2016,8 +1821,6 @@ class PurchaseFacade:
         lotteryPurchase = self.getPurchaseById(purchaseId)
         if lotteryPurchase is LotteryPurchase:
             lotteryPurchase.validateDeliveryOfWinner(userId, deliveryDate)
-        else:
-            raise ValueError("Purchase is not lottery")
             
             
     def invalidateDeliveryOfWinner(self, purchaseId: int, userId: int):
@@ -2029,7 +1832,5 @@ class PurchaseFacade:
         lotteryPurchase = self.getPurchaseById(purchaseId)
         if lotteryPurchase is LotteryPurchase:
             lotteryPurchase.invalidateDeliveryOfWinner(userId)
-        else:
-            raise ValueError("Purchase is not lottery")
             
             
