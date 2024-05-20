@@ -70,13 +70,16 @@ def login():
     """
     data = request.get_json()
     try:
+        if not 'username' in data or not 'password' in data:
+            raise ValueError('Missing username or password')
         username = data.get('username')
         password = data.get('password')
         user_token = authentication_facade.login_user(username, password)
-        authentication_facade.logout_user(get_jwt()['jti'])
+        authentication_facade.logout_guest(get_jwt()['jti'], get_jwt_identity())
         return jsonify({'message': 'OK', 'token': user_token}), 200
     except Exception as e:
         return jsonify({'message': str(e)}), 400
+
 
 
 @auth_bp.route('/logout', methods=['POST'])
@@ -94,7 +97,8 @@ def logout():
     """
     try:
         jti = get_jwt()['jti']
-        authentication_facade.logout_user(jti)
+        user_id = get_jwt_identity()
+        authentication_facade.logout_user(jti, user_id)
         response = jsonify({'message': 'User logged out successfully'})
         unset_jwt_cookies(response)
         return response, 200

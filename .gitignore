@@ -1,10 +1,8 @@
 .backendvenv/
 .vscode/
-
 .backendvenv/
 .vscode/
 .pytest_cache/
-
 tests/__pycache__/
 backend/tests/__pycache__/
 backend/__pycache__/
