@@ -441,7 +441,7 @@ class ImmediatePurchase(Purchase):
         self.updateStatus(PurchaseStatus.accepted)
         self.updateDateOfPurchase(datetime.datetime.now())
         self.__set_deliveryDate(deliveryDate)
-        //
+        
         
     def invalidPurchase(self):
         '''
@@ -452,7 +452,7 @@ class ImmediatePurchase(Purchase):
         self.updateStatus(PurchaseStatus.failed)
         self.updateDateOfPurchase(None)
         self.__set_deliveryDate(None)
-        //
+        
     
     def checkIfCompletedPurchase(self) -> bool: #maybe later on, notify the user and ask if they received the purchase and only then we can go to completed
         '''
@@ -465,7 +465,7 @@ class ImmediatePurchase(Purchase):
                 self.updateStatus(PurchaseStatus.completed)
                 return True
         return False
-    //
+    
 
 
 #-----------------BidPurchase class-----------------#
@@ -671,7 +671,7 @@ class BidPurchase(Purchase):
                 self.updateStatus(PurchaseStatus.completed)
                 return True
         return False
-    //
+    
     
 
 #-----------------AuctionPurchase class-----------------#
@@ -847,7 +847,7 @@ class AuctionPurchase(Purchase):
         * This function is responsible for returning the highest bidding offer
         * Returns: float of highest bidding offer
         '''
-        return max(self.get_usersWithProposedPrices(), key = lambda x : x[1])[1] //
+        return max(self.get_usersWithProposedPrices(), key = lambda x : x[1])[1] 
         
 
     def calculateRemainingTime(self) -> datetime:
@@ -859,7 +859,7 @@ class AuctionPurchase(Purchase):
         if self.get_startingDate() < datetime.datetime.now():
             if self.get_endingDate() > datetime.datetime.now():
                 return datetime.datetime.now() - self.get_endingDate()
-        return datetime.timedelta(0) // 
+        return datetime.timedelta(0) 
     
     def checkIfAuctionEnded(self) -> bool:
         '''
@@ -875,7 +875,7 @@ class AuctionPurchase(Purchase):
             
             self.__set_status(PurchaseStatus.failed)
             return True
-        return False // 
+        return False 
     
     def validatePurchaseOfUser(self, userId: int, deliveryDate: datetime):
         '''
@@ -888,7 +888,7 @@ class AuctionPurchase(Purchase):
             self.__set_dateOfPurchase(datetime.datetime.now())
             self.__set_deliveryDate(deliveryDate)
             return True
-        return False // 
+        return False  
     
     def invalidatePurchaseOfUser(self, userId: int):
         '''
@@ -899,7 +899,7 @@ class AuctionPurchase(Purchase):
         if self.get_userId() == userId:
             self.__set_status(PurchaseStatus.failed)
             return True
-        return False //
+        return False 
     
     def checkIfCompletedPurchase(self) -> bool:
         '''
@@ -911,7 +911,7 @@ class AuctionPurchase(Purchase):
             if self.get_deliveryDate() < datetime.datetime.now():
                 self.updateStatus(PurchaseStatus.completed)
                 return True
-        return False //
+        return False 
     
 
 #-----------------LotteryPurchase class-----------------#
@@ -1517,6 +1517,17 @@ class PurchaseFacade:
                         return self.calculateNewProductRating(productSpecId)
         return None
     
+    def checkIfCompletedPurchase(self, purchaseId: int) -> bool:
+        '''
+        * Parameters: purchaseId
+        * This function is responsible for checking if the purchase is completed, and updating if it is
+        * Returns: true if completed, false otherwise
+        '''
+        purchase = self.getPurchaseById(purchaseId)
+        if purchase is not None:
+            return purchase.checkIfCompletedPurchase()
+        return False
+    
     
 
 
@@ -1534,10 +1545,31 @@ class PurchaseFacade:
                 return immediatePurchase.calculateTotalPriceAfterDiscounts()
         return None
     
-
-
     
-   
+    def validatePurchaseOfUser(self, purchaseId: int, userId: int, deliveryDate: datetime):
+        '''
+        * Parameters: purchaseId, userId
+        * This function is responsible for validating that the user successfully paid for the product and the product is underway
+        * Returns: none
+        '''
+        immediatePurchase = self.getPurchaseById(purchaseId)
+        if immediatePurchase is ImmediatePurchase:
+            immediatePurchase.validatePurchaseOfUser(userId, deliveryDate)
+    
+    
+    def invalidatePurchaseOfUser(self, purchaseId: int, userId: int):
+        '''
+        * Parameters: purchaseId, userId
+        * This function is responsible for invalidating the purchase of the user, whether it be due to not paying or not able to deliver
+        * Returns: none
+        '''
+        immediatePurchase = self.getPurchaseById(purchaseId)
+        if immediatePurchase is ImmediatePurchase:
+            immediatePurchase.invalidatePurchaseOfUser(userId)
+                
+        
+    
+
 
 #-----------------Bid-----------------#
     def storeAcceptOffer(self, purchaseId: int):
@@ -1659,9 +1691,43 @@ class PurchaseFacade:
             if auctionPurchase.get_status() == PurchaseStatus.onGoing:
                 return auctionPurchase.calculateRemainingTime()
         return datetime.timedelta(0)
-   
-        
-
+    
+    
+    def checkIfAuctionEnded(self, purchaseId: int) -> bool:
+        '''
+        * Parameters: purchaseId
+        * This function is responsible for checking if the auction has ended
+        * Returns: true if ended, false if not
+        '''
+        auctionPurchase = self.getPurchaseById(purchaseId)
+        if auctionPurchase is AuctionPurchase:
+            return auctionPurchase.checkIfAuctionEnded()
+        return False
+    
+    
+    def validatePurchaseOfUser(self, purchaseId: int, userId: int, deliveryDate: datetime):
+        '''
+        * Parameters: purchaseId, userId
+        * This function is responsible for validating that the user with the highest bid successfully paid for the product and the product is underway
+        * Returns: none
+        '''
+        auctionPurchase = self.getPurchaseById(purchaseId)
+        if auctionPurchase is AuctionPurchase:
+            auctionPurchase.validatePurchaseOfUser(userId, deliveryDate)
+            
+    
+    def invalidatePurchaseOfUser(self, purchaseId: int, userId: int):
+        '''
+        * Parameters: purchaseId, userId
+        * This function is responsible for invalidating the purchase of the user with the highest bid, whether it be due to not paying or not able to deliver
+        * Returns: none
+        '''
+        auctionPurchase = self.getPurchaseById(purchaseId)
+        if auctionPurchase is AuctionPurchase:
+            auctionPurchase.invalidatePurchaseOfUser(userId)
+            
+    
+    
 #-----------------Lottery-----------------#
 
     def calculateRemainingTime(self, purchaseId: int) -> datetime:
@@ -1734,3 +1800,27 @@ class PurchaseFacade:
             if lotteryPurchase.get_status() == PurchaseStatus.accepted:
                 return lotteryPurchase.pickWinner()
         return None
+    
+    
+    def validateDeliveryOfWinner(self, purchaseId: int, userId: int, deliveryDate: datetime):
+        '''
+        * Parameters: purchaseId, userId, deliveryDate
+        * This function is responsible for validating that the winner of the lottery received the product
+        * Returns: none
+        '''
+        lotteryPurchase = self.getPurchaseById(purchaseId)
+        if lotteryPurchase is LotteryPurchase:
+            lotteryPurchase.validateDeliveryOfWinner(userId, deliveryDate)
+            
+            
+    def invalidateDeliveryOfWinner(self, purchaseId: int, userId: int):
+        '''
+        * Parameters: purchaseId, userId
+        * This function is responsible for invalidating the delivery of the winner of the lottery
+        * Returns: none
+        '''
+        lotteryPurchase = self.getPurchaseById(purchaseId)
+        if lotteryPurchase is LotteryPurchase:
+            lotteryPurchase.invalidateDeliveryOfWinner(userId)
+            
+            
