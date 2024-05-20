@@ -6,7 +6,9 @@ from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
 from typing import Optional, List, Dict
 import threading
+import logging
 
+logger = logging.getLogger('myapp')
 
 class AddressDTO:
     def __init__(self, address_id, address, city, state, country, postal_code):
@@ -74,9 +76,8 @@ class MarketFacade:
         cart = self.user_facade.get_shopping_cart(user_id)
         # lock the __lock
         with MarketFacade.__lock:
-
             # check if the products are still available
-            for store_id, products in basket.items():
+            for store_id, products in cart.items():
                 for product_id in products:
                     if not self.store_facade.check_product_availability(store_id, product_id):
                         raise ValueError(f"Product {product_id} is not available in the required amount")
@@ -92,6 +93,7 @@ class MarketFacade:
             for store_id, products in basket.items():
                 for product_id in products:
                     self.store_facade.remove_product(store_id, product_id)
+
         # clear the cart
         self.user_facade.clear_basket(user_id)
 
@@ -154,4 +156,3 @@ class MarketFacade:
 
     def remove_supply_method(self, method_name: str):
         SupplyHandler().remove_supply_method(method_name)
-        

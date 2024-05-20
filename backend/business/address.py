@@ -73,7 +73,3 @@ class Address:
 
     def getLocationWeight(self):
         pass
-
-    
-
-
