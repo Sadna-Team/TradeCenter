@@ -49,7 +49,7 @@ class Notifier:
     # Notify on a store update (closed or opened) --- for store owner
     def notify_update_store_status(self, store_id: int, additional_details, is_closed: bool) -> None:
         """
-        * Parameters: store_id: int, isClosed: bool
+        * Parameters: store_id: int, additional detials, isClosed: bool
         * isClosed is a boolean - *True* if the store is closed *False* if the store is opened.
         * This function notifies the store owner(s) on a change in the store status (closed or opened).
         """
