@@ -30,7 +30,7 @@ class TestShoppingBasket(unittest.TestCase):
             basket.remove_product(100)
 
 
-class TestSoppingCart(unittest.TestCase):
+class TestShoppingCart(unittest.TestCase):
 
     def test_add_product_to_basket(self):
         cart = SoppingCart(user_id=1)
