@@ -2,7 +2,9 @@ from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 import secrets
-from backend.business.market import MarketFacade
+from .business.market import MarketFacade
+from .business.authentication.authentication import Authentication
+
 
 
 class Config:
@@ -23,13 +25,24 @@ def create_app():
 
     market_facade = MarketFacade()
 
-    from services.user_services.routes import auth_bp, user_bp
-    from services.ecommerce_services.routes import market_bp
-    from services.store_services.routes import store_bp
+    from .services.user_services.routes import auth_bp, user_bp
+    from .services.ecommerce_services.routes import market_bp
+    from .services.store_services.routes import store_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(market_bp, url_prefix='/market')
     app.register_blueprint(store_bp, url_prefix='/store')
 
+    authentication = Authentication()
+    authentication.set_jwt(jwt, bcrypt)
+
+    @jwt.token_in_blocklist_loader
+    def check_if_token_in_blacklist(jwt_header, jwt_payload):
+        return authentication.check_if_token_in_blacklist(jwt_header, jwt_payload)
+
     return app
+
+def clean_data():
+    MarketFacade().clean_data()
+    Authentication().clean_data()
