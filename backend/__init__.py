@@ -2,8 +2,8 @@ from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 import secrets
-from .business.market import MarketFacade
-from .business.authentication.authentication import Authentication
+from backend.business.market import MarketFacade
+from backend.business.authentication.authentication import Authentication
 
 
 
@@ -23,19 +23,21 @@ def create_app():
     bcrypt.init_app(app)
     jwt.init_app(app)
 
+    authentication = Authentication()
+    authentication.set_jwt(jwt, bcrypt)
+
     market_facade = MarketFacade()
 
-    from .services.user_services.routes import auth_bp, user_bp
-    from .services.ecommerce_services.routes import market_bp
-    from .services.store_services.routes import store_bp
+    from backend.services.user_services.routes import auth_bp, user_bp
+    from backend.services.ecommerce_services.routes import market_bp
+    from backend.services.store_services.routes import store_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(market_bp, url_prefix='/market')
     app.register_blueprint(store_bp, url_prefix='/store')
 
-    authentication = Authentication()
-    authentication.set_jwt(jwt, bcrypt)
+
 
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blacklist(jwt_header, jwt_payload):
