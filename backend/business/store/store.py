@@ -299,10 +299,10 @@ class productSpecification:
     
 
 #---------------------category class---------------------#
-class category:
+class Category:
     # id of category is categoryId. It is unique for each category. Products are stored in either the category or found in one of its subcategories
     # important to note: a category can only have one parentcategory, and a category can't have a subcategory that is already a subcategory of a subcategory.
-    def __init__(self, categoryId: int, categoryName: str, parentCategoryId: int = None, categoryProducts: List[productSpecification] = [], subCategories: List['category'] = []):
+    def __init__(self, categoryId: int, categoryName: str, parentCategoryId: int = None, categoryProducts: List[productSpecification] = [], subCategories: List['Category'] = []):
         self.__categoryId = categoryId
         self.__categoryName = categoryName
         self.__parentCategoryId = parentCategoryId
@@ -345,11 +345,11 @@ class category:
         self.__categoryProducts = categoryProducts
 
     @property
-    def get_subCategories(self) -> List['category']:
+    def get_subCategories(self) -> List['Category']:
         return self.__subCategories
     
     @property
-    def __set_subCategories(self, subCategories: List['category']):
+    def __set_subCategories(self, subCategories: List['Category']):
         self.__subCategories = subCategories
 
     
@@ -375,7 +375,7 @@ class category:
             self.set_parentCategoryId(None)
 
 
-    def addSubCategory(self, subCategory: 'category') -> bool:
+    def addSubCategory(self, subCategory: 'Category') -> bool:
         ''' 
         * Parameters: subCategory
         * This function adds a sub category to the category and adds the current category as the parent category of the sub category
@@ -392,7 +392,7 @@ class category:
         return False
     
 
-    def removeSubCategory(self, subCategory: 'category') -> bool:
+    def removeSubCategory(self, subCategory: 'Category') -> bool:
         ''' 
         * Parameters: subCategory
         * This function removes a sub category from the category and removes the current category as the parent category of the sub category
@@ -407,7 +407,7 @@ class category:
         return False
     
 
-    def isParentCategory(self, category: 'category') -> bool:
+    def isParentCategory(self, category: 'Category') -> bool:
         ''' 
         * Parameters: category
         * This function checks that the given category is the parent category of the current category
@@ -416,7 +416,7 @@ class category:
         return self.__parentCategoryId == category.get_categoryId()
     
 
-    def isSubCategory(self, category: 'category') -> bool:
+    def isSubCategory(self, category: 'Category') -> bool:
         ''' 
         * Parameters: category
         * This function checks that the given category is the sub category of the current category
@@ -485,7 +485,7 @@ class category:
     
     
 #---------------------store class---------------------#
-class store: 
+class Store: 
     # id of store is storeId. It is unique for each store
     def __init__(self, storeId: int, locationId: int, storeName: str, storeFounderId: int,  
                  isActive: bool, storeProducts: List[product] = [],
@@ -763,9 +763,9 @@ class StoreFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.categories: List[category] = []  # List to store categories
+            self.categories: List[Category] = []  # List to store categories
             self.productSpecifications: List[productSpecification] = []  # List to store product specifications
-            self.stores: List[store] = []  # List to store stores
+            self.stores: List[Store] = []  # List to store stores
             self.discounts: List[DiscountStrategy] = []  # List to store discounts
             self.categoryIdCounter = 0  # Counter for category IDs
             self.productSpecificationIdCounter = 0  # Counter for product specification IDs
@@ -821,7 +821,7 @@ class StoreFacade:
                     return True
         return False
 
-    def getCategoryById(self, categoryId: int) -> category:
+    def getCategoryById(self, categoryId: int) -> Category:
         ''' 
         * Parameters: categoryId
         * This function gets a category by its ID
@@ -1070,7 +1070,7 @@ class StoreFacade:
                 return store.closeStore(userId)
         return False
     
-    def getStoreById(self, storeId: int) -> store:
+    def getStoreById(self, storeId: int) -> Store:
         '''
         * Parameters: storeId
         * This function gets a store by its ID

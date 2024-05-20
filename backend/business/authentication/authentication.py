@@ -1,9 +1,9 @@
+import os
 from datetime import datetime, timedelta
+from flask import current_app
 from .. import UserFacade
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-from backend import bcrypt, jwt
-import redis
-
+#from backend import bcrypt, jwt
 
 
 class Authentication:
@@ -18,12 +18,16 @@ class Authentication:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             self.user_facade = UserFacade()
-            self.jwt_redis_blocklist = redis.StrictRedis(
-                host="localhost", port=6379, db=0, decode_responses=True
-            )
+            self.blacklist = set()
+            self.jwt = None
+            self.bcrypt = None
 
-    @jwt.token_in_blocklist_loader
-    def check_if_token_in_blacklist(self, jwt_payload):
+    def set_jwt(self, jwt, bcrypt):
+        self.jwt = jwt
+        self.bcrypt = bcrypt
+
+
+    def check_if_token_in_blacklist(self, jwt_header, jwt_payload):
         jti = jwt_payload['jti']
         return jti in self.blacklist
 
@@ -33,10 +37,10 @@ class Authentication:
 
     def hash_password(self, password):
         # get bcrypt from app context
-        return bcrypt.generate_password_hash(password).decode('utf-8')
+        return self.bcrypt.generate_password_hash(password).decode('utf-8')
 
     def verify_password(self, password, hashed_password):
-        return bcrypt.check_password_hash(hashed_password, password)
+        return self.bcrypt.check_password_hash(hashed_password, password)
 
     def register_user(self, user_id, user_credentials):
         hashed_password = self.hash_password(user_credentials['password'])
@@ -56,10 +60,10 @@ class Authentication:
         return token
 
     # @jwt_required()
-    def login_user(self,username: str, password: str):
-        new_user_id, hashed_password = self.user_facade.get_password(username)
+    def login_user(self, username: str, password: str):
+        user_id, hashed_password = self.user_facade.get_password(username)
         if self.verify_password(password, hashed_password):
-            return self.generate_token(new_user_id)
+            return self.generate_token(user_id)
         else:
             raise ValueError("Invalid credentials")
 
