@@ -73,6 +73,8 @@ class MarketFacade:
 
             # charge the user
             amount = self.store_facade.calculate_total_price(cart)
+            if "payment method" not in payment_details:
+                raise ValueError("Payment method not specified")
             if not PaymentHandler().process_payment(amount, payment_details):
                 raise ValueError("Payment failed")
 
@@ -86,6 +88,10 @@ class MarketFacade:
         # TODO: create a purchase
 
         package_details = {'shopping cart': cart, 'address': address}
+        if "supply method" not in package_details:
+            raise ValueError("Supply method not specified")
+        if package_details.get("supply method") not in self.supported_supply_methods:
+            raise ValueError("Invalid supply method")
         if not SupplyHandler().process_supply(package_details, user_id):
             raise ValueError("Supply failed")
         for store_id in cart.keys():
@@ -120,3 +126,22 @@ class MarketFacade:
 
     def remove_system_manager(self, actor: int, user_id: int):
         self.roles_facade.remove_system_manager(actor, user_id)
+
+    def add_payment_method(self, method_name: str, payment_config: Dict):
+        PaymentHandler().add_payment_method(method_name, payment_config)
+    
+    def edit_payment_method(self, method_name: str, editing_data: Dict):
+        PaymentHandler().edit_payment_method(method_name, editing_data)
+
+    def remove_payment_method(self, method_name: str):
+        PaymentHandler().remove_payment_method(method_name)
+
+    def add_supply_method(self, method_name: str, supply_config: Dict):
+        SupplyHandler().add_supply_method(method_name, supply_config)
+
+    def edit_supply_method(self, method_name: str, editing_data: Dict):
+        SupplyHandler().edit_supply_method(method_name, editing_data)
+
+    def remove_supply_method(self, method_name: str):
+        SupplyHandler().remove_supply_method(method_name)
+        
