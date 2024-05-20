@@ -35,7 +35,7 @@ def show_store_info():
         logger.info('store info was sent successfully')
         return jsonify({'message': info}), 200
     except Exception as e:
-        logger.error('store info was not sent')
+        logger.error('show_store_info - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -58,7 +58,7 @@ def show_store_products():
         logger.info('store products were sent successfully')
         return jsonify({'message': products}), 200
     except Exception as e:
-        logger.error('store products were not sent')
+        logger.error('show_store_products - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -84,7 +84,7 @@ def add_store():
         logger.info('store was added successfully')
         return jsonify({'message': 'store was added successfully'}), 200
     except Exception as e:
-        logger.error('store was not added')
+        logger.error('add_store - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -109,7 +109,7 @@ def add_product():
         logger.info('product was added successfully')
         return jsonify({'message': 'product was successfully added'}), 200
     except Exception as e:
-        logger.error('product was not added')
+        logger.error('add_product - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -134,7 +134,7 @@ def change_purchase_policy():
         logger.info('purchase policy was changed successfully')
         return jsonify({'message': 'purchase policy was successfully changed'}), 200
     except Exception as e:
-        logger.error('purchase policy was not changed')
+        logger.error('change_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -159,7 +159,7 @@ def change_purchase_types():
         logger.info('purchase types were changed successfully')
         return jsonify({'message': 'purchase types were successfully changed'}), 200
     except Exception as e:
-        logger.error('purchase types were not changed')
+        logger.error('change_purchase_types - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -184,7 +184,7 @@ def change_discount_policy():
         logger.info('discount policy was changed successfully')
         return jsonify({'message': 'discount policy was successfully changed'}), 200
     except Exception as e:
-        logger.error('discount policy was not changed')
+        logger.error('change_discount_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -209,7 +209,7 @@ def change_discount_types():
         logger.info('discount types were changed successfully')
         return jsonify({'message': 'discount types were successfully changed'}), 200
     except Exception as e:
-        logger.error('discount types were not changed')
+        logger.error('change_discount_types - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -235,7 +235,7 @@ def add_store_owner():
         logger.info('store owner was added successfully')
         return jsonify({'message': 'store owner was successfully added'}), 200
     except Exception as e:
-        logger.error('store owner was not added')
+        logger.error('add_store_owner - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -263,7 +263,7 @@ def add_store_manager():
         logger.info('store manager was added successfully')
         return jsonify({'message': 'store manager was successfully added'}), 200
     except Exception as e:
-        logger.error('store manager was not added')
+        logger.error('add_store_manager - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -290,7 +290,7 @@ def edit_manager_permissions():
         logger.info('store manager\'s permissions were changed successfully')
         return jsonify({'message': 'store manager\'s permissions were successfully changed'}), 200
     except Exception as e:
-        logger.error('store manager\'s permissions were not changed')
+        logger.error('edit_manager_permissions - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -313,7 +313,7 @@ def closing_store():
         logger.info('store was closed successfully')
         return jsonify({'message': 'store was successfully closed'}), 200
     except Exception as e:
-        logger.error('store was not closed')
+        logger.error('closing_store - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -336,5 +336,5 @@ def view_employees_info():
         logger.info('employees info was sent successfully')
         return jsonify({'message': info}), 200
     except Exception as e:
-        logger.error('employees info was not sent')
+        logger.error('view_employees_info - ', str(e))
         return jsonify({'message': str(e)}), 400

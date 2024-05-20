@@ -36,7 +36,7 @@ def start():
     if user_token:
         logger.info('guest entered the app successfully')
         return jsonify({'token': user_token}), 200
-    logger.error('guest failed to enter the app')
+    logger.error('start - guest failed to enter the app')
     return jsonify({'message': 'App start failed'}), 400
 
 
@@ -50,9 +50,6 @@ def register():
         Data:
             user_id (int): id of the user
             register_credentials (?): credentials of the new user required for registration
-
-        Returns:
-            ?
     """
     logger.info('recieved request to register a new user')
     data = request.get_json()
@@ -63,7 +60,7 @@ def register():
         logger.info('User registered successfully - great success')
         return jsonify({'message': 'User registered successfully - great success'}), 201
     except Exception as e:
-        logger.error('User registration failed - ' + str(e))
+        logger.error('register - ' + str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -88,7 +85,7 @@ def login():
         logger.info('User logged in successfully')
         return jsonify({'message': 'OK', 'token': user_token}), 200
     except Exception as e:
-        logger.error('User login failed - ' + str(e))
+        logger.error('login - ' + str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -108,7 +105,7 @@ def logout():
         logger.info('User logged out successfully')
         return response, 200
     except Exception as e:
-        logger.error('User logout failed - ' + str(e))
+        logger.error('logout - ' + str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -130,7 +127,7 @@ def show_notifications():
         return jsonify({'notifications': notifications}), 200
     except Exception as e:
         logger.error('show_notifications -- failed ', str(e))
-        msg = 'show_notifications -- failed', str(e)
+        msg = 'show_notifications - ', str(e)
         return jsonify({'message': msg}), 400
 
 
@@ -155,7 +152,7 @@ def add_product_to_basket():
         logger.info('successfully added product to basket')
         return jsonify({'message': 'successfully added product to basket'}), 200
     except Exception as e:
-        logger.error('add_product_to_basket -- failed ', str(e))
+        logger.error('add_product_to_basket - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -179,7 +176,7 @@ def remove_product_from_basket():
         logger.info('successfully removed the product from the basket')
         return jsonify({'message': 'successfully removed the product from the basket'}), 200
     except Exception as e:
-        logger.error('remove_product_from_basket -- failed ', str(e))
+        logger.error('remove_product_from_basket - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -197,5 +194,5 @@ def show_cart():
         logger.info('successfully sent the shopping cart')
         return jsonify({'message': shopping_cart}), 200
     except Exception as e:
-        logger.error('show_cart -- failed ', str(e))
+        logger.error('show_cart - ', str(e))
         return jsonify({'message': str(e)}), 400

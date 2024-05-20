@@ -36,7 +36,7 @@ def checkout():
         logger.info('checkout successful')
         return jsonify({'message': 'successfully checked out'}), 200
     except Exception as e:
-        logger.error('checkout failed')
+        logger.error('checkout - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -61,7 +61,7 @@ def accept_promotion():
         logger.info('promotion accepted/denied')
         return jsonify({'message': 'decision registered'}), 200
     except Exception as e:
-        logger.error('accept_promotion failed')
+        logger.error('accept_promotion - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -95,7 +95,7 @@ def change_permissions():
         logger.info('permissions changed')
         return jsonify({'message': 'changed permissions'}), 200
     except Exception as e:
-        logger.error('change_permissions failed')
+        logger.error('change_permissions - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -118,7 +118,7 @@ def search_products():
         logger.info('search successful')
         return jsonify({'message': 'searched products'}), 200
     except Exception as e:
-        logger.error('search_products failed')
+        logger.error('search_products - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -143,7 +143,7 @@ def search_store_products():
         logger.info('search successful')
         return jsonify({'message': 'searched products'}), 200
     except Exception as e:
-        logger.error('search_store_products failed')
+        logger.error('search_store_products - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -166,7 +166,7 @@ def show_store_purchase_history():
         logger.info('purchase history sent')
         return jsonify({'message': history}), 200
     except Exception as e:
-        logger.error('failed to send store purchase history')
+        logger.error('show_store_purchase_history - ', str(e))
         return jsonify({'message': str(e)}), 400
 
 
@@ -184,5 +184,5 @@ def show_member_purchase_history():
         logger.info('purchase history sent')
         return jsonify({'message': history}), 200
     except Exception as e:
-        logger.error('failed to send member purchase history')
+        logger.error('show_member_purchase_history - ', str(e))
         return jsonify({'message': str(e)}), 400
