@@ -9,13 +9,15 @@ import concurrent.futures
 
 #-----------------Rating class-----------------#
 class Rating(ABC):
-    def __init__(self, rating: int, purchaseId: int, description: str, creationDate: datetime):
-        if not isinstance(rating, int) or not (0 <= rating <= 5):
-            raise ValueError("Rating must be an integer between 0 and 5")
-        self.rating = rating
-        self.purchaseId = purchaseId
-        self.description = description
-        self.creationDate = creationDate
+    def __init__(self, ratingId: int ,rating: float, purchaseId: int, userId: int, description: str, creationDate: datetime):
+        if not (0.0 <= rating <= 5.0):
+            raise ValueError("Rating must be a float between 0 and 5")
+        self.__ratingId = ratingId
+        self.__rating = rating
+        self.__purchaseId = purchaseId
+        self.__userId = userId
+        self.__description = description
+        self.__creationDate = creationDate
 
     @abstractmethod
     def calculate_rating(self):
@@ -25,50 +27,66 @@ class Rating(ABC):
 #-----------------StoreRating class-----------------#
 class StoreRating(Rating): 
     # purchaseId and storeId are the unique identifiers for the store rating, storeId used to retrieve the details of store
-    def __init__(self, rating: int, purchaseId: int, description: str, storeId: int, creationDate: datetime = datetime.datetime.now()):
-        super().__init__(rating, purchaseId, description, creationDate)
-        self.storeId = storeId
+    def __init__(self, ratingId: int ,rating: float, purchaseId: int, userId: int, description: str, storeId: int, creationDate: datetime = datetime.datetime.now()):
+        super().__init__(ratingId, rating, purchaseId, userId, description, creationDate)
+        self.__storeId = storeId
 
     #---------------------------------Getters and Setters---------------------------------#
     @property
     def get_rating(self):
-        return self.rating
+        return self.__rating
     
     @property
-    def __set_rating(self, rating: int):
-        self.rating = rating
+    def __set_rating(self, rating: float):
+        self.__rating = rating
+    
+    @property
+    def get_rating(self):
+        return self.__rating
+    
+    @property
+    def __set_rating(self, rating: float):
+        self.__rating = rating
 
     @property
     def get_purchaseId(self):
-        return self.purchaseId
+        return self.__purchaseId
     
     @property
     def __set_purchaseId(self, purchaseId: int):
-        self.purchaseId = purchaseId
+        self.__purchaseId = purchaseId
 
     @property
+    def get_userId(self):
+        return self.__userId
+    
+    @property
+    def __set_userId(self, userId: int):
+        self.__userId = userId
+        
+    @property
     def get_description(self):
-        return self.description
+        return self.__description
     
     @property
     def __set_description(self, description: str):
-        self.description = description
+        self.__description = description
 
     @property
     def get_creationDate(self):
-        return self.creationDate
+        return self.__creationDate
 
     @property
     def __set_creationDate(self, creationDate: datetime):
-        self.creationDate = creationDate
+        self.__creationDate = creationDate
 
     @property
     def get_storeId(self):
-        return self.storeId
+        return self.__storeId
     
     @property
     def __set_storeId(self, storeId: int):
-        self.storeId = storeId
+        self.__storeId = storeId
 
     #---------------------------------Methods---------------------------------#
     def calculate_rating(self):
@@ -79,59 +97,66 @@ class StoreRating(Rating):
 #-----------------ProductRating class-----------------#
 class ProductRating(Rating):
     # purchaseId and productId are the unique identifiers for the product rating, productSpec used to retrieve the details of product
-    def __init__(self, rating: int, purchaseId: int, description: str, productSpecId: int, productId: int, creationDate: datetime = datetime.datetime.now()):
-        super().__init__(rating, purchaseId, description, creationDate)
-        self.productSpecId = productSpecId
-        self.productId = productId
+    def __init__(self,ratingId: int, rating: float, purchaseId: int, userId: int, description: str, productSpecId: int, creationDate: datetime = datetime.datetime.now()):
+        super().__init__(ratingId, rating, purchaseId, userId, description, creationDate)
+        self.__productSpecId = productSpecId
 
     #---------------------------------Getters and Setters---------------------------------#
     @property
-    def get_rating(self):
-        return self.rating
+    def get_ratingId(self):
+        return self.__ratingId
     
     @property
-    def __set_rating(self, rating: int):
-        self.rating = rating
+    def __set_ratingId(self, ratingId: int):
+        self.__ratingId = ratingId    
+    
+    @property
+    def get_rating(self):
+        return self.__rating
+    
+    @property
+    def __set_rating(self, rating: float):
+        self.__rating = rating
 
     @property
     def get_purchaseId(self):
-        return self.purchaseId
+        return self.__purchaseId
     
     @property
     def __set_purchaseId(self, purchaseId: int):
-        self.purchaseId = purchaseId
+        self.__purchaseId = purchaseId
 
     @property
+    def get_userId(self):
+        return self.__userId
+    
+    @property
+    def __set_userId(self, userId: int):
+        self.__userId = userId
+        
+    @property
     def get_description(self):
-        return self.description
+        return self.__description
     
     @property
     def __set_description(self, description: str):
-        self.description = description
+        self.__description = description
 
     @property
     def get_creationDate(self):
-        return self.creationDate
+        return self.__creationDate
 
     @property
     def __set_creationDate(self, creationDate: datetime):
-        self.creationDate = creationDate
+        self.__creationDate = creationDate
 
     @property
     def get_productSpecId(self):
-        return self.productSpecId
+        return self.__productSpecId
     
     @property
     def __set_productSpecId(self, productSpecId: int):
-        self.productSpecId = productSpecId
-
-    @property
-    def get_productId(self):
-        return self.productId
-    
-    @property
-    def __set_productId(self, productId: int):
-        self.productId = productId
+        self.__productSpecId = productSpecId
 
     #---------------------------------Methods---------------------------------#
     def calculate_rating(self):
@@ -826,12 +851,17 @@ class AuctionPurchase(Purchase):
                 return datetime.datetime.now() - self.get_endingDate()
         return datetime.timedelta(0)
     
+    
+    //update userId to be the highestbidding offer: set winner
+    
+    def
+    
 
 #-----------------LotteryPurchase class-----------------#
 class LotteryPurchase(Purchase):
     def __init__(self, purchaseId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, 
                  fullPrice: float, storeId: int, productId: int, productSpecId: int, startingDate: datetime, endingDate: datetime,  usersWithPrices: List[Tuple[int, float]] = [], winner: int = None):
-        super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
+        super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status) //WINNER SHOULD UPDATE USERID TO WINNER AND IN AUCTION THE SAME
         self.__fullPrice = fullPrice
         self.__productId = productId
         self.__productSpecId = productSpecId
@@ -1055,6 +1085,13 @@ class LotteryPurchase(Purchase):
                 return userWinner
            
         return None
+    
+    
+    //WINNER SHOULD UPDATE USERID TO WINNER AND IN AUCTION THE SAME:
+    
+    
+    
+    
 
 
 #-----------------PurchaseFacade class-----------------#
@@ -1071,7 +1108,9 @@ class PurchaseFacade:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             self.purchases = []
+            self.ratings = []
             self.purchasesIdCounter = 0
+            self.ratingIdCounter = 0
 
 
     @property
@@ -1082,6 +1121,13 @@ class PurchaseFacade:
     def __set_purchases(self, purchases: List[Purchase]):
         self.purchases = purchases
 
+    @property
+    def get_ratings(self):
+        return self.ratings
+    
+    @property
+    def __set_ratings(self, ratings: List[Rating]):
+        self.ratings = ratings
 
     @property
     def get_purchasesIdCounter(self):
@@ -1091,62 +1137,16 @@ class PurchaseFacade:
     def __set_purchasesIdCounter(self, purchasesIdCounter: int):
         self.purchasesIdCounter = purchasesIdCounter
 
-#-----------------Purchases in general-----------------#
-
-    def handleImmediatePurchase(self, purchase: ImmediatePurchase):
-        '''
-        * Parameters: none
-        * This function is responsible for handling all immediate purchases
-        * Returns: none
-        '''
+    @property
+    def get_ratingIdCounter(self):
+        return self.ratingIdCounter
+    
+    @property
+    def __set_ratingIdCounter(self, ratingIdCounter: int):
+        self.ratingIdCounter = ratingIdCounter
         
-        
-        
-
-    def handleBidPurchase(self, purchase: BidPurchase):
-        '''
-        * Parameters: none
-        * This function is responsible for handling all bid purchases
-        * Returns: none
-        '''
-        
-
-    def handleAuctionPurchase(self, purchase: AuctionPurchase):
-        '''
-        * Parameters: none
-        * This function is responsible for handling all auction purchases
-        * Returns: none
-        '''
-
-    def handleLotteryPurchase(self, purchase: LotteryPurchase):
-        '''
-        * Parameters: none
-        * This function is responsible for handling all lottery purchases
-        * Returns: none
-        '''
-        
-        
-        
-    def handlePurchases(self): 
-        '''
-        * Parameters: none
-        * This function is responsible for handling all purchases
-        * Returns: none
-        '''        
-        for purchase in self.get_purchases():
-            if purchase is ImmediatePurchase:
-                self.handleImmediatePurchase(purchase)
-            elif purchase is BidPurchase:
-                self.handleBidPurchase(purchase)
-            elif purchase is AuctionPurchase:
-                self.handleAuctionPurchase(purchase)
-            elif purchase is LotteryPurchase:
-                self.handleLotteryPurchase(purchase)
-            else:
-                #log.error("this should not happen")
-                pass
-
-
+    
+#-----------------Purchases in general-----------------#   
     def createImmediatePurchase(self, userId: int, totalPrice: float, shoppingCart: List[Tuple[Tuple[int,float],List[int]]]) -> bool:
         '''
         * Parameters: userId, dateOfPurchase, deliveryDate, shoppingCart, totalPriceAfterDiscounts
@@ -1274,7 +1274,6 @@ class PurchaseFacade:
         return purchases
 
 
-
     def getOnGoingPurchases(self ) -> List[Purchase]:
         '''
         * Parameters: none
@@ -1354,6 +1353,91 @@ class PurchaseFacade:
             return purchase.calculateTotalPrice()
         return None
         
+    def hasUserAlreadyRatedStore(self, purchaseId: int, userId: int, storeId: int) -> bool:
+        '''
+        * Parameters: purchaseId, userId, storeId
+        * This function is responsible for checking if the user has already rated the store in a given purchase (this does not stop the user from rating the same store twice if they have two purchases)
+        * Returns: true if rated, false if not
+        '''
+        for rating in self.ratings:
+            if rating is StoreRating:
+                if rating.get_purchaseId() == purchaseId and rating.get_userId() == userId and rating.get_storeId() == storeId:
+                    return True
+        return False
+            
+    def hasUserAlreadyRatedProduct(self, purchaseId: int, userId: int, productSpecId: int) -> bool:
+        '''
+        * Parameters: purchaseId, userId, storeId
+        * This function is responsible for checking if the user has already rated the product in a given purchase
+        * Note: this does not stop the user from rating the product twice if they bought the product more than once
+        * Returns: true if rated, false if not
+        '''
+        for rating in self.ratings:
+            if rating is ProductRating:
+                if rating.get_purchaseId() == purchaseId and rating.get_userId() == userId and rating.get_productSpecId() == productSpecId:
+                    return True
+        return False
+    
+    
+    def calculateNewStoreRating(self, storeId: int) -> float:
+        '''
+        * Parameters: storeId
+        * This function is responsible for calculating the new rating of the store
+        * Returns: the new value of the rating of the store
+        '''
+        ratings = [rating for rating in self.ratings if rating.get_storeId() == storeId]
+        return sum([rating.get_rating() for rating in ratings]) / len(ratings)
+    
+    def calculateNewProductRating(self, productSpecId: int) -> float:
+        '''
+        * Parameters: productSpecId
+        * This function is responsible for calculating the new rating of the product
+        * Returns: the new value of the rating of the product
+        '''
+        ratings = [rating for rating in self.ratings if rating.get_productSpecId() == productSpecId]
+        return sum([rating.get_rating() for rating in ratings]) / len(ratings)
+    
+            
+    
+    def rateStore(self, purchaseId: int, userId: int, storeId: int, rating: float, description: str) -> float:
+        '''
+        * Parameters: purchaseId, userId, rating, storeId
+        * This function is responsible for rating the store
+        * Returns: the new value of the rating of the store
+        '''
+        purchase = self.getPurchaseById(purchaseId)
+        if purchase is not None:
+            if purchase.get_storeId() == storeId:
+                if purchase.get_status() == PurchaseStatus.completed:
+                    if not self.hasUserAlreadyRatedStore(purchaseId, userId, storeId):
+                        if purchase.get_userId() == userId:
+                            storeRating = StoreRating(self.get_ratingIdCounter(), userId, storeId, purchaseId, rating, description)
+                            self.ratings.append(storeRating)
+                            self.__set_ratingIdCounter(self.get_ratingIdCounter() + 1)
+                            return calculateNewStoreRating(storeId)
+                                
+                    
+                    return purchase.rateStore(userId, rating)
+        return None
+    
+    def rateProduct(self, purchaseId: int, userId: int, productSpecId: int, rating: float, description: str) -> float:
+        '''
+        * Parameters: purchaseId, userId, rating, productSpecId
+        * This function is responsible for rating the product
+        * Returns: the new value of the rating of the product
+        '''
+        purchase = self.getPurchaseById(purchaseId)
+        if purchase is not None:
+            if purchase.get_status() == PurchaseStatus.completed:
+                if not self.hasUserAlreadyRatedProduct(purchaseId, userId, productSpecId):
+                    if purchase.get_userId() == userId:
+                        productRating = ProductRating(self.get_ratingIdCounter(), userId, productSpecId, purchaseId, rating, description)
+                        self.ratings.append(productRating)
+                        self.__set_ratingIdCounter(self.get_ratingIdCounter() + 1)
+                        return calculateNewProductRating(productSpecId)
+        return None
+    
+    
 
 
 #-----------------Immediate-----------------#
@@ -1376,8 +1460,6 @@ class PurchaseFacade:
    
 
 #-----------------Bid-----------------#
-
-
     def storeAcceptOffer(self, purchaseId: int):
         '''
         * Parameters: purchaseId
@@ -1457,8 +1539,6 @@ class PurchaseFacade:
 
 
 #-----------------Auction-----------------#
-        
-
     def addAuctionBid(self, userId: int, proposedPrice: float, purchaseId: int) -> bool:
         '''
         * Parameters: userId, proposedPrice, purchaseId
