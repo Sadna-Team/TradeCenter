@@ -6,7 +6,9 @@ from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
 from typing import Optional, List, Dict
 import threading
+import logging
 
+logger = logging.getLogger('myapp')
 
 class AddressDTO:
     def __init__(self, address_id, address, city, state, country, postal_code):
@@ -65,48 +67,65 @@ class MarketFacade:
         # lock the __lock
         with MarketFacade.__lock:
 
+            #@@@@@@@@@@@@@@log lock aquisation@@@@@@@@@@@@@@
+
             # check if the products are still available
-            for store_id, products in basket.items():
+            for store_id, products in cart.items():
                 for product_id in products:
                     if not self.store_facade.check_product_availability(store_id, product_id):
+                        
+                        #@@@@@@@@@@@@@@log failure@@@@@@@@@@@@@@
+                        
                         raise ValueError(f"Product {product_id} is not available in the required amount")
 
             # charge the user
             amount = self.store_facade.calculate_total_price(cart)
             if not PaymentHandler().process_payment(amount, payment_details):
+                #@@@@@@@@@@@@@@log failure@@@@@@@@@@@@@@
                 raise ValueError("Payment failed")
+            #@@@@@@@@@@@@@@log purchase@@@@@@@@@@@@@@
 
             # remove the products from the store
             for store_id, products in basket.items():
                 for product_id in products:
                     self.store_facade.remove_product(store_id, product_id)
+            #@@@@@@@@@@@@@@log removed products@@@@@@@@@@@@@@
+
         # clear the cart
         self.user_facade.clear_basket(user_id)
+        #@@@@@@@@@@@@@@log basket cleared@@@@@@@@@@@@@@
 
         # TODO: create a purchase
 
         package_details = {'shopping cart': cart, 'address': address}
         if not SupplyHandler().process_supply(package_details, user_id):
             raise ValueError("Supply failed")
+            #@@@@@@@@@@@@@@log supply failed@@@@@@@@@@@@@@
         for store_id in cart.keys():
             Notifier().notify_new_purchase(store_id, user_id)
+        #@@@@@@@@@@@@@@log purchase notification@@@@@@@@@@@@@@
+
+        #@@@@@@@@@@@@@@log success@@@@@@@@@@@@@@
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
         # TODO: different implementation later
         self.user_facade.notify_user(-1, NotificationDTO(
             f"You have been nominated to be the owner of store {store_id}", nomination_id))
+        #@@@@@@@@@@@@@@log nomination suggested@@@@@@@@@@@@@@
 
     def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_id: int):
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
         self.user_facade.notify_user(-1, NotificationDTO(
             f"You have been nominated to be the manager of store {store_id}", nomination_id))
+        #@@@@@@@@@@@@@@log nomination suggested@@@@@@@@@@@@@@
 
     def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
         if accept:
             self.roles_facade.accept_nomination(nomination_id, user_id)
         else:
             self.roles_facade.decline_nomination(nomination_id, user_id)
+        #@@@@@@@@@@@@@@log nomination decision@@@@@@@@@@@@@@
 
     def change_permissions(self, actor_id: int, store_id: int, manager_id: int, add_product: bool,
                            change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
@@ -114,9 +133,12 @@ class MarketFacade:
         self.roles_facade.set_manager_permissions(store_id, actor_id, manager_id, add_product, change_purchase_policy,
                                                   change_purchase_types, change_discount_policy, change_discount_types,
                                                   add_manager, get_bid)
+        #@@@@@@@@@@@@@@log permissions changed@@@@@@@@@@@@@@
 
     def add_system_manager(self, actor: int, user_id: int):
         self.roles_facade.add_system_manager(actor, user_id)
+        #@@@@@@@@@@@@@@log system manager added@@@@@@@@@@@@@@
 
     def remove_system_manager(self, actor: int, user_id: int):
         self.roles_facade.remove_system_manager(actor, user_id)
+        #@@@@@@@@@@@@@@log system manager removed@@@@@@@@@@@@@@
