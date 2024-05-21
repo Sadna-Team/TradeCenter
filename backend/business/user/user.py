@@ -149,6 +149,7 @@ class UserFacade:
         """
         self.__users.clear()
         self.__usernames.clear()
+        UserFacade.__id_serializer = 0
 
     def create_user(self, currency: str = "USD") -> int:
         with UserFacade.__lock:

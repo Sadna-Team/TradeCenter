@@ -55,7 +55,7 @@ def login_user(app, client, guest, register_user):
     headers = {
         'Authorization': 'Bearer ' + guest
     }
-    response = client.post('user/login', headers=headers, json=data)
+    response = client.post('auth/login', headers=headers, json=data)
     data = response.get_json()
     token = data['token']
     return token
@@ -154,7 +154,7 @@ def test_login(app, client, guest, register_user, clean):
     headers = {
         'Authorization': 'Bearer ' + guest
         }
-    response = client.post('user/login', headers=headers, json=data)
+    response = client.post('auth/login', headers=headers, json=data)
     assert response.status_code == 200
     data = response.get_json()
     assert 'token' in data
@@ -169,7 +169,7 @@ def test_login_fail_invalid_credentials(app, client, guest, register_user, clean
     headers = {
         'Authorization': 'Bearer ' + guest
     }
-    response = client.post('user/login', headers=headers, json=data)
+    response = client.post('auth/login', headers=headers, json=data)
     assert response.status_code == 400
 
 def test_login_fail_already_logged_in(app, client, guest, register_user, login_user, clean):
@@ -184,7 +184,7 @@ def test_login_fail_already_logged_in(app, client, guest, register_user, login_u
     headers = {
         'Authorization': 'Bearer ' + guest
     }
-    response = client.post('user/login', headers=headers, json=data)
+    response = client.post('auth/login', headers=headers, json=data)
     assert response.status_code == 400
     assert response.get_json()['message'] == 'User is already logged in'
 
@@ -196,7 +196,7 @@ def test_login_fail_missing_data(app, client, guest, clean):
     headers = {
         'Authorization': 'Bearer ' + guest
     }
-    response = client.post('user/login', headers=headers, json=data)
+    response = client.post('auth/login', headers=headers, json=data)
     assert response.status_code == 400
     assert response.get_json()['message'] == 'Missing username or password'
 
@@ -205,7 +205,7 @@ def test_login_fail_missing_token(app, client, clean):
             'username': 'test',
             'password': 'test'
         }
-    response = client.post('user/login', json=data)
+    response = client.post('auth/login', json=data)
     assert response.status_code == 401
 
 def test_logout(reset_app, client, register_user, login_user, clean):
@@ -228,3 +228,6 @@ def test_logout_fail_not_logged_in(app, client, guest, clean):
     }
     response = client.post('auth/logout', headers=headers)
     assert response.status_code == 400
+
+if __name__ == '__main__':
+    pytest.main(['-s', 'tests/test_acceptance.py'])

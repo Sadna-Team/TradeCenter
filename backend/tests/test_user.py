@@ -30,7 +30,7 @@ class TestShoppingBasket(unittest.TestCase):
             basket.remove_product(100)
 
 
-class TestSoppingCart(unittest.TestCase):
+class TestShoppingCart(unittest.TestCase):
 
     def test_add_product_to_basket(self):
         cart = SoppingCart(user_id=1)
@@ -100,8 +100,13 @@ class TestUser(unittest.TestCase):
 
 class TestUserFacade(unittest.TestCase):
 
+    def setUp(self):
+        self.user_facade = UserFacade()
+        self.user_facade.clean_data()
+
     @patch.object(User, '__init__', lambda x, y, z: None)  # Mocking User init method
     def test_create_user(self):
+
         facade = UserFacade()
         user_id = facade.create_user(currency='USD')
         self.assertIsInstance(user_id, int)

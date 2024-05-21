@@ -1,4 +1,5 @@
 from .user import UserFacade
+from .authentication.authentication import Authentication
 from .roles import RolesFacade
 from .DTOs import NotificationDTO
 from .store import StoreFacade
@@ -52,11 +53,15 @@ class MarketFacade:
             self.roles_facade = RolesFacade()
             self.purchase_facade = PurchaseFacade()
             self.addresses = []
+            self.auth_facade = Authentication()
+
             # create the admin?
+            self.__create_admin()
 
     def __create_admin(self, currency: str = "USD") -> None:
         man_id = self.user_facade.create_user(currency)
-        self.user_facade.register_user(man_id, "admin@admin.com", "admin", "admin", 2000, 1, 1, "123456789")
+        hashed_password = self.auth_facade.hash_password("admin")
+        self.user_facade.register_user(man_id, "admin@admin.com", "admin", hashed_password, 2000, 1, 1, "123456789")
         self.roles_facade.add_admin(man_id)
 
     def clean_data(self):
