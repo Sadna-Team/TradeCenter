@@ -1,7 +1,7 @@
 # API endpoints and their corresponding route handlers
 
 #-------------logging configuration----------------
-from logging_config import setup_logging
+#from logging_config import setup_logging
 import logging
 
 logger = logging.getLogger('myapp')

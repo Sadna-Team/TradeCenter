@@ -64,7 +64,7 @@ class MarketFacade:
         For testing purposes only
         """
         self.user_facade.clean_data()
-        self.store_facade.clean_data()
+        #self.store_facade.clean_data()
         self.roles_facade.clean_data()
         # create the admin?
 
