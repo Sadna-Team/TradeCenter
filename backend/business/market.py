@@ -906,14 +906,14 @@ class MarketFacade:
         
 
     #-------------Lottery Purchase related methods-------------------#
-    def addLotteryTicket(self, user_id: int, proposedPrice: float, purchase_id: int) :
+    def addLotteryOffer(self, user_id: int, proposedPrice: float, purchase_id: int) :
         '''
         * Parameters: user_id, proposedPrice, purchase_id
         * This function adds a lottery ticket to a lottery purchase
         * Returns None
         '''
         #TODO: check if user is logged in and is member
-        if self.purchase_facade.addLotteryTicket(user_id, proposedPrice, purchase_id):
+        if self.purchase_facade.addLotteryOffer(user_id, proposedPrice, purchase_id):
             logger.info(f"User {user_id} has added a lottery ticket to purchase {purchase_id}")
             
             #TODO: notify the store owners and all relevant parties
