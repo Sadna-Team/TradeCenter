@@ -1,14 +1,13 @@
 from typing import Dict
 #---------- Imports ------------#
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from .DiscountStrategy import DiscountStrategy
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 import datetime
 
 
 #-------------logging configuration----------------
-from logging_config import setup_logging
 import logging
 
 logger = logging.getLogger('myapp')
@@ -921,7 +920,7 @@ class StoreFacade:
         '''
         logger.info('[StoreFacade] attempting to add category')
         if categoryName is not None:
-            category = category(self.categoryIdCounter, categoryName, parentCategoryId)
+            category = Category(self.categoryIdCounter, categoryName, parentCategoryId)
             self.categories.append(category)
             self.categoryIdCounter += 1
             return True
@@ -1345,7 +1344,7 @@ class StoreFacade:
                             else:
                                 return False
                             
-                            product = product(self.productIdCounter, storeId, productSpec, expirationDate, productCondition, price)
+                            product = Product(self.productIdCounter, storeId, productSpec, expirationDate, productCondition, price)
                             store.addProduct(product)
                             self.productIdCounter += 1
                             return True

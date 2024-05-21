@@ -3,9 +3,11 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 import numpy as np
-from numpy.random import choice
 from typing import List, Tuple
-import concurrent.futures
+#-------------logging configuration----------------
+import logging
+
+logger = logging.getLogger('myapp')
 
 #-----------------Rating class-----------------#
 class Rating(ABC):
