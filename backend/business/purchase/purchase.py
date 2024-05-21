@@ -215,7 +215,7 @@ class Purchase(ABC):
         pass
 
 #-----------------ImmediateSubPurchases class-----------------#
-class ImmediateSubPurchases(Purchase):
+class ImmediateSubPurchase(Purchase):
     # purchaseId and storeId are unique identifier of the immediate purchase, storeId used to retrieve the details of the store
     def __init__(self, purchaseId: int, storeId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, productIds: List[int]):
         super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
@@ -325,8 +325,9 @@ class ImmediatePurchase(Purchase):
         super().__init__(purchaseId, userId, -1, dateOfPurchase, totalPrice, status)
         self.deliveryDate = None  #for now, it will be updated once a purchase was accepted
         self.totalPriceAfterDiscounts = totalPriceAfterDiscounts
+        self.immediateSubPurchases = []
         for shoppingBasket in shoppingCart:
-            self.immediateSubPurchases.append(ImmediateSubPurchases(purchaseId, userId, shoppingBasket[0][0], dateOfPurchase, shoppingBasket[0][1], status, shoppingBasket[1]))
+            self.immediateSubPurchases.append(ImmediateSubPurchase(purchaseId, userId, shoppingBasket[0][0], dateOfPurchase, shoppingBasket[0][1], status, shoppingBasket[1]))
 
 
 
@@ -401,7 +402,7 @@ class ImmediatePurchase(Purchase):
         return self.immediateSubPurchases
     
     @property
-    def __set_immediateSubPurchases(self, immediateSubPurchases: List[ImmediateSubPurchases]):
+    def __set_immediateSubPurchases(self, immediateSubPurchases: List[ImmediateSubPurchase]):
         self.immediateSubPurchases = immediateSubPurchases
 
     #---------------------------------Methods---------------------------------#

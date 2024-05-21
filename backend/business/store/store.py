@@ -113,8 +113,7 @@ class Product:
                 logger.info('[Product] successfully changed price of product with id: ' + str(self.__productId))
                 return True
             else:
-                logger.warn('[Product] New price is a negative value')
-                return False
+                raise ValueError('New price is a negative value')
         else:
             raise ValueError('New price is not a valid float value')
     

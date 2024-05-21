@@ -260,7 +260,7 @@ class MarketFacade:
         * Returns a list of product ids of the products with the names in names
         '''
         productSpecificationsOfNames = self.store_facade.getProductSpecByName(name)
-        productIdsToStore = [Tuple[Tuple[int, int], Tuple[float, float]]
+        productIdsToStore = [Tuple[Tuple[int, int], Tuple[float, float]]]
         for store in self.store_facade.stores():
             for product in store.products():
                 if product.get_specificationId() in productSpecificationsOfNames:
@@ -277,7 +277,6 @@ class MarketFacade:
         return productIdsToStore
 
 
-(self, description: str, startDate: datetime, endingDate: datetime, percentage: float)
 #-------------Discount related methods-------------------#
     def addDiscount(self, userId: int, description: str, startDate: datetime, endingDate: datetime, percentage: float): #later on we need to support the creation of different types of discounts using hasStoreId?: int etc, maybe wildcards could be useful
         #TODO: check if user has necessary permissions to add a discount
@@ -292,7 +291,7 @@ class MarketFacade:
         #TODO: not implemented yet, but supported partially in purchaseFacade, see changeDiscountPercentage for example
         pass
 
-    def removeDiscount(self, user_id: int discount_id: int):
+    def removeDiscount(self, user_id: int, discount_id: int):
         #TODO: check if user has necessary permissions to remove a discount
         #if self.roles_facade.check_permissions(userId, "remove_discount"):
         if self.store_facade.removeDiscount(discount_id):
@@ -360,13 +359,12 @@ class MarketFacade:
 
 #-------------Products related methods-------------------#
     def addProduct(self,user_id:int, store_id: int, productSpecId: int, expirationDate: datetime, condition: int, price: float):
-       '''
+        '''
         * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
         * This function adds a product to the store
         * Returns None
         '''
         #TODO: check if user has the necessary permissions to add a product to the store
-        #if self.roles_facade.check_permissions(userId, "add_product"):
         if self.store_facade.addProductToStore(store_id, productSpecId, expirationDate, condition, price):
             logger.info(f"User {user_id} has added a product to store {store_id}")
         else:
@@ -498,7 +496,7 @@ class MarketFacade:
             logger.info(f"User {userId} has failed to change the manufacturer of product specification {productSpecId}")
 
 
-    def changeProductSpecDescription(self, userId: int productSpecId: int, description: str):
+    def changeProductSpecDescription(self, userId: int, productSpecId: int, description: str):
         '''
         * Parameters: userId, productSpecId, description
         * This function changes the description of a product specification
@@ -704,7 +702,7 @@ class MarketFacade:
         
 
 
-    def viewOnGoingPurchases(self), userId: int) -> str:
+    def viewOnGoingPurchases(self, userId: int) -> str:
         '''
         * Parameters: userId
         * This function returns the ongoing purchases
