@@ -583,49 +583,162 @@ class MarketFacade:
 #-------------PurchaseFacade methods:-------------------#
 
 #-------------Purchase management related methods-------------------#
-    def createImmediatePurchase(self, user_id: int, store_id: int, product_id: int, amount: int, address: AddressDTO):
-        self.purchase_facade.create_immediate_purchase(user_id, store_id, product_id, amount, address)
+   
+    
+    def createBidPurchase(self, userId: int, proposedPrice : float, productId: int, storeId: int):
+        '''
+        * Parameters: userId, proposedPrice, productId, storeId
+        * This function creates a bid purchase
+        * Returns None
+        '''
+        #TODO: check if user is a member, and is logged in
+        product = self.store_facade.getStoreById(storeId).getProductById(productId)
+        productSpecId = product.get_specificationId()
+        if self.purchase_facade.createBidPurchase(userId, proposedPrice, productId, productSpecId, storeId):
+            logger.info(f"User {userId} has created a bid purchase")
+            #TODO: notify the store owners and all relevant parties, await for their reaction
+        else:
+            logger.info(f"User {userId} has failed to create a bid purchase")
+        
 
 
-    def createBidPurchase(self, user_id: int, store_id: int, product_id: int, amount: int, address: AddressDTO):
-        self.purchase_facade.create_bid_purchase(user_id, store_id, product_id, amount, address)
+    def createAuctionPurchase(self, userId: int, basePrice: float, startingDate: datetime, endingDate: datetime,  storeId: int, productId: int,):
+        '''
+        * Parameters: userId, basePrice, startingDate, endingDate, productId, storeId
+        * This function creates an auction purchase
+        * Returns None
+        '''
+        #TODO: check if user is logged in and has necessary permissions
+        product = self.store_facade.getStoreById(storeId).getProductById(productId)
+        productSpecId = product.get_specificationId()
+        if self.purchase_facade.createAuctionPurchase(basePrice, startingDate, endingDate, storeId, productId, productSpecId):
+            logger.info(f"User {userId} has created an auction purchase")
+            
+        
 
 
-    def createAuctionPurchase(self, user_id: int, store_id: int, product_id: int, amount: int, address: AddressDTO):
-        self.purchase_facade.create_auction_purchase(user_id, store_id, product_id, amount, address)
+    def createLotteryPurchase(self, userId: int, fullPrice: float, storeId: int, productId: int, startingDate: datetime, endingDate: datetime):
+        '''
+        * Parameters: userId, fullPrice, storeId, productId, startingDate, endingDate
+        * This function creates a lottery purchase
+        * Returns None
+        '''
+        #TODO: check if user is logged in and has necessary permissions
+        product = self.store_facade.getStoreById(storeId).getProductById(productId)
+        productSpecId = product.get_specificationId()
+        if self.purchase_facade.createLotteryPurchase(userId, fullPrice, storeId, productId, productSpecId, startingDate, endingDate):
+            logger.info(f"User {userId} has created a lottery purchase")
+        else:
+            logger.info(f"User {userId} has failed to create a lottery purchase")
 
 
-    def createLotteryPurchase(self, user_id: int, store_id: int, product_id: int, amount: int, address: AddressDTO):
-        self.purchase_facade.create_lottery_purchase(user_id, store_id, product_id, amount, address)
 
 
-    def viewPurchasesOfUser(self, user_id: int):
-        return self.purchase_facade.view_purchases_of_user(user_id)
+
+    def viewPurchasesOfUser(self, user_id: int) -> str:
+        '''
+        * Parameters: user_id
+        * This function returns the purchases of a user
+        * Returns a string
+        '''
+        #TODO: check if user is logged in
+        purchases= self.purchase_facade.getPurchasesOfUser(user_id)
+        strOutput= ""
+        for purchase in purchases:
+            strOutput+= purchase.__str__()
+        return strOutput
+            
+        
 
 
-    def viewPurchasesOfStore(self, store_id: int):
-        return self.purchase_facade.view_purchases_of_store(store_id)
+    def viewPurchasesOfStore(self, userId: int, store_id: int) -> str:
+        '''
+        * Parameters: userId, store_id
+        * This function returns the purchases of a store
+        * Returns a string
+        '''
+        #TODO: check if user is logged in and has necessary permissions
+        purchases= self.purchase_facade.getPurchasesOfStore(store_id)
+        strOutput= ""
+        for purchase in purchases:
+            strOutput+= purchase.__str__()
+        return strOutput
+        
+        
 
 
-    def viewOnGoingPurchases(self):
-        return self.purchase_facade.view_ongoing_purchases()
+    def viewOnGoingPurchases(self), userId: int) -> str:
+        '''
+        * Parameters: userId
+        * This function returns the ongoing purchases
+        * Returns a string
+        '''
+        #TODO: check if user is logged in and has necessary permissions
+        purchases= self.purchase_facade.getOnGoingPurchases()
+        strOutput= ""
+        for purchase in purchases:
+            strOutput+= purchase.__str__()
+        return strOutput
 
 
-    def viewCompletedPurchases(self):
-        return self.purchase_facade.view_completed_purchases()
+    def viewCompletedPurchases(self, userId: int) -> str:
+        '''
+        * Parameters: userId
+        * This function returns the completed purchases
+        * Returns a string
+        '''
+        #TODO: check if user is logged in and has necessary permissions
+        purchases= self.purchase_facade.getCompletedPurchases()
+        strOutput= ""
+        for purchase in purchases:
+            strOutput+= purchase.__str__()
+        return strOutput
 
 
-    def viewFailedPurchases(self):
-        return self.purchase_facade.view_failed_purchases()
+    def viewFailedPurchases(self, userId: int) -> str:
+        '''
+        * Parameters: userId
+        * This function returns the failed purchases
+        * Returns a string
+        '''
+        #TODO: check if user is logged in and has necessary permissions
+        purchases= self.purchase_facade.getFailedPurchases()
+        strOutput= ""
+        for purchase in purchases:
+            strOutput+= purchase.__str__()
+        return strOutput
 
 
-    def viewAcceptedPurchases(self):
-        return self.purchase_facade.view_accepted_purchases()
+    def viewAcceptedPurchases(self, userId: int) -> str:
+        '''
+        * Parameters: userId
+        * This function returns the accepted purchases
+        * Returns a string
+        '''
+        #TODO: check if user is logged in and has necessary permissions
+        purchases= self.purchase_facade.getAcceptedPurchases()
+        strOutput= ""
+        for purchase in purchases:
+            strOutput+= purchase.__str__()
+        return strOutput
+        
+        
+        
     
     
     def handleAcceptedPurchases(self):
-        self.purchase_facade.handle_accepted_purchases()
-        #we basically check if the purchase is completed
+        '''
+        * Parameters: None
+        * This function handles the accepted purchases
+        * Returns None
+        '''
+        acceptedPurchases = self.purchase_facade.getAcceptedPurchases()
+        for purchase in acceptedPurchases:
+            if self.purchase_facade.checkIfCompletedPurchase(purchase.get_purchaseId()):
+                logger.info(f"Purchase {purchase.get_purchaseId()} has been completed")
+            
+          
+        
 
     
 
@@ -642,46 +755,179 @@ class MarketFacade:
         pass #cant be implemented yet without notifications
 
 
-    def userAcceptOffer(self, purchase_id: int):
-        pass
+    def userAcceptOffer(self, userId: int, purchase_id: int):
+        '''
+        * Parameters: userId, purchase_id
+        * This function accepts an offer
+        * Returns None
+        '''
+        #TODO: check if user is logged in
+        self.purchase_facade.userAcceptOffer(purchase_id,userId)
+        
+        #TODO: notify the store owners and all relevant parties
+        
 
 
-    def userRejectOffer(self, purchase_id: int):
-        pass
+    def userRejectOffer(self, userId: int , purchase_id: int):
+        '''
+        * Parameters: userId, purchase_id
+        * This function rejects an offer
+        * Returns None
+        '''
+        #TODO: check if user is logged in
+        self.purchase_facade.userRejectOffer(purchase_id,userId)
+        
+        #TODO: notify the store owners and all relevant parties
+        
 
 
-    def userCounterOffer(self, new_price: float, purchase_id: int):
-        pass
+    def userCounterOffer(self, userId: int, counterOffer: float, purchase_id: int):
+        
+        '''
+        * Parameters: userId, counterOffer, purchase_id
+        * This function makes a counter offer
+        * Returns None
+        '''
+        #TODO: check if user is logged in
+        self.purchase_facade.userCounterOffer(counterOffer, purchase_id, userId)
+        
+        #TODO: notify the store owners and all relevant parties
 
 
     #-------------Auction Purchase related methods-------------------#
     def addAuctionBid(self, purchase_id: int, user_id: int, price: float):
-        pass
+        '''
+        * Parameters: purchase_id, user_id, price
+        * This function adds a bid to an auction purchase
+        * Returns None
+        '''
+        #TODO: check if user is logged in and is member
+        if self.purchase_facade.addAuctionBid(purchase_id, user_id, price):
+            logger.info(f"User {user_id} has added a bid to purchase {purchase_id}")
+            
+            #TODO: notify the store owners and all relevant parties
+        else:
+            logger.info(f"User {user_id} has failed to add a bid to purchase {purchase_id}")
+            
+        
+
+        
+    
+    def viewHighestBid(self, purchase_id: int, userId: int)-> float:
+        '''
+        * Parameters: purchase_id, userId
+        * This function returns the highest bid of an auction purchase
+        * Returns a float
+        '''
+        #TODO: check if user is logged in
+        
+        #TODO: notify the store owners and all relevant parties
+
+        return self.purchase_facade.viewHighestBiddingOffer(purchase_id)
 
 
-    def viewHighestBid(self, purchase_id: int):
-        pass
 
+    def calculateRemainingTimeOfAuction(self, purchase_id: int, useId: int)-> datetime:
+        '''
+        * Parameters: purchase_id, userId
+        * This function calculates the remaining time of an auction purchase
+        * Returns a float
+        '''
+        #TODO: check if user is logged in
+        
+        #TODO: notify the store owners and all relevant parties
 
-    def calculateRemainingTime(self, purchase_id: int):
-        pass
+        return self.purchase_facade.calculateRemainingTimeOfAuction(purchase_id)
 
     
     def handleOngoingAuctions(self):
-        pass
+        '''
+        * Parameters: None
+        * This function handles the ongoing auctions
+        * Returns None
+        '''
+        ongoingPurchases = self.purchase_facade.getOngoingPurchases()
+        for purchase in ongoingPurchases:
+            if purchase.getPurchaseType(purchase.get_purchaseId()) == 2:
+                if self.purchase_facade.checkIfAuctionEnded(purchase.get_purchaseId()):
+                    
+                    #TODO: notify the store owners and all relevant parties
+                    #TODO: notify the user who won the auction
+                    #TODO: third party services
+                    #if thirdparty services work, then:
+                        #TODO: call validatePurchaseOfUser(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
+                    #else:
+                        #TODO: call invalidatePurchase(purchase.get_purchaseId(), purchase.get_userId()
+                    logger.info(f"Auction {purchase.get_purchaseId()} has been completed")
+                    
+                
+                
+    
+        
 
     #-------------Lottery Purchase related methods-------------------#
-    def addLotteryTicket(self, purchase_id: int, user_id: int):
-        pass
+    def addLotteryTicket(self, user_id: int, proposedPrice: float, purchase_id: int) :
+        '''
+        * Parameters: user_id, proposedPrice, purchase_id
+        * This function adds a lottery ticket to a lottery purchase
+        * Returns None
+        '''
+        #TODO: check if user is logged in and is member
+        if self.purchase_facade.addLotteryTicket(user_id, proposedPrice, purchase_id):
+            logger.info(f"User {user_id} has added a lottery ticket to purchase {purchase_id}")
+            
+            #TODO: notify the store owners and all relevant parties
+        else:
+            logger.info(f"User {user_id} has failed to add a lottery ticket to purchase {purchase_id}")
 
 
-    def calculateRemainingTime(self, purchase_id: int):
-        pass
+    def calculateRemainingTimeOfLottery(self, purchase_id: int, userId: int)-> datetime:
+        '''
+        * Parameters: purchase_id, userId
+        * This function calculates the remaining time of a lottery purchase
+        * Returns a float
+        '''
+        #TODO: check if user is logged in
+        
+        #TODO: notify the store owners and all relevant parties
+
+        return self.purchase_facade.calculateRemainingTimeOfLottery(purchase_id)
 
 
-    def calculateProbabilityOfUser(self, purchase_id: int, user_id: int):
-        pass
+    def calculateProbabilityOfUser(self, purchase_id: int, user_id: int)-> float:
+        '''
+        * Parameters: purchase_id, user_id
+        * This function calculates the probability of a user in a lottery purchase
+        * Returns a float
+        '''
+        #TODO: check if user is logged in
+        #TODO: notify the store owners and all relevant parties
+        return self.purchase_facade.calculateProbabilityOfUser(purchase_id, user_id)
+        
+    
 
 
     def handleOngoingLotteries(self):
-        pass
+        '''
+        * Parameters: None
+        * This function handles the ongoing lotteries
+        * Returns None
+        '''
+        ongoingPurchases = self.purchase_facade.getOngoingPurchases()
+        for purchase in ongoingPurchases:
+            if purchase.getPurchaseType(purchase.get_purchaseId()) == 3:
+                if self.purchase_facade.validateUserOffers(purchase.get_purchaseId()):
+                    userIdOfWinner = self.purchase_facade.pickWinner(purchase.get_purchaseId())
+                    if userIdOfWinner is not None:
+                        #TODO: notify the user who won the lottery
+                        #TODO: third party services
+                        #if thirdparty services work, then:
+                            #TODO: call validateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
+                        #else:
+                            #TODO: call invalidateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId()
+                            logger.info(f"Lottery {purchase.get_purchaseId()} has been won!")
+                    else:
+                        #TODO: refund users who participated in the lottery
+                        logger.info(f"Lottery {purchase.get_purchaseId()} has failed! Refunded all participants")
+                    
+                

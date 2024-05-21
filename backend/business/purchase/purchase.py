@@ -1253,6 +1253,28 @@ class PurchaseFacade:
         
     
 #-----------------Purchases in general-----------------#   
+
+    def getPurchaseType(self, purchaseId: int) -> int:
+        '''
+        * Parameters: purchaseId
+        * This function is responsible for returning the type of the purchase
+        * Returns: 0 if immediate, 1 if bid, 2 if auction, 3 if lottery
+        '''
+        for purchase in self.get_purchases():
+            if purchase.get_purchaseId() == purchaseId:
+                if purchase is ImmediatePurchase:
+                    return 0
+                if purchase is BidPurchase:
+                    return 1
+                if purchase is AuctionPurchase:
+                    return 2
+                if purchase is LotteryPurchase:
+                    return 3
+        
+        
+    
+    
+    
     def createImmediatePurchase(self, userId: int, totalPrice: float, shoppingCart: List[Tuple[Tuple[int,float],List[int]]]) -> bool:
         '''
         * Parameters: userId, dateOfPurchase, deliveryDate, shoppingCart, totalPriceAfterDiscounts
@@ -1647,15 +1669,15 @@ class PurchaseFacade:
 
     
 
-    def userCounterOffer(self, counterOffer: float,purchaseId: int):
+    def userCounterOffer(self, counterOffer: float,purchaseId: int, userId: int):
         '''
-        * Parameters: purchaseId, counterOffer
+        * Parameters: purchaseId, counterOffer, userId
         * This function is responsible for updating the counter offer of the purchase
         * Returns: none
         '''
         bidPurchase = self.getPurchaseById(purchaseId)
         if bidPurchase is BidPurchase:
-            if bidPurchase.get_status() == PurchaseStatus.onGoing:
+            if bidPurchase.get_status() == PurchaseStatus.onGoing and bidPurchase.get_userId() == userId:
                 bidPurchase.UserCounterOffer(counterOffer)
     
 
@@ -1690,7 +1712,7 @@ class PurchaseFacade:
     
         
 
-    def calculateRemainingTime(self, purchaseId: int) -> datetime:
+    def calculateRemainingTimeOfAuction(self, purchaseId: int) -> datetime:
         '''
         * Parameters: purchaseId
         * This function is responsible for calculating the remaining time for the auction
@@ -1740,7 +1762,7 @@ class PurchaseFacade:
     
 #-----------------Lottery-----------------#
 
-    def calculateRemainingTime(self, purchaseId: int) -> datetime:
+    def calculateRemainingTimeOfLottery(self, purchaseId: int) -> datetime:
         '''
         * Parameters: purchaseId
         * This function is responsible for calculating the remaining time for the auction
