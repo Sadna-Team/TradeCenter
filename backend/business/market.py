@@ -75,9 +75,15 @@ class MarketFacade:
         with MarketFacade.__lock:
             if self.store_facade.check_product_availability(store_id, product_id):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id)
+                
+                
+                
+                
 
     def checkout(self, user_id: int, payment_details: Dict, address: Dict): #needs a whole revamp to work with the discounts and purchase policies and location restrictions
         cart = self.user_facade.get_shopping_cart(user_id)
+        
+        
         # lock the __lock
         with MarketFacade.__lock:
             # check if the products are still available
@@ -85,27 +91,53 @@ class MarketFacade:
                 for product_id in products:
                     if not self.store_facade.check_product_availability(store_id, product_id):
                         raise ValueError(f"Product {product_id} is not available in the required amount")
+                    
 
             # TODO: create an immediate purchase
+            
 
             # TODO: calculate the discounts of the purchase using storeFacade
+                        
+            # TODO: calculate the policies of the purchase using storeFacade + user location constraints
+            
 
             # TODO: attempt to find a delivery method for user
-            # TODO: if not found, invalidate purchase
-            # charge the user
+            deliveryDate= datetime.datetime.now() #dummy
+            
+        
+                #if not found, invalidate purchase
+                #self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
+
+                
+                
+                
+                
+            # charge the user:
+            
             amount = self.store_facade.calculate_total_price(cart)
             if "payment method" not in payment_details:
+                #invalidate Purchase
+                self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
                 raise ValueError("Payment method not specified")
-                # TODO: invalidate Purchase
+            
             if not PaymentHandler().process_payment(amount, payment_details):
+                #invalidate Purchase
+                self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
                 raise ValueError("Payment failed")
-                # TODO: invalidate Purchase
+
 
             # remove the products from the store
-            for store_id, products in basket.items():
+            for store_id, products in basket.items():  #TODO: fix basket???
                 for product_id in products:
                     self.store_facade.removeProductFromStore(store_id, product_id)
-            # TODO: if successful, validate purchase with deliveryDate
+                    
+                    
+            #if successful, validate purchase with deliveryDate
+            self.purchase_facade.validatePurchaseOfUser(purchaseId, user_id, deliveryDate)
+
+            
+            
+            
         # clear the cart
         self.user_facade.clear_basket(user_id)
 
@@ -118,6 +150,11 @@ class MarketFacade:
             raise ValueError("Supply failed")
         for store_id in cart.keys():
             Notifier().notify_new_purchase(store_id, user_id)
+            
+            
+            
+            
+            
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
