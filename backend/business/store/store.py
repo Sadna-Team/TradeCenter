@@ -1,14 +1,14 @@
 from typing import Dict
 #---------- Imports ------------#
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from .DiscountStrategy import DiscountStrategy
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 import datetime
 
 
 #-------------logging configuration----------------
-from logging_config import setup_logging
+#from logging_config import setup_logging
 import logging
 
 logger = logging.getLogger('myapp')

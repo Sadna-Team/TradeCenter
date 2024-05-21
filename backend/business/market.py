@@ -2,7 +2,7 @@ from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
 from .DTOs import NotificationDTO
-from .store import StoreFacade
+#from .store import StoreFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
 from typing import Optional, List, Dict
@@ -47,7 +47,7 @@ class MarketFacade:
 
             # initialize all the facades
             self.user_facade = UserFacade()
-            self.store_facade = StoreFacade()
+#            self.store_facade = StoreFacade()
             self.roles_facade = RolesFacade()
             self.auth_facade = Authentication()
             # create the admin?
