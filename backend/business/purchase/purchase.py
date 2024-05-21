@@ -1442,19 +1442,18 @@ class PurchaseFacade:
         purchases = []
         if storeId is not None:
             for purchase in self.purchases:
-                if purchase is BidPurchase:
+                if isinstance(purchase, BidPurchase):
                     if purchase.get_storeId() == storeId:
                         purchases.append(purchase)
                 
-                if purchase is AuctionPurchase:
+                if isinstance(purchase, AuctionPurchase):
+                    if purchase.get_storeId() == storeId:
+                        purchases.append(purchase)
+                if isinstance(purchase,LotteryPurchase):
                     if purchase.get_storeId() == storeId:
                         purchases.append(purchase)
                 
-                if purchase is LotteryPurchase:
-                    if purchase.get_storeId() == storeId:
-                        purchases.append(purchase)
-                
-                if purchase is ImmediatePurchase:
+                if isinstance(purchase,ImmediatePurchase):
                     for subPurchase in purchase.get_immediateSubPurchases():
                         if subPurchase.get_storeId() == storeId:
                             purchases.append(subPurchase) 
@@ -1560,7 +1559,7 @@ class PurchaseFacade:
         '''
         logger.info('[PurchaseFacade] checking if user with user id: %s has already rated store with store id: %s in purchase with purchase id: %s', userId, storeId, purchaseId)
         for rating in self.ratings:
-            if rating is StoreRating:
+            if isinstance(rating ,StoreRating):
                 if rating.get_purchaseId() == purchaseId and rating.get_userId() == userId and rating.get_storeId() == storeId:
                     return True
         return False
@@ -1574,7 +1573,7 @@ class PurchaseFacade:
         '''
         logger.info('[PurchaseFacade] checking if user with user id: %s has already rated product with product spec id: %s in purchase with purchase id: %s', userId, productSpecId, purchaseId)
         for rating in self.ratings:
-            if rating is ProductRating:
+            if isinstance(rating, ProductRating):
                 if rating.get_purchaseId() == purchaseId and rating.get_userId() == userId and rating.get_productSpecId() == productSpecId:
                     return True
         return False
@@ -1587,7 +1586,7 @@ class PurchaseFacade:
         * Returns: the new value of the rating of the store
         '''
         logger.info('[PurchaseFacade] calculating new rating of store with store id: %s', storeId)
-        ratings = [rating for rating in self.ratings if rating is StoreRating and rating.get_storeId() == storeId]
+        ratings = [rating for rating in self.ratings if isinstance(rating, StoreRating) and rating.get_storeId() == storeId]
         return sum([rating.get_rating() for rating in ratings]) / len(ratings)
     
     
@@ -1600,7 +1599,7 @@ class PurchaseFacade:
         * Returns: the new value of the rating of the product
         '''
         logger.info('[PurchaseFacade] calculating new rating of product with product spec id: %s', productSpecId)
-        ratings = [rating for rating in self.ratings if rating is ProductRating and rating.get_productSpecId() == productSpecId]
+        ratings = [rating for rating in self.ratings if isinstance(rating,ProductRating) and rating.get_productSpecId() == productSpecId]
         return sum([rating.get_rating() for rating in ratings]) / len(ratings)
     
     
@@ -1682,7 +1681,7 @@ class PurchaseFacade:
         * Returns: float of total price after discounts
         '''
         immediatePurchase = self.getPurchaseById(purchaseId)
-        if immediatePurchase is ImmediatePurchase:
+        if isinstance(immediatePurchase, ImmediatePurchase):
             if immediatePurchase.get_status() == PurchaseStatus.onGoing or immediatePurchase.get_status() == PurchaseStatus.accepted:
                 return immediatePurchase.calculateTotalPriceAfterDiscounts()
             else:
@@ -1698,7 +1697,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         immediatePurchase = self.getPurchaseById(purchaseId)
-        if immediatePurchase is ImmediatePurchase:
+        if isinstance(immediatePurchase, ImmediatePurchase):
             immediatePurchase.validatePurchaseOfUser(userId, deliveryDate)
         else:
             raise ValueError("Purchase is not immediate")
@@ -1711,7 +1710,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         immediatePurchase = self.getPurchaseById(purchaseId)
-        if immediatePurchase is ImmediatePurchase:
+        if isinstance(immediatePurchase, ImmediatePurchase):
             immediatePurchase.invalidatePurchaseOfUser(userId)
         else:
             raise ValueError("Purchase is not immediate")
@@ -1728,7 +1727,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         bidPurchase = self.getPurchaseById(purchaseId)
-        if bidPurchase is BidPurchase:
+        if isinstance(bidPurchase, BidPurchase):
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                  bidPurchase.StoreAcceptOffer()
             else:
@@ -1745,7 +1744,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         bidPurchase = self.getPurchaseById(purchaseId)
-        if bidPurchase is BidPurchase:
+        if isinstance(bidPurchase, BidPurchase):
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                  bidPurchase.UseracceptOffer(userId)
             else:
@@ -1762,7 +1761,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         bidPurchase = self.getPurchaseById(purchaseId)
-        if bidPurchase is BidPurchase:
+        if isinstance(bidPurchase, BidPurchase):
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                  bidPurchase.StoreRejectOffer()
             else:
@@ -1778,7 +1777,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         bidPurchase = self.getPurchaseById(purchaseId)
-        if bidPurchase is BidPurchase:
+        if isinstance(bidPurchase, BidPurchase):
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                 bidPurchase.UserRejectOffer(userId)
             else:
@@ -1795,7 +1794,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         bidPurchase = self.getPurchaseById(purchaseId)
-        if bidPurchase is BidPurchase:
+        if isinstance(bidPurchase, BidPurchase):
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                  bidPurchase.StoreCounterOffer(counterOffer)
             else:
@@ -1813,7 +1812,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         bidPurchase = self.getPurchaseById(purchaseId)
-        if bidPurchase is BidPurchase:
+        if isinstance(bidPurchase, BidPurchase):
             if bidPurchase.get_status() == PurchaseStatus.onGoing:
                 bidPurchase.UserCounterOffer(counterOffer)
             else:
@@ -1832,7 +1831,7 @@ class PurchaseFacade:
         * Returns: true if bid was added
         '''
         auctionPurchase = self.getPurchaseById(purchaseId)
-        if auctionPurchase is AuctionPurchase:
+        if isinstance(auctionPurchase, AuctionPurchase):
             if auctionPurchase.get_status() == PurchaseStatus.onGoing:
                 return auctionPurchase.addAuctionBid(userId, proposedPrice)
             else:
@@ -1849,7 +1848,7 @@ class PurchaseFacade:
         * Returns: float of highest bidding offer
         '''
         auctionPurchase = self.getPurchaseById(purchaseId)
-        if auctionPurchase is AuctionPurchase:
+        if isinstance(auctionPurchase, AuctionPurchase):
             if auctionPurchase.get_status() == PurchaseStatus.onGoing or auctionPurchase.get_status() == PurchaseStatus.accepted:
                 return auctionPurchase.viewHighestBiddingOffer()
             else:
@@ -1866,7 +1865,7 @@ class PurchaseFacade:
         * Returns: datetime of remaining time
         '''
         auctionPurchase = self.getPurchaseById(purchaseId)
-        if auctionPurchase is AuctionPurchase:
+        if isinstance(auctionPurchase, AuctionPurchase):
             if auctionPurchase.get_status() == PurchaseStatus.onGoing:
                 return auctionPurchase.calculateRemainingTime()
             else:
@@ -1882,7 +1881,7 @@ class PurchaseFacade:
         * Returns: true if ended
         '''
         auctionPurchase = self.getPurchaseById(purchaseId)
-        if auctionPurchase is AuctionPurchase:
+        if isinstance(auctionPurchase, AuctionPurchase):
             return auctionPurchase.checkIfAuctionEnded()
         else:
             raise ValueError("Purchase is not auction")
@@ -1895,7 +1894,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         auctionPurchase = self.getPurchaseById(purchaseId)
-        if auctionPurchase is AuctionPurchase:
+        if isinstance(auctionPurchase, AuctionPurchase):
             auctionPurchase.validatePurchaseOfUser(userId, deliveryDate)
         else:
             raise ValueError("Purchase is not auction")
@@ -1908,7 +1907,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         auctionPurchase = self.getPurchaseById(purchaseId)
-        if auctionPurchase is AuctionPurchase:
+        if isinstance(auctionPurchase, AuctionPurchase):
             auctionPurchase.invalidatePurchaseOfUser(userId)
         else:
             raise ValueError("Purchase is not auction")
@@ -1924,7 +1923,7 @@ class PurchaseFacade:
         * Returns: datetime of remaining time
         '''
         lotteryPurchase = self.getPurchaseById(purchaseId)
-        if lotteryPurchase is LotteryPurchase:
+        if isinstance(lotteryPurchase, LotteryPurchase):
             if lotteryPurchase.get_status() == PurchaseStatus.onGoing:
                 return lotteryPurchase.calculateRemainingTime()
             else:
@@ -1942,7 +1941,7 @@ class PurchaseFacade:
         * Returns: true if bid was added
         '''
         lotteryPurchase = self.getPurchaseById(purchaseId)
-        if lotteryPurchase is LotteryPurchase:
+        if isinstance(lotteryPurchase, LotteryPurchase):
             if lotteryPurchase.get_status() == PurchaseStatus.onGoing:
                 return lotteryPurchase.addLotteryOffer(userId, proposedPrice)
             else:
@@ -1959,7 +1958,7 @@ class PurchaseFacade:
         * Returns: float of probability
         '''
         lotteryPurchase = self.getPurchaseById(purchaseId)
-        if lotteryPurchase is LotteryPurchase:
+        if isinstance(lotteryPurchase, LotteryPurchase):
             if lotteryPurchase.get_status() == PurchaseStatus.onGoing or lotteryPurchase.get_status() == PurchaseStatus.accepted:
                 return lotteryPurchase.calculateProbabilityOfUser(userId)
             else:
@@ -1977,7 +1976,7 @@ class PurchaseFacade:
         * Returns: true if all users have paid the full price
         '''
         lotteryPurchase = self.getPurchaseById(purchaseId)
-        if lotteryPurchase is LotteryPurchase:
+        if isinstance(lotteryPurchase, LotteryPurchase):
             if lotteryPurchase.get_endingDate() < datetime.datetime.now:
                 return lotteryPurchase.validateUserOffers()
             else:
@@ -1996,7 +1995,7 @@ class PurchaseFacade:
         * Returns: userId of the winner
         '''
         lotteryPurchase = self.getPurchaseById(purchaseId)
-        if lotteryPurchase is LotteryPurchase:
+        if isinstance(lotteryPurchase, LotteryPurchase):
             if lotteryPurchase.get_status() == PurchaseStatus.accepted:
                 return lotteryPurchase.pickWinner()
             else:
@@ -2012,7 +2011,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         lotteryPurchase = self.getPurchaseById(purchaseId)
-        if lotteryPurchase is LotteryPurchase:
+        if isinstance(lotteryPurchase, LotteryPurchase):
             lotteryPurchase.validateDeliveryOfWinner(userId, deliveryDate)
         else:
             raise ValueError("Purchase is not lottery")
@@ -2025,7 +2024,7 @@ class PurchaseFacade:
         * Returns: none
         '''
         lotteryPurchase = self.getPurchaseById(purchaseId)
-        if lotteryPurchase is LotteryPurchase:
+        if isinstance(lotteryPurchase, LotteryPurchase):
             lotteryPurchase.invalidateDeliveryOfWinner(userId)
         else:
             raise ValueError("Purchase is not lottery")
