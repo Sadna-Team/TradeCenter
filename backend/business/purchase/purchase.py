@@ -97,8 +97,9 @@ class StoreRating(Rating):
 #-----------------ProductRating class-----------------#
 class ProductRating(Rating):
     # purchaseId and productId are the unique identifiers for the product rating, productSpec used to retrieve the details of product
-    def __init__(self,ratingId: int, rating: float, purchaseId: int, userId: int, description: str, productSpecId: int, creationDate: datetime = datetime.datetime.now()):
+    def __init__(self,ratingId: int, rating: float, purchaseId: int, userId: int, description: str, storeId: int, productSpecId: int, creationDate: datetime = datetime.datetime.now()):
         super().__init__(ratingId, rating, purchaseId, userId, description, creationDate)
+        self.__storeId = storeId
         self.__productSpecId = productSpecId
 
     #---------------------------------Getters and Setters---------------------------------#
@@ -149,6 +150,15 @@ class ProductRating(Rating):
     @property
     def __set_creationDate(self, creationDate: datetime):
         self.__creationDate = creationDate
+
+    @property
+    def get_storeId(self):
+        return self.__storeId
+    
+    @property
+    def __set_storeId(self, storeId: int):
+        self.__storeId = storeId
+
 
     @property
     def get_productSpecId(self):
@@ -205,7 +215,7 @@ class Purchase(ABC):
         pass
 
 #-----------------ImmediateSubPurchases class-----------------#
-class ImmediateSubPurchases(Purchase):
+class ImmediateSubPurchase(Purchase):
     # purchaseId and storeId are unique identifier of the immediate purchase, storeId used to retrieve the details of the store
     def __init__(self, purchaseId: int, storeId: int, userId: int, dateOfPurchase: datetime, totalPrice: float, status: PurchaseStatus, productIds: List[int]):
         super().__init__(purchaseId, userId, storeId, dateOfPurchase, totalPrice, status)
@@ -315,8 +325,9 @@ class ImmediatePurchase(Purchase):
         super().__init__(purchaseId, userId, -1, dateOfPurchase, totalPrice, status)
         self.deliveryDate = None  #for now, it will be updated once a purchase was accepted
         self.totalPriceAfterDiscounts = totalPriceAfterDiscounts
+        self.immediateSubPurchases = []
         for shoppingBasket in shoppingCart:
-            self.immediateSubPurchases.append(ImmediateSubPurchases(purchaseId, userId, shoppingBasket[0][0], dateOfPurchase, shoppingBasket[0][1], status, shoppingBasket[1]))
+            self.immediateSubPurchases.append(ImmediateSubPurchase(purchaseId, userId, shoppingBasket[0][0], dateOfPurchase, shoppingBasket[0][1], status, shoppingBasket[1]))
 
 
 
@@ -391,7 +402,7 @@ class ImmediatePurchase(Purchase):
         return self.immediateSubPurchases
     
     @property
-    def __set_immediateSubPurchases(self, immediateSubPurchases: List[ImmediateSubPurchases]):
+    def __set_immediateSubPurchases(self, immediateSubPurchases: List[ImmediateSubPurchase]):
         self.immediateSubPurchases = immediateSubPurchases
 
     #---------------------------------Methods---------------------------------#
@@ -1243,6 +1254,28 @@ class PurchaseFacade:
         
     
 #-----------------Purchases in general-----------------#   
+
+    def getPurchaseType(self, purchaseId: int) -> int:
+        '''
+        * Parameters: purchaseId
+        * This function is responsible for returning the type of the purchase
+        * Returns: 0 if immediate, 1 if bid, 2 if auction, 3 if lottery
+        '''
+        for purchase in self.get_purchases():
+            if purchase.get_purchaseId() == purchaseId:
+                if purchase is ImmediatePurchase:
+                    return 0
+                if purchase is BidPurchase:
+                    return 1
+                if purchase is AuctionPurchase:
+                    return 2
+                if purchase is LotteryPurchase:
+                    return 3
+        
+        
+    
+    
+    
     def createImmediatePurchase(self, userId: int, totalPrice: float, shoppingCart: List[Tuple[Tuple[int,float],List[int]]]) -> bool:
         '''
         * Parameters: userId, dateOfPurchase, deliveryDate, shoppingCart, totalPriceAfterDiscounts
@@ -1500,7 +1533,7 @@ class PurchaseFacade:
                     return purchase.rateStore(userId, rating)
         return None
     
-    def rateProduct(self, purchaseId: int, userId: int, productSpecId: int, rating: float, description: str) -> float:
+    def rateProduct(self, purchaseId: int, userId: int, storeId: int, productSpecId: int, rating: float, description: str) -> float:
         '''
         * Parameters: purchaseId, userId, rating, productSpecId
         * This function is responsible for rating the product
@@ -1511,7 +1544,7 @@ class PurchaseFacade:
             if purchase.get_status() == PurchaseStatus.completed:
                 if not self.hasUserAlreadyRatedProduct(purchaseId, userId, productSpecId):
                     if purchase.get_userId() == userId:
-                        productRating = ProductRating(self.get_ratingIdCounter(), rating, purchaseId, userId, description, productSpecId)
+                        productRating = ProductRating(self.get_ratingIdCounter(), rating, purchaseId, userId, description, storeId ,productSpecId)
                         self.ratings.append(productRating)
                         self.__set_ratingIdCounter(self.get_ratingIdCounter() + 1)
                         return self.calculateNewProductRating(productSpecId)
@@ -1637,15 +1670,15 @@ class PurchaseFacade:
 
     
 
-    def userCounterOffer(self, counterOffer: float,purchaseId: int):
+    def userCounterOffer(self, counterOffer: float,purchaseId: int, userId: int):
         '''
-        * Parameters: purchaseId, counterOffer
+        * Parameters: purchaseId, counterOffer, userId
         * This function is responsible for updating the counter offer of the purchase
         * Returns: none
         '''
         bidPurchase = self.getPurchaseById(purchaseId)
         if bidPurchase is BidPurchase:
-            if bidPurchase.get_status() == PurchaseStatus.onGoing:
+            if bidPurchase.get_status() == PurchaseStatus.onGoing and bidPurchase.get_userId() == userId:
                 bidPurchase.UserCounterOffer(counterOffer)
     
 
@@ -1680,7 +1713,7 @@ class PurchaseFacade:
     
         
 
-    def calculateRemainingTime(self, purchaseId: int) -> datetime:
+    def calculateRemainingTimeOfAuction(self, purchaseId: int) -> datetime:
         '''
         * Parameters: purchaseId
         * This function is responsible for calculating the remaining time for the auction
@@ -1730,7 +1763,7 @@ class PurchaseFacade:
     
 #-----------------Lottery-----------------#
 
-    def calculateRemainingTime(self, purchaseId: int) -> datetime:
+    def calculateRemainingTimeOfLottery(self, purchaseId: int) -> datetime:
         '''
         * Parameters: purchaseId
         * This function is responsible for calculating the remaining time for the auction

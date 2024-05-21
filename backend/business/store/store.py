@@ -113,8 +113,7 @@ class Product:
                 logger.info('[Product] successfully changed price of product with id: ' + str(self.__productId))
                 return True
             else:
-                logger.warn('[Product] New price is a negative value')
-                return False
+                raise ValueError('New price is a negative value')
         else:
             raise ValueError('New price is not a valid float value')
     
@@ -572,8 +571,7 @@ class Category:
 #---------------------store class---------------------#
 class Store: 
     # id of store is storeId. It is unique for each store
-    def __init__(self, storeId: int, locationId: int, storeName: str, storeFounderId: int,  
-                 isActive: bool, storeProducts: List[Product] = [],
+    def __init__(self, storeId: int, locationId: int, storeName: str, storeFounderId: int, storeProducts: List[Product] = [],
                    purchasePolicies: List[PurchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(), 
                    ratingsOfProductSpecId: Dict[int, float] = {}):
         self.__storeId = storeId
@@ -581,11 +579,12 @@ class Store:
         self.__storeName = storeName
         self.__storeFounderId = storeFounderId
         self.__rating = 0
-        self.__isActive = isActive
+        self.__isActive = True
         self.__storeProducts = storeProducts
         self.__purchasePolicies = purchasePolicies
         self.__foundedDate = foundedDate        
         self.__ratingsOfProductSpecId = ratingsOfProductSpecId
+        self.__purchasePolicyIdCounter = 0
         logger.info('[Store] successfully created store with id: ' + str(storeId))
         
 
@@ -670,6 +669,13 @@ class Store:
     def __set_ratingsOfProductSpecId(self, ratingsOfProductSpecId: Dict[int, float]):
         self.__ratingsOfProductSpecId = ratingsOfProductSpecId
     
+    @property
+    def get_purchasePolicyIdCounter(self) -> int:
+        return self.__purchasePolicyIdCounter
+    
+    @property
+    def __set_purchasePolicyIdCounter(self, purchasePolicyIdCounter: int):
+        self.__purchasePolicyIdCounter = purchasePolicyIdCounter
 
     #---------------------methods--------------------------------
     def isActive(self) -> bool:
@@ -756,38 +762,33 @@ class Store:
     
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a purchase policy
-    def addPurchasePolicy(self, purchasePolicy: PurchasePolicyStrategy) -> bool:
+    def addPurchasePolicy(self) -> bool: #TODO: for now we dont have the necessary fields for purchasePolicy
         ''' 
-        * Parameters: purchasePolicy
+        * Parameters: none
         * This function adds a purchase policy to the store
         * Returns: True if the purchase policy is added successfully, False otherwise
         '''
-        if purchasePolicy is not None:
-            if purchasePolicy not in self.__purchasePolicies:
-                self.__purchasePolicies.append(purchasePolicy)
-                logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__storeId))
-                return True
-        else: 
-            raise ValueError('Purchase policy is not a valid purchase policy')
-        return False
-    
+        purchasePolicy = PurchasePolicyStrategy(self.get_purchasePolicyIdCounter(), self.get_storeId())
+        self.get_purchasePolicies.append(purchasePolicy)
+        self.__set_purchasePolicyIdCounter(self.get_purchasePolicyIdCounter() + 1)        
+        logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__storeId))
+        return True
+        
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a purchase policy
-    def removePurchasePolicy(self, purchasePolicy: PurchasePolicyStrategy) -> bool:
+    def removePurchasePolicy(self, purchasePolicyId: int) -> bool:
         ''' 
-        * Parameters: purchasePolicy
+        * Parameters: purchasePolicyId
         * This function removes a purchase policy from the store
         * Returns: True if the purchase policy is removed successfully, False otherwise
         '''
+        purchasePolicy = self.getPurchasePolicyById(purchasePolicyId)
         if purchasePolicy is not None:
-            if purchasePolicy in self.__purchasePolicies:
-                self.__purchasePolicies.remove(purchasePolicy)
-                logger.info('[Store] successfully removed purchase policy from store with id: ' + str(self.__storeId))
-                return True
-        
-        else: 
+            self.__purchasePolicies.remove(purchasePolicy)
+            logger.info('[Store] successfully removed purchase policy from store with id: ' + str(self.__storeId))
+            return True
+        else:
             raise ValueError('Purchase policy is not a valid purchase policy')
-        return False
     
 
     def updatePurchasePolicy(self, purchasePolicy: PurchasePolicyStrategy) -> bool:
@@ -1225,16 +1226,26 @@ class StoreFacade:
             raise ValueError('Product specification id is not a valid integer value')
 
     # used for searches
-    def getProductSpecsByTag(self, tag: str) -> List[ProductSpecification]:
+    def getProductSpecsByTags(self, tags: List[str]) -> List[ProductSpecification]:
         '''
-        * Parameters: tag
-        * This function gets all the product specifications with a given tag
-        * Returns: all the product specifications with the given tag
+        * Parameters: list of tags
+        * This function gets all the product specifications by a given list of tags
+        * Returns: all the product specifications by a given list of tags
         '''
-        if tag is not None:
-            return [productSpec for productSpec in self.productSpecifications if productSpec.hasTag(tag)]
+        if tags is not None:
+            productSpecs = []
+            for productSpec in self.productSpecifications:
+                hasAllTags = True
+                for tag in tags:
+                    if not productSpec.hasTag(tag):
+                        hasAllTags = False
+                        break
+                if hasAllTags:
+                    productSpecs.append(productSpec)
+            return productSpecs
         else:
-            raise ValueError('Tag is not a valid string')
+            raise ValueError('Tags are not a valid list of strings')   
+    
 
     # used for searches
     def getProductSpecByName(self, productName: str) -> ProductSpecification:
@@ -1260,7 +1271,7 @@ class StoreFacade:
         return None
 
 
-    def addStore(self, locationId: int, storeName: str, storeFounderId: int, isActive: bool, storeProducts: List[Product] = [],
+    def addStore(self, locationId: int, storeName: str, storeFounderId: int, storeProducts: List[Product] = [],
                      purchasePolicies: List[PurchasePolicyStrategy] = [], foundedDate: datetime = datetime.datetime.now(),
                         ratingsOfProductSpecId: Dict[int, int] = {}) -> bool:
         '''
@@ -1271,7 +1282,7 @@ class StoreFacade:
         logger.info('[StoreFacade] attempting to add store')
         if storeName is not None:
             if storeName != "":
-                store = store(self.storeIdCounter, locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate, ratingsOfProductSpecId)
+                store = Store(self.storeIdCounter, locationId, storeName, storeFounderId, storeProducts, purchasePolicies, foundedDate, ratingsOfProductSpecId)
                 self.stores.append(store)
                 self.storeIdCounter += 1
                 return True
@@ -1401,7 +1412,8 @@ class StoreFacade:
             raise ValueError('Store id is not a valid integer value')
 
 
-    def addPurchasePolicyToStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
+
+    def addPurchasePolicyToStore(self, storeId: int) -> bool: #TODO: for now we dont know how to implement the purchasePolicy and what fields it receives
         '''
         * Parameters: storeId, purchasePolicy
         * This function adds a purchase policy to the store
@@ -1410,16 +1422,12 @@ class StoreFacade:
         '''
         logger.info('[StoreFacade] attempting to add purchase policy to store')
         if storeId is not None:
-            if purchasePolicy is not None:
+            #if purchasePolicy is not None:
                 store = self.getStoreById(storeId)
                 if store is not None:
-                    return store.addPurchasePolicy(purchasePolicy)
+                    return store.addPurchasePolicy()
                 else:
                     raise ValueError('Store not found')
-            else:
-                raise ValueError('Purchase policy is not a valid purchase policy')
-        else:
-            raise ValueError('Store id is not a valid integer value')
 
     def removePurchasePolicyFromStore(self, storeId: int, purchasePolicyId: int) -> bool:
         '''
@@ -1445,7 +1453,7 @@ class StoreFacade:
         else:
             raise ValueError('Store id is not a valid integer value')
 
-    def updatePurchasePolicyOfStore(self, storeId: int, purchasePolicy: PurchasePolicyStrategy) -> bool:
+    def updatePurchasePolicyOfStore(self, storeId: int, purchasePolicyId: int) -> bool:
         pass
 
 
@@ -1654,3 +1662,32 @@ class StoreFacade:
         '''
         return self.getTotalPriceBeforeDiscount(shoppingCart) # not implemented yet VERSION 2
       
+
+    #--------------------methods for market facade used by users team---------------------------#
+    def check_product_availability(self, store_id: int, product_id: int):
+        '''
+        * Parameters: store_id, product_id
+        * This function checks if the product is available in the store
+        * Returns: True if the product is available, False otherwise
+        '''
+        store = self.getStoreById(store_id)
+        if store is not None:
+            for product in store.get_products():
+                if product.get_productId() == product_id:
+                    return True
+            return False
+        else:
+            raise ValueError('Store not found')
+        
+    def calculate_total_price(self, basket: Dict[int, List[int]]) -> int:
+        '''
+        * Parameters: basket
+        * This function calculates the total price of the basket
+        * Returns: the total price of the basket
+        '''
+        totalPrice = 0
+        for storeId, productIds in basket.items():
+            store = self.getStoreById(storeId)
+            totalPrice += store.getTotalPriceOfBasketAfterDiscount(productIds)
+        return totalPrice
+    
