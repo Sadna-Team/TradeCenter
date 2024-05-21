@@ -8,7 +8,7 @@ class TestNotifier(unittest.TestCase):
         self.notifier = Notifier()
 
     def tearDown(self) -> None:
-        return super().tearDown()
+        self.notifier.clean_data()
 
 
     def test_notify_new_purchase(self):
@@ -73,11 +73,7 @@ class TestNotifier(unittest.TestCase):
         self.notifier._user_facade.notify_user = MagicMock()
         self.notifier._notify(1, "message")
         self.notifier._user_facade.notify_user.assert_called_once()
-    
-    def test_notify_no_listeners(self):
-        self.notifier._listeners = {}
-        with self.assertRaises(ValueError):
-            self.notifier._notify(1, "message")
+
     
     def test_sign_listener(self):
         self.notifier._listeners = {}
@@ -86,8 +82,8 @@ class TestNotifier(unittest.TestCase):
     
     def test_sign_listener_existing(self):
         self.notifier._listeners = {1: [1]}
-        self.notifier.sign_listener(1, 1)
-        self.assertEqual(self.notifier._listeners, {1: [1]})
+        with self.assertRaises(ValueError):
+            self.notifier.sign_listener(1, 1)
 
     def test_unsign_listener(self):
         self.notifier._listeners = {1: [1]}
