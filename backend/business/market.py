@@ -153,9 +153,7 @@ class MarketFacade:
         if not SupplyHandler().process_supply(package_details, user_id):
             raise ValueError("Supply failed")
         for store_id in cart.keys():
-            Notifier().notify_new_purchase(store_id, user_id)
-            
-            
+            Notifier().notify_new_purchase(store_id, user_id)     
             
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
