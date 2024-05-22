@@ -6,6 +6,13 @@ tests/unit_tests/__pycache__/
 backend/tests/__pycache__/
 backend/__pycache__/
 backend/business/__pycache__/
+backend/business/authentication/__pycache__/
+backend/business/notifier/__pycache__/
+backend/business/roles/__pycache__/
+backend/business/store/__pycache__/
+backend/business/user/__pycache__/
+backend/business/ThirdPartyHandlers/__pycache__/
+backend/business/purchase/__pycache__/
 backend/services/__pycache__/
 backend/services/ecommerce_services/__pycache__/
 backend/services/store_services/__pycache__/
