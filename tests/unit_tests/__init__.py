@@ -48,3 +48,4 @@ def create_app():
 def clean_data():
     MarketFacade().clean_data()
     Authentication().clean_data()
+

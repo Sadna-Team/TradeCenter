@@ -126,6 +126,7 @@ class User:
         return self.__member.get_password()
 
 
+
 class UserFacade:
     # singleton
     __lock = threading.Lock()
@@ -213,8 +214,8 @@ class UserFacade:
          .append(Notification(notification.get_notification_id(),
                               notification.get_message(), notification.get_date())))
 
-
-    
-
     def is_member(self, user_id: int) -> bool:
-        return isinstance(self.__get_user(user_id), Member)
+        # check if user is registered
+        user = self.__get_user(user_id)
+        return isinstance(user._User__member, Member)
+

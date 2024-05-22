@@ -205,6 +205,8 @@ class RolesFacade:
         self.__system_managers.clear()
         self.__system_admin = -1
 
+    def check_if_user_is_admin(self, user_id: int) -> bool:
+        return user_id == self.__system_admin
     def add_store(self, store_id: int, owner_id: int) -> None:
         if store_id in self.__stores_to_roles:
             raise ValueError("Store already exists")

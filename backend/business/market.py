@@ -13,6 +13,7 @@ import logging
 
 logger = logging.getLogger('myapp')
 
+
 class AddressDTO:
     def __init__(self, address_id, address, city, state, country, postal_code):
         self.address_id = address_id
@@ -32,6 +33,7 @@ class AddressDTO:
             'postal_code': self.postal_code
         }
 
+
 class MarketFacade:
     # singleton
     __instance = None
@@ -48,7 +50,7 @@ class MarketFacade:
 
             # initialize all the facades
             self.user_facade = UserFacade()
-#            self.store_facade = StoreFacade()
+            self.store_facade = StoreFacade()
             self.roles_facade = RolesFacade()
             self.purchase_facade = PurchaseFacade()
             self.addresses = []
@@ -80,15 +82,11 @@ class MarketFacade:
         with MarketFacade.__lock:
             if self.store_facade.check_product_availability(store_id, product_id):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id)
-                
-                
-                
-                
 
-    def checkout(self, user_id: int, payment_details: Dict, address: Dict): #needs a whole revamp to work with the discounts and purchase policies and location restrictions
+    def checkout(self, user_id: int, payment_details: Dict,
+                 address: Dict):  #needs a whole revamp to work with the discounts and purchase policies and location restrictions
         cart = self.user_facade.get_shopping_cart(user_id)
-        
-        
+
         # lock the __lock
         with MarketFacade.__lock:
             # check if the products are still available
@@ -96,52 +94,40 @@ class MarketFacade:
                 for product_id in products:
                     if not self.store_facade.check_product_availability(store_id, product_id):
                         raise ValueError(f"Product {product_id} is not available in the required amount")
-                    
 
             # TODO: create an immediate purchase
-            
 
             # TODO: calculate the discounts of the purchase using storeFacade
-                        
+
             # TODO: calculate the policies of the purchase using storeFacade + user location constraints
-            
 
             # TODO: attempt to find a delivery method for user
-            deliveryDate= datetime.datetime.now() #dummy
-            
-        
-                #if not found, invalidate purchase
-                #self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
+            deliveryDate = datetime.datetime.now()  #dummy
 
-                
-                
-                 
+            #if not found, invalidate purchase
+            #self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
+
             # charge the user:
-            
+
             amount = self.store_facade.calculate_total_price(cart)
             if "payment method" not in payment_details:
                 #invalidate Purchase
                 self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
                 raise ValueError("Payment method not specified")
-            
+
             if not PaymentHandler().process_payment(amount, payment_details):
                 #invalidate Purchase
                 self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
                 raise ValueError("Payment failed")
 
-
             # remove the products from the store
-            for store_id, products in basket.items():  #TODO: fix basket???
+            for store_id, products in cart.items():  #TODO: fix basket???
                 for product_id in products:
                     self.store_facade.removeProductFromStore(store_id, product_id)
-                    
-                    
+
             #if successful, validate purchase with deliveryDate
             self.purchase_facade.validatePurchaseOfUser(purchaseId, user_id, deliveryDate)
 
-            
-            
-            
         # clear the cart
         self.user_facade.clear_basket(user_id)
 
@@ -153,8 +139,7 @@ class MarketFacade:
         if not SupplyHandler().process_supply(package_details, user_id):
             raise ValueError("Supply failed")
         for store_id in cart.keys():
-            Notifier().notify_new_purchase(store_id, user_id)     
-            
+            Notifier().notify_new_purchase(store_id, user_id)
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
@@ -188,7 +173,7 @@ class MarketFacade:
 
     def add_payment_method(self, method_name: str, payment_config: Dict):
         PaymentHandler().add_payment_method(method_name, payment_config)
-    
+
     def edit_payment_method(self, method_name: str, editing_data: Dict):
         PaymentHandler().edit_payment_method(method_name, editing_data)
 
@@ -205,7 +190,7 @@ class MarketFacade:
         SupplyHandler().remove_supply_method(method_name)
 
     #-------------------------------------- Store Related Methods --------------------------------------#
-    def searchByCategory(self, categoryId: int, sortType: int) -> List[Tuple[Tuple[int, int], Tuple[float,float]]]:
+    def searchByCategory(self, categoryId: int, sortType: int) -> List[Tuple[Tuple[int, int], Tuple[float, float]]]:
         '''
         * Parameters: categoryId, sortByLowesToHighestPrice
         * This function returns the list of all productIds
@@ -213,11 +198,13 @@ class MarketFacade:
         * Returns a list of product ids of the products in the category with categoryId
         '''
         productSpecificationsOfCategory = self.store_facade.getProductSpecOfCategory(categoryId)
-        productIdsToStore = [Tuple[Tuple[int, int], Tuple[float,float]]]
+        productIdsToStore = [Tuple[Tuple[int, int], Tuple[float, float]]]
         for store in self.store_facade.stores():
             for product in store.products():
                 if product.get_specificationId() in productSpecificationsOfCategory:
-                    productIdsToStore.append((product.get_productId(), product.get_specificationId(), store.get_storeId(), store.get_storeName(), product.get_price(), store.get_ratingOfProductSpecId()[product.get_specificationId()]))
+                    productIdsToStore.append((product.get_productId(), product.get_specificationId(),
+                                              store.get_storeId(), store.get_storeName(), product.get_price(),
+                                              store.get_ratingOfProductSpecId()[product.get_specificationId()]))
         if sortType == 1:
             productIdsToStore.sort(key=lambda x: x[1][0])
         elif sortType == 2:
@@ -227,8 +214,8 @@ class MarketFacade:
         elif sortType == 4:
             productIdsToStore.sort(key=lambda x: x[1][1], reverse=True)
         return productIdsToStore
-        
-    def searchByTags(self, tags: List[str], sortType: int) -> List[Tuple[Tuple[int, int], Tuple[float,float]]]:
+
+    def searchByTags(self, tags: List[str], sortType: int) -> List[Tuple[Tuple[int, int], Tuple[float, float]]]:
         '''
         * Parameters: tags, sortByLowesToHighestPrice
         * This function returns the list of all productIds
@@ -240,7 +227,9 @@ class MarketFacade:
         for store in self.store_facade.stores():
             for product in store.products():
                 if product.get_specificationId() in productSpecificationsOfTags:
-                    productIdsToStore.append((product.get_productId(), product.get_specificationId(), store.get_storeId(), store.get_storeName(), product.get_price(), store.get_ratingOfProductSpecId()[product.get_specificationId()]))
+                    productIdsToStore.append((product.get_productId(), product.get_specificationId(),
+                                              store.get_storeId(), store.get_storeName(), product.get_price(),
+                                              store.get_ratingOfProductSpecId()[product.get_specificationId()]))
 
         if sortType == 1:
             productIdsToStore.sort(key=lambda x: x[1][0])
@@ -251,8 +240,8 @@ class MarketFacade:
         elif sortType == 4:
             productIdsToStore.sort(key=lambda x: x[1][1], reverse=True)
         return productIdsToStore
-    
-    def searchByNames(self, name: str, sortType: int) -> List[Tuple[Tuple[int, int], Tuple[float,float]]]:
+
+    def searchByNames(self, name: str, sortType: int) -> List[Tuple[Tuple[int, int], Tuple[float, float]]]:
         '''
         * Parameters: names, sortByLowesToHighestPrice
         * This function returns the list of all productIds
@@ -264,7 +253,9 @@ class MarketFacade:
         for store in self.store_facade.stores():
             for product in store.products():
                 if product.get_specificationId() in productSpecificationsOfNames:
-                    productIdsToStore.append((product.get_productId(), product.get_specificationId(), store.get_storeId(), store.get_storeName(), product.get_price(), store.get_ratingOfProductSpecId()[product.get_specificationId()]))
+                    productIdsToStore.append((product.get_productId(), product.get_specificationId(),
+                                              store.get_storeId(), store.get_storeName(), product.get_price(),
+                                              store.get_ratingOfProductSpecId()[product.get_specificationId()]))
 
         if sortType == 1:
             productIdsToStore.sort(key=lambda x: x[1][0])
@@ -276,16 +267,15 @@ class MarketFacade:
             productIdsToStore.sort(key=lambda x: x[1][1], reverse=True)
         return productIdsToStore
 
-
-#-------------Discount related methods-------------------#
-    def addDiscount(self, userId: int, description: str, startDate: datetime, endingDate: datetime, percentage: float): #later on we need to support the creation of different types of discounts using hasStoreId?: int etc, maybe wildcards could be useful
+    #-------------Discount related methods-------------------#
+    def addDiscount(self, userId: int, description: str, startDate: datetime, endingDate: datetime,
+                    percentage: float):  #later on we need to support the creation of different types of discounts using hasStoreId?: int etc, maybe wildcards could be useful
         #TODO: check if user has necessary permissions to add a discount
         #if self.roles_facade.check_permissions(userId, "add_discount"):
         if self.store_facade.addDiscount(description, startDate, endingDate, percentage):
             logger.info(f"User {userId} has added a discount")
         else:
             logger.info(f"User {userId} has failed to add a discount")
-        
 
     def changeDiscount(self, user_id: int, discount_id: int):
         #TODO: not implemented yet, but supported partially in purchaseFacade, see changeDiscountPercentage for example
@@ -299,8 +289,7 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to remove a discount")
 
-
-#-------------Rating related methods-------------------#
+    #-------------Rating related methods-------------------#
     def addStoreRating(self, user_id: int, purchase_id: int, description: str, rating: float):
         '''
         * Parameters: user_id, purchase_id, description, rating
@@ -315,9 +304,7 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to rate store {storeId}")
 
-    
-
-    def addProductRating(self, user_id: int, purchase_id:int, description: str, productSpec_id: int, rating: float):
+    def addProductRating(self, user_id: int, purchase_id: int, description: str, productSpec_id: int, rating: float):
         '''
         * Parameters: user_id, purchase_id, description, productSpec_id, rating
         * This function adds a rating to a product
@@ -331,9 +318,9 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to rate product {productSpec_id}")
 
-
-#-------------Policies related methods-------------------#
-    def addPurchasePolicy(self, userId: int, store_id: int): #for now, we dont support the creation of different types of policies
+    #-------------Policies related methods-------------------#
+    def addPurchasePolicy(self, userId: int,
+                          store_id: int):  #for now, we dont support the creation of different types of policies
         '''
         * Parameters: userId, store_id
         * This function adds a purchase policy to the store
@@ -355,12 +342,12 @@ class MarketFacade:
         else:
             raise ValueError("User does not have the necessary permissions to remove a policy from the store")
 
-    def changePurchasePolicy(self, user_id: int, store_id: int, policy_id: int): #not implemented yet
+    def changePurchasePolicy(self, user_id: int, store_id: int, policy_id: int):  #not implemented yet
         pass
 
-
-#-------------Products related methods-------------------#
-    def addProduct(self,user_id:int, store_id: int, productSpecId: int, expirationDate: datetime, condition: int, price: float):
+    #-------------Products related methods-------------------#
+    def addProduct(self, user_id: int, store_id: int, productSpecId: int, expirationDate: datetime, condition: int,
+                   price: float):
         '''
         * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
         * This function adds a product to the store
@@ -373,7 +360,7 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to add a product to store {store_id}")
 
-    def removeProduct(self, user_id:int, store_id: int, product_id: int):
+    def removeProduct(self, user_id: int, store_id: int, product_id: int):
         '''
         * Parameters: store_id, product_id
         * This function removes a product from the store
@@ -386,7 +373,6 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to remove a product from store {store_id}")
 
-
     def changeProductPrice(self, user_id: int, store_id: int, product_id: int, newPrice: float):
         '''
         * Parameters: userId, store_id, product_id, newPrice
@@ -394,14 +380,14 @@ class MarketFacade:
         * Returns None
         '''
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
-            raise ValueError("User does not have the necessary permissions to change the price of a product in the store")
+            raise ValueError(
+                "User does not have the necessary permissions to change the price of a product in the store")
         if self.store_facade.changePriceOfProduct(store_id, product_id, newPrice):
             logger.info(f"User {user_id} has changed the price of product {product_id} in store {store_id}")
         else:
             logger.info(f"User {user_id} has failed to change the price of product {product_id} in store {store_id}")
 
-
-#-------------Store related methods-------------------#
+    #-------------Store related methods-------------------#
     def addStore(self, founder_id: int, locationId: int, storeName: str):
         '''
         * Parameters: founderId, locationId, storeName
@@ -411,7 +397,6 @@ class MarketFacade:
         if not self.user_facade.is_member(founder_id):
             raise ValueError("User is not a member")
         store = self.store_facade.addStore(locationId, storeName, founder_id)
-
 
     def closeStore(self, userId: int, store_id: int):
         '''
@@ -427,7 +412,8 @@ class MarketFacade:
         else:
             logger.info(f"User {userId} has failed to close store {store_id}")
 
-    def addProductSpec(self, userId: int, name: str, weightInKilos: float, description: str, tags: List[str], manufacturer: str):
+    def addProductSpec(self, userId: int, name: str, weightInKilos: float, description: str, tags: List[str],
+                       manufacturer: str):
         '''
         * Parameters: userId, name, weightInKilos, tags, manufacturer
         * This function adds a product specification to the system
@@ -440,8 +426,7 @@ class MarketFacade:
         else:
             logger.info(f"User {userId} has failed to add a product specification")
 
-
-#-------------Tags related methods-------------------#
+    #-------------Tags related methods-------------------#
     def addTagToProductSpec(self, userId: int, productSpecId: int, tag: str):
         '''
         * Parameters: userId, productSpecId, tag
@@ -454,7 +439,6 @@ class MarketFacade:
             logger.info(f"User {userId} has added a tag to product specification {productSpecId}")
         else:
             logger.info(f"User {userId} has failed to add a tag to product specification {productSpecId}")
-
 
     def removeTagFromProductSpec(self, userId: int, productSpecId: int, tag: str):
         '''
@@ -469,11 +453,7 @@ class MarketFacade:
         else:
             logger.info(f"User {userId} has failed to remove a tag from product specification {productSpecId}")
 
-
-
-
-
-#-------------ProductSpec related methods-------------------#
+    #-------------ProductSpec related methods-------------------#
     def changeProductSpecName(self, userId: int, productSpecId: int, newName: str):
         '''
         * Parameters: userId, productSpecId, newName
@@ -486,7 +466,6 @@ class MarketFacade:
             logger.info(f"User {userId} has changed the name of product specification {productSpecId}")
         else:
             logger.info(f"User {userId} has failed to change the name of product specification {productSpecId}")
-
 
     def changeProductSpecManufacturer(self, userId: int, productSpecId: int, manufacturer: str):
         '''
@@ -501,7 +480,6 @@ class MarketFacade:
         else:
             logger.info(f"User {userId} has failed to change the manufacturer of product specification {productSpecId}")
 
-
     def changeProductSpecDescription(self, userId: int, productSpecId: int, description: str):
         '''
         * Parameters: userId, productSpecId, description
@@ -514,7 +492,6 @@ class MarketFacade:
             logger.info(f"User {userId} has changed the description of product specification {productSpecId}")
         else:
             logger.info(f"User {userId} has failed to change the description of product specification {productSpecId}")
-
 
     def changeProductSpecWeight(self, userId: int, productSpecId: int, weightInKilos: float):
         '''
@@ -529,10 +506,7 @@ class MarketFacade:
         else:
             logger.info(f"User {userId} has failed to change the weight of product specification {productSpecId}")
 
-
-
-
-#-------------Category related methods-------------------#
+    #-------------Category related methods-------------------#
     def addCategory(self, userId: int, categoryName: str):
         '''
         * Parameters: userId, categoryName
@@ -546,7 +520,6 @@ class MarketFacade:
         else:
             logger.info(f"User {userId} has failed to add a category")
 
-
     def removeCategory(self, userId: int, categoryId: int):
         '''
         * Parameters: userId, categoryId
@@ -559,8 +532,6 @@ class MarketFacade:
             logger.info(f"User {userId} has removed a category")
         else:
             logger.info(f"User {userId} has failed to remove a category")
-        
-
 
     def addSubCategoryToCategory(self, userId: int, subCategoryId: int, parentCategoryId: int):
         '''
@@ -575,7 +546,6 @@ class MarketFacade:
             logger.info(f"User {userId} has added a sub category to category {parentCategoryId}")
         else:
             logger.info(f"User {userId} has failed to add a sub category to category {parentCategoryId}")
-    
 
     def removeSubCategoryFromCategory(self, userId: int, categoryId: int, subCategoryId: int):
         '''
@@ -590,8 +560,6 @@ class MarketFacade:
         else:
             logger.info(f"User {userId} has failed to remove a sub category from category {categoryId}")
 
-
-
     def assignProductSpecToCategory(self, userId: int, categoryId: int, productSpecId: int):
         '''
         * Parameters: userId, categoryId, productSpecId
@@ -605,7 +573,6 @@ class MarketFacade:
             logger.info(f"User {userId} has assigned a product specification to category {categoryId}")
         else:
             logger.info(f"User {userId} has failed to assign a product specification to category {categoryId}")
-    
 
     def removeProductSpecFromCategory(self, userId: int, categoryId: int, productSpecId: int):
         '''
@@ -620,13 +587,11 @@ class MarketFacade:
         else:
             logger.info(f"User {userId} has failed to remove a product specification from category {categoryId}")
 
+    #-------------PurchaseFacade methods:-------------------#
 
-#-------------PurchaseFacade methods:-------------------#
+    #-------------Purchase management related methods-------------------#
 
-#-------------Purchase management related methods-------------------#
-   
-    
-    def createBidPurchase(self, userId: int, proposedPrice : float, productId: int, storeId: int):
+    def createBidPurchase(self, userId: int, proposedPrice: float, productId: int, storeId: int):
         '''
         * Parameters: userId, proposedPrice, productId, storeId
         * This function creates a bid purchase
@@ -639,14 +604,13 @@ class MarketFacade:
 
         if self.purchase_facade.createBidPurchase(userId, proposedPrice, productId, productSpecId, storeId):
             logger.info(f"User {userId} has created a bid purchase")
-            Notifier.notify_new_bid(storeId, userId) #Notify each listener of the store about the bid
+            Notifier.notify_new_bid(storeId, userId)  #Notify each listener of the store about the bid
             #TODO: await for their reaction and handle them
         else:
             logger.info(f"User {userId} has failed to create a bid purchase")
-        
 
-
-    def createAuctionPurchase(self, userId: int, basePrice: float, startingDate: datetime, endingDate: datetime,  storeId: int, productId: int,):
+    def createAuctionPurchase(self, userId: int, basePrice: float, startingDate: datetime, endingDate: datetime,
+                              storeId: int, productId: int, ):
         '''
         * Parameters: userId, basePrice, startingDate, endingDate, productId, storeId
         * This function creates an auction purchase
@@ -656,13 +620,12 @@ class MarketFacade:
             raise ValueError("User is not a member or is not logged in")
         product = self.store_facade.getStoreById(storeId).getProductById(productId)
         productSpecId = product.get_specificationId()
-        if self.purchase_facade.createAuctionPurchase(basePrice, startingDate, endingDate, storeId, productId, productSpecId):
+        if self.purchase_facade.createAuctionPurchase(basePrice, startingDate, endingDate, storeId, productId,
+                                                      productSpecId):
             logger.info(f"User {userId} has created an auction purchase")
-            
-        
 
-
-    def createLotteryPurchase(self, userId: int, fullPrice: float, storeId: int, productId: int, startingDate: datetime, endingDate: datetime):
+    def createLotteryPurchase(self, userId: int, fullPrice: float, storeId: int, productId: int, startingDate: datetime,
+                              endingDate: datetime):
         '''
         * Parameters: userId, fullPrice, storeId, productId, startingDate, endingDate
         * This function creates a lottery purchase
@@ -672,14 +635,11 @@ class MarketFacade:
             raise ValueError("User is not a member or is not logged in")
         product = self.store_facade.getStoreById(storeId).getProductById(productId)
         productSpecId = product.get_specificationId()
-        if self.purchase_facade.createLotteryPurchase(userId, fullPrice, storeId, productId, productSpecId, startingDate, endingDate):
+        if self.purchase_facade.createLotteryPurchase(userId, fullPrice, storeId, productId, productSpecId,
+                                                      startingDate, endingDate):
             logger.info(f"User {userId} has created a lottery purchase")
         else:
             logger.info(f"User {userId} has failed to create a lottery purchase")
-
-
-
-
 
     def viewPurchasesOfUser(self, user_id: int) -> str:
         '''
@@ -689,14 +649,11 @@ class MarketFacade:
         '''
         if not self.auth_facade.is_logged_in(user_id):
             raise ValueError("User is not logged in")
-        purchases= self.purchase_facade.getPurchasesOfUser(user_id)
-        strOutput= ""
+        purchases = self.purchase_facade.getPurchasesOfUser(user_id)
+        strOutput = ""
         for purchase in purchases:
-            strOutput+= purchase.__str__()
+            strOutput += purchase.__str__()
         return strOutput
-            
-        
-
 
     def viewPurchasesOfStore(self, userId: int, store_id: int) -> str:
         '''
@@ -706,14 +663,11 @@ class MarketFacade:
         '''
         if not self.user_facade.is_member(userId) or not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not a member or is not logged in")
-        purchases= self.purchase_facade.getPurchasesOfStore(store_id)
-        strOutput= ""
+        purchases = self.purchase_facade.getPurchasesOfStore(store_id)
+        strOutput = ""
         for purchase in purchases:
-            strOutput+= purchase.__str__()
+            strOutput += purchase.__str__()
         return strOutput
-        
-        
-
 
     def viewOnGoingPurchases(self, userId: int) -> str:
         '''
@@ -723,12 +677,11 @@ class MarketFacade:
         '''
         if not self.user_facade.is_member(userId) or not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not a member or is not logged in")
-        purchases= self.purchase_facade.getOnGoingPurchases()
-        strOutput= ""
+        purchases = self.purchase_facade.getOnGoingPurchases()
+        strOutput = ""
         for purchase in purchases:
-            strOutput+= purchase.__str__()
+            strOutput += purchase.__str__()
         return strOutput
-
 
     def viewCompletedPurchases(self, userId: int) -> str:
         '''
@@ -738,12 +691,11 @@ class MarketFacade:
         '''
         if not self.user_facade.is_member(userId) or not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not a member or is not logged in")
-        purchases= self.purchase_facade.getCompletedPurchases()
-        strOutput= ""
+        purchases = self.purchase_facade.getCompletedPurchases()
+        strOutput = ""
         for purchase in purchases:
-            strOutput+= purchase.__str__()
+            strOutput += purchase.__str__()
         return strOutput
-
 
     def viewFailedPurchases(self, userId: int) -> str:
         '''
@@ -753,12 +705,11 @@ class MarketFacade:
         '''
         if not self.user_facade.is_member(userId) or not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not a member or is not logged in")
-        purchases= self.purchase_facade.getFailedPurchases()
-        strOutput= ""
+        purchases = self.purchase_facade.getFailedPurchases()
+        strOutput = ""
         for purchase in purchases:
-            strOutput+= purchase.__str__()
+            strOutput += purchase.__str__()
         return strOutput
-
 
     def viewAcceptedPurchases(self, userId: int) -> str:
         '''
@@ -768,14 +719,11 @@ class MarketFacade:
         '''
         if not self.user_facade.is_member(userId) or not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not a member or is not logged in")
-        purchases= self.purchase_facade.getAcceptedPurchases()
-        strOutput= ""
+        purchases = self.purchase_facade.getAcceptedPurchases()
+        strOutput = ""
         for purchase in purchases:
-            strOutput+= purchase.__str__()
+            strOutput += purchase.__str__()
         return strOutput
-        
-        
-        
 
     def handleAcceptedPurchases(self):
         '''
@@ -787,23 +735,18 @@ class MarketFacade:
         for purchase in acceptedPurchases:
             if self.purchase_facade.checkIfCompletedPurchase(purchase.get_purchaseId()):
                 logger.info(f"Purchase {purchase.get_purchaseId()} has been completed")
-            
-        
 
     #-------------Bid Purchase related methods-------------------#
     def storeAcceptOffer(self, purchase_id: int):
-        pass #cant be implemented yet without notifications
-
+        pass  #cant be implemented yet without notifications
 
     def storeRejectOffer(self, purchase_id: int):
-        pass #cant be implemented yet without notifications
-
+        pass  #cant be implemented yet without notifications
 
     def storeCounterOffer(self, new_price: float, purchase_id: int):
-        pass #cant be implemented yet without notifications
+        pass  #cant be implemented yet without notifications
 
-
-    def userAcceptOffer(self, userId: int, purchase_id: int, store_id: int): #TODO
+    def userAcceptOffer(self, userId: int, purchase_id: int, store_id: int):  #TODO
         '''
         * Parameters: userId, purchase_id
         * This function accepts an offer
@@ -811,13 +754,13 @@ class MarketFacade:
         '''
         if not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not logged in")
-        self.purchase_facade.userAcceptOffer(purchase_id,userId)
-        
+        self.purchase_facade.userAcceptOffer(purchase_id, userId)
+
         # notify the store owners and all relevant parties
         store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
-        Notifier.notify_general_listeners(store_id, ) #Notify each listener of the store about the bid
-        
-    def userRejectOffer(self, userId: int , purchase_id: int):
+        Notifier.notify_general_listeners(store_id, )  #Notify each listener of the store about the bid
+
+    def userRejectOffer(self, userId: int, purchase_id: int):
         '''
         * Parameters: userId, purchase_id
         * This function rejects an offer
@@ -825,16 +768,15 @@ class MarketFacade:
         '''
         if not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not logged in")
-        self.purchase_facade.userRejectOffer(purchase_id,userId)
-        
+        self.purchase_facade.userRejectOffer(purchase_id, userId)
+
         #notify the store owners and all relevant parties
         msg = "User " + userId + " has rejected the offer in purchase " + purchase_id
         store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
-        Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
-        
+        Notifier.notify_general_listeners(store_id, msg)  #Notify each listener of the store about the bid
 
     def userCounterOffer(self, userId: int, counterOffer: float, purchase_id: int):
-        
+
         '''
         * Parameters: userId, counterOffer, purchase_id
         * This function makes a counter offer
@@ -843,12 +785,11 @@ class MarketFacade:
         if not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not logged in")
         self.purchase_facade.userCounterOffer(counterOffer, purchase_id, userId)
-        
+
         #notify the store owners and all relevant parties
         store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
         msg = "User " + userId + " has made a counter offer in purchase " + purchase_id
-        Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
-
+        Notifier.notify_general_listeners(store_id, msg)  #Notify each listener of the store about the bid
 
     #-------------Auction Purchase related methods-------------------#
     def addAuctionBid(self, purchase_id: int, user_id: int, price: float):
@@ -861,19 +802,15 @@ class MarketFacade:
             raise ValueError("User is not logged in")
         if self.purchase_facade.addAuctionBid(purchase_id, user_id, price):
             logger.info(f"User {user_id} has added a bid to purchase {purchase_id}")
-            
+
             # notify the store owners and all relevant parties
             msg = "User " + user_id + " has added a bid to purchase " + purchase_id
             store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
-            Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
+            Notifier.notify_general_listeners(store_id, msg)  #Notify each listener of the store about the bid
         else:
             logger.info(f"User {user_id} has failed to add a bid to purchase {purchase_id}")
-            
-        
 
-        
-    
-    def viewHighestBid(self, purchase_id: int, userId: int)-> float:
+    def viewHighestBid(self, purchase_id: int, userId: int) -> float:
         '''
         * Parameters: purchase_id, userId
         * This function returns the highest bid of an auction purchase
@@ -881,17 +818,15 @@ class MarketFacade:
         '''
         if not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not logged in")
-        
+
         #notify the store owners and all relevant parties
         store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
         msg = "User " + userId + " has viewed the highest bid in purchase " + purchase_id
-        Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
+        Notifier.notify_general_listeners(store_id, msg)  #Notify each listener of the store about the bid
 
         return self.purchase_facade.viewHighestBiddingOffer(purchase_id)
 
-
-
-    def calculateRemainingTimeOfAuction(self, purchase_id: int, userId: int)-> datetime:
+    def calculateRemainingTimeOfAuction(self, purchase_id: int, userId: int) -> datetime:
         '''
         * Parameters: purchase_id, userId
         * This function calculates the remaining time of an auction purchase
@@ -899,16 +834,15 @@ class MarketFacade:
         '''
         if not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not logged in")
-        
+
         #TODO: notify the store owners and all relevant parties
         # NOTE: I did it, but why?
         store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
         msg = "User " + userId + " has calculated the remaining time of auction " + purchase_id
-        Notifier.notify_general_listeners(store_id, msg) # Notify each listener of the store about the bid
+        Notifier.notify_general_listeners(store_id, msg)  # Notify each listener of the store about the bid
 
         return self.purchase_facade.calculateRemainingTimeOfAuction(purchase_id)
 
-    
     def handleOngoingAuctions(self):
         '''
         * Parameters: None
@@ -918,9 +852,8 @@ class MarketFacade:
         ongoingPurchases = self.purchase_facade.getOngoingPurchases()
         for purchase in ongoingPurchases:
             # NOTE: what does "2" mean?, maybe we should use magic numbers
-            if purchase.getPurchaseType(purchase.get_purchaseId()) == 2: 
+            if purchase.getPurchaseType(purchase.get_purchaseId()) == 2:
                 if self.purchase_facade.checkIfAuctionEnded(purchase.get_purchaseId()):
-                    
                     #TODO: notify the store owners and all relevant parties
 
                     #TODO: notify the user who won the auction
@@ -928,18 +861,13 @@ class MarketFacade:
 
                     #TODO: third party services
                     #if thirdparty services work, then:
-                        #TODO: call validatePurchaseOfUser(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
+                    #TODO: call validatePurchaseOfUser(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
                     #else:
-                        #TODO: call invalidatePurchase(purchase.get_purchaseId(), purchase.get_userId()
+                    #TODO: call invalidatePurchase(purchase.get_purchaseId(), purchase.get_userId()
                     logger.info(f"Auction {purchase.get_purchaseId()} has been completed")
-                    
-                
-                
-    
-        
 
     #-------------Lottery Purchase related methods-------------------#
-    def addLotteryOffer(self, user_id: int, proposedPrice: float, purchase_id: int) :
+    def addLotteryOffer(self, user_id: int, proposedPrice: float, purchase_id: int):
         '''
         * Parameters: user_id, proposedPrice, purchase_id
         * This function adds a lottery ticket to a lottery purchase
@@ -950,17 +878,16 @@ class MarketFacade:
             raise ValueError("User is not logged in or is not a member")
         if self.purchase_facade.addLotteryTicket(user_id, proposedPrice, purchase_id):
             logger.info(f"User {user_id} has added a lottery ticket to purchase {purchase_id}")
-            
+
             #notify the store owners and all relevant parties
             store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
             msg = "User " + user_id + " has added a lottery ticket to purchase " + purchase_id
-            Notifier.notify_general_listeners(store_id, msg) # Notify each listener of the store about the bid
+            Notifier.notify_general_listeners(store_id, msg)  # Notify each listener of the store about the bid
 
         else:
             logger.info(f"User {user_id} has failed to add a lottery ticket to purchase {purchase_id}")
 
-
-    def calculateRemainingTimeOfLottery(self, purchase_id: int, userId: int)-> datetime:
+    def calculateRemainingTimeOfLottery(self, purchase_id: int, userId: int) -> datetime:
         '''
         * Parameters: purchase_id, userId
         * This function calculates the remaining time of a lottery purchase
@@ -968,27 +895,26 @@ class MarketFacade:
         '''
         if not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not logged in")
-        
+
         remainingTime = self.purchase_facade.calculateRemainingTimeOfLottery(purchase_id)
 
         #notify the store owners and all relevant parties
         msg = "The remaining time of lottery " + purchase_id + " is " + remainingTime + "of user " + userId
         store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
-        Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
+        Notifier.notify_general_listeners(store_id, msg)  #Notify each listener of the store about the bid
 
         return remainingTime
 
-
-    def calculateProbabilityOfUser(self, purchase_id: int, user_id: int)-> float:
+    def calculateProbabilityOfUser(self, purchase_id: int, user_id: int) -> float:
         '''
         * Parameters: purchase_id, user_id
         * This function calculates the probability of a user in a lottery purchase
         * Returns a float
         '''
         if not self.auth_facade.is_logged_in(user_id):
-            raise ValueError("User is not logged in")  
-        
-        #NOTE: I did it, but do we really need to notify the store owners and all relevant parties?
+            raise ValueError("User is not logged in")
+
+            #NOTE: I did it, but do we really need to notify the store owners and all relevant parties?
         #notify the store owners and all relevant parties
 
         probability = self.purchase_facade.calculateProbabilityOfUser(purchase_id, user_id)
@@ -996,12 +922,9 @@ class MarketFacade:
 
         msg = "The probability of user " + user_id + " in lottery " + purchase_id + " is " + probability
         Notifier.notify_general_listeners(store_id, msg)
-        Notifier.notify_general_message(user_id, msg) 
+        Notifier.notify_general_message(user_id, msg)
 
         return probability
-        
-    
-
 
     def handleOngoingLotteries(self):
         '''
@@ -1021,12 +944,10 @@ class MarketFacade:
 
                         #TODO: third party services
                         #if thirdparty services work, then:
-                            #TODO: call validateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
+                        #TODO: call validateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
                         #else:
-                            #TODO: call invali  dateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId()
-                            # logger.info(f"Lottery {purchase.get_purchaseId()} has been won!")
+                        #TODO: call invali  dateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId()
+                        # logger.info(f"Lottery {purchase.get_purchaseId()} has been won!")
                     else:
                         #TODO: refund users who participated in the lottery
                         logger.info(f"Lottery {purchase.get_purchaseId()} has failed! Refunded all participants")
-                    
-                
