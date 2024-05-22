@@ -39,6 +39,12 @@ class PaymentHandler:
             self._initialized: bool = True
             self.payment_config: Dict = {"bogo": {}}
 
+    def reset(self) -> None:
+        """
+            * reset is a method that resets the PaymentHandler's payment_config attribute.
+        """
+        self.payment_config = {"bogo": {}}
+
     def _resolve_payment_strategy(self, payment_details: Dict) -> PaymentStrategy:
         """
             * _resolve_payment_strategy is a method that resolves a payment strategy based on the payment method.
@@ -124,6 +130,12 @@ class SupplyHandler:
         if not hasattr(self, '_initialized'):
             self._initialized: bool = True
             self.supply_config: Dict = {"bogo": {}}
+
+    def reset(self) -> None:
+        """
+            * reset is a method that resets the SupplyHandler's supply_config attribute.
+        """
+        self.supply_config = {"bogo": {}}
 
     def _resolve_supply_strategy(self, package_details: Dict) -> SupplyStrategy:
         """
