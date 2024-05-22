@@ -46,6 +46,45 @@ class Notifier:
             for ownerID in self._listeners[store_id]:
                 self._notify(ownerID, msg)
 
+
+    # Notify on a new bid  --- for store owner    
+    def notify_new_bid(self, store_id: int, user_id: int) -> None:
+        """
+        * Parameters: store_id: int, user_id(Who created a bid purchase): int 
+        * This function notifies the store owner(s) of a new purchase in the store.
+        """
+        if store_id not in self._listeners:
+            raise ValueError("No listeners for the store with ID:", store_id)
+
+        else:
+            msg = "User" + user_id + "has created a bid purchase"
+            for ownerID in self._listeners[store_id]:
+                self._notify(ownerID, msg)
+
+    def notify_new_bid(self, store_id: int, user_id: int) -> None:
+        """
+        * Parameters: store_id: int, user_id(Who created a bid purchase): int 
+        * This function notifies the store owner(s) of a new purchase in the store.
+        """
+        if store_id not in self._listeners:
+            raise ValueError("No listeners for the store with ID:", store_id)
+        else:
+            msg = "User" + user_id + "has created a bid purchase"
+            for ownerID in self._listeners[store_id]:
+                self._notify(ownerID, msg)
+
+    def notify_general_listeners(self, store_id: int, message: str) -> None:
+        """
+        * Parameters: store_id: int, message: str
+        * This function notifies all the store listeners on a general message.
+        """
+        if store_id not in self._listeners:
+            raise ValueError("No listeners for the store with ID:", store_id)
+        else:
+            for ownerID in self._listeners[store_id]:
+                self._notify(ownerID, message)   
+                             
+
     # Notify on a store update (closed or opened) --- for store owner
     def notify_update_store_status(self, store_id: int, additional_details, is_closed: bool) -> None:
         """
@@ -85,6 +124,8 @@ class Notifier:
         * This function notifies a user on a new message.
         """
         self._notify(user_id, message)
+    
+    # Notify and wait for 
 
     def sign_listener(self, user_id: int, store_id: int) -> None:
         """

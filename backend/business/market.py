@@ -32,7 +32,6 @@ class AddressDTO:
             'postal_code': self.postal_code
         }
 
-
 class MarketFacade:
     # singleton
     __instance = None
@@ -116,8 +115,7 @@ class MarketFacade:
 
                 
                 
-                
-                
+                 
             # charge the user:
             
             amount = self.store_facade.calculate_total_price(cart)
@@ -156,8 +154,6 @@ class MarketFacade:
             raise ValueError("Supply failed")
         for store_id in cart.keys():
             Notifier().notify_new_purchase(store_id, user_id)
-            
-            
             
             
             
@@ -642,9 +638,11 @@ class MarketFacade:
             raise ValueError("User is not a member or is not logged in")
         product = self.store_facade.getStoreById(storeId).getProductById(productId)
         productSpecId = product.get_specificationId()
+
         if self.purchase_facade.createBidPurchase(userId, proposedPrice, productId, productSpecId, storeId):
             logger.info(f"User {userId} has created a bid purchase")
-            #TODO: notify the store owners and all relevant parties, await for their reaction
+            Notifier.notify_new_bid(storeId, userId) #Notify each listener of the store about the bid
+            #TODO: await for their reaction and handle them
         else:
             logger.info(f"User {userId} has failed to create a bid purchase")
         
@@ -780,8 +778,7 @@ class MarketFacade:
         
         
         
-    
-    
+
     def handleAcceptedPurchases(self):
         '''
         * Parameters: None
@@ -793,10 +790,7 @@ class MarketFacade:
             if self.purchase_facade.checkIfCompletedPurchase(purchase.get_purchaseId()):
                 logger.info(f"Purchase {purchase.get_purchaseId()} has been completed")
             
-          
         
-
-    
 
     #-------------Bid Purchase related methods-------------------#
     def storeAcceptOffer(self, purchase_id: int):
@@ -811,7 +805,7 @@ class MarketFacade:
         pass #cant be implemented yet without notifications
 
 
-    def userAcceptOffer(self, userId: int, purchase_id: int):
+    def userAcceptOffer(self, userId: int, purchase_id: int, store_id: int): #TODO
         '''
         * Parameters: userId, purchase_id
         * This function accepts an offer
@@ -821,10 +815,10 @@ class MarketFacade:
             raise ValueError("User is not logged in")
         self.purchase_facade.userAcceptOffer(purchase_id,userId)
         
-        #TODO: notify the store owners and all relevant parties
+        # notify the store owners and all relevant parties
+        store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
+        Notifier.notify_general_listeners(store_id, ) #Notify each listener of the store about the bid
         
-
-
     def userRejectOffer(self, userId: int , purchase_id: int):
         '''
         * Parameters: userId, purchase_id
@@ -835,9 +829,11 @@ class MarketFacade:
             raise ValueError("User is not logged in")
         self.purchase_facade.userRejectOffer(purchase_id,userId)
         
-        #TODO: notify the store owners and all relevant parties
+        #notify the store owners and all relevant parties
+        msg = "User " + userId + " has rejected the offer in purchase " + purchase_id
+        store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
+        Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
         
-
 
     def userCounterOffer(self, userId: int, counterOffer: float, purchase_id: int):
         
@@ -850,7 +846,10 @@ class MarketFacade:
             raise ValueError("User is not logged in")
         self.purchase_facade.userCounterOffer(counterOffer, purchase_id, userId)
         
-        #TODO: notify the store owners and all relevant parties
+        #notify the store owners and all relevant parties
+        store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
+        msg = "User " + userId + " has made a counter offer in purchase " + purchase_id
+        Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
 
 
     #-------------Auction Purchase related methods-------------------#
@@ -860,12 +859,15 @@ class MarketFacade:
         * This function adds a bid to an auction purchase
         * Returns None
         '''
-        if not self.auth_facade.is_logged_in(userId):
+        if not self.auth_facade.is_logged_in(user_id):
             raise ValueError("User is not logged in")
         if self.purchase_facade.addAuctionBid(purchase_id, user_id, price):
             logger.info(f"User {user_id} has added a bid to purchase {purchase_id}")
             
-            #TODO: notify the store owners and all relevant parties
+            # notify the store owners and all relevant parties
+            msg = "User " + user_id + " has added a bid to purchase " + purchase_id
+            store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
+            Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
         else:
             logger.info(f"User {user_id} has failed to add a bid to purchase {purchase_id}")
             
@@ -882,13 +884,16 @@ class MarketFacade:
         if not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not logged in")
         
-        #TODO: notify the store owners and all relevant parties
+        #notify the store owners and all relevant parties
+        store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
+        msg = "User " + userId + " has viewed the highest bid in purchase " + purchase_id
+        Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
 
         return self.purchase_facade.viewHighestBiddingOffer(purchase_id)
 
 
 
-    def calculateRemainingTimeOfAuction(self, purchase_id: int, useId: int)-> datetime:
+    def calculateRemainingTimeOfAuction(self, purchase_id: int, userId: int)-> datetime:
         '''
         * Parameters: purchase_id, userId
         * This function calculates the remaining time of an auction purchase
@@ -898,6 +903,10 @@ class MarketFacade:
             raise ValueError("User is not logged in")
         
         #TODO: notify the store owners and all relevant parties
+        # NOTE: I did it, but why?
+        store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
+        msg = "User " + userId + " has calculated the remaining time of auction " + purchase_id
+        Notifier.notify_general_listeners(store_id, msg) # Notify each listener of the store about the bid
 
         return self.purchase_facade.calculateRemainingTimeOfAuction(purchase_id)
 
@@ -910,11 +919,15 @@ class MarketFacade:
         '''
         ongoingPurchases = self.purchase_facade.getOngoingPurchases()
         for purchase in ongoingPurchases:
-            if purchase.getPurchaseType(purchase.get_purchaseId()) == 2:
+            # NOTE: what does "2" mean?, maybe we should use magic numbers
+            if purchase.getPurchaseType(purchase.get_purchaseId()) == 2: 
                 if self.purchase_facade.checkIfAuctionEnded(purchase.get_purchaseId()):
                     
                     #TODO: notify the store owners and all relevant parties
+
                     #TODO: notify the user who won the auction
+                    #NOTE: How do we know who won the auction? 
+
                     #TODO: third party services
                     #if thirdparty services work, then:
                         #TODO: call validatePurchaseOfUser(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
@@ -939,7 +952,11 @@ class MarketFacade:
         if self.purchase_facade.addLotteryTicket(user_id, proposedPrice, purchase_id):
             logger.info(f"User {user_id} has added a lottery ticket to purchase {purchase_id}")
             
-            #TODO: notify the store owners and all relevant parties
+            #notify the store owners and all relevant parties
+            store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
+            msg = "User " + user_id + " has added a lottery ticket to purchase " + purchase_id
+            Notifier.notify_general_listeners(store_id, msg) # Notify each listener of the store about the bid
+
         else:
             logger.info(f"User {user_id} has failed to add a lottery ticket to purchase {purchase_id}")
 
@@ -953,9 +970,14 @@ class MarketFacade:
         if not self.auth_facade.is_logged_in(userId):
             raise ValueError("User is not logged in")
         
-        #TODO: notify the store owners and all relevant parties
+        remainingTime = self.purchase_facade.calculateRemainingTimeOfLottery(purchase_id)
 
-        return self.purchase_facade.calculateRemainingTimeOfLottery(purchase_id)
+        #notify the store owners and all relevant parties
+        msg = "The remaining time of lottery " + purchase_id + " is " + remainingTime + "of user " + userId
+        store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
+        Notifier.notify_general_listeners(store_id, msg) #Notify each listener of the store about the bid
+
+        return remainingTime
 
 
     def calculateProbabilityOfUser(self, purchase_id: int, user_id: int)-> float:
@@ -965,9 +987,19 @@ class MarketFacade:
         * Returns a float
         '''
         if not self.auth_facade.is_logged_in(user_id):
-            raise ValueError("User is not logged in")
-        #TODO: notify the store owners and all relevant parties
-        return self.purchase_facade.calculateProbabilityOfUser(purchase_id, user_id)
+            raise ValueError("User is not logged in")  
+        
+        #NOTE: I did it, but do we really need to notify the store owners and all relevant parties?
+        #notify the store owners and all relevant parties
+
+        probability = self.purchase_facade.calculateProbabilityOfUser(purchase_id, user_id)
+        store_id = self.purchase_facade.getPurchaseById(purchase_id).get_storeId()
+
+        msg = "The probability of user " + user_id + " in lottery " + purchase_id + " is " + probability
+        Notifier.notify_general_listeners(store_id, msg)
+        Notifier.notify_general_message(user_id, msg) 
+
+        return probability
         
     
 
@@ -984,13 +1016,16 @@ class MarketFacade:
                 if self.purchase_facade.validateUserOffers(purchase.get_purchaseId()):
                     userIdOfWinner = self.purchase_facade.pickWinner(purchase.get_purchaseId())
                     if userIdOfWinner is not None:
-                        #TODO: notify the user who won the lottery
+                        #notify the user who won the lottery
+                        msg = "You have won the lottery on purchase" + purchase.get_purchaseId()
+                        Notifier.notify_general_message(userIdOfWinner, msg)
+
                         #TODO: third party services
                         #if thirdparty services work, then:
                             #TODO: call validateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
                         #else:
-                            #TODO: call invalidateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId()
-                            logger.info(f"Lottery {purchase.get_purchaseId()} has been won!")
+                            #TODO: call invali  dateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId()
+                            # logger.info(f"Lottery {purchase.get_purchaseId()} has been won!")
                     else:
                         #TODO: refund users who participated in the lottery
                         logger.info(f"Lottery {purchase.get_purchaseId()} has failed! Refunded all participants")
