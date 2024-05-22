@@ -1409,7 +1409,7 @@ class PurchaseFacade:
                             self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
                             logger.info('[PurchaseFacade] created lottery purchase with purchase id: %s', lotteryPurchase.get_purchaseId())
                             return True
-                        else
+                        else:
                             raise ValueError("Ending date is invalid")
                     else:
                         raise ValueError("Starting date is invalid")
