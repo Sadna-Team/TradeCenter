@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
 
+
 class Permissions:
     def __init__(self):
         self.__add_product: bool = False
@@ -204,6 +205,7 @@ class RolesFacade:
         self.__systems_nominations.clear()
         self.__system_managers.clear()
         self.__system_admin = -1
+        Nomination._Nomination__nomination_id_serializer = 0
 
     def add_store(self, store_id: int, owner_id: int) -> None:
         if store_id in self.__stores_to_roles:
@@ -267,7 +269,7 @@ class RolesFacade:
         # add role to the store
         self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
         # delete all nominations of the nominee in the store
-        for n_id, nomination in self.__systems_nominations.items():
+        for n_id, nomination in self.__systems_nominations.copy().items():
             if nomination.nominee_id == nominee_id and nomination.store_id == nomination.store_id:
                 del self.__systems_nominations[n_id]
 
