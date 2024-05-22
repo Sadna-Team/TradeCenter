@@ -30,7 +30,7 @@ def add_discount():
             percentage (float): percentage of the discount
         
     """
-    logger.info('recieved request to add discount')
+    logger.info('received request to add discount')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -59,7 +59,7 @@ def remove_discount():
             
         
     """
-    logger.info('recieved request to remove discount')
+    logger.info('received request to remove discount')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -84,7 +84,7 @@ def edit_discount():
             discount_id (int): id of the discount to edit
         
     """
-    logger.info('recieved request to edit discount')
+    logger.info('received request to edit discount')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -109,7 +109,7 @@ def add_purchase_policy():
             TODO: later on the details of policy!
         
     """
-    logger.info('recieved request to add purchase policy')
+    logger.info('received request to add purchase policy')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -135,7 +135,7 @@ def remove_purchase_policy():
             policy_id (int): id of the policy to remove
             
     """
-    logger.info('recieved request to remove purchase policy')
+    logger.info('received request to remove purchase policy')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -162,7 +162,7 @@ def edit_purchase_policy():
             policy_id (int): id of the policy to edit
             
     """
-    logger.info('recieved request to edit purchase policy')
+    logger.info('received request to edit purchase policy')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -192,7 +192,7 @@ def show_store_info():
         user_id = get_jwt_identity()
         data = request.args
         store_id = data['store_id']
-        info = None # TODO :: store_facade.
+        info = market_facade.getStoreInfo(user_id ,store_id)
         logger.info('store info was sent successfully')
         return jsonify({'message': info}), 200
     except Exception as e:
@@ -210,12 +210,12 @@ def show_store_products():
         Data:
             store_id (int): id of the store
     """
-    logger.info('recieved request to send store products')
+    logger.info('received request to send store products')
     try:
         user_id = get_jwt_identity()
         data = request.args
         store_id = data['store_id']
-        products = None # TODO: store_facade.()
+        products = store_facade.getStoreProductInfo(user_id, store_id)
         logger.info('store products were sent successfully')
         return jsonify({'message': products}), 200
     except Exception as e:
@@ -238,7 +238,7 @@ def add_store():
         Returns:
             ?
     """
-    logger.info('recieved request to add store')
+    logger.info('received request to add store')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -268,7 +268,7 @@ def add_product():
             price (float): price of the product
             
     """
-    logger.info('recieved request to add product')
+    logger.info('received request to add product')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -325,7 +325,7 @@ def change_price():
             product_id (int): id of the product
             new_price (float): new price of the product
     """
-    logger.info('recieved request to change price')
+    logger.info('received request to change price')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -699,7 +699,7 @@ def add_store_owner():
             store_id (int): id of the store
             new_owner_id (int): id of the new owner
     """
-    logger.info('recieved request to add store owner')
+    logger.info('received request to add store owner')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -726,7 +726,7 @@ def add_store_manager():
             new_manager_id (int): id of the new manager
             permissions (dict[str->bool]): permissions of the new manager
     """
-    logger.info('recieved request to add store manager')
+    logger.info('received request to add store manager')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -753,7 +753,7 @@ def edit_manager_permissions():
             manager_id (int): id of the manager
             permissions (dict[str->bool]): new permissions of the manager
     """
-    logger.info('recieved request to edit manager permissions')
+    logger.info('received request to edit manager permissions')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -776,14 +776,15 @@ def closing_store():
         Close a store
 
         Data:
+            user_id (int): id of the user
             store_id (int): id of the store
     """
-    logger.info('recieved request to close store')
+    logger.info('received request to close store')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = data['store_id']
-        #TODO: store_facade.()
+        market_facade.closeStore(user_id, store_id)
         logger.info('store was closed successfully')
         return jsonify({'message': 'store was successfully closed'}), 200
     except Exception as e:
@@ -802,12 +803,12 @@ def view_employees_info():
         Data:
             store_id (int): id of the store
     """
-    logger.info('recieved request to view employees info')
+    logger.info('received request to view employees info')
     try:
         user_id = get_jwt_identity()
         data = request.args
         store_id = data['store_id']
-        info = None #TODO: store_facade.()
+        info = None #TODO: store_facade.() -> NOT STORE
         logger.info('employees info was sent successfully')
         return jsonify({'message': info}), 200
     except Exception as e:

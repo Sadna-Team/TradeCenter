@@ -300,6 +300,28 @@ class MarketFacade:
             productIdsToStore.sort(key=lambda x: x[1][1], reverse=True)
         return productIdsToStore
 
+
+    def getStoreInfo(self, userId: int, storeId: int) -> str:
+        '''
+        * Parameters: storeId
+        * This function returns the store information
+        * Returns the store information
+        '''
+        #TODO: check if user has necessary permissions to view store information
+        if self.store_facade.getStoreById(storeId) is not None:
+            return self.store_facade.getStoreById(storeId).getStoreInformation()
+        return None
+        
+    def getStoreProductInfo(self, userId: int, storeId: int) -> str:
+        '''
+        * Parameters: storeId
+        * This function returns the store product information
+        * Returns the store product information
+        '''
+        #TODO: check if user has necessary permissions to view store product information
+        return self.store_facade.getStoreProductInformation(storeId) 
+            
+        
 #-------------Discount related methods-------------------#
     def addDiscount(self, userId: int, description: str, startDate: datetime, endingDate: datetime, percentage: float): #later on we need to support the creation of different types of discounts using hasStoreId?: int etc, maybe wildcards could be useful
         #TODO: check if user has necessary permissions to add a discount
@@ -669,7 +691,7 @@ class MarketFacade:
         
 
 
-    def createAuctionPurchase(self, userId: int, basePrice: float, startingDate: datetime, endingDate: datetime,  storeId: int, productId: int,):
+    def createAuctionPurchase(self, userId: int, basePrice: float, startingDate: datetime, endingDate: datetime,  storeId: int, productId: int):
         '''
         * Parameters: userId, basePrice, startingDate, endingDate, productId, storeId
         * This function creates an auction purchase
@@ -735,6 +757,21 @@ class MarketFacade:
             strOutput+= purchase.__str__()
         return strOutput
         
+    
+    def viewPurchasesOfUserInStore(self, userId: int, store_id: int) -> str:
+        '''
+        * Parameters: userId, store_id
+        * This function returns the purchases of a user in a store
+        * Returns a string
+        '''
+        if not self.user_facade.is_member(userId) or not self.auth_facade.is_logged_in(userId):
+           raise ValueError("User is not a member or is not logged in")
+        purchases= self.purchase_facade.getPurchasesOfUser(userId)
+        strOutput= ""
+        for purchase in purchases:
+            if purchase.get_storeId() == store_id: #TODO: FOR DANEL CHANGE GETTER TO WHATEVER IT IS INSTEAD
+                strOutput+= purchase.__str__()
+        return strOutput
         
 
 
@@ -971,7 +1008,7 @@ class MarketFacade:
 
         if not self.auth_facade.is_logged_in(user_id) or not self.user_facade.is_member(user_id):
             raise ValueError("User is not logged in or is not a member")
-        if self.purchase_facade.addLotteryTicket(user_id, proposedPrice, purchase_id):
+        if self.purchase_facade.addLotteryOffer(user_id, proposedPrice, purchase_id):
             logger.info(f"User {user_id} has added a lottery ticket to purchase {purchase_id}")
             
             #notify the store owners and all relevant parties

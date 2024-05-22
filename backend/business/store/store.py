@@ -860,6 +860,25 @@ class Store:
         
     def getTotalPriceOfBasketAfterDiscount(self, basket: List[int]) -> float:
         return self.getTotalPriceIfBasketBeforeDiscount(basket) #for now we assume that there is no discount
+    
+    
+    def getStoreInformation(self) -> str:
+        ''' 
+        * Parameters: none
+        * This function returns the store information as a string
+        * Returns: the store information as a string
+        '''
+        products = ""
+        for product in self.__storeProducts:
+            products += product.get_productName() + " "
+        
+        purchasePolicy = ""
+        for policy in self.__purchasePolicies:
+            purchasePolicy += policy.get_purchasePolicyId() + " "
+        
+        return "Store name: " + self.__storeName + " Store founder id: " + str(self.__storeFounderId) + " Store rating: " + str(self.__rating) + " Store founded date: " + str(self.__foundedDate) + " Store products: " + products + " Store purchase policies: " + purchasePolicy
+    
+    
 #---------------------storeFacade class---------------------#
 class StoreFacade:
     # singleton
@@ -1634,6 +1653,23 @@ class StoreFacade:
         '''
         return self.getTotalPriceBeforeDiscount(shoppingCart) # not implemented yet VERSION 2
       
+    
+    def getStoreProductInformation(self, storeId: int) -> str:
+        '''
+        * Parameters: storeId
+        * This function returns the store information as a string
+        * Returns: the store information as a string
+        '''
+        store = self.getStoreById(storeId)
+        products = ""
+        for product in store.get_products():
+            productSpecId = product.get_productSpecId()
+            productSpec = self.getProductSpecById(productSpecId)
+            expirationDate = product.get_expirationDate().strftime('%Y-%m-%d')
+            condition = product.get_condition().name
+            products += "Product ID: " + product.get_productId() + "Product name: " + productSpec.get_productName() + " Product weight: " + str(productSpec.get_weight()) + " Product description: " + productSpec.get_description() + " Product tags: ".join(productSpec.get_tags()) + " Product manufacturer: " + productSpec.get_manufacturer() + " Product expiration date: " + expirationDate + " Product condition: " + condition + " Product price: " + str(product.get_price()) + "\n" 
+    
+        return products
 
     #--------------------methods for market facade used by users team---------------------------#
     def check_product_availability(self, store_id: int, product_id: int):
