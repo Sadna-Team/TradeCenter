@@ -4,7 +4,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jw
 
 
 #-------------logging configuration----------------
-from logging_config import setup_logging
 import logging
 
 logger = logging.getLogger('myapp')
