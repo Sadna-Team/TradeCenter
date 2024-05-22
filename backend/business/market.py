@@ -99,42 +99,61 @@ class MarketFacade:
                 for product_id in products:
                     if not self.store_facade.check_product_availability(store_id, product_id):
                         raise ValueError(f"Product {product_id} is not available in the required amount")
+                        
+            shoppingCart = List[Tuple[int, List[int]]]
+            shoppingCartWithPrices = List[Tuple[Tuple[int, float], List[int]]]
+            totalPrice = 0
+            # creating the shoppingCartObject and shoppingCartWithPrices
+            for store_id, products in cart.items():
+                basketPrice = 0
+                for product_id in products:
+                    basketPrice += self.store_facade.getStoreById(store_id).getProductById(product_id).get_price()
+                shoppingCart.append((store_id, products))
+                shoppingCartWithPrices.append(((store_id, basketPrice), products))
+                totalPrice += basketPrice
+                
+            purchase = self.purchase_facade.createImmediatePurchase(user_id, totalPrice, shoppingCartWithPrices)
+            
 
-            # TODO: create an immediate purchase
+                        
+            #calculate the policies of the purchase using storeFacade + user location constraints
+            for basket in shoppingCart:
+                if not self.store_facade.checkPoliciesOfStore(basket[0],basket[1]):
+                    self.purchase_facade.invalidatePurchaseOfUser(purchase.get_purchaseId(), user_id)
+                    raise ValueError("Purchase does not meet the store's policies")
+                
+            
 
-            # TODO: calculate the discounts of the purchase using storeFacade
+            # TODO: (next version) attempt to find a delivery method for user
+            deliveryDate = datetime.datetime.now() #dummy
+            
+        
+            if deliveryDate is None:
+                self.purchase_facade.invalidatePurchaseOfUser(purchase.get_purchaseId(), user_id)
+                raise ValueError("No delivery method found")
 
-            # TODO: calculate the policies of the purchase using storeFacade + user location constraints
-
-            # TODO: attempt to find a delivery method for user
-            delivery_date = datetime.now()  # dummy
-
-            # if not found, invalidate purchase
-            # self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
-
+                
+                
             # charge the user:
-
-            amount = self.store_facade.calculate_total_price(cart)
+            
+            amount = self.store_facade.getTotalPriceAfterDiscount(shoppingCart) #TODO: (next version) fix discounts
             if "payment method" not in payment_details:
-                # invalidate Purchase
-                # TODO: purchase_id is not defined
-                # self.purchase_facade.invalidate_purchase_of_user(purchase_id, user_id)
+                self.purchase_facade.invalidatePurchaseOfUser(purchase.get_purchaseId(), user_id)
                 raise ValueError("Payment method not specified")
 
             if not PaymentHandler().process_payment(amount, payment_details):
-                # invalidate Purchase
-                # TODO: purchase_id is not defined
-                # self.purchase_facade.invalidate_purchase_of_user(purchase_id, user_id)
+                #invalidate Purchase
+                self.purchase_facade.invalidatePurchaseOfUser(purchase.get_purchaseId(), user_id)
                 raise ValueError("Payment failed")
 
             # remove the products from the store
             for store_id, products in cart.items():
                 for product_id in products:
-                    self.store_facade.remove_product_from_store(store_id, product_id)
-
-            # if successful, validate purchase with delivery_date
-            # TODO: purchase_id is not defined
-            # self.purchase_facade.validate_purchase_of_user_auction(purchase_id, user_id, delivery_date)
+                    self.store_facade.removeProductFromStore(store_id, product_id)
+                    
+                    
+            #if successful, validate purchase with deliveryDate
+            self.purchase_facade.validatePurchaseOfUser(purchase.get_purchaseId(), user_id, deliveryDate)
 
         # clear the cart
         self.user_facade.clear_basket(user_id)
@@ -263,37 +282,75 @@ class MarketFacade:
          rating lowest to Highest, 4 is by highest to lowest
         * Returns a list of product ids of the products with the names in names
         """
-        product_specifications_of_names = self.store_facade.get_product_spec_by_name(name)
-        product_ids_to_store: List[Tuple[Tuple[int, int], Tuple[float, float]]] = []
-        # TODO: types doesnt match
-        """for store in self.store_facade.stores:
-            for product in store.store_products:
-                if product.specification_id in product_specifications_of_names:
-                    product_ids_to_store.append((product.product_id, product.specification_id, store.store_id,
-                                              store.store_name, product.price,
-                                              store.ratings_of_product_spec_id()[product.specification_id]))"""
+        productSpecificationsOfNames = self.store_facade.getProductSpecByName(name)
+        productIdsToStore = [Tuple[Tuple[int, int], Tuple[float, float]]]
+        for store in self.store_facade.stores():
+            for product in store.products():
+                if product.get_specificationId() in productSpecificationsOfNames:
+                    productIdsToStore.append((product.get_productId(), product.get_specificationId(), store.get_storeId(), store.get_storeName(), product.get_price(), store.get_ratingOfProductSpecId()[product.get_specificationId()]))
 
-        if sort_type == 1:
-            product_ids_to_store.sort(key=lambda x: x[1][0])
-        elif sort_type == 2:
-            product_ids_to_store.sort(key=lambda x: x[1][0], reverse=True)
-        elif sort_type == 3:
-            product_ids_to_store.sort(key=lambda x: x[1][1])
-        elif sort_type == 4:
-            product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
-        return product_ids_to_store
+        if sortType == 1:
+            productIdsToStore.sort(key=lambda x: x[1][0])
+        elif sortType == 2:
+            productIdsToStore.sort(key=lambda x: x[1][0], reverse=True)
+        elif sortType == 3:
+            productIdsToStore.sort(key=lambda x: x[1][1])
+        elif sortType == 4:
+            productIdsToStore.sort(key=lambda x: x[1][1], reverse=True)
+        return productIdsToStore
 
-    # -------------Discount related methods-------------------#
-    def add_discount(self, user_id: int, description: str, start_date: datetime, ending_date: datetime,
-                     percentage: float):
-        # later on we need to support the creation of different types of discounts using hasStoreId?: int etc, maybe
-        # wildcards could be useful
-        # TODO: check if user has necessary permissions to add a discount
-        # TODO: check if what i did instead is ok:
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.add_discount(description, start_date, ending_date, percentage):
-            logger.info(f"User {user_id} has added a discount")
+    def searchProductInStore(self, storeId: int, name: str, sortType: int) -> List[Tuple[int, Tuple[float,float]]]:
+        """
+        * Parameters: storeId, names, sortByLowesToHighestPrice
+        * This function returns the list of all productIds
+        * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by rating lowest to Highest, 4 is by highest to lowest
+        * Returns a list of product ids of the products with the names in names
+        """
+        productSpecificationsOfNames = self.store_facade.getProductSpecByName(name)
+        productIdsToStore = [Tuple[int, Tuple[float, float]]]
+        store = self.store_facade.getStoreById(storeId)
+        for product in store.products():
+            if product.get_specificationId() in productSpecificationsOfNames:
+                productIdsToStore.append((product.get_productId(), product.get_price(), store.get_ratingOfProductSpecId()[product.get_specificationId()]))
+
+        if sortType == 1:
+            productIdsToStore.sort(key=lambda x: x[1][0])
+        elif sortType == 2:
+            productIdsToStore.sort(key=lambda x: x[1][0], reverse=True)
+        elif sortType == 3:
+            productIdsToStore.sort(key=lambda x: x[1][1])
+        elif sortType == 4:
+            productIdsToStore.sort(key=lambda x: x[1][1], reverse=True)
+        return productIdsToStore
+
+
+    def getStoreInfo(self, userId: int, storeId: int) -> str:
+        """
+        * Parameters: storeId
+        * This function returns the store information
+        * Returns the store information
+        """
+        #TODO: check if user has necessary permissions to view store information
+        if self.store_facade.getStoreById(storeId) is not None:
+            return self.store_facade.getStoreById(storeId).getStoreInformation()
+        return None
+        
+    def getStoreProductInfo(self, userId: int, storeId: int) -> str:
+        """
+        * Parameters: storeId
+        * This function returns the store product information
+        * Returns the store product information
+        """
+        #TODO: check if user has necessary permissions to view store product information
+        return self.store_facade.getStoreProductInformation(storeId) 
+            
+        
+#-------------Discount related methods-------------------#
+    def addDiscount(self, userId: int, description: str, startDate: datetime, endingDate: datetime, percentage: float): #later on we need to support the creation of different types of discounts using hasStoreId?: int etc, maybe wildcards could be useful
+        #TODO: check if user has necessary permissions to add a discount
+        #if self.roles_facade.check_permissions(userId, "add_discount"):
+        if self.store_facade.addDiscount(description, startDate, endingDate, percentage):
+            logger.info(f"User {userId} has added a discount")
         else:
             logger.info(f"User {user_id} has failed to add a discount")
 
@@ -352,6 +409,7 @@ class MarketFacade:
             self.store_facade.add_purchase_policy_to_store(store_id)
         else:
             raise ValueError("User does not have the necessary permissions to add a policy to the store")
+
 
     def remove_purchase_policy(self, user_id, store_id: int, policy_id: int):
         """
@@ -632,6 +690,7 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to create a bid purchase")
 
+
     def create_auction_purchase(self, user_id: int, base_price: float, starting_date: datetime, ending_date: datetime,
                                 store_id: int, product_id: int):
         """
@@ -689,8 +748,24 @@ class MarketFacade:
         purchases = self.purchase_facade.get_purchases_of_store(store_id)
         str_output = ""
         for purchase in purchases:
-            str_output += purchase.__str__()
-        return str_output
+            strOutput+= purchase.__str__()
+        return strOutput
+        
+    
+    def viewPurchasesOfUserInStore(self, userId: int, store_id: int) -> str:
+        """
+        * Parameters: userId, store_id
+        * This function returns the purchases of a user in a store
+        * Returns a string
+        """
+        if not self.user_facade.is_member(userId) or not self.auth_facade.is_logged_in(userId):
+           raise ValueError("User is not a member or is not logged in")
+        purchases= self.purchase_facade.getPurchasesOfUser(userId)
+        strOutput= ""
+        for purchase in purchases:
+            if purchase.get_storeId() == store_id: #TODO: FOR DANEL CHANGE GETTER TO WHATEVER IT IS INSTEAD
+                strOutput+= purchase.__str__()
+        return strOutput
 
     def view_on_going_purchases(self, user_id: int) -> str:
         """
@@ -901,6 +976,7 @@ class MarketFacade:
 
         if not self.auth_facade.is_logged_in(user_id) or not self.user_facade.is_member(user_id):
             raise ValueError("User is not logged in or is not a member")
+
         if self.purchase_facade.add_lottery_offer(user_id, proposed_price, purchase_id):
             logger.info(f"User {user_id} has added a lottery ticket to purchase {purchase_id}")
 
