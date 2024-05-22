@@ -1,72 +1,116 @@
 # communication with business logic
+from abc import ABC, abstractmethod
+from backend.business.ThirdPartyHandlers.third_party_handlers import PaymentHandler, SupplyHandler
+from typing import Dict
 
-class ThirdPartyService():
-    def add_third_party_service(self, token, data):
+class ThirdPartyService(ABC):
+    @abstractmethod
+    def add_third_party_service(self, method_name: str, config: Dict) -> None:
         """
             Use Case 1.2.1:
             Add a third party service to be supported by the platform
 
             Args:
-                token (int): token of the user
-                data (dict): data of the third party service to be added
+                method_name (str): name of the third party service
+                config (dict): configuration of the third party service
 
             Returns:
                 ?
         """
         pass
-
-    def edit_third_party_service(self, token, service_id, data):
+    
+    @abstractmethod
+    def edit_third_party_service(self, method_name: str, editing_data: Dict) -> None:
         """
             Use Case 1.2.2:
             Edit a third party service supported by the platform
 
             Args:
-                token (int): token of the user
-                service_id (int): id of the third party service to be edited
-                data (dict): data of the third party service to be edited
+                method_name (str): name of the third party service
+                editing_data (dict): data to be edited
 
             Returns:
                 ?
         """
         pass
 
-    def delete_third_party_service(self, token, service_id):
+    @abstractmethod
+    def delete_third_party_service(self, method_name: str) -> None:
         """
             Use Case 1.2.3:
             Delete a third party service supported by the platform
 
             Args:
-                token (int): token of the user
-                service_id (int): id of the third party service to be deleted
+                method_name (str): name of the third party service
 
             Returns:
                 ?
         """
         pass
 
-class PaymentService():
-    def access_payment_service(self, token, payment_method, payment_details, price):
+class PaymentService(ThirdPartyService):
+
+    def add_third_party_service(self, method_name: str, config: Dict) -> None:
         """
-            Use Case 1.3:
-            Access a payment service to make a payment
+            Use Case 1.2.1:
+            Add a third party service to be supported by the platform
 
             Args:
-                token (?): token of the user
-                payment_method (?): payment method to be used
-                payment_details (?): payment details
-                price (float): price to be paid
+                method_name (str): name of the third party service
+                config (dict): configuration of the third party service
         """
-        pass
+        PaymentHandler().add_payment_method(method_name, config)
 
-class SupplyService():
-    def access_supply_service(self, token, package_details, user_id):
+    def edit_third_party_service(self, method_name: str, editing_data: Dict) -> None:
         """
-            Use Case 1.4:
-            Access a supply service to deliver a package
+            Use Case 1.2.2:
+            Edit a third party service supported by the platform
 
             Args:
-                token (int): token of the user
-                package_details (?): package details
-                user_id (int): id of the user to receive the package
+                method_name (str): name of the third party service
+                editing_data (dict): data to be edited
         """
-        pass
+        PaymentHandler().edit_payment_method(method_name, editing_data)
+
+    def delete_third_party_service(self, method_name: str) -> None:
+        """
+            Use Case 1.2.3:
+            Delete a third party service supported by the platform
+
+            Args:
+                method_name (str): name of the third party service
+        """
+        PaymentHandler().remove_payment_method(method_name)
+
+class SupplyService(ThirdPartyService):
+    def add_third_party_service(self, method_name: str, config: Dict) -> None:
+        """
+            Use Case 1.2.1:
+            Add a third party service to be supported by the platform
+
+            Args:
+                method_name (str): name of the third party service
+                config (dict): configuration of the third party service
+        """
+        SupplyHandler().add_supply_method(method_name, config)
+
+    def edit_third_party_service(self, method_name: str, editing_data: Dict) -> None:
+        """
+            Use Case 1.2.2:
+            Edit a third party service supported by the platform
+
+            Args:
+                method_name (str): name of the third party service
+                editing_data (dict): data to be edited
+        """
+        SupplyHandler().edit_supply_method(method_name, editing_data)
+
+    def delete_third_party_service(self, method_name: str) -> None:
+        """
+            Use Case 1.2.3:
+            Delete a third party service supported by the platform
+
+            Args:
+                method_name (str): name of the third party service
+        """
+        SupplyHandler().remove_supply_method(method_name)

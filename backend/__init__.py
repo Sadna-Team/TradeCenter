@@ -31,11 +31,13 @@ def create_app():
     from backend.services.user_services.routes import auth_bp, user_bp
     from backend.services.ecommerce_services.routes import market_bp
     from backend.services.store_services.routes import store_bp
+    from backend.services.third_party_services.routes import third_party_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(market_bp, url_prefix='/market')
     app.register_blueprint(store_bp, url_prefix='/store')
+    app.register_blueprint(third_party_bp, url_prefix='/third_party')
 
 
 

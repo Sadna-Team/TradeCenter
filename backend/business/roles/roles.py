@@ -334,3 +334,69 @@ class RolesFacade:
         """
         self.__system_managers.append(user_id)
         self.__system_admin = user_id
+
+    def __has_permission(self, store_id: int, user_id: int) -> bool:
+        if store_id not in self.__stores_to_roles:
+            return False
+        if user_id not in self.__stores_to_roles[store_id]:
+            return False
+        if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
+            return True
+        raise ValueError("User is a manager")
+
+    def has_add_product_permission(self, store_id: int, user_id: int) -> bool:
+        try:
+            return self.__has_permission(store_id, user_id)
+        except ValueError:
+            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                return self.__stores_to_roles[store_id][user_id].permissions.add_product
+            return False
+
+    def has_change_purchase_policy_permission(self, store_id: int, user_id: int) -> bool:
+        try:
+            return self.__has_permission(store_id, user_id)
+        except ValueError:
+            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                return self.__stores_to_roles[store_id][user_id].permissions.change_purchase_policy
+            return False
+
+    def has_change_purchase_types_permission(self, store_id: int, user_id: int) -> bool:
+        try:
+            return self.__has_permission(store_id, user_id)
+        except ValueError:
+            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                return self.__stores_to_roles[store_id][user_id].permissions.change_purchase_types
+            return False
+
+    def has_change_discount_policy_permission(self, store_id: int, user_id: int) -> bool:
+        try:
+            return self.__has_permission(store_id, user_id)
+        except ValueError:
+            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                return self.__stores_to_roles[store_id][user_id].permissions.change_discount_policy
+            return False
+
+    def has_change_discount_types_permission(self, store_id: int, user_id: int) -> bool:
+        try:
+            return self.__has_permission(store_id, user_id)
+        except ValueError:
+            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                return self.__stores_to_roles[store_id][user_id].permissions.change_discount_types
+            return False
+
+    def has_add_manager_permission(self, store_id: int, user_id: int) -> bool:
+        try:
+            return self.__has_permission(store_id, user_id)
+        except ValueError:
+            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                return self.__stores_to_roles[store_id][user_id].permissions.add_manager
+            return False
+
+    def has_get_bid_permission(self, store_id: int, user_id: int) -> bool:
+        try:
+            return self.__has_permission(store_id, user_id)
+        except ValueError:
+            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                return self.__stores_to_roles[store_id][user_id].permissions.get_bid
+            return False
+

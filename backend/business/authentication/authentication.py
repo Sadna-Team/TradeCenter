@@ -104,4 +104,7 @@ class Authentication:
         else:
             self.blacklist.add(jti)
             self.guests.remove(user_id)
+
+    def is_logged_in(self, user_id):
+        return user_id in self.logged_in
         
