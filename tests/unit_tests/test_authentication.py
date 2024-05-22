@@ -1,6 +1,7 @@
 import unittest
 from flask import Flask, appcontext_pushed, appcontext_popped
 from flask_jwt_extended import JWTManager, create_access_token
+from flask_bcrypt import Bcrypt
 from backend.business.authentication.authentication import Authentication
 from unittest.mock import MagicMock
 
@@ -9,7 +10,9 @@ class TestAuthentication(unittest.TestCase):
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'test_secret_key'  # Set a test secret key
         self.jwt = JWTManager(self.app)
+        self.bcrypt = Bcrypt(self.app)
         self.auth = Authentication()
+        self.auth.set_jwt(self.jwt, self.bcrypt)
         self.auth.user_facade = MagicMock()
 
         # Push application context for testing
@@ -43,7 +46,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertIsInstance(token, str)
 
     def test_login_user(self):
-        self.auth.user_facade.get_password.return_value = ('test_user_id', self.auth.hash_password('test_password'))
+        self.auth.user_facade.get_password.return_value = (3, self.auth.hash_password('test_password'))
         token = self.auth.login_user('test_user', 'test_password')
         self.auth.user_facade.get_password.assert_called_once_with('test_user')
         self.assertIsInstance(token, str)
@@ -52,7 +55,7 @@ class TestAuthentication(unittest.TestCase):
 
     def test_logout_user(self):
         jti = 'test_jti'
-        self.auth.logout_user(jti)
+        self.auth.logout_user(jti, 3)
         self.assertIn(jti, self.auth.blacklist)
 
 
