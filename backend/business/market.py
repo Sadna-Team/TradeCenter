@@ -276,6 +276,29 @@ class MarketFacade:
             productIdsToStore.sort(key=lambda x: x[1][1], reverse=True)
         return productIdsToStore
 
+    def searchProductInStore(self, storeId: int, name: str, sortType: int) -> List[Tuple[int, Tuple[float,float]]]:
+        '''
+        * Parameters: storeId, names, sortByLowesToHighestPrice
+        * This function returns the list of all productIds
+        * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by rating lowest to Highest, 4 is by highest to lowest
+        * Returns a list of product ids of the products with the names in names
+        '''
+        productSpecificationsOfNames = self.store_facade.getProductSpecByName(name)
+        productIdsToStore = [Tuple[int, Tuple[float, float]]]
+        store = self.store_facade.getStoreById(storeId)
+        for product in store.products():
+            if product.get_specificationId() in productSpecificationsOfNames:
+                productIdsToStore.append((product.get_productId(), product.get_price(), store.get_ratingOfProductSpecId()[product.get_specificationId()]))
+
+        if sortType == 1:
+            productIdsToStore.sort(key=lambda x: x[1][0])
+        elif sortType == 2:
+            productIdsToStore.sort(key=lambda x: x[1][0], reverse=True)
+        elif sortType == 3:
+            productIdsToStore.sort(key=lambda x: x[1][1])
+        elif sortType == 4:
+            productIdsToStore.sort(key=lambda x: x[1][1], reverse=True)
+        return productIdsToStore
 
 #-------------Discount related methods-------------------#
     def addDiscount(self, userId: int, description: str, startDate: datetime, endingDate: datetime, percentage: float): #later on we need to support the creation of different types of discounts using hasStoreId?: int etc, maybe wildcards could be useful
@@ -344,7 +367,7 @@ class MarketFacade:
         else:
             raise ValueError("User does not have the necessary permissions to add a policy to the store")
 
-    def removePurchasePolicy(self, user_id, store_id: int, policy_id: int):
+    def removePurchasePolicy(self, user_id: int, store_id: int, policy_id: int):
         '''
         * Parameters: store_id, policy_id
         * This function removes a purchase policy from the store

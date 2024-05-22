@@ -76,7 +76,7 @@ def change_permissions():
             manager_id (int): id of the manager
             permissions (dict[str->bool]): new permissions of the manager
     """
-    logger.info('recieved request to change permissions')
+    logger.info('received request to change permissions')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -98,7 +98,7 @@ def change_permissions():
         return jsonify({'message': str(e)}), 400
 
 
-@market_bp.route('/search_products', methods=['GET'])
+@market_bp.route('/search_products_by_category', methods=['GET'])
 @jwt_required()
 def search_products():
     """
@@ -106,19 +106,71 @@ def search_products():
         Search products in the stores
 
         Data:
-            filters (?): filters to search for products
+            categoryId (int): id of the category
+            sortType (str): type of sorting (1 being price low to high, 2 being price high to low, 3 being rating high to low, 4 being rating low to high)
     """
     logger.info('recieved request to search for products')
     try:
         user_id = get_jwt_identity()
         data = request.args
-        filters = data['filters']
-        # TODO :: market_facade.
+        categoryId = data['categoryId']
+        sortType = data['sortType']
+        market_facade.searchByCategory(categoryId, sortType)
         logger.info('search successful')
         return jsonify({'message': 'searched products'}), 200
     except Exception as e:
         logger.error('search_products - ', str(e))
         return jsonify({'message': str(e)}), 400
+    
+    
+@market_bp.route('/search_products_by_tags', methods=['GET'])
+@jwt_required()
+def search_products():
+    """
+        Use Case 2.2.2.1:
+        Search products in the stores
+
+        Data:
+            tags (list): tags to search for products
+            sortType (str): type of sorting (1 being price low to high, 2 being price high to low, 3 being rating high to low, 4 being rating low to high)
+    """
+    logger.info('recieved request to search for products')
+    try:
+        user_id = get_jwt_identity()
+        data = request.args
+        tags = data['tags']
+        sortType = data['sortType']
+        market_facade.searchByTags(tags, sortType)
+        logger.info('search successful')
+        return jsonify({'message': 'searched products'}), 200
+    except Exception as e:
+        logger.error('search_products - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+@market_bp.route('/search_products_by_name', methods=['GET'])
+@jwt_required()
+def search_products():
+    """
+        Use Case 2.2.2.1:
+        Search products in the stores
+
+        Data:
+            name (str): name of the product
+            sortType (str): type of sorting (1 being price low to high, 2 being price high to low, 3 being rating high to low, 4 being rating low to high)
+    """
+    logger.info('recieved request to search for products')
+    try:
+        user_id = get_jwt_identity()
+        data = request.args
+        name = data['name']
+        sortType = data['sortType']
+        market_facade.searchByName(name, sortType)
+        logger.info('search successful')
+        return jsonify({'message': 'searched products'}), 200
+    except Exception as e:
+        logger.error('search_products - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
 
 
 @market_bp.route('/search_store_products', methods=['GET'])
@@ -136,9 +188,10 @@ def search_store_products():
     try:
         user_id = get_jwt_identity()
         data = request.args
-        store_id = data['store_id']
-        filters = data['filters']
-        # TODO ::market_facade.
+        storeId = data['store_id']
+        name = data['name']
+        sortType = data['sortType']
+        market_facade.searchStoreProducts(storeId, name, sortType)
         logger.info('search successful')
         return jsonify({'message': 'searched products'}), 200
     except Exception as e:
@@ -185,3 +238,65 @@ def show_member_purchase_history():
     except Exception as e:
         logger.error('show_member_purchase_history - ', str(e))
         return jsonify({'message': str(e)}), 400
+    
+@market_bp.route('/add_store_rating', methods=['POST'])
+@jwt_required()
+def add_store_rating():
+    """
+        Use Case :
+        Add a rating to a store 2.2.3.4
+
+        Data:
+            user_id (int): id of the user
+            purchase_id (int): id of the purchase related to the rating
+            description (str): description of the rating
+            rating (float): rating to add
+    """
+    logger.info('recieved request to add a rating to a store')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        purchase_id = data['purchase_id']
+        description = data['description']
+        rating = data['rating']
+        market_facade.addStoreRating(user_id, purchase_id, description, rating)
+        logger.info('rating added')
+        return jsonify({'message': 'rating added'}), 200
+    except Exception as e:
+        logger.error('add_store_rating - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    
+    
+    
+@market_bp.route('/add_product_rating', methods=['POST'])
+@jwt_required()
+def add_product_rating():
+    """
+        Use Case :
+        Add a rating to a product 2.2.3.4
+
+        Data:
+            user_id (int): id of the user
+            purchase_id (int): id of the purchase related to the rating
+            description (str): description of the rating
+            product_id (int): id of the product
+            rating (float): rating to add
+    """
+    logger.info('recieved request to add a rating to a product')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        purchase_id = data['purchase_id']
+        description = data['description']
+        product_id = data['product_id']
+        rating = data['rating']
+        market_facade.addProductRating(user_id, purchase_id, description, product_id, rating)
+        logger.info('rating added')
+        return jsonify({'message': 'rating added'}), 200
+    except Exception as e:
+        logger.error('add_product_rating - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    
+
+
+
