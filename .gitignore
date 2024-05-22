@@ -1,4 +1,5 @@
 .vscode/
+.mybackendvenv/
 .backendvenv/
 .pytest_cache/
 tests/__pycache__/
