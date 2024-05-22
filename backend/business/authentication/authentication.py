@@ -1,9 +1,9 @@
-import os
-from datetime import datetime, timedelta
-from flask import current_app
+from datetime import timedelta
 from .. import UserFacade
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
-#from backend import bcrypt, jwt
+from flask_jwt_extended import create_access_token
+
+
+# from backend import bcrypt, jwt
 
 
 class Authentication:
@@ -36,7 +36,6 @@ class Authentication:
         self.jwt = jwt
         self.bcrypt = bcrypt
 
-
     def check_if_token_in_blacklist(self, jwt_header, jwt_payload):
         jti = jwt_payload['jti']
         return jti in self.blacklist
@@ -53,13 +52,13 @@ class Authentication:
         return self.bcrypt.check_password_hash(hashed_password, password)
 
     def register_user(self, user_id, user_credentials):
-        if (not 'password' in user_credentials or 
-            not 'email' in user_credentials or 
-            not 'username' in user_credentials or 
-            not 'year' in user_credentials or 
-            not 'month' in user_credentials or 
-            not 'day' in user_credentials or 
-            not 'phone' in user_credentials):
+        if ('password' not in user_credentials
+                or 'email' not in user_credentials
+                or 'username' not in user_credentials
+                or 'year' not in user_credentials
+                or 'month' not in user_credentials
+                or 'day' not in user_credentials
+                or 'phone' not in user_credentials):
             raise ValueError("Some credentials are missing")
         hashed_password = self.hash_password(user_credentials['password'])
         email = user_credentials['email']
@@ -89,7 +88,6 @@ class Authentication:
             token = self.generate_token(user_id)
             self.logged_in.add(user_id)
             return token
-            
 
     def logout_user(self, jti, user_id):
         if user_id not in self.logged_in:
@@ -107,4 +105,3 @@ class Authentication:
 
     def is_logged_in(self, user_id):
         return user_id in self.logged_in
-        

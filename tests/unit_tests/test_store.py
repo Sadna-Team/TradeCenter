@@ -3,15 +3,15 @@ from unittest.mock import patch, Mock
 
 from backend.business.store.store import *
 
-from backend.business.store.store import product
-from backend.business.store.store import productSpecification
+from backend.business.store.store import Product
+from backend.business.store.store import ProductSpecification
 from backend.business.store.store import Category
 
 
 class Test_productFunctions(unittest.TestCase):
 
     def setUp(self, mock_obj) -> None:
-        self.mock_product = Mock(spec = product)
+        self.mock_product = Mock(spec = Product)
         self.mock_product.product_id = 1
         self.mock_product.storeId = 1
         self.mock_product.specificationId = 1
@@ -76,7 +76,7 @@ class Test_productFunctions(unittest.TestCase):
 class Test_productSpecificationFunctions:
 
     def setUp(self):
-        self.mock_productSpecification = Mock(spec = productSpecification)
+        self.mock_productSpecification = Mock(spec = ProductSpecification)
         self.mock_productSpecification.specificationId = 1
         self.mock_productSpecification.productName = 'Test Product'
         self.mock_productSpecification.weight = 1.0
