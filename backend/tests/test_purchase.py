@@ -31,7 +31,7 @@ class TestImmediateSubPurchases(unittest.TestCase):
 
     def test_initialization(self):
         self.assertEqual(self.purchase.purchaseId, 1)
-        self.assertEqual(self.purchase.storeId, 5)
+        self.assertEqual(self.purchase._store_id, 5)
         self.assertEqual(self.purchase.userId, 123)
         self.assertEqual(self.purchase.dateOfPurchase, datetime(2023, 1, 1))
         self.assertEqual(self.purchase.totalPrice, 200.0)
@@ -53,7 +53,7 @@ class TestImmediateSubPurchases(unittest.TestCase):
         self.purchase.__set_userId(321)
         self.assertEqual(self.purchase.userId, 321)
         self.purchase.__set_storeId(6)
-        self.assertEqual(self.purchase.storeId, 6)
+        self.assertEqual(self.purchase._store_id, 6)
         self.purchase.__set_dateOfPurchase(datetime(2023, 12, 25))
         self.assertEqual(self.purchase.dateOfPurchase, datetime(2023, 12, 25))
         self.purchase.__set_totalPrice(150.0)
@@ -838,7 +838,7 @@ class TestPurchaseFacade(unittest.TestCase):
         rating = 4.0
         description = "Great service!"
 
-        new_rating = self.facade.rateStore(purchaseId, userId, storeId, rating, description)
+        new_rating = self.facade.rate_store(purchaseId, userId, storeId, rating, description)
         
         self.facade.getPurchaseById.assert_called_with(purchaseId)
         self.purchase_mock.get_storeId.assert_called()
@@ -949,14 +949,14 @@ class TestPurchaseFacade(unittest.TestCase):
 
         # Test when status is onGoing
         self.bid_purchase_mock.get_status.return_value = PurchaseStatus.onGoing
-        self.purchase_facade.userAcceptOffer(purchaseId, userId)
+        self.purchase_facade.user_accept_offer(purchaseId, userId)
         self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.bid_purchase_mock.get_status.assert_called()
         self.bid_purchase_mock.UseracceptOffer.assert_called_with(userId)
 
         # Test when status is not onGoing
         self.bid_purchase_mock.get_status.return_value = PurchaseStatus.completed
-        self.purchase_facade.userAcceptOffer(purchaseId, userId)
+        self.purchase_facade.user_accept_offer(purchaseId, userId)
         self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.bid_purchase_mock.get_status.assert_called()
         self.bid_purchase_mock.UseracceptOffer.assert_not_called()

@@ -328,7 +328,7 @@ class RolesFacade:
 
     def add_admin(self, user_id: int) -> None:
         """
-        this method should not be called (but the facade initializtion)
+        this method should not be called (but the facade initialization)
         Add the first system manager to the system
         :return:
         """
@@ -399,4 +399,3 @@ class RolesFacade:
             if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
                 return self.__stores_to_roles[store_id][user_id].permissions.get_bid
             return False
-

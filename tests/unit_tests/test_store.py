@@ -204,7 +204,7 @@ class TestCategory(unittest.TestCase):
         category = Category(categoryId=1, categoryName="Parent Category")
         category.set_parentCategoryId = Mock()
 
-        category.addParentCategory(parentCategoryId=2)
+        category.add_parent_category(parent_category_id=2)
 
         category.set_parentCategoryId.assert_called_once_with(2)
 
@@ -212,7 +212,7 @@ class TestCategory(unittest.TestCase):
         category = Category(categoryId=1, categoryName="Parent Category", parentCategoryId=2)
         category.set_parentCategoryId = Mock()
 
-        category.removeParentCategory()
+        category.remove_parent_category()
 
         category.set_parentCategoryId.assert_called_once_with(None)
 
@@ -220,97 +220,97 @@ class TestCategory(unittest.TestCase):
         category = Category(categoryId=1, categoryName="Parent Category")
         sub_category = Category(categoryId=2, categoryName="Sub Category")
 
-        sub_category.addParentCategory = Mock()
-        category.addSubCategory(sub_category)
+        sub_category.add_parent_category = Mock()
+        category.add_sub_category(sub_category)
 
-        sub_category.addParentCategory.assert_called_once_with(category.get_categoryId())
+        sub_category.add_parent_category.assert_called_once_with(category.get_categoryId())
         self.assertIn(sub_category, category.get_subCategories())
 
     def test_add_sub_category_fail_invalid(self):
         category = Category(categoryId=1, categoryName="Parent Category")
         sub_category = Category(categoryId=1, categoryName="Sub Category")  # Same ID as parent
 
-        sub_category.addParentCategory = Mock()
-        category.addSubCategory(sub_category)
+        sub_category.add_parent_category = Mock()
+        category.add_sub_category(sub_category)
 
-        sub_category.addParentCategory.assert_not_called()
+        sub_category.add_parent_category.assert_not_called()
         self.assertNotIn(sub_category, category.get_subCategories())
 
     def test_add_sub_category_fail_already_has_parent(self):
         category = Category(categoryId=1, categoryName="Parent Category", parentCategoryId=2)
         sub_category = Category(categoryId=2, categoryName="Sub Category")
 
-        sub_category.addParentCategory = Mock()
-        category.addSubCategory(sub_category)
+        sub_category.add_parent_category = Mock()
+        category.add_sub_category(sub_category)
 
-        sub_category.addParentCategory.assert_not_called()
+        sub_category.add_parent_category.assert_not_called()
         self.assertNotIn(sub_category, category.get_subCategories())
 
     def test_remove_sub_category_success(self):
         category = Category(categoryId=1, categoryName="Parent Category")
         sub_category = Category(categoryId=2, categoryName="Sub Category")
-        category.addSubCategory(sub_category)
+        category.add_sub_category(sub_category)
 
-        sub_category.removeParentCategory = Mock()
-        category.removeSubCategory(sub_category)
+        sub_category.remove_parent_category = Mock()
+        category.remove_sub_category(sub_category)
 
-        sub_category.removeParentCategory.assert_called_once()
+        sub_category.remove_parent_category.assert_called_once()
         self.assertNotIn(sub_category, category.get_subCategories())
 
     def test_remove_sub_category_fail_not_sub_category(self):
         category = Category(categoryId=1, categoryName="Parent Category")
         sub_category = Category(categoryId=2, categoryName="Sub Category")
 
-        sub_category.removeParentCategory = Mock()
-        category.removeSubCategory(sub_category)
+        sub_category.remove_parent_category = Mock()
+        category.remove_sub_category(sub_category)
 
-        sub_category.removeParentCategory.assert_not_called()
+        sub_category.remove_parent_category.assert_not_called()
         self.assertNotIn(sub_category, category.get_subCategories())
 
     def test_is_parent_category(self):
         parent_category = Category(categoryId=1, categoryName="Parent Category")
         sub_category = Category(categoryId=2, categoryName="Sub Category", parentCategoryId=1)
 
-        self.assertTrue(parent_category.isParentCategory(sub_category))
-        self.assertFalse(sub_category.isParentCategory(parent_category))
+        self.assertTrue(parent_category.is_parent_category(sub_category))
+        self.assertFalse(sub_category.is_parent_category(parent_category))
 
     def test_is_sub_category(self):
         parent_category = Category(categoryId=1, categoryName="Parent Category")
         sub_category = Category(categoryId=2, categoryName="Sub Category", parentCategoryId=1)
 
-        self.assertTrue(sub_category.isSubCategory(parent_category))
-        self.assertFalse(parent_category.isSubCategory(sub_category))
+        self.assertTrue(sub_category.is_sub_category(parent_category))
+        self.assertFalse(parent_category.is_sub_category(sub_category))
 
     def test_has_parent_category(self):
         parent_category = Category(categoryId=1, categoryName="Parent Category")
         sub_category = Category(categoryId=2, categoryName="Sub Category", parentCategoryId=1)
 
-        self.assertTrue(sub_category.hasParentCategory())
-        self.assertFalse(parent_category.hasParentCategory())
+        self.assertTrue(sub_category.has_parent_category())
+        self.assertFalse(parent_category.has_parent_category())
 
     def test_add_product_to_category_success(self):
         category = Category(categoryId=1, categoryName="Category")
         product = Mock()
 
-        category.addProductToCategory(product)
+        category.add_product_to_category(product)
 
         self.assertIn(product, category.get_categoryProducts())
 
     def test_add_product_to_category_fail_already_exists(self):
         category = Category(categoryId=1, categoryName="Category")
         product = Mock()
-        category.addProductToCategory(product)
+        category.add_product_to_category(product)
 
-        result = category.addProductToCategory(product)
+        result = category.add_product_to_category(product)
 
         self.assertFalse(result)
 
     def test_remove_product_from_category_success(self):
         category = Category(categoryId=1, categoryName="Category")
         product = Mock()
-        category.addProductToCategory(product)
+        category.add_product_to_category(product)
 
-        result = category.removeProductFromCategory(product)
+        result = category.remove_product_from_category(product)
 
         self.assertTrue(result)
         self.assertNotIn(product, category.get_categoryProducts())
@@ -319,7 +319,7 @@ class TestCategory(unittest.TestCase):
         category = Category(categoryId=1, categoryName="Category")
         product = Mock()
 
-        result = category.removeProductFromCategory(product)
+        result = category.remove_product_from_category(product)
 
         self.assertFalse(result)
 
@@ -327,13 +327,13 @@ class TestCategory(unittest.TestCase):
         category = Category(categoryId=1, categoryName="Category")
         product1 = Mock()
         product2 = Mock()
-        category.addProductToCategory(product1)
+        category.add_product_to_category(product1)
 
         sub_category = Category(categoryId=2, categoryName="Sub Category")
-        sub_category.addProductToCategory(product2)
-        category.addSubCategory(sub_category)
+        sub_category.add_product_to_category(product2)
+        category.add_sub_category(sub_category)
 
-        all_products = category.getAllProductsRecursively()
+        all_products = category.get_all_products_recursively()
 
         self.assertIn(product1, all_products)
         self.assertIn(product2, all_products)
@@ -344,13 +344,13 @@ class TestCategory(unittest.TestCase):
         product1.get_productName.return_value = "Product 1"
         product2 = Mock()
         product2.get_productName.return_value = "Product 2"
-        category.addProductToCategory(product1)
+        category.add_product_to_category(product1)
 
         sub_category = Category(categoryId=2, categoryName="Sub Category")
-        sub_category.addProductToCategory(product2)
-        category.addSubCategory(sub_category)
+        sub_category.add_product_to_category(product2)
+        category.add_sub_category(sub_category)
 
-        all_product_names = category.getAllProductNames()
+        all_product_names = category.get_all_product_names()
 
         self.assertIn("Product 1", all_product_names)
         self.assertIn("Product 2", all_product_names)
@@ -358,95 +358,95 @@ class TestCategory(unittest.TestCase):
 class TestStore(unittest.TestCase):
 
     def test_close_store_success(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
         store.set_isActive = Mock()
 
-        result = store.closeStore(userId=1)
+        result = store.close_store(user_id=1)
 
         store.set_isActive.assert_called_once_with(False)
         self.assertTrue(result)
 
     def test_close_store_fail_not_founder(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
         store.set_isActive = Mock()
 
-        result = store.closeStore(userId=2)
+        result = store.close_store(user_id=2)
 
         store.set_isActive.assert_not_called()
         self.assertFalse(result)
 
     def test_add_product_success(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
         product = Mock()
 
-        result = store.addProduct(product)
+        result = store.add_product(product)
 
         self.assertIn(product, store.get_storeProducts())
         self.assertTrue(result)
 
     def test_add_product_fail_already_exists(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
         product = Mock()
-        store.addProduct(product)
+        store.add_product(product)
 
-        result = store.addProduct(product)
+        result = store.add_product(product)
 
         self.assertFalse(result)
 
     def test_remove_product_success(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
         product = Mock()
-        store.addProduct(product)
+        store.add_product(product)
 
-        result = store.removeProduct(productId=product.get_productId())
+        result = store.remove_product(product_id=product.get_productId())
 
         self.assertNotIn(product, store.get_storeProducts())
         self.assertTrue(result)
 
     def test_remove_product_fail_not_exists(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
 
-        result = store.removeProduct(productId=1)
+        result = store.remove_product(product_id=1)
 
         self.assertFalse(result)
 
     def test_change_price_of_product_success(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
         product = Mock()
-        store.addProduct(product)
+        store.add_product(product)
 
-        result = store.changePriceOfProduct(productId=product.get_productId(), newPrice=50)
+        result = store.change_price_of_product(product_id=product.get_productId(), new_price=50)
 
         self.assertTrue(result)
 
     def test_change_price_of_product_fail_invalid_product_id(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
 
-        result = store.changePriceOfProduct(productId=1, newPrice=50)
+        result = store.change_price_of_product(product_id=1, new_price=50)
 
         self.assertFalse(result)
 
     def test_change_price_of_product_fail_product_not_found(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
 
-        result = store.changePriceOfProduct(productId=1, newPrice=50)
+        result = store.change_price_of_product(product_id=1, new_price=50)
 
         self.assertFalse(result)
 
     def test_get_product_by_id_success(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
         product = Mock()
         product.get_productId.return_value = 1
-        store.addProduct(product)
+        store.add_product(product)
 
-        result = store.getProductById(productId=1)
+        result = store.get_product_by_id(product_id=1)
 
         self.assertEqual(result, product)
 
     def test_get_product_by_id_fail_not_exists(self):
-        store = Store(storeId=1, locationId=1, storeName="Test Store", storeFounderId=1, isActive=True)
+        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
 
-        result = store.getProductById(productId=1)
+        result = store.get_product_by_id(product_id=1)
 
         self.assertIsNone(result)
 
@@ -456,115 +456,115 @@ class TestStoreFacade(unittest.TestCase):
         self.store_facade = StoreFacade()
 
     def test_add_store_success(self):
-        result = self.store_facade.addStore(1, "Test Store", 1, True)
+        result = self.store_facade.add_store(1, "Test Store", 1, True)
         self.assertTrue(result)
 
     def test_add_store_fail_invalid_name(self):
-        result = self.store_facade.addStore(1, "", 1, True)
+        result = self.store_facade.add_store(1, "", 1, True)
         self.assertFalse(result)
 
     def test_close_store_success(self):
-        self.store_facade.addStore(1, "Test Store", 1, True)
-        result = self.store_facade.closeStore(0, 1)
+        self.store_facade.add_store(1, "Test Store", 1, True)
+        result = self.store_facade.close_store(0, 1)
         self.assertTrue(result)
 
     def test_close_store_fail_invalid_id(self):
-        self.store_facade.addStore(1, "Test Store", 1, True)
-        result = self.store_facade.closeStore(1, 1)
+        self.store_facade.add_store(1, "Test Store", 1, True)
+        result = self.store_facade.close_store(1, 1)
         self.assertFalse(result)
 
     def test_add_product_to_store_success(self):
-        self.store_facade.addProductSpecification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        self.store_facade.addStore(1, "Test Store", 1, True)
-        result = self.store_facade.addProductToStore(0, 0, datetime.now(), 1, 1000.0)
+        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
+        self.store_facade.add_store(1, "Test Store", 1, True)
+        result = self.store_facade.add_product_to_store(0, 0, datetime.now(), 1, 1000.0)
         self.assertTrue(result)
 
     def test_add_product_to_store_fail_invalid_store_id(self):
-        self.store_facade.addProductSpecification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        result = self.store_facade.addProductToStore(0, 0, datetime.now(), 1, 1000.0)
+        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
+        result = self.store_facade.add_product_to_store(0, 0, datetime.now(), 1, 1000.0)
         self.assertFalse(result)
 
     def test_add_product_to_store_fail_invalid_product_id(self):
-        self.store_facade.addStore(1, "Test Store", 1, True)
-        result = self.store_facade.addProductToStore(0, 0, datetime.now(), 1, 1000.0)
+        self.store_facade.add_store(1, "Test Store", 1, True)
+        result = self.store_facade.add_product_to_store(0, 0, datetime.now(), 1, 1000.0)
         self.assertFalse(result)
 
     # Add more relevant tests here
 
     def test_add_category_success(self):
-        result = self.store_facade.addCategory("Electronics")
+        result = self.store_facade.add_category("Electronics")
         self.assertTrue(result)
 
     def test_add_category_fail_duplicate_name(self):
-        self.store_facade.addCategory("Electronics")
-        result = self.store_facade.addCategory("Electronics")
+        self.store_facade.add_category("Electronics")
+        result = self.store_facade.add_category("Electronics")
         self.assertFalse(result)
 
     def test_remove_category_success(self):
-        self.store_facade.addCategory("Electronics")
-        result = self.store_facade.removeCategory(0)
+        self.store_facade.add_category("Electronics")
+        result = self.store_facade.remove_category(0)
         self.assertTrue(result)
 
     def test_remove_category_fail_invalid_id(self):
-        result = self.store_facade.removeCategory(0)
+        result = self.store_facade.remove_category(0)
         self.assertFalse(result)
 
     def test_get_category_by_id_success(self):
-        self.store_facade.addCategory("Electronics")
-        category = self.store_facade.getCategoryById(0)
+        self.store_facade.add_category("Electronics")
+        category = self.store_facade.get_category_by_id(0)
         self.assertIsNotNone(category)
 
     def test_get_category_by_id_fail_invalid_id(self):
-        category = self.store_facade.getCategoryById(0)
+        category = self.store_facade.get_category_by_id(0)
         self.assertIsNone(category)
 
     def test_assign_subcategory_to_category_success(self):
-        self.store_facade.addCategory("Electronics")
-        self.store_facade.addCategory("Phones")
-        result = self.store_facade.assignSubCategoryToCategory(1, 0)
+        self.store_facade.add_category("Electronics")
+        self.store_facade.add_category("Phones")
+        result = self.store_facade.assign_sub_category_to_category(1, 0)
         self.assertTrue(result)
 
     def test_assign_subcategory_to_category_fail_invalid_category_id(self):
-        self.store_facade.addCategory("Electronics")
-        result = self.store_facade.assignSubCategoryToCategory(1, 0)
+        self.store_facade.add_category("Electronics")
+        result = self.store_facade.assign_sub_category_to_category(1, 0)
         self.assertFalse(result)
 
     def test_delete_subcategory_from_category_success(self):
-        self.store_facade.addCategory("Electronics")
-        self.store_facade.addCategory("Phones")
-        self.store_facade.assignSubCategoryToCategory(1, 0)
-        result = self.store_facade.deleteSubCategoryFromCategory(0, 1)
+        self.store_facade.add_category("Electronics")
+        self.store_facade.add_category("Phones")
+        self.store_facade.assign_sub_category_to_category(1, 0)
+        result = self.store_facade.delete_sub_category_from_category(0, 1)
         self.assertTrue(result)
 
     def test_delete_subcategory_from_category_fail_invalid_category_id(self):
-        self.store_facade.addCategory("Electronics")
-        self.store_facade.addCategory("Phones")
-        self.store_facade.assignSubCategoryToCategory(1, 0)
-        result = self.store_facade.deleteSubCategoryFromCategory(0, 1)
+        self.store_facade.add_category("Electronics")
+        self.store_facade.add_category("Phones")
+        self.store_facade.assign_sub_category_to_category(1, 0)
+        result = self.store_facade.delete_sub_category_from_category(0, 1)
         self.assertFalse(result)
 
     def test_assign_product_spec_to_category_success(self):
-        self.store_facade.addCategory("Electronics")
-        self.store_facade.addProductSpecification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        result = self.store_facade.assignProductSpecToCategory(0, 0)
+        self.store_facade.add_category("Electronics")
+        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
+        result = self.store_facade.assign_product_spec_to_category(0, 0)
         self.assertTrue(result)
 
     def test_assign_product_spec_to_category_fail_invalid_category_id(self):
-        self.store_facade.addProductSpecification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        result = self.store_facade.assignProductSpecToCategory(0, 0)
+        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
+        result = self.store_facade.assign_product_spec_to_category(0, 0)
         self.assertFalse(result)
 
     def test_remove_product_spec_from_category_success(self):
-        self.store_facade.addCategory("Electronics")
-        self.store_facade.addProductSpecification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        self.store_facade.assignProductSpecToCategory(0, 0)
-        result = self.store_facade.removeProductSpecFromCategory(0, 0)
+        self.store_facade.add_category("Electronics")
+        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
+        self.store_facade.assign_product_spec_to_category(0, 0)
+        result = self.store_facade.remove_product_spec_from_category(0, 0)
         self.assertTrue(result)
 
     def test_remove_product_spec_from_category_fail_invalid_category_id(self):
-        self.store_facade.addProductSpecification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        self.store_facade.assignProductSpecToCategory(0, 0)
-        result = self.store_facade.removeProductSpecFromCategory(0, 0)
+        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
+        self.store_facade.assign_product_spec_to_category(0, 0)
+        result = self.store_facade.remove_product_spec_from_category(0, 0)
         self.assertFalse(result)
 
 

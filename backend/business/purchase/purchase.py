@@ -133,7 +133,8 @@ class Purchase(ABC):
     def calculate_total_price(self) -> float:
         """
         * Parameters: none
-        * This function is responsible for returning the proposed price for the product on bid, maybe plus delivery fee later on
+        * This function is responsible for returning the proposed price for the product on bid, maybe plus delivery fee
+        later on
         * Returns: float of proposed price
         """
         pass
@@ -261,7 +262,8 @@ class ImmediatePurchase(Purchase):
     def calculate_total_price(self) -> float:
         """
         * Parameters: none
-        * This function is responsible for calculating the total price of the products in the shoppingCart before discount
+        * This function is responsible for calculating the total price of the products in the shoppingCart before
+         discount
         * Returns: total price of the current purchase
         """
         total_price = 0
@@ -273,7 +275,8 @@ class ImmediatePurchase(Purchase):
         # for now discounts is not properly declared
         """
         * Parameters: none
-        * This function is responsible for calculating the total price of the products in the shoppingCart after discount
+        * This function is responsible for calculating the total price of the products in the shoppingCart after
+         discount
         * Returns: total price of the current purchase after discount
         """
         # call method of shoppingCart to calculate the total price of the products in the shoppingCart after discount
@@ -432,11 +435,11 @@ class BidPurchase(Purchase):
                 raise ValueError("Counter offer must be a positive float")
 
     def user_counter_offer(self, counter_offer: float):
-        ''' 
+        """
         * Parameters: counterOffer
         * This function is responsible for updating the counter offer of the purchase
         * Returns: none
-        '''
+        """
         if self._status == PurchaseStatus.onGoing:
             if counter_offer >= 0:
                 self._counter_offer = counter_offer
@@ -554,7 +557,8 @@ class AuctionPurchase(Purchase):
     def validate_purchase_of_user(self, user_id: int, delivery_date: datetime) -> bool:
         """
         * Parameters: userId
-        * This function is responsible for validating that the user with the highest bid successfully paid for the product and the product is underway
+        * This function is responsible for validating that the user with the highest bid successfully paid for the
+         product and the product is underway
         * Returns: bool
         """
         if self._user_id == user_id:
@@ -662,7 +666,8 @@ class LotteryPurchase(Purchase):
     def add_lottery_offer(self, user_id: int, proposed_price: float) -> bool:
         """
         * Parameters: userId, proposedPrice
-        * This function is responsible for adding the user and their proposed price to the list of users with proposed prices, the same user can bid multiple times
+        * This function is responsible for adding the user and their proposed price to the list of users with proposed
+        prices, the same user can bid multiple times
         * Note: a bid can only be added if it is bigger than the current highest bid
         * Returns: true if bid was added
         """
@@ -675,8 +680,8 @@ class LotteryPurchase(Purchase):
                     if proposed_price + self._total_price == self._full_price:
                         self._status = PurchaseStatus.accepted
                         logger.info(
-                            '[LotteryPurchase] user with user id: %s added bid to lottery purchase with purchase id: %s',
-                            user_id, self._purchase_id)
+                            '[LotteryPurchase] user with user id: %s added bid to lottery purchase with purchase '
+                            'id: %s', user_id, self._purchase_id)
                     return True
                 else:
                     raise ValueError("Proposed price is too high")
@@ -898,7 +903,8 @@ class PurchaseFacade:
                                 starting_date: datetime, ending_date: datetime,
                                 users_with_prices: List[Tuple[int, float]] = []) -> LotteryPurchase:
         """
-        * Parameters: userId, totalPrice, fullPrice, storeId, productId, productSpecId, startingDate, endingDate, usersWithPrices
+        * Parameters: userId, totalPrice, fullPrice, storeId, productId, productSpecId, startingDate, endingDate,
+        usersWithPrices
         * This function is responsible for creating a lottery purchase
         * Note: totalPrice initialized as 0 until people bought lottery tickets!
         * Returns: bool
@@ -1108,7 +1114,7 @@ class PurchaseFacade:
                    isinstance(rating, ProductRating) and rating.product_spec_id == product_spec_id]
         return sum([rating.rating for rating in ratings]) / len(ratings)
 
-    def rateStore(self, purchase_id: int, user_id: int, store_id: int, rating: float, description: str) -> float:
+    def rate_store(self, purchase_id: int, user_id: int, store_id: int, rating: float, description: str) -> float:
         """
         * Parameters: purchaseId, userId, rating, storeId
         * This function is responsible for rating the store
@@ -1136,7 +1142,8 @@ class PurchaseFacade:
         else:
             raise ValueError("Purchase id is invalid")
 
-    def rate_product(self, purchase_id: int, user_id: int, product_spec_id: int, rating: float, description: str) -> float:
+    def rate_product(self, purchase_id: int, user_id: int, product_spec_id: int, rating: float, description: str)\
+            -> float:
         """
         * Parameters: purchaseId, userId, rating, productSpecId
         * This function is responsible for rating the product
@@ -1150,7 +1157,7 @@ class PurchaseFacade:
                         product_rating = ProductRating(self._rating_id_counter, rating, purchase_id, user_id,
                                                        description, product_spec_id)
                         self._ratings.append(product_rating)
-                        self._rating_id_counter +=1
+                        self._rating_id_counter += 1
                         return self.calculate_new_product_rating(product_spec_id)
                     else:
                         raise ValueError("User id is invalid")
@@ -1221,7 +1228,7 @@ class PurchaseFacade:
         else:
             raise ValueError("Purchase is not immediate")
 
-    #-----------------Bid-----------------#
+    # -----------------Bid-----------------#
     def store_accept_offer(self, purchase_id: int):
         """
         * Parameters: purchaseId
@@ -1237,7 +1244,7 @@ class PurchaseFacade:
         else:
             raise ValueError("Purchase is not bid")
 
-    def userAcceptOffer(self, purchase_id: int, user_id: int):
+    def user_accept_offer(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
         * Function to accept the offer by the store
@@ -1360,7 +1367,8 @@ class PurchaseFacade:
     def validate_purchase_of_user_auction(self, purchase_id: int, user_id: int, delivery_date: datetime):
         """
         * Parameters: purchaseId, userId
-        * This function is responsible for validating that the user with the highest bid successfully paid for the product and the product is underway
+        * This function is responsible for validating that the user with the highest bid successfully paid for the
+        product and the product is underway
         * Returns: none
         """
         auction_purchase = self.get_purchase_by_id(purchase_id)
@@ -1372,7 +1380,8 @@ class PurchaseFacade:
     def invalidate_purchase_of_user(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
-        * This function is responsible for invalidating the purchase of the user with the highest bid, whether it be due to not paying or not able to deliver
+        * This function is responsible for invalidating the purchase of the user with the highest bid, whether it be due
+         to not paying or not able to deliver
         * Returns: none
         """
         auction_purchase = self.get_purchase_by_id(purchase_id)
@@ -1381,7 +1390,7 @@ class PurchaseFacade:
         else:
             raise ValueError("Purchase is not auction")
 
-    #c-----------------Lottery-----------------#
+    # -----------------Lottery-----------------#
 
     def calculate_remaining_time(self, purchase_id: int) -> timedelta:
         """
@@ -1401,7 +1410,8 @@ class PurchaseFacade:
     def add_lottery_offer(self, user_id: int, proposed_price: float, purchase_id: int) -> bool:
         """
         * Parameters: userId, proposedPrice, purchaseId
-        * This function is responsible for adding the user and their proposed price to the list of users with proposed prices, the same user can bid multiple times
+        * This function is responsible for adding the user and their proposed price to the list of users with proposed
+        prices, the same user can bid multiple times
         * Note: a bid can only be added if it is bigger than the current highest bid
         * Returns: true if bid was added
         """
