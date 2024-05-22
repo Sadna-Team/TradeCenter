@@ -36,7 +36,7 @@ class Rating(ABC):
 #-----------------StoreRating class-----------------#
 class StoreRating(Rating): 
     # purchaseId and storeId are the unique identifiers for the store rating, storeId used to retrieve the details of store
-    def __init__(self, ratingId: int ,rating: float, purchaseId: int, userId: int, description: str, storeId: int, creationDate: datetime = datetime.datetime.now()):
+    def __init__(self, ratingId: int ,rating: float, purchaseId: int, userId: int, description: str, storeId: int, creationDate: datetime):
         super().__init__(ratingId, rating, purchaseId, userId, description, creationDate)
         self.__storeId = storeId
         logger.info('[StoreRating] successfully created store rating object with rating id: %s', ratingId)
@@ -1409,7 +1409,7 @@ class PurchaseFacade:
                             self.__set_purchasesIdCounter(self.get_purchasesIdCounter() + 1)
                             logger.info('[PurchaseFacade] created lottery purchase with purchase id: %s', lotteryPurchase.get_purchaseId())
                             return True
-                        else
+                        else:
                             raise ValueError("Ending date is invalid")
                     else:
                         raise ValueError("Starting date is invalid")
