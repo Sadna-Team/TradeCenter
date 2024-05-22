@@ -212,3 +212,9 @@ class UserFacade:
         (self.__get_user(user_id).get_notifications()
          .append(Notification(notification.get_notification_id(),
                               notification.get_message(), notification.get_date())))
+
+
+    
+
+    def is_member(self, user_id: int) -> bool:
+        return isinstance(self.__get_user(user_id), Member)
