@@ -14,6 +14,7 @@ class TestPaymentHandler(unittest.TestCase):
         with self.assertRaises(ValueError):
             payment_handler.process_payment(100, {"payment method": "invalid_method"})
 
+
     def test_edit_payment_method_with_valid_method(self):
         payment_handler = PaymentHandler()
         payment_handler.edit_payment_method("bogo", {"test": "test"})
@@ -65,6 +66,7 @@ class TestSupplyHandler(unittest.TestCase):
         supply_handler = SupplyHandler()
         with self.assertRaises(ValueError):
             supply_handler.process_supply({"supply method": "invalid_method"}, 123)
+
     
     def test_edit_supply_method_with_valid_method(self):
         supply_handler = SupplyHandler()

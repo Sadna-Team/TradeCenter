@@ -36,7 +36,7 @@ class Rating(ABC):
 #-----------------StoreRating class-----------------#
 class StoreRating(Rating): 
     # purchaseId and storeId are the unique identifiers for the store rating, storeId used to retrieve the details of store
-    def __init__(self, ratingId: int ,rating: float, purchaseId: int, userId: int, description: str, storeId: int, creationDate: datetime):
+    def __init__(self, ratingId: int ,rating: float, purchaseId: int, userId: int, description: str, storeId: int, creationDate: datetime = datetime.now()):
         super().__init__(ratingId, rating, purchaseId, userId, description, creationDate)
         self.__storeId = storeId
         logger.info('[StoreRating] successfully created store rating object with rating id: %s', ratingId)
@@ -107,7 +107,7 @@ class StoreRating(Rating):
 #-----------------ProductRating class-----------------#
 class ProductRating(Rating):
     # purchaseId and productId are the unique identifiers for the product rating, productSpec used to retrieve the details of product
-    def __init__(self,ratingId: int, rating: float, purchaseId: int, userId: int, description: str, productSpecId: int, creationDate: datetime = datetime.datetime.now()):
+    def __init__(self,ratingId: int, rating: float, purchaseId: int, userId: int, description: str, productSpecId: int, creationDate: datetime = datetime.now()):
         super().__init__(ratingId, rating, purchaseId, userId, description, creationDate)
         self.__productSpecId = productSpecId
         logger.info('[ProductRating] successfully created product rating object with rating id: %s', ratingId)
@@ -455,7 +455,7 @@ class ImmediatePurchase(Purchase):
         * Returns: none
         '''
         self.updateStatus(PurchaseStatus.accepted)
-        self.updateDateOfPurchase(datetime.datetime.now())
+        self.updateDateOfPurchase(datetime.now())
         self.__set_deliveryDate(deliveryDate)
         
         
@@ -478,7 +478,7 @@ class ImmediatePurchase(Purchase):
         * Returns: true if completed, false otherwise
         '''
         if self.get_status() == PurchaseStatus.accepted:
-            if self.get_deliveryDate() < datetime.datetime.now():
+            if self.get_deliveryDate() < datetime.now():
                 self.updateStatus(PurchaseStatus.completed)
                 logger.info('[ImmediatePurchase] purchase with purchase id: %s has been completed', self.get_purchaseId())
                 return True
@@ -606,7 +606,7 @@ class BidPurchase(Purchase):
         * Returns: none
         '''
         self.updateStatus(PurchaseStatus.accepted)
-        self.updateDateOfPurchase(datetime.datetime.now())
+        self.updateDateOfPurchase(datetime.now())
         self.__set_deliveryDate(deliveryDate)
         logger.info('[BidPurchase] store accepted offer of bid purchase with purchase id: %s', self.get_purchaseId())
                 
@@ -620,7 +620,7 @@ class BidPurchase(Purchase):
         '''
         if userId == self.get_userId():
             self.updateStatus(PurchaseStatus.accepted)
-            self.updateDateOfPurchase(datetime.datetime.now())
+            self.updateDateOfPurchase(datetime.now())
             self.__set_deliveryDate(deliveryDate)
             logger.info('[BidPurchase] user accepted offer of bid purchase with purchase id: %s', self.get_purchaseId())
         
@@ -700,7 +700,7 @@ class BidPurchase(Purchase):
         * Returns: true if completed, false otherwise
         '''
         if self.get_status() == PurchaseStatus.accepted:
-            if self.get_deliveryDate() < datetime.datetime.now():
+            if self.get_deliveryDate() < datetime.now():
                 self.updateStatus(PurchaseStatus.completed)
                 logger.info('[BidPurchase] purchase with purchase id: %s has been completed', self.get_purchaseId())
                 return True
@@ -900,9 +900,9 @@ class AuctionPurchase(Purchase):
         * Returns: datetime of remaining time
         '''
         logger.info('[AuctionPurchase] calculating remaining time of auction purchase with purchase id: %s', self.get_purchaseId())
-        if self.get_startingDate() < datetime.datetime.now():
-            if self.get_endingDate() > datetime.datetime.now():
-                return datetime.datetime.now() - self.get_endingDate()
+        if self.get_startingDate() < datetime.now():
+            if self.get_endingDate() > datetime.now():
+                return datetime.now() - self.get_endingDate()
         return datetime.timedelta(0) 
     
     def checkIfAuctionEnded(self) -> bool:
@@ -911,7 +911,7 @@ class AuctionPurchase(Purchase):
         * This function is responsible for checking if the auction has ended
         * Returns: true if ended, false if not
         '''
-        if self.get_status() == PurchaseStatus.onGoing and self.get_endingDate() < datetime.datetime.now():
+        if self.get_status() == PurchaseStatus.onGoing and self.get_endingDate() < datetime.now():
             if self.get_usersWithProposedPrices() != []:
                 userWithHighestBid = max(self.get_usersWithProposedPrices(), key = lambda x : x[1])
                 self.__set_userId(userWithHighestBid[0])
@@ -931,7 +931,7 @@ class AuctionPurchase(Purchase):
         '''
         if self.get_userId() == userId:
             self.__set_status(PurchaseStatus.accepted)
-            self.__set_dateOfPurchase(datetime.datetime.now())
+            self.__set_dateOfPurchase(datetime.now())
             self.__set_deliveryDate(deliveryDate)
             logger.info('[AuctionPurchase] user with user id: %s validated purchase of auction purchase with purchase id: %s', userId, self.get_purchaseId())
             return True
@@ -957,7 +957,7 @@ class AuctionPurchase(Purchase):
         * Returns: true if completed, false otherwise
         '''
         if self.get_status() == PurchaseStatus.accepted:
-            if self.get_deliveryDate() < datetime.datetime.now():
+            if self.get_deliveryDate() < datetime.now():
                 self.updateStatus(PurchaseStatus.completed)
                 logger.info('[AuctionPurchase] purchase with purchase id: %s has been completed', self.get_purchaseId())
                 return True
@@ -1119,9 +1119,9 @@ class LotteryPurchase(Purchase):
         * This function is responsible for calculating the remaining time for the auction
         * Returns: datetime of remaining time
         '''
-        if self.get_startingDate() < datetime.datetime.now():
-            if self.get_endingDate() > datetime.datetime.now():
-                return datetime.datetime.now() - self.get_endingDate()
+        if self.get_startingDate() < datetime.now():
+            if self.get_endingDate() > datetime.now():
+                return datetime.now() - self.get_endingDate()
         return datetime.timedelta(0)
     
     
@@ -1169,7 +1169,7 @@ class LotteryPurchase(Purchase):
         * This function is responsible for validating that all users with offers have paid the full price
         * Returns: true if all users have paid the full price
         '''
-        if self.get_endingDate() < datetime.datetime.now():
+        if self.get_endingDate() < datetime.now():
             if self.get_totalPrice() == self.get_fullPrice():
                 self.__set_status(PurchaseStatus.accepted)
                 logger.info('[LotteryPurchase] all users have paid the full price of lottery purchase with purchase id: %s', self.get_purchaseId())
@@ -1185,7 +1185,7 @@ class LotteryPurchase(Purchase):
         * This function is responsible for checking if the lottery has ended
         * Returns: true if ended, false if not
         '''
-        if self.get_status() == PurchaseStatus.onGoing and self.get_endingDate() < datetime.datetime.now():
+        if self.get_status() == PurchaseStatus.onGoing and self.get_endingDate() < datetime.now():
             if self.get_totalPrice() != self.get_fullPrice():
                 self.updateStatus(PurchaseStatus.failed)
                 logger.info('[LotteryPurchase] lottery purchase failed with purchase id: %s', self.get_purchaseId())
@@ -1231,7 +1231,7 @@ class LotteryPurchase(Purchase):
         logger.info('[LotteryPurchase] validating delivery of winner of lottery purchase with purchase id: %s', self.get_purchaseId())
         if userId == self.get_userId():
             self.__set_status(PurchaseStatus.accepted)
-            self.__set_dateOfPurchase(datetime.datetime.now())
+            self.__set_dateOfPurchase(datetime.now())
             self.__set_deliveryDate(deliveryDate)
             
     
@@ -1253,7 +1253,7 @@ class LotteryPurchase(Purchase):
         * Returns: true if completed, false otherwise
         '''
         if self.get_status() == PurchaseStatus.accepted:
-            if self.get_deliveryDate() < datetime.datetime.now():
+            if self.get_deliveryDate() < datetime.now():
                 self.updateStatus(PurchaseStatus.completed)
                 logger.info('[LotteryPurchase] purchase with purchase id: %s has been completed', self.get_purchaseId())
                 return True
@@ -1977,7 +1977,7 @@ class PurchaseFacade:
         '''
         lotteryPurchase = self.getPurchaseById(purchaseId)
         if isinstance(lotteryPurchase, LotteryPurchase):
-            if lotteryPurchase.get_endingDate() < datetime.datetime.now:
+            if lotteryPurchase.get_endingDate() < datetime.now:
                 return lotteryPurchase.validateUserOffers()
             else:
                 raise ValueError("Lottery has ended")

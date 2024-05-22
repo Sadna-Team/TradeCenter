@@ -1,10 +1,9 @@
 from flask import Blueprint, request, jsonify
-from backend.business.store import StoreFacade
+#from backend.business.store import StoreFacade
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
 
 
 #-------------logging configuration----------------
-from logging_config import setup_logging
 import logging
 
 logger = logging.getLogger('myapp')
@@ -13,7 +12,7 @@ logger = logging.getLogger('myapp')
 
 # API endpoints and their corresponding route handlers
 store_bp = Blueprint('store', __name__)
-store_facade = StoreFacade()
+#store_facade = StoreFacade()
 
 
 @store_bp.route('/store_info', methods=['GET'])

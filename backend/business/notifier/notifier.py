@@ -20,6 +20,14 @@ class Notifier:
             self._listeners: Dict = {}  # Would it restart the listeners every time the server restarts?
             self._notification_id = 0
 
+    def clean_data(self) -> None:
+        """
+        For testing purposes only
+        """
+        self._user_facade.clean_data()
+        self._listeners.clear()
+        self._notification_id = 0
+
     def _generate_notification_id(self) -> int:
         self._notification_id += 1
         return self._notification_id
@@ -135,7 +143,10 @@ class Notifier:
         """
         if store_id not in self._listeners:
             self._listeners[store_id] = []
-        self._listeners[store_id].append(user_id)
+        if user_id not in self._listeners[store_id]:
+            self._listeners[store_id].append(user_id)
+        else:
+            raise ValueError("User is already a listener for the store with ID:", store_id)
 
     def unsign_listener(self, user_id: int, store_id: int) -> None:
         """
@@ -144,3 +155,8 @@ class Notifier:
         """
         if store_id in self._listeners:
             self._listeners[store_id].remove(user_id)
+            if not self._listeners[store_id]:
+                self._listeners.pop(store_id)
+        else:
+            raise ValueError("No listeners for the store with ID:", store_id)
+        
