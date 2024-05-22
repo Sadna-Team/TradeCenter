@@ -208,7 +208,7 @@ def test_login_fail_missing_token(app, client, clean):
     response = client.post('auth/login', json=data)
     assert response.status_code == 401
 
-def test_logout(reset_app, client, register_user, login_user, clean):
+def test_logout(app, client, register_user, login_user, clean):
     headers = {
         'Authorization': 'Bearer ' + login_user
     }
