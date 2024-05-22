@@ -252,11 +252,22 @@ def test_add_payment_service(client, login_system_manager, clean):
         'Authorization': 'Bearer ' + login_system_manager
     }
     response = client.post('third_party/payment/add', headers=headers, json=data)
-    print(response.get_json())
     assert response.status_code == 200
     data = response.get_json()
     assert 'message' in data
     assert data['message'] == 'Third party payment service added successfully'
+
+def test_add_payment_service_fail_duplicate_key(client, login_system_manager, clean):
+    data = {
+        'method_name': 'bogo',
+        'config': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.post('third_party/payment/add', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'payment method already supported'
 
 def test_add_payment_service_fail_missing_data(client, login_system_manager, clean):
     data = {
@@ -407,6 +418,18 @@ def test_add_supply_service(client, login_system_manager, clean):
     data = response.get_json()
     assert 'message' in data
     assert data['message'] == 'Third party delivery service added successfully'
+
+def test_add_supply_service_fail_duplicate_key(client, login_system_manager, clean):
+    data = {
+        'method_name': 'bogo',
+        'config': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.post('third_party/delivery/add', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'supply method already supported'
 
 def test_add_supply_service_fail_missing_data(client, login_system_manager, clean):
     data = {
