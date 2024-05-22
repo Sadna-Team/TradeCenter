@@ -48,7 +48,7 @@ class MarketFacade:
 
             # initialize all the facades
             self.user_facade = UserFacade()
-            self.store_facade = StoreFacade()
+#            self.store_facade = StoreFacade()
             self.roles_facade = RolesFacade()
             self.purchase_facade = PurchaseFacade()
             self.addresses = []
@@ -69,7 +69,7 @@ class MarketFacade:
         For testing purposes only
         """
         self.user_facade.clean_data()
-        self.store_facade.clean_data()
+        #self.store_facade.clean_data()
         self.roles_facade.clean_data()
         # create the admin?
 
