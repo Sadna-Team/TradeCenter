@@ -838,7 +838,7 @@ class TestPurchaseFacade(unittest.TestCase):
         rating = 4.0
         description = "Great service!"
 
-        new_rating = self.purchase_facade.rateStore(purchaseId, userId, storeId, rating, description)
+        new_rating = self.purchase_facade.rate_store(purchaseId, userId, storeId, rating, description)
         
         self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.purchase_mock.get_storeId.assert_called()
@@ -949,14 +949,14 @@ class TestPurchaseFacade(unittest.TestCase):
 
         # Test when status is onGoing
         self.bid_purchase_mock.get_status.return_value = PurchaseStatus.onGoing
-        self.purchase_facade.userAcceptOffer(purchaseId, userId)
+        self.purchase_facade.user_accept_offer(purchaseId, userId)
         self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.bid_purchase_mock.get_status.assert_called()
         self.bid_purchase_mock.UseracceptOffer.assert_called_with(userId)
 
         # Test when status is not onGoing
         self.bid_purchase_mock.get_status.return_value = PurchaseStatus.completed
-        self.purchase_facade.userAcceptOffer(purchaseId, userId)
+        self.purchase_facade.user_accept_offer(purchaseId, userId)
         self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.bid_purchase_mock.get_status.assert_called()
         self.bid_purchase_mock.UseracceptOffer.assert_not_called()

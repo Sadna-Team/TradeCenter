@@ -16,7 +16,7 @@ class Notifier:
     def __init__(self) -> None:
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self._user_facade: UserFacade = UserFacade()  # Singelton
+            self._user_facade: UserFacade = UserFacade()  # Singleton
             self._listeners: Dict = {}  # Would it restart the listeners every time the server restarts?
             self._notification_id = 0
 
@@ -54,8 +54,7 @@ class Notifier:
             for ownerID in self._listeners[store_id]:
                 self._notify(ownerID, msg)
 
-
-    # Notify on a new bid  --- for store owner    
+    # Notify on a new bid  --- for store owner
     def notify_new_bid(self, store_id: int, user_id: int) -> None:
         """
         * Parameters: store_id: int, user_id(Who created a bid purchase): int 
@@ -65,19 +64,7 @@ class Notifier:
             raise ValueError("No listeners for the store with ID:", store_id)
 
         else:
-            msg = "User" + user_id + "has created a bid purchase"
-            for ownerID in self._listeners[store_id]:
-                self._notify(ownerID, msg)
-
-    def notify_new_bid(self, store_id: int, user_id: int) -> None:
-        """
-        * Parameters: store_id: int, user_id(Who created a bid purchase): int 
-        * This function notifies the store owner(s) of a new purchase in the store.
-        """
-        if store_id not in self._listeners:
-            raise ValueError("No listeners for the store with ID:", store_id)
-        else:
-            msg = "User" + user_id + "has created a bid purchase"
+            msg = f"User {user_id} has created a bid purchase"
             for ownerID in self._listeners[store_id]:
                 self._notify(ownerID, msg)
 
@@ -90,13 +77,13 @@ class Notifier:
             raise ValueError("No listeners for the store with ID:", store_id)
         else:
             for ownerID in self._listeners[store_id]:
-                self._notify(ownerID, message)   
-                             
+                self._notify(ownerID, message)
 
-    # Notify on a store update (closed or opened) --- for store owner
+                # Notify on a store update (closed or opened) --- for store owner
+
     def notify_update_store_status(self, store_id: int, additional_details, is_closed: bool) -> None:
         """
-        * Parameters: store_id: int, additional detials, isClosed: bool
+        * Parameters: store_id: int, additional details, isClosed: bool
         * isClosed is a boolean - *True* if the store is closed *False* if the store is opened.
         * This function notifies the store owner(s) on a change in the store status (closed or opened).
         """
@@ -113,7 +100,7 @@ class Notifier:
             for ownerID in self._listeners[store_id]:
                 self._notify(ownerID, msg)
 
-    # Notify on a removed managment position --- for store owner
+    # Notify on a removed management position --- for store owner
     def notify_removed_management_position(self, store_id: int, user_id: int) -> None:
         """
         * Parameters: store_id: int, user_id: int
@@ -125,21 +112,22 @@ class Notifier:
             msg = "Management position from store: " + str(store_id) + " was removed from you."
             self._notify(user_id, msg)
 
-    # Notify om a new message --- for member
+    # Notify on a new message --- for member
     def notify_general_message(self, user_id: int, message: str) -> None:
         """
         * Parameters: user_id: int, message: str
         * This function notifies a user on a new message.
         """
         self._notify(user_id, message)
-    
+
     # Notify and wait for 
 
     def sign_listener(self, user_id: int, store_id: int) -> None:
         """
         * Parameters: user_id: int, store_id: int
         * This function adds a new user (new manager or new owner) to the store listeners.
-        * It would alert him to the events that are relevant to the store (new purchase, store update, removed management position)
+        * It would alert him to the events that are relevant to the store (new purchase, store update, removed
+        management position)
         """
         if store_id not in self._listeners:
             self._listeners[store_id] = []
@@ -159,4 +147,3 @@ class Notifier:
                 self._listeners.pop(store_id)
         else:
             raise ValueError("No listeners for the store with ID:", store_id)
-        
