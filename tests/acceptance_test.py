@@ -21,14 +21,14 @@ def client(app):
     return app.test_client()
 
 @pytest.fixture
-def guest(app, client):
+def guest(client):
     response = client.get('/auth/')
     data = response.get_json()
     token = data['token']
     return token
 
 @pytest.fixture
-def register_user(app, client, guest):
+def register_user(client, guest):
     register_credentials = { 
         'username': 'test',
         'email': 'test@gmail.com',
@@ -45,13 +45,28 @@ def register_user(app, client, guest):
         'Authorization': 'Bearer ' + guest
     }
     response = client.post('auth/register', headers=headers, json=data)
+    return guest
 
 @pytest.fixture
-def login_user(app, client, guest, register_user):
+def login_user(client, register_user):
     data = {
             'username': 'test',
             'password': 'test'
         }
+    headers = {
+        'Authorization': 'Bearer ' + register_user
+    }
+    response = client.post('auth/login', headers=headers, json=data)
+    data = response.get_json()
+    token = data['token']
+    return token
+
+@pytest.fixture
+def login_system_manager(client, guest):
+    data = {
+            'username': 'admin',
+            'password': 'admin'
+    }
     headers = {
         'Authorization': 'Bearer ' + guest
     }
@@ -61,15 +76,14 @@ def login_user(app, client, guest, register_user):
     return token
 
 
-
-def test_home_page(app, client, clean):
+def test_home_page(client, clean):
     response = client.get('/auth/')
     assert response.status_code == 200
     data = response.get_json()
     assert 'token' in data
 
 
-def test_register(app, client, guest, clean):
+def test_register(client, guest, clean):
     register_credentials = { 
         'username': 'test',
         'email': 'test@gmail.com',
@@ -91,7 +105,7 @@ def test_register(app, client, guest, clean):
     assert 'message' in data
     assert data['message'] == 'User registered successfully - great success'
 
-def test_register_fail_duplicate_user(app, client, guest, register_user, clean):
+def test_register_fail_duplicate_user(client, register_user, clean):
     
     register_credentials = { 
         'username': 'test',
@@ -106,14 +120,14 @@ def test_register_fail_duplicate_user(app, client, guest, register_user, clean):
         'register_credentials': register_credentials
     }
     headers = {
-        'Authorization': 'Bearer ' + guest
+        'Authorization': 'Bearer ' + register_user
     }
 
     response = client.post('auth/register', headers=headers, json=data)
     assert response.status_code == 400
     assert response.get_json()['message'] == 'Username already exists'
 
-def test_register_fail_missing_data(app, client, guest, clean):
+def test_register_fail_missing_data(client, guest, clean):
     register_credentials = { 
         'username': 'test',
         'email': 'test@gmail.com',
@@ -129,7 +143,7 @@ def test_register_fail_missing_data(app, client, guest, clean):
     assert response.status_code == 400
     assert response.get_json()['message'] == 'Some credentials are missing'
 
-def test_register_fail_missing_token(app, client, clean):
+def test_register_fail_missing_token(client, clean):
     register_credentials = { 
         'username': 'test',
         'email': 'test@gmail.com',
@@ -146,13 +160,13 @@ def test_register_fail_missing_token(app, client, clean):
     assert response.status_code == 401
 
 
-def test_login(app, client, guest, register_user, clean):
+def test_login(client, register_user, clean):
     data = {
             'username': 'test',
             'password': 'test'
         }
     headers = {
-        'Authorization': 'Bearer ' + guest
+        'Authorization': 'Bearer ' + register_user
         }
     response = client.post('auth/login', headers=headers, json=data)
     assert response.status_code == 200
@@ -161,18 +175,18 @@ def test_login(app, client, guest, register_user, clean):
     assert 'message' in data
     assert data['message'] == 'OK'
 
-def test_login_fail_invalid_credentials(app, client, guest, register_user, clean):
+def test_login_fail_invalid_credentials(client, register_user, clean):
     data = {
             'username': 'test',
             'password': 'wrong_password'
         }
     headers = {
-        'Authorization': 'Bearer ' + guest
+        'Authorization': 'Bearer ' + register_user
     }
     response = client.post('auth/login', headers=headers, json=data)
     assert response.status_code == 400
 
-def test_login_fail_already_logged_in(app, client, guest, register_user, login_user, clean):
+def test_login_fail_already_logged_in(client, guest, login_user, clean):
     response = client.get('/auth/')
     data = response.get_json()
     guest = data['token']
@@ -189,7 +203,7 @@ def test_login_fail_already_logged_in(app, client, guest, register_user, login_u
     assert response.get_json()['message'] == 'User is already logged in'
 
 
-def test_login_fail_missing_data(app, client, guest, clean):
+def test_login_fail_missing_data(client, guest, clean):
     data = {
             'username': 'test',
         }
@@ -200,7 +214,7 @@ def test_login_fail_missing_data(app, client, guest, clean):
     assert response.status_code == 400
     assert response.get_json()['message'] == 'Missing username or password'
 
-def test_login_fail_missing_token(app, client, clean):
+def test_login_fail_missing_token(client, clean):
     data = {
             'username': 'test',
             'password': 'test'
@@ -208,7 +222,7 @@ def test_login_fail_missing_token(app, client, clean):
     response = client.post('auth/login', json=data)
     assert response.status_code == 401
 
-def test_logout(app, client, register_user, login_user, clean):
+def test_logout(client, login_user, clean):
     headers = {
         'Authorization': 'Bearer ' + login_user
     }
@@ -218,7 +232,7 @@ def test_logout(app, client, register_user, login_user, clean):
     assert 'message' in data
     assert data['message'] == 'User logged out successfully'
 
-def test_logout_fail_missing_token(app, client, clean):
+def test_logout_fail_missing_token(client, clean):
     response = client.post('auth/logout')
     assert response.status_code == 401
 
@@ -228,6 +242,308 @@ def test_logout_fail_not_logged_in(app, client, guest, clean):
     }
     response = client.post('auth/logout', headers=headers)
     assert response.status_code == 400
+
+def test_add_payment_service(client, login_system_manager, clean):
+    data = {
+        'method_name': 'test',
+        'config': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.post('third_party/payment/add', headers=headers, json=data)
+    print(response.get_json())
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'message' in data
+    assert data['message'] == 'Third party payment service added successfully'
+
+def test_add_payment_service_fail_missing_data(client, login_system_manager, clean):
+    data = {
+        'method_name': 'test',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.post('third_party/payment/add', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_add_payment_service_fail_missing_token(client, clean):
+    data = {
+        'method_name': 'test',
+        'config': {'test': 'test'}
+    }
+    response = client.post('third_party/payment/add', json=data)
+    assert response.status_code == 401
+
+def test_add_payment_service_fail_not_system_manager(client, login_user, clean):
+    data = {
+        'method_name': 'test',
+        'config': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_user
+    }
+    response = client.post('third_party/payment/add', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'User is not a system manager'
+
+def test_edit_payment_service(client, login_system_manager, clean):
+    data = {
+        'method_name': 'bogo',
+        'editing_data': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.put('third_party/payment/edit', headers=headers, json=data)
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'message' in data
+    assert data['message'] == 'Third party payment service edited successfully'
+
+def test_edit_payment_service_fail_missing_data(client, login_system_manager, clean):
+    data = {
+        'method_name': 'bogo',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.put('third_party/payment/edit', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_edit_payment_service_fail_no_such_key(client, login_system_manager, clean):
+    data = {
+        'method_name': 'test',
+        'editing_data': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.put('third_party/payment/edit', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'payment method not supported'
+
+def test_edit_payment_service_fail_missing_token(client, clean):
+    data = {
+        'method_name': 'bogo',
+        'editing_data': {'test': 'test'}
+    }
+    response = client.put('third_party/payment/edit', json=data)
+    assert response.status_code == 401
+
+def test_edit_payment_service_fail_not_system_manager(client, login_user, clean):
+    data = {
+        'method_name': 'bogo',
+        'editing_data': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_user
+    }
+    response = client.put('third_party/payment/edit', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'User is not a system manager'
+
+def test_delete_payment_service(client, login_system_manager, clean):
+    data = {
+        'method_name': 'bogo',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.delete('third_party/payment/delete', headers=headers, json=data)
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'message' in data
+    assert data['message'] == 'Third party payment service deleted successfully'
+
+def test_delete_payment_service_fail_missing_data(client, login_system_manager, clean):
+    data = {}
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.delete('third_party/payment/delete', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_delete_payment_service_fail_no_such_key(client, login_system_manager, clean):
+    data = {
+        'method_name': 'test',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.delete('third_party/payment/delete', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'payment method not supported'
+
+def test_delete_payment_service_fail_missing_token(client, clean):
+    data = {
+        'method_name': 'bogo',
+    }
+    response = client.delete('third_party/payment/delete', json=data)
+    assert response.status_code == 401
+
+def test_delete_payment_service_fail_not_system_manager(client, login_user, clean):
+    data = {
+        'method_name': 'bogo',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_user
+    }
+    response = client.delete('third_party/payment/delete', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'User is not a system manager'
+
+def test_add_supply_service(client, login_system_manager, clean):
+    data = {
+        'method_name': 'test',
+        'config': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.post('third_party/delivery/add', headers=headers, json=data)
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'message' in data
+    assert data['message'] == 'Third party delivery service added successfully'
+
+def test_add_supply_service_fail_missing_data(client, login_system_manager, clean):
+    data = {
+        'method_name': 'test',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.post('third_party/delivery/add', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_add_supply_service_fail_missing_token(client, clean):
+    data = {
+        'method_name': 'test',
+        'config': {'test': 'test'}
+    }
+    response = client.post('third_party/delivery/add', json=data)
+    assert response.status_code == 401
+
+def test_add_supply_service_fail_not_system_manager(client, login_user, clean):
+    data = {
+        'method_name': 'test',
+        'config': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_user
+    }
+    response = client.post('third_party/delivery/add', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'User is not a system manager'
+
+def test_edit_supply_service(client, login_system_manager, clean):
+    data = {
+        'method_name': 'bogo',
+        'editing_data': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.put('third_party/delivery/edit', headers=headers, json=data)
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'message' in data
+    assert data['message'] == 'Third party delivery service edited successfully'
+
+def test_edit_supply_service_fail_missing_data(client, login_system_manager, clean):
+    data = {
+        'method_name': 'bogo',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.put('third_party/delivery/edit', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_edit_supply_service_fail_no_such_key(client, login_system_manager, clean):
+    data = {
+        'method_name': 'test',
+        'editing_data': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.put('third_party/delivery/edit', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'supply method not supported'
+
+def test_edit_supply_service_fail_missing_token(client, clean):
+    data = {
+        'method_name': 'bogo',
+        'editing_data': {'test': 'test'}
+    }
+    response = client.put('third_party/delivery/edit', json=data)
+    assert response.status_code == 401
+
+def test_edit_supply_service_fail_not_system_manager(client, login_user, clean):
+    data = {
+        'method_name': 'bogo',
+        'editing_data': {'test': 'test'}
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_user
+    }
+    response = client.put('third_party/delivery/edit', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'User is not a system manager'
+
+def test_delete_supply_service(client, login_system_manager, clean):
+    data = {
+        'method_name': 'bogo',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.delete('third_party/delivery/delete', headers=headers, json=data)
+    assert response.status_code == 200
+    data = response.get_json()
+    assert 'message' in data
+    assert data['message'] == 'Third party delivery service deleted successfully'
+
+def test_delete_supply_service_fail_missing_data(client, login_system_manager, clean):
+    data = {}
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.delete('third_party/delivery/delete', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_delete_supply_service_fail_no_such_key(client, login_system_manager, clean):
+    data = {
+        'method_name': 'test',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_system_manager
+    }
+    response = client.delete('third_party/delivery/delete', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'supply method not supported'
+
+def test_delete_supply_service_fail_missing_token(client, clean):
+    data = {
+        'method_name': 'bogo',
+    }
+    response = client.delete('third_party/delivery/delete', json=data)
+    assert response.status_code == 401
+
+def test_delete_supply_service_fail_not_system_manager(client, login_user, clean):
+    data = {
+        'method_name': 'bogo',
+    }
+    headers = {
+        'Authorization': 'Bearer ' + login_user
+    }
+    response = client.delete('third_party/delivery/delete', headers=headers, json=data)
+    assert response.status_code == 400
+    assert response.get_json()['message'] == 'User is not a system manager'
+
 
 if __name__ == '__main__':
     pytest.main(['-s', 'tests/test_acceptance.py'])
