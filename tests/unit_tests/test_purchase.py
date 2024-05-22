@@ -15,11 +15,11 @@ class TestProductRating(unittest.TestCase):
             rating = ProductRating(product_id=100, rating=6)
 
 
-class TestImmediateSubPurchases(unittest.TestCase):
+class TestImmediateSubPurchase(unittest.TestCase):
     
     def setUp(self):
-        # Initialize an ImmediateSubPurchases object
-        self.purchase = ImmediateSubPurchases(
+        # Initialize an ImmediateSubPurchase object
+        self.purchase = ImmediateSubPurchase(
             purchaseId=1,
             storeId=5,
             userId=123,
@@ -143,15 +143,15 @@ class TestImmediatePurchase(unittest.TestCase):
         self.assertEqual(len(self.purchase.get_immediateSubPurchases), 2)
 
     def test_setters(self):
-        self.purchase._ImmediatePurchase__set_purchaseId(2)
+        self.purchase.__set_purchaseId(2)
         self.assertEqual(self.purchase.purchaseId, 2)
-        self.purchase._ImmediatePurchase__set_userId(321)
+        self.purchase.__set_userId(321)
         self.assertEqual(self.purchase.userId, 321)
-        self.purchase._ImmediatePurchase__set_totalPrice(200.0)
+        self.purchase.__set_totalPrice(200.0)
         self.assertEqual(self.purchase.totalPrice, 200.0)
-        self.purchase._ImmediatePurchase__set_totalPriceAfterDiscounts(180.0)
+        self.purchase.__set_totalPriceAfterDiscounts(180.0)
         self.assertEqual(self.purchase.totalPriceAfterDiscounts, 180.0)
-        self.purchase._ImmediatePurchase__set_immediateSubPurchases([])
+        self.purchase.__set_immediateSubPurchases([])
         self.assertEqual(self.purchase.immediateSubPurchases, [])
 
     def test_updateStatus(self):
@@ -192,19 +192,19 @@ class TestImmediatePurchase(unittest.TestCase):
     # Negative Tests
     def test_set_invalid_purchaseId(self):
         with self.assertRaises(ValueError):
-            self.purchase._ImmediatePurchase__set_purchaseId(-1)
+            self.purchase.__set_purchaseId(-1)
 
     def test_set_invalid_userId(self):
         with self.assertRaises(ValueError):
-            self.purchase._ImmediatePurchase__set_userId(-1)
+            self.purchase.__set_userId(-1)
 
     def test_set_invalid_totalPrice(self):
         with self.assertRaises(ValueError):
-            self.purchase._ImmediatePurchase__set_totalPrice(-100.0)
+            self.purchase.__set_totalPrice(-100.0)
 
     def test_set_invalid_totalPriceAfterDiscounts(self):
         with self.assertRaises(ValueError):
-            self.purchase._ImmediatePurchase__set_totalPriceAfterDiscounts(-100.0)
+            self.purchase.__set_totalPriceAfterDiscounts(-100.0)
 
     def test_updateStatus_with_invalid_status(self):
         with self.assertRaises(ValueError):
@@ -365,14 +365,14 @@ class TestAuctionPurchase(unittest.TestCase):
 
     def test_initialization(self):
         self.assertEqual(self.purchase.purchaseId, 1)
-        self.assertEqual(self.purchase.basePrice, 100.0)
-        self.assertEqual(self.purchase.startingDate, datetime(2023, 1, 1))
-        self.assertEqual(self.purchase.endingDate, datetime(2023, 12, 31))
+        self.assertEqual(self.purchase.__basePrice, 100.0)
+        self.assertEqual(self.purchase.__startingDate, datetime(2023, 1, 1))
+        self.assertEqual(self.purchase.__endingDate, datetime(2023, 12, 31))
         self.assertEqual(self.purchase.storeId, 1)
-        self.assertEqual(self.purchase.productId, 101)
-        self.assertEqual(self.purchase.productSpecId, 202)
+        self.assertEqual(self.purchase.__productId, 101)
+        self.assertEqual(self.purchase.__productSpecId, 202)
         self.assertEqual(self.purchase.status, PurchaseStatus.onGoing)
-        self.assertEqual(self.purchase.usersWithProposedPrices, [(10, 150.0), (20, 200.0)])
+        self.assertEqual(self.purchase.__usersWithProposedPrices, [(10, 150.0), (20, 200.0)])
 
     def test_getters(self):
         self.assertEqual(self.purchase.get_purchaseId, 1)
@@ -386,24 +386,24 @@ class TestAuctionPurchase(unittest.TestCase):
         self.assertEqual(self.purchase.get_usersWithProposedPrices, [(10, 150.0), (20, 200.0)])
 
     def test_setters(self):
-        self.purchase._AuctionPurchase__set_purchaseId(2)
+        self.purchase.__set_purchaseId(2)
         self.assertEqual(self.purchase.purchaseId, 2)
-        self.purchase._AuctionPurchase__set_basePrice(200.0)
-        self.assertEqual(self.purchase.basePrice, 200.0)
-        self.purchase._AuctionPurchase__set_startingDate(datetime(2023, 2, 1))
-        self.assertEqual(self.purchase.startingDate, datetime(2023, 2, 1))
-        self.purchase._AuctionPurchase__set_endingDate(datetime(2023, 11, 30))
-        self.assertEqual(self.purchase.endingDate, datetime(2023, 11, 30))
-        self.purchase._AuctionPurchase__set_storeId(2)
+        self.purchase.__set_basePrice(200.0)
+        self.assertEqual(self.purchase.__basePrice, 200.0)
+        self.purchase.__set_startingDate(datetime(2023, 2, 1))
+        self.assertEqual(self.purchase.__startingDate, datetime(2023, 2, 1))
+        self.purchase.__set_endingDate(datetime(2023, 11, 30))
+        self.assertEqual(self.purchase.__endingDate, datetime(2023, 11, 30))
+        self.purchase.__set_storeId(2)
         self.assertEqual(self.purchase.storeId, 2)
-        self.purchase._AuctionPurchase__set_productId(102)
-        self.assertEqual(self.purchase.productId, 102)
-        self.purchase._AuctionPurchase__set_productSpecId(203)
-        self.assertEqual(self.purchase.productSpecId, 203)
-        self.purchase._AuctionPurchase__set_status(PurchaseStatus.accepted)
+        self.purchase.__set_productId(102)
+        self.assertEqual(self.purchase.__productId, 102)
+        self.purchase.__set_productSpecId(203)
+        self.assertEqual(self.purchase.__productSpecId, 203)
+        self.purchase.__set_status(PurchaseStatus.accepted)
         self.assertEqual(self.purchase.status, PurchaseStatus.accepted)
-        self.purchase._AuctionPurchase__set_usersWithProposedPrices([(30, 250.0)])
-        self.assertEqual(self.purchase.usersWithProposedPrices, [(30, 250.0)])
+        self.purchase.__set_usersWithProposedPrices([(30, 250.0)])
+        self.assertEqual(self.purchase.__usersWithProposedPrices, [(30, 250.0)])
 
     def test_updateStatus(self):
         self.purchase.updateStatus(PurchaseStatus.failed)
@@ -417,7 +417,7 @@ class TestAuctionPurchase(unittest.TestCase):
     def test_addAuctionBid_success(self):
         success = self.purchase.addAuctionBid(30, 250.0)
         self.assertTrue(success)
-        self.assertEqual(self.purchase.usersWithProposedPrices[-1], (30, 250.0))
+        self.assertEqual(self.purchase.__usersWithProposedPrices[-1], (30, 250.0))
 
     def test_addAuctionBid_failure(self):
         success = self.purchase.addAuctionBid(40, 150.0)
@@ -437,39 +437,39 @@ class TestAuctionPurchase(unittest.TestCase):
         ended = self.purchase.checkIfAuctionEnded()
         self.assertFalse(ended)
         # Simulate ending of auction
-        self.purchase._AuctionPurchase__set_endingDate(datetime(2023, 1, 1))
+        self.purchase.__set_endingDate(datetime(2023, 1, 1))
         ended = self.purchase.checkIfAuctionEnded()
         self.assertTrue(ended)
         self.assertEqual(self.purchase.status, PurchaseStatus.failed)
 
     def test_validatePurchaseOfUser_success(self):
         delivery_date = datetime(2024, 1, 1)
-        self.purchase._AuctionPurchase__set_userId(20)
+        self.purchase.__set_userId(20)
         validated = self.purchase.validatePurchaseOfUser(20, delivery_date)
         self.assertTrue(validated)
         self.assertEqual(self.purchase.status, PurchaseStatus.accepted)
-        self.assertEqual(self.purchase.deliveryDate, delivery_date)
+        self.assertEqual(self.purchase.__deliveryDate, delivery_date)
 
     def test_validatePurchaseOfUser_failure(self):
         delivery_date = datetime(2024, 1, 1)
-        self.purchase._AuctionPurchase__set_userId(20)
+        self.purchase.__set_userId(20)
         validated = self.purchase.validatePurchaseOfUser(30, delivery_date)
         self.assertFalse(validated)
 
     def test_invalidatePurchaseOfUser_success(self):
-        self.purchase._AuctionPurchase__set_userId(20)
+        self.purchase.__set_userId(20)
         invalidated = self.purchase.invalidatePurchaseOfUser(20)
         self.assertTrue(invalidated)
         self.assertEqual(self.purchase.status, PurchaseStatus.failed)
 
     def test_invalidatePurchaseOfUser_failure(self):
-        self.purchase._AuctionPurchase__set_userId(20)
+        self.purchase.__set_userId(20)
         invalidated = self.purchase.invalidatePurchaseOfUser(30)
         self.assertFalse(invalidated)
 
     def test_checkIfCompletedPurchase(self):
-        self.purchase._AuctionPurchase__set_status(PurchaseStatus.accepted)
-        self.purchase._AuctionPurchase__set_deliveryDate(datetime(2023, 1, 1))
+        self.purchase.__set_status(PurchaseStatus.accepted)
+        self.purchase.__set_deliveryDate(datetime(2023, 1, 1))
         completed = self.purchase.checkIfCompletedPurchase()
         self.assertTrue(completed)
         self.assertEqual(self.purchase.status, PurchaseStatus.completed)
@@ -477,13 +477,13 @@ class TestAuctionPurchase(unittest.TestCase):
     # Negative Tests
     def test_set_invalid_basePrice(self):
         with self.assertRaises(ValueError):
-            self.purchase._AuctionPurchase__set_basePrice(-100.0)
+            self.purchase.__set_basePrice(-100.0)
 
     def test_set_invalid_dates(self):
         with self.assertRaises(ValueError):
-            self.purchase._AuctionPurchase__set_startingDate("invalid")
+            self.purchase.__set_startingDate("invalid")
         with self.assertRaises(ValueError):
-            self.purchase._AuctionPurchase__set_endingDate("invalid")
+            self.purchase.__set_endingDate("invalid")
 
     def test_addAuctionBid_invalid(self):
         with self.assertRaises(ValueError):
@@ -528,7 +528,7 @@ class TestLotteryPurchase(unittest.TestCase):
         self.assertEqual(self.lottery_purchase.calculateTotalPrice(), 30)
 
     def test_calculate_remaining_time(self):
-        remaining_time = self.lottery_purchase.calculateRemainingTime()
+        remaining_time = datetime.timedelta(self.lottery_purchase.calculateRemainingTime())
         expected_time = datetime.now() - self.endingDate
         self.assertAlmostEqual(remaining_time.total_seconds(), expected_time.total_seconds(), delta=1)
 
@@ -838,17 +838,17 @@ class TestPurchaseFacade(unittest.TestCase):
         rating = 4.0
         description = "Great service!"
 
-        new_rating = self.facade.rateStore(purchaseId, userId, storeId, rating, description)
+        new_rating = self.purchase_facade.rateStore(purchaseId, userId, storeId, rating, description)
         
-        self.facade.getPurchaseById.assert_called_with(purchaseId)
+        self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.purchase_mock.get_storeId.assert_called()
         self.purchase_mock.get_status.assert_called()
-        self.facade.hasUserAlreadyRatedStore.assert_called_with(purchaseId, userId, storeId)
+        self.purchase_facade.hasUserAlreadyRatedStore.assert_called_with(purchaseId, userId, storeId)
         self.purchase_mock.get_userId.assert_called()
-        self.facade.calculateNewStoreRating.assert_called_with(storeId)
+        self.purchase_facade.calculateNewStoreRating.assert_called_with(storeId)
         
         self.assertEqual(new_rating, 4.5)
-        self.assertEqual(len(self.facade.ratings), 1)
+        self.assertEqual(len(self.purchase_facade.ratings), 1)
 
     def test_rateProduct(self):
         purchaseId = 1
@@ -857,24 +857,24 @@ class TestPurchaseFacade(unittest.TestCase):
         rating = 5.0
         description = "Excellent product!"
 
-        new_rating = self.facade.rateProduct(purchaseId, userId, productSpecId, rating, description)
+        new_rating = self.purchase_facade.rateProduct(purchaseId, userId, productSpecId, rating, description)
         
-        self.facade.getPurchaseById.assert_called_with(purchaseId)
+        self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.purchase_mock.get_status.assert_called()
-        self.facade.hasUserAlreadyRatedProduct.assert_called_with(purchaseId, userId, productSpecId)
+        self.purchase_facade.hasUserAlreadyRatedProduct.assert_called_with(purchaseId, userId, productSpecId)
         self.purchase_mock.get_userId.assert_called()
-        self.facade.calculateNewProductRating.assert_called_with(productSpecId)
+        self.purchase_facade.calculateNewProductRating.assert_called_with(productSpecId)
         
         self.assertEqual(new_rating, 4.5)
-        self.assertEqual(len(self.facade.ratings), 1)
+        self.assertEqual(len(self.purchase_facade.ratings), 1)
 
     def test_checkIfCompletedPurchase(self):
         purchaseId = 1
         self.purchase_mock.checkIfCompletedPurchase.return_value = True
 
-        is_completed = self.facade.checkIfCompletedPurchase(purchaseId)
+        is_completed = self.purchase_facade.checkIfCompletedPurchase(purchaseId)
         
-        self.facade.getPurchaseById.assert_called_with(purchaseId)
+        self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.purchase_mock.checkIfCompletedPurchase.assert_called()
         
         self.assertTrue(is_completed)

@@ -2,7 +2,7 @@ from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
 from .DTOs import NotificationDTO
-from .store import StoreFacade
+from .store.store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
@@ -54,7 +54,7 @@ class MarketFacade:
 
             # initialize all the facades
             self.user_facade = UserFacade()
-            self.store_facade = StoreFacade()
+#            self.store_facade = StoreFacade()
             self.roles_facade = RolesFacade()
             self.purchase_facade = PurchaseFacade()
             self.addresses = []
@@ -76,7 +76,7 @@ class MarketFacade:
         For testing purposes only
         """
         self.user_facade.clean_data()
-        self.store_facade.clean_data()
+        #self.store_facade.clean_data()
         self.roles_facade.clean_data()
         # create the admin?
 
