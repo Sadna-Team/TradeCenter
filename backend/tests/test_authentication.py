@@ -1,7 +1,7 @@
 import unittest
 from flask import Flask, appcontext_pushed, appcontext_popped
 from flask_jwt_extended import JWTManager, create_access_token
-from business.authentication.authentication import Authentication
+from backend.business.authentication.authentication import Authentication
 from unittest.mock import MagicMock
 
 class TestAuthentication(unittest.TestCase):
