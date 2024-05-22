@@ -97,36 +97,50 @@ class MarketFacade:
                     if not self.store_facade.check_product_availability(store_id, product_id):
                         raise ValueError(f"Product {product_id} is not available in the required amount")
                     
-
-            # TODO: create an immediate purchase
+            shoppingCart = List[Tuple[int, List[int]]]
+            shoppingCartWithPrices = List[Tuple[Tuple[int, float], List[int]]]
+            totalPrice = 0
+            # creating the shoppingCartObject and shoppingCartWithPrices
+            for store_id, products in cart.items():
+                basketPrice = 0
+                for product_id in products:
+                    basketPrice += self.store_facade.getStoreById(store_id).getProductById(product_id).get_price()
+                shoppingCart.append((store_id, products))
+                shoppingCartWithPrices.append(((store_id, basketPrice), products))
+                totalPrice += basketPrice
+                
+            purchase = self.purchase_facade.createImmediatePurchase(user_id, totalPrice, shoppingCartWithPrices)
             
 
-            # TODO: calculate the discounts of the purchase using storeFacade
                         
-            # TODO: calculate the policies of the purchase using storeFacade + user location constraints
+            #calculate the policies of the purchase using storeFacade + user location constraints
+            for basket in shoppingCart:
+                if not self.store_facade.checkPoliciesOfStore(basket[0],basket[1]):
+                    self.purchase_facade.invalidatePurchaseOfUser(purchase.get_purchaseId(), user_id)
+                    raise ValueError("Purchase does not meet the store's policies")
+                
             
 
-            # TODO: attempt to find a delivery method for user
-            deliveryDate= datetime.datetime.now() #dummy
+            # TODO: (next version) attempt to find a delivery method for user
+            deliveryDate = datetime.datetime.now() #dummy
             
         
-                #if not found, invalidate purchase
-                #self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
+            if deliveryDate is None:
+                self.purchase_facade.invalidatePurchaseOfUser(purchase.get_purchaseId(), user_id)
+                raise ValueError("No delivery method found")
 
                 
                 
-                 
             # charge the user:
             
-            amount = self.store_facade.calculate_total_price(cart)
+            amount = self.store_facade.getTotalPriceAfterDiscount(shoppingCart) #TODO: (next version) fix discounts
             if "payment method" not in payment_details:
-                #invalidate Purchase
-                self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
+                self.purchase_facade.invalidatePurchaseOfUser(purchase.get_purchaseId(), user_id)
                 raise ValueError("Payment method not specified")
             
             if not PaymentHandler().process_payment(amount, payment_details):
                 #invalidate Purchase
-                self.purchase_facade.invalidatePurchaseOfUser(purchaseId, user_id)
+                self.purchase_facade.invalidatePurchaseOfUser(purchase.get_purchaseId(), user_id)
                 raise ValueError("Payment failed")
 
 
@@ -137,7 +151,7 @@ class MarketFacade:
                     
                     
             #if successful, validate purchase with deliveryDate
-            self.purchase_facade.validatePurchaseOfUser(purchaseId, user_id, deliveryDate)
+            self.purchase_facade.validatePurchaseOfUser(purchase.get_purchaseId(), user_id, deliveryDate)
 
             
             

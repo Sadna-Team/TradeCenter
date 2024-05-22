@@ -9,7 +9,6 @@ import logging
 logger = logging.getLogger('myapp')
 #---------------------------------------------------
 
-
 # API endpoints and their corresponding route handlers
 market_bp = Blueprint('market', __name__)
 market_facade = MarketFacade()
