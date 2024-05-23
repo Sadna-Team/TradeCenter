@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify
 from backend.business.market import MarketFacade
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
 
-
 #-------------logging configuration----------------
 import logging
 
@@ -114,14 +113,14 @@ def search_products():
         data = request.args
         categoryId = data['categoryId']
         sortType = data['sortType']
-        market_facade.searchByCategory(categoryId, sortType)
+        market_facade.search_by_category(categoryId, sortType)
         logger.info('search successful')
         return jsonify({'message': 'searched products'}), 200
     except Exception as e:
         logger.error('search_products - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
-    
+
+
 @market_bp.route('/search_products_by_tags', methods=['GET'])
 @jwt_required()
 def search_products():
@@ -139,12 +138,13 @@ def search_products():
         data = request.args
         tags = data['tags']
         sortType = data['sortType']
-        market_facade.searchByTags(tags, sortType)
+        market_facade.search_by_tags(tags, sortType)
         logger.info('search successful')
         return jsonify({'message': 'searched products'}), 200
     except Exception as e:
         logger.error('search_products - ', str(e))
         return jsonify({'message': str(e)}), 400
+
 
 @market_bp.route('/search_products_by_name', methods=['GET'])
 @jwt_required()
@@ -163,13 +163,12 @@ def search_products():
         data = request.args
         name = data['name']
         sortType = data['sortType']
-        market_facade.searchByName(name, sortType)
+        market_facade.search_by_names(name, sortType)
         logger.info('search successful')
         return jsonify({'message': 'searched products'}), 200
     except Exception as e:
         logger.error('search_products - ', str(e))
         return jsonify({'message': str(e)}), 400
-
 
 
 @market_bp.route('/search_store_products', methods=['GET'])
@@ -190,7 +189,7 @@ def search_store_products():
         storeId = data['store_id']
         name = data['name']
         sortType = data['sortType']
-        market_facade.searchStoreProducts(storeId, name, sortType)
+        market_facade.search_product_in_store(storeId, name, sortType)
         logger.info('search successful')
         return jsonify({'message': 'searched products'}), 200
     except Exception as e:
@@ -214,13 +213,12 @@ def show_store_purchase_history():
         user_id = get_jwt_identity()
         data = request.args
         store_id = data['store_id']
-        history = market_facade.viewPurchasesOfStore(user_id, store_id)
+        history = market_facade.view_purchases_of_store(user_id, store_id)
         logger.info('purchase history sent')
         return jsonify({'message': history}), 200
     except Exception as e:
         logger.error('show_store_purchase_history - ', str(e))
         return jsonify({'message': str(e)}), 400
-
 
 
 @market_bp.route('/user_purchase_history_in_store', methods=['GET'])
@@ -239,7 +237,7 @@ def show_user_purchase_history_in_store():
         user_id = get_jwt_identity()
         data = request.args
         store_id = data['store_id']
-        history = market_facade.viewPurchasesOfUserInStore(user_id, store_id)
+        history = market_facade.view_purchases_of_user_in_store(user_id, store_id)
         logger.info('purchase history sent')
         return jsonify({'message': history}), 200
     except Exception as e:
@@ -247,9 +245,8 @@ def show_user_purchase_history_in_store():
         return jsonify({'message': str(e)}), 400
 
 
-
 @market_bp.route('/member_purchase_history', methods=['GET'])
-@jwt_required() 
+@jwt_required()
 def show_member_purchase_history():
     """
         Use Case 2.6.4:
@@ -261,14 +258,16 @@ def show_member_purchase_history():
     logger.info('recieved request to show the purchase history of a member')
     try:
         user_id = get_jwt_identity()
-        history =  market_facade.viewPurchasesOfUser(user_id)
+        data = request.args
+        store_id = data['store_id']
+        history = market_facade.view_purchases_of_user_in_store(user_id, store_id)
         logger.info('purchase history sent')
         return jsonify({'message': history}), 200
     except Exception as e:
         logger.error('show_member_purchase_history - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
-    
+
+
 @market_bp.route('/add_store_rating', methods=['POST'])
 @jwt_required()
 def add_store_rating():
@@ -289,15 +288,14 @@ def add_store_rating():
         purchase_id = data['purchase_id']
         description = data['description']
         rating = data['rating']
-        market_facade.addStoreRating(user_id, purchase_id, description, rating)
+        market_facade.add_store_rating(user_id, purchase_id, description, rating)
         logger.info('rating added')
         return jsonify({'message': 'rating added'}), 200
     except Exception as e:
         logger.error('add_store_rating - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
-    
-    
+
+
 @market_bp.route('/add_product_rating', methods=['POST'])
 @jwt_required()
 def add_product_rating():
@@ -320,13 +318,13 @@ def add_product_rating():
         description = data['description']
         product_id = data['product_id']
         rating = data['rating']
-        market_facade.addProductRating(user_id, purchase_id, description, product_id, rating)
+        market_facade.add_product_rating(user_id, purchase_id, description, product_id, rating)
         logger.info('rating added')
         return jsonify({'message': 'rating added'}), 200
     except Exception as e:
         logger.error('add_product_rating - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @market_bp.route('/create_bid', methods=['POST'])
 @jwt_required()
@@ -337,7 +335,7 @@ def create_bid():
 
         Data:
             user_id (int): id of the user
-            proposedPrice (float): proposed price of the bid
+            proposed_price (float): proposed price of the bid
             product_id (int): id of the product
             store_id (int): id of the store
     """
@@ -345,16 +343,16 @@ def create_bid():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        proposedPrice = data['proposedPrice']
+        proposed_price = data['proposed_price']
         product_id = data['product_id']
         store_id = data['store_id']
-        market_facade.createBidPurchase(user_id, proposedPrice, product_id, store_id)
+        market_facade.create_bid_purchase(user_id, proposed_price, product_id, store_id)
         logger.info('bid created')
         return jsonify({'message': 'bid created'}), 200
     except Exception as e:
         logger.error('create_bid - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @market_bp.route('/create_auction', methods=['POST'])
 @jwt_required()
@@ -380,7 +378,7 @@ def create_auction():
         endingDate = data['endingDate']
         store_id = data['store_id']
         product_id = data['product_id']
-        market_facade.createAuctionPurchase(user_id, basePrice, startingDate, endingDate, store_id, product_id)
+        market_facade.create_auction_purchase(user_id, basePrice, startingDate, endingDate, store_id, product_id)
         logger.info('auction created')
         return jsonify({'message': 'auction created'}), 200
     except Exception as e:
@@ -412,7 +410,7 @@ def create_lottery():
         product_id = data['product_id']
         startingDate = data['startingDate']
         endingDate = data['endingDate']
-        market_facade.createLotteryPurchase(user_id, fullPrice, store_id, product_id, startingDate, endingDate)
+        market_facade.create_lottery_purchase(user_id, fullPrice, store_id, product_id, startingDate, endingDate)
         logger.info('lottery created')
         return jsonify({'message': 'lottery created'}), 200
     except Exception as e:
@@ -432,13 +430,13 @@ def handle_accepted_purchase():
     """
     logger.info('recieved request to handle an accepted purchase')
     try:
-        market_facade.handleAcceptedPurchase()
+        market_facade.handle_accepted_purchases()
         logger.info('purchase handled')
         return jsonify({'message': 'purchase handled'}), 200
     except Exception as e:
         logger.error('handle_accepted_purchase - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @market_bp.route('/store_accept_offer', methods=['POST'])
 @jwt_required()
@@ -455,12 +453,13 @@ def store_accept_offer():
         user_id = get_jwt_identity()
         data = request.get_json()
         purchase_id = data['purchase_id']
-        market_facade.storeAcceptOffer(purchase_id)
+        market_facade.store_accept_offer(purchase_id)
         logger.info('offer accepted')
         return jsonify({'message': 'offer accepted'}), 200
     except Exception as e:
         logger.error('store_accept_offer - ', str(e))
         return jsonify({'message': str(e)}), 400
+
 
 @market_bp.route('/store_decline_offer', methods=['POST'])
 @jwt_required()
@@ -477,13 +476,14 @@ def store_decline_offer():
         user_id = get_jwt_identity()
         data = request.get_json()
         purchase_id = data['purchase_id']
-        market_facade.storeRejectOffer(purchase_id)
+        market_facade.store_reject_offer(purchase_id)
         logger.info('offer declined')
         return jsonify({'message': 'offer declined'}), 200
     except Exception as e:
         logger.error('store_decline_offer - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
+
 @market_bp.route('/store_counter_offer', methods=['POST'])
 @jwt_required()
 def store_counter_offer():
@@ -501,14 +501,14 @@ def store_counter_offer():
         data = request.get_json()
         purchase_id = data['purchase_id']
         proposedPrice = data['proposedPrice']
-        market_facade.storeCounterOffer(proposedPrice,purchase_id)
+        market_facade.store_counter_offer(proposedPrice, purchase_id)
         logger.info('offer countered')
         return jsonify({'message': 'offer countered'}), 200
     except Exception as e:
         logger.error('store_counter_offer - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
-    
+
+
 @market_bp.route('/user_accept_offer', methods=['POST'])
 @jwt_required()
 def user_accept_offer():
@@ -525,14 +525,14 @@ def user_accept_offer():
         user_id = get_jwt_identity()
         data = request.get_json()
         purchase_id = data['purchase_id']
-        market_facade.userAcceptOffer(user_id, purchase_id)
+        market_facade.user_accept_offer(user_id, purchase_id)
         logger.info('offer accepted')
         return jsonify({'message': 'offer accepted'}), 200
     except Exception as e:
         logger.error('user_accept_offer - ', str(e))
         return jsonify({'message': str(e)}), 400
- 
-    
+
+
 @market_bp.route('/user_decline_offer', methods=['POST'])
 @jwt_required()
 def user_decline_offer():
@@ -549,12 +549,13 @@ def user_decline_offer():
         user_id = get_jwt_identity()
         data = request.get_json()
         purchase_id = data['purchase_id']
-        market_facade.userRejectOffer(user_id, purchase_id)
+        market_facade.user_reject_offer(user_id, purchase_id)
         logger.info('offer declined')
         return jsonify({'message': 'offer declined'}), 200
     except Exception as e:
         logger.error('user_decline_offer - ', str(e))
         return jsonify({'message': str(e)}), 400
+
 
 @market_bp.route('/user_counter_offer', methods=['POST'])
 @jwt_required()
@@ -574,13 +575,13 @@ def user_counter_offer():
         data = request.get_json()
         purchase_id = data['purchase_id']
         proposedPrice = data['proposedPrice']
-        market_facade.userCounterOffer(user_id, proposedPrice, purchase_id)
+        market_facade.user_counter_offer(user_id, proposedPrice, purchase_id)
         logger.info('offer countered')
         return jsonify({'message': 'offer countered'}), 200
     except Exception as e:
         logger.error('user_counter_offer - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @market_bp.route('/user_auction_bid', methods=['POST'])
 @jwt_required()
@@ -600,13 +601,13 @@ def user_auction_bid():
         data = request.get_json()
         purchase_id = data['purchase_id']
         proposedPrice = data['proposedPrice']
-        market_facade.addAuctionBid(purchase_id, user_id, proposedPrice)
+        market_facade.add_auction_bid(purchase_id, user_id, proposedPrice)
         logger.info('bid placed')
         return jsonify({'message': 'bid placed'}), 200
     except Exception as e:
         logger.error('user_auction_bid - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @market_bp.route('/view_highest_bid', methods=['POST'])
 @jwt_required()
@@ -624,13 +625,12 @@ def view_highest_bid():
         user_id = get_jwt_identity()
         data = request.get_json()
         purchase_id = data['purchase_id']
-        bid = market_facade.viewHighestBid(purchase_id, user_id)
+        bid = market_facade.view_highest_bid(purchase_id, user_id)
         logger.info('bid sent')
         return jsonify({'message': bid}), 200
     except Exception as e:
         logger.error('view_highest_bid - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
 
 
 @market_bp.route('/calculate_remaining_time_of_auction', methods=['POST'])
@@ -649,13 +649,13 @@ def calculate_remaining_time_of_auction():
         user_id = get_jwt_identity()
         data = request.get_json()
         purchase_id = data['purchase_id']
-        time = market_facade.calculateRemainingTimeOfAuction(purchase_id, user_id)
+        time = market_facade.calculate_remaining_time_of_auction(purchase_id, user_id)
         logger.info('time sent')
         return jsonify({'message': time}), 200
     except Exception as e:
         logger.error('calculate_remaining_time_of_auction - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @market_bp.route('/handle_ongoing_auctions', methods=['POST'])
 @jwt_required()
@@ -669,13 +669,13 @@ def handle_ongoing_auctions():
     logger.info('recieved request to handle ongoing auctions')
     try:
         user_id = get_jwt_identity()
-        market_facade.handleOngoingAuctions()
+        market_facade.handle_ongoing_auctions()
         logger.info('auctions handled')
         return jsonify({'message': 'auctions handled'}), 200
     except Exception as e:
         logger.error('handle_ongoing_auctions - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @market_bp.route('/add_lottery_ticket', methods=['POST'])
 @jwt_required()
@@ -693,15 +693,15 @@ def add_lottery_ticket():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        proposedPrice = data['proposedPrice']
+        proposed_price = data['proposed_price']
         purchase_id = data['purchase_id']
-        market_facade.addLotteryTicket(user_id, proposedPrice , purchase_id)
+        market_facade.add_lottery_offer(user_id, proposed_price, purchase_id)
         logger.info('ticket added')
         return jsonify({'message': 'ticket added'}), 200
     except Exception as e:
         logger.error('add_lottery_ticket - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @market_bp.route('/calculate_remaining_time_of_lottery', methods=['POST'])
 @jwt_required()
@@ -719,14 +719,14 @@ def calculate_remaining_time_of_lottery():
         user_id = get_jwt_identity()
         data = request.get_json()
         purchase_id = data['purchase_id']
-        time = market_facade.calculateRemainingTimeOfLottery(purchase_id, user_id)
+        time = market_facade.calculate_remaining_time_of_lottery(purchase_id, user_id)
         logger.info('time sent')
         return jsonify({'message': time}), 200
     except Exception as e:
         logger.error('calculate_remaining_time_of_lottery - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
-    
+
+
 @market_bp.route('/calculate_probability_of_user', methods=['POST'])
 @jwt_required()
 def calculate_probability_of_user():
@@ -743,13 +743,13 @@ def calculate_probability_of_user():
         user_id = get_jwt_identity()
         data = request.get_json()
         purchase_id = data['purchase_id']
-        probability = market_facade.calculateProbabilityOfUser(purchase_id, user_id)
+        probability = market_facade.calculate_probability_of_user(purchase_id, user_id)
         logger.info('probability sent')
         return jsonify({'message': probability}), 200
     except Exception as e:
         logger.error('calculate_probability_of_user - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @market_bp.route('/handle_ongoing_lotteries', methods=['POST'])
 @jwt_required()
@@ -763,7 +763,7 @@ def handle_ongoing_lotteries():
     logger.info('recieved request to handle ongoing lotteries')
     try:
         user_id = get_jwt_identity()
-        market_facade.handleOngoingLotteries()
+        market_facade.handle_ongoing_lotteries()
         logger.info('lotteries handled')
         return jsonify({'message': 'lotteries handled'}), 200
     except Exception as e:

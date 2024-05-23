@@ -921,10 +921,10 @@ class TestPurchaseFacade(unittest.TestCase):
         purchaseId = 1
         userId = 1
 
-        self.purchase_facade.invalidatePurchaseOfUser(purchaseId, userId)
+        self.purchase_facade.invalidate_purchase_of_user_immediate(purchaseId, userId)
         
         self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
-        self.immediate_purchase_mock.invalidatePurchaseOfUser.assert_called_with(userId)
+        self.immediate_purchase_mock.invalidate_purchase_of_user_immediate.assert_called_with(userId)
 
     def test_storeAcceptOffer(self):
         purchaseId = 1
@@ -1124,7 +1124,7 @@ class TestPurchaseFacade(unittest.TestCase):
         purchaseId = 1
         userId = 1
 
-        self.purchase_facade.invalidatePurchaseOfUser(purchaseId, userId)
+        self.purchase_facade.invalidate_purchase_of_user_immediate(purchaseId, userId)
         self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.auction_purchase_mock.invalidatePurchaseOfUser.assert_called_with(userId)
 

@@ -1213,7 +1213,7 @@ class PurchaseFacade:
         else:
             raise ValueError("Purchase is not immediate")
 
-    def invalidatePurchaseOfUser(self, purchase_id: int, user_id: int):
+    def invalidate_purchase_of_user_immediate(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
         * This function is responsible for invalidating the purchase of the user, whether it be due to not paying or not
@@ -1377,7 +1377,7 @@ class PurchaseFacade:
         else:
             raise ValueError("Purchase is not auction")
 
-    def invalidate_purchase_of_user(self, purchase_id: int, user_id: int):
+    def invalidate_purchase_of_user_auction(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
         * This function is responsible for invalidating the purchase of the user with the highest bid, whether it be due

@@ -38,7 +38,7 @@ def add_discount():
         startDate = data['startDate']
         endDate = data['endDate']
         percentage = data['percentage']
-        market_facade.addDiscount(user_id, description, startDate, endDate, percentage)
+        market_facade.add_discount(user_id, description, startDate, endDate, percentage)
         logger.info('discount was added successfully')
         return jsonify({'message': 'discount was added successfully'}), 200
     except Exception as e:
@@ -64,7 +64,7 @@ def remove_discount():
         user_id = get_jwt_identity()
         data = request.get_json()
         discount_id = data['discount_id']
-        market_facade.removeDiscount(user_id, discount_id)
+        market_facade.remove_discount(user_id, discount_id)
         logger.info('discount was removed successfully')
         return jsonify({'message': 'discount was removed successfully'}), 200
     except Exception as e:
@@ -192,7 +192,7 @@ def show_store_info():
         user_id = get_jwt_identity()
         data = request.args
         store_id = data['store_id']
-        info = market_facade.getStoreInfo(user_id ,store_id)
+        info = market_facade.get_store_info(user_id, store_id)
         logger.info('store info was sent successfully')
         return jsonify({'message': info}), 200
     except Exception as e:
@@ -215,7 +215,7 @@ def show_store_products():
         user_id = get_jwt_identity()
         data = request.args
         store_id = data['store_id']
-        products = store_facade.getStoreProductInfo(user_id, store_id)
+        products = store_facade.get_store_product_information(store_id)
         logger.info('store products were sent successfully')
         return jsonify({'message': products}), 200
     except Exception as e:
@@ -233,7 +233,7 @@ def add_store():
         Data:
             founder_id (int): id of the user
             location_id (int): id of the location
-            storeName (str): name of the store
+            store_name (str): name of the store
 
         Returns:
             ?
@@ -243,8 +243,8 @@ def add_store():
         user_id = get_jwt_identity()
         data = request.get_json()
         location_id = data['location_id']
-        storeName = data['storeName']
-        market_facade.addStore(user_id, location_id , storeName)
+        store_name = data['store_name']
+        market_facade.addStore(user_id, location_id, store_name)
         logger.info('store was added successfully')
         return jsonify({'message': 'store was added successfully'}), 200
     except Exception as e:
