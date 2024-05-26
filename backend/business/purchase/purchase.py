@@ -182,7 +182,7 @@ class ImmediateSubPurchase(Purchase):
                  total_price: float,
                  status: PurchaseStatus, product_ids: List[int]):
         super().__init__(purchase_id, user_id, store_id, date_of_purchase, total_price, status)
-        self.productIds = product_ids
+        self._product_ids = product_ids
         logger.info('[ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: %s',
                     purchase_id)
 
@@ -201,6 +201,11 @@ class ImmediateSubPurchase(Purchase):
 
     def calculate_total_price_after_discounts(self, discounts: List[int]) -> float:
         return self.calculate_total_price()  # for now not implemented
+
+    # ---------------------------------Getters and Setters---------------------------------#
+    @property
+    def product_ids(self):
+        return self._product_ids
 
 
 # -----------------ImmediatePurchase class-----------------#

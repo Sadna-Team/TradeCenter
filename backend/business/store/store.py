@@ -1495,7 +1495,7 @@ class StoreFacade:
         """
         return self.get_total_price_before_discount(shopping_cart)  # not implemented yet VERSION 2
 
-    def get_store_product_information(self, store_id: int) -> str:
+    def get_store_product_information(self, user_id: int, store_id: int) -> str:
         """
         * Parameters: storeId
         * This function returns the store information as a string
