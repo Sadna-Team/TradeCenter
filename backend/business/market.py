@@ -6,7 +6,7 @@ from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from datetime import datetime, timedelta
 import threading
 import logging
@@ -118,14 +118,14 @@ class MarketFacade:
             # calculate the policies of the purchase using storeFacade + user location constraints
             for basket in shopping_cart:
                 if not self.store_facade.check_policies_of_store(basket[0], basket[1]):
-                    self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                    # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                     raise ValueError("Purchase does not meet the store's policies")
 
                     # TODO: (next version) attempt to find a delivery method for user
             delivery_date = datetime.now()  # dummy
 
             if delivery_date is None:
-                self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ValueError("No delivery method found")
 
             # charge the user:
@@ -133,12 +133,12 @@ class MarketFacade:
             # TODO: (next version) fix discounts
             amount = self.store_facade.get_total_price_after_discount(shopping_cart)
             if "payment method" not in payment_details:
-                self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ValueError("Payment method not specified")
 
             if not PaymentHandler().process_payment(amount, payment_details):
                 # invalidate Purchase
-                self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ValueError("Payment failed")
 
             # remove the products from the store
@@ -147,7 +147,7 @@ class MarketFacade:
                     self.store_facade.remove_product_from_store(store_id, product_id)
 
             # if successful, validate purchase with delivery_date
-            self.purchase_facade.validate_purchase_of_user_immediate(purchase.purchase_id, user_id, delivery_date)
+            # self.purchase_facade.validate_purchase_of_user_immediate(purchase.purchase_id, user_id, delivery_date)
 
         # clear the cart
         self.user_facade.clear_basket(user_id)
@@ -324,7 +324,7 @@ class MarketFacade:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
 
-    def get_store_info(self, user_id: int, store_id: int) -> str:
+    def get_store_info(self, user_id: int, store_id: int) -> Optional[str]:
         """
         * Parameters: storeId
         * This function returns the store information
@@ -342,7 +342,7 @@ class MarketFacade:
         * Returns the store product information
         """
         # TODO: check if user has necessary permissions to view store product information
-        return self.store_facade.get_store_product_information(store_id)
+        return self.store_facade.get_store_product_information(user_id, store_id)
 
     # -------------Discount related methods-------------------#
     def add_discount(self, user_id: int, description: str, start_date: datetime, ending_date: datetime,
