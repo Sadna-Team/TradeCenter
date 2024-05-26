@@ -3,18 +3,18 @@ from backend.business.store import StoreFacade
 from backend.business import MarketFacade
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
 
-
-#-------------logging configuration----------------
+# -------------logging configuration----------------
 import logging
 
 logger = logging.getLogger('myapp')
-#---------------------------------------------------
+# ---------------------------------------------------
 
 
 # API endpoints and their corresponding route handlers
 store_bp = Blueprint('store', __name__)
 store_facade = StoreFacade()
 market_facade = MarketFacade()
+
 
 @store_bp.route('/add_discount', methods=['POST'])
 @jwt_required()
@@ -25,8 +25,8 @@ def add_discount():
         
         Data:
             description (str): description of the discount
-            startDate (datetime): start date of the discount
-            endDate (datetime): end date of the discount
+            start_date (datetime): start date of the discount
+            end_date (datetime): end date of the discount
             percentage (float): percentage of the discount
         
     """
@@ -35,10 +35,10 @@ def add_discount():
         user_id = get_jwt_identity()
         data = request.get_json()
         description = data['description']
-        startDate = data['startDate']
-        endDate = data['endDate']
+        start_date = data['start_date']
+        end_date = data['end_date']
         percentage = data['percentage']
-        market_facade.addDiscount(user_id, description, startDate, endDate, percentage)
+        market_facade.add_discount(user_id, description, start_date, end_date, percentage)
         logger.info('discount was added successfully')
         return jsonify({'message': 'discount was added successfully'}), 200
     except Exception as e:
@@ -64,7 +64,7 @@ def remove_discount():
         user_id = get_jwt_identity()
         data = request.get_json()
         discount_id = data['discount_id']
-        market_facade.removeDiscount(user_id, discount_id)
+        market_facade.remove_discount(user_id, discount_id)
         logger.info('discount was removed successfully')
         return jsonify({'message': 'discount was removed successfully'}), 200
     except Exception as e:
@@ -89,12 +89,13 @@ def edit_discount():
         user_id = get_jwt_identity()
         data = request.get_json()
         discount_id = data['discount_id']
-        market_facade.editDiscount(user_id, discount_id)
+        market_facade.change_discount(user_id, discount_id)
         logger.info('discount was edited successfully')
         return jsonify({'message': 'discount was edited successfully'}), 200
     except Exception as e:
         logger.error('edit_discount - ', str(e))
         return jsonify({'message': str(e)}), 400
+
 
 @store_bp.route('/add_purchase_policy', methods=['POST'])
 @jwt_required
@@ -114,13 +115,13 @@ def add_purchase_policy():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = data['store_id']
-        market_facade.addPurchasePolicy(user_id, store_id)
+        market_facade.add_purchase_policy(user_id, store_id)
         logger.info('purchase policy was added successfully')
         return jsonify({'message': 'purchase policy was added successfully'}), 200
     except Exception as e:
         logger.error('add_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @store_bp.route('/remove_purchase_policy', methods=['POST'])
 @jwt_required
@@ -141,13 +142,13 @@ def remove_purchase_policy():
         data = request.get_json()
         store_id = data['store_id']
         policy_id = data['policy_id']
-        market_facade.removePurchasePolicy(user_id, store_id, policy_id)
+        market_facade.remove_purchase_policy(user_id, store_id, policy_id)
         logger.info('purchase policy was removed successfully')
         return jsonify({'message': 'purchase policy was removed successfully'}), 200
     except Exception as e:
         logger.error('remove_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @store_bp.route('/change_purchase_policy', methods=['POST'])
 @jwt_required
@@ -168,7 +169,7 @@ def edit_purchase_policy():
         data = request.get_json()
         store_id = data['store_id']
         policy_id = data['policy_id']
-        market_facade.changePurchasePolicy(user_id, store_id, policy_id)
+        market_facade.change_purchase_policy(user_id, store_id, policy_id)
         logger.info('purchase policy was edited successfully')
         return jsonify({'message': 'purchase policy was edited successfully'}), 200
     except Exception as e:
@@ -176,7 +177,6 @@ def edit_purchase_policy():
         return jsonify({'message': str(e)}), 400
 
 
-    
 @store_bp.route('/store_info', methods=['GET'])
 @jwt_required()
 def show_store_info():
@@ -191,8 +191,8 @@ def show_store_info():
     try:
         user_id = get_jwt_identity()
         data = request.args
-        store_id = data['store_id']
-        info = market_facade.getStoreInfo(user_id ,store_id)
+        store_id = int(data['store_id'])
+        info = market_facade.get_store_info(user_id, store_id)
         logger.info('store info was sent successfully')
         return jsonify({'message': info}), 200
     except Exception as e:
@@ -214,8 +214,8 @@ def show_store_products():
     try:
         user_id = get_jwt_identity()
         data = request.args
-        store_id = data['store_id']
-        products = store_facade.getStoreProductInfo(user_id, store_id)
+        store_id = int(data['store_id'])
+        products = store_facade.get_store_product_information(user_id, store_id)
         logger.info('store products were sent successfully')
         return jsonify({'message': products}), 200
     except Exception as e:
@@ -233,7 +233,7 @@ def add_store():
         Data:
             founder_id (int): id of the user
             location_id (int): id of the location
-            storeName (str): name of the store
+            store_name (str): name of the store
 
         Returns:
             ?
@@ -243,8 +243,8 @@ def add_store():
         user_id = get_jwt_identity()
         data = request.get_json()
         location_id = data['location_id']
-        storeName = data['storeName']
-        market_facade.addStore(user_id, location_id , storeName)
+        store_name = data['store_name']
+        market_facade.add_store(user_id, location_id, store_name)
         logger.info('store was added successfully')
         return jsonify({'message': 'store was added successfully'}), 200
     except Exception as e:
@@ -263,7 +263,7 @@ def add_product():
             user_id (int): id of the user
             store_id (int): id of the store
             product_spec_id (int): id of the product specification
-            expirationDate (datetime): expiration date of the product
+            expiration_date (datetime): expiration date of the product
             condition (str): condition of the product
             price (float): price of the product
             
@@ -274,10 +274,10 @@ def add_product():
         data = request.get_json()
         store_id = data['store_id']
         product_spec_id = data['product_spec_id']
-        expirationDate = data['expirationDate']
+        expiration_date = data['expiration_date']
         condition = data['condition']
         price = data['price']
-        market_facade.addProduct(user_id, store_id, product_spec_id, expirationDate, condition, price)
+        market_facade.add_product(user_id, store_id, product_spec_id, expiration_date, condition, price)
         logger.info('product was added successfully')
         return jsonify({'message': 'product was successfully added'}), 200
     except Exception as e:
@@ -304,7 +304,7 @@ def remove_product():
         data = request.get_json()
         store_id = data['store_id']
         product_id = data['product_id']
-        market_facade.removeProduct(user_id, store_id, product_id)
+        market_facade.remove_product(user_id, store_id, product_id)
         logger.info('product was removed successfully')
         return jsonify({'message': 'product was successfully removed'}), 200
     except Exception as e:
@@ -332,12 +332,13 @@ def change_price():
         store_id = data['store_id']
         product_id = data['product_id']
         new_price = data['new_price']
-        market_facade.changeProductPrice(user_id, store_id, product_id, new_price)
+        market_facade.change_product_price(user_id, store_id, product_id, new_price)
         logger.info('price was changed successfully')
         return jsonify({'message': 'price was successfully changed'}), 200
     except Exception as e:
         logger.error('change_price - ', str(e))
         return jsonify({'message': str(e)}), 400
+
 
 @store_bp.route('/add_product_specification', methods=['POST'])
 @jwt_required()
@@ -364,14 +365,14 @@ def add_product_specification():
         description = data['description']
         tags = data['tags']
         manufacturer = data['manufacturer']
-        market_facade.addProductSpec(user_id, name, weight, description, tags, manufacturer)
+        market_facade.add_product_spec(user_id, name, weight, description, tags, manufacturer)
         logger.info('product specification was added successfully')
         return jsonify({'message': 'product specification was successfully added'}), 200
     except Exception as e:
         logger.error('add productSpecification -', str(e))
         return jsonify({'message': str(e)}), 400
-    
-    
+
+
 @store_bp.route('/change_product_specification_name', methods=['POST'])
 @jwt_required()
 def change_product_specification_name():
@@ -390,13 +391,13 @@ def change_product_specification_name():
         data = request.get_json()
         product_spec_id = data['product_spec_id']
         name = data['name']
-        market_facade.changeProductSpecName(user_id, product_spec_id, name)
+        market_facade.change_product_spec_name(user_id, product_spec_id, name)
         logger.info('product specification name was changed successfully')
         return jsonify({'message': 'product specification name was changed successfully'}), 200
     except Exception as e:
         logger.error('change_product_specification_name - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @store_bp.route('/change_product_specification_weight', methods=['POST'])
 @jwt_required()
@@ -416,13 +417,13 @@ def change_product_specification_weight():
         data = request.get_json()
         product_spec_id = data['product_spec_id']
         weight = data['weight']
-        market_facade.changeProductSpecWeight(user_id, product_spec_id, weight)
+        market_facade.change_product_spec_weight(user_id, product_spec_id, weight)
         logger.info('product specification weight was changed successfully')
         return jsonify({'message': 'product specification weight was changed successfully'}), 200
     except Exception as e:
         logger.error('change_product_specification_weight - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @store_bp.route('/change_product_specification_description', methods=['POST'])
 @jwt_required()
@@ -442,13 +443,13 @@ def change_product_specification_description():
         data = request.get_json()
         product_spec_id = data['product_spec_id']
         description = data['description']
-        market_facade.changeProductSpecDescription(user_id, product_spec_id, description)
+        market_facade.change_product_spec_description(user_id, product_spec_id, description)
         logger.info('product specification description was changed successfully')
         return jsonify({'message': 'product specification description was changed successfully'}), 200
     except Exception as e:
         logger.error('change_product_specification_description - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @store_bp.route('/change_product_specification_manufacturer', methods=['POST'])
 @jwt_required()
@@ -469,7 +470,7 @@ def change_product_specification_manufacturer():
         data = request.get_json()
         product_spec_id = data['product_spec_id']
         manufacturer = data['manufacturer']
-        market_facade.changeProductSpecManufacturer(user_id, product_spec_id, manufacturer)
+        market_facade.change_product_spec_manufacturer(user_id, product_spec_id, manufacturer)
         logger.info('product specification manufacturer was changed successfully')
         return jsonify({'message': 'product specification manufacturer was changed successfully'}), 200
     except Exception as e:
@@ -495,14 +496,14 @@ def add_tag_to_product_specification():
         data = request.get_json()
         product_spec_id = data['product_spec_id']
         tag = data['tag']
-        market_facade.addTagToProductSpec(user_id, product_spec_id, tag)
+        market_facade.add_tag_to_product_spec(user_id, product_spec_id, tag)
         logger.info('tag was added successfully')
         return jsonify({'message': 'tag was added successfully'}), 200
     except Exception as e:
         logger.error('add_tag_to_product_specification - ', str(e))
         return jsonify({'message': str(e)}), 400
-        
-        
+
+
 @store_bp.route('/remove_tag_from_product_specification', methods=['POST'])
 @jwt_required()
 def remove_tag_from_product_specification():
@@ -521,14 +522,14 @@ def remove_tag_from_product_specification():
         data = request.get_json()
         product_spec_id = data['product_spec_id']
         tag = data['tag']
-        market_facade.removeTagFromProductSpec(user_id, product_spec_id, tag)
+        market_facade.remove_tag_from_product_spec(user_id, product_spec_id, tag)
         logger.info('tag was removed successfully')
         return jsonify({'message': 'tag was removed successfully'}), 200
     except Exception as e:
         logger.error('remove_tag_from_product_specification - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
-    
+
+
 @store_bp.route('/add_category', methods=['POST'])
 @jwt_required()
 def add_category():
@@ -546,13 +547,13 @@ def add_category():
         user_id = get_jwt_identity()
         data = request.get_json()
         category_name = data['category_name']
-        market_facade.addCategory(user_id, category_name)
+        market_facade.add_category(user_id, category_name)
         logger.info('category was added successfully')
         return jsonify({'message': 'category was added successfully'}), 200
     except Exception as e:
         logger.error('add_category - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @store_bp.route('/remove_category', methods=['POST'])
 @jwt_required()
@@ -571,13 +572,13 @@ def remove_category():
         user_id = get_jwt_identity()
         data = request.get_json()
         category_id = data['category_id']
-        market_facade.removeCategory(user_id, category_id)
+        market_facade.remove_category(user_id, category_id)
         logger.info('category was removed successfully')
         return jsonify({'message': 'category was removed successfully'}), 200
     except Exception as e:
         logger.error('remove_category - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
 
 @store_bp.route('/add_subcategory_to_category', methods=['POST'])
 @jwt_required()
@@ -598,14 +599,14 @@ def add_subcategory_to_category():
         data = request.get_json()
         subcategory_id = data['subcategory_id']
         parentcategory_id = data['parentcategory_id']
-        market_facade.addSubcategoryToCategory(user_id, subcategory_id, parentcategory_id)
+        market_facade.add_sub_category_to_category(user_id, subcategory_id, parentcategory_id)
         logger.info('subcategory was added successfully')
         return jsonify({'message': 'subcategory was added successfully'}), 200
     except Exception as e:
         logger.error('add_subcategory_to_category - ', str(e))
         return jsonify({'message': str(e)}), 400
-            
-            
+
+
 @store_bp.route('/remove_subcategory_from_category', methods=['POST'])
 @jwt_required()
 def remove_subcategory_from_category():
@@ -625,7 +626,7 @@ def remove_subcategory_from_category():
         data = request.get_json()
         subcategory_id = data['subcategory_id']
         parentcategory_id = data['parentcategory_id']
-        market_facade.removeSubcategoryFromCategory(user_id, parentcategory_id, subcategory_id)
+        market_facade.remove_sub_category_from_category(user_id, parentcategory_id, subcategory_id)
         logger.info('subcategory was removed successfully')
         return jsonify({'message': 'subcategory was removed successfully'}), 200
     except Exception as e:
@@ -652,12 +653,13 @@ def assign_product_specification_to_category():
         data = request.get_json()
         product_spec_id = data['product_spec_id']
         category_id = data['category_id']
-        market_facade.assignProductSpecToCategory(user_id, category_id, product_spec_id)
+        market_facade.assign_product_spec_to_category(user_id, category_id, product_spec_id)
         logger.info('product specification was assigned to category successfully')
         return jsonify({'message': 'product specification was assigned to category successfully'}), 200
     except Exception as e:
         logger.error('assign_product_specification_to_category - ', str(e))
         return jsonify({'message': str(e)}), 400
+
 
 @store_bp.route('/remove_product_specification_from_category', methods=['POST'])
 @jwt_required()
@@ -678,13 +680,12 @@ def remove_product_specification_from_category():
         data = request.get_json()
         product_spec_id = data['product_spec_id']
         category_id = data['category_id']
-        market_facade.removeProductSpecFromCategory(user_id, category_id, product_spec_id)
+        market_facade.remove_product_spec_from_category(user_id, category_id, product_spec_id)
         logger.info('product specification was removed from category successfully')
         return jsonify({'message': 'product specification was removed from category successfully'}), 200
     except Exception as e:
         logger.error('remove_product_specification_from_category - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
 
 
 @store_bp.route('/add_store_owner', methods=['POST'])
@@ -705,7 +706,7 @@ def add_store_owner():
         data = request.get_json()
         store_id = data['store_id']
         new_owner_id = data['new_owner_id']
-        #TODO: store_facade.() -> this is not ours i have no clue how
+        # TODO: store_facade.() -> this is not ours i have no clue how
         logger.info('store owner was added successfully')
         return jsonify({'message': 'store owner was successfully added'}), 200
     except Exception as e:
@@ -733,7 +734,7 @@ def add_store_manager():
         store_id = data['store_id']
         new_manager_id = data['new_manager_id']
         permissions = data['permissions']
-        #TODO: store_facade.() -> this is not ours I have no clue lmao XD :P :D :3
+        # TODO: store_facade.() -> this is not ours I have no clue lmao XD :P :D :3
         logger.info('store manager was added successfully')
         return jsonify({'message': 'store manager was successfully added'}), 200
     except Exception as e:
@@ -760,7 +761,7 @@ def edit_manager_permissions():
         store_id = data['store_id']
         manager_id = data['manager_id']
         permissions = data['permissions']
-        #TODO: store_facade.() -> this is not ours i have no clue how
+        # TODO: store_facade.() -> this is not ours i have no clue how
         logger.info('store manager\'s permissions were changed successfully')
         return jsonify({'message': 'store manager\'s permissions were successfully changed'}), 200
     except Exception as e:
@@ -784,13 +785,12 @@ def closing_store():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = data['store_id']
-        market_facade.closeStore(user_id, store_id)
+        market_facade.close_store(user_id, store_id)
         logger.info('store was closed successfully')
         return jsonify({'message': 'store was successfully closed'}), 200
     except Exception as e:
         logger.error('closing_store - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
 
 
 @store_bp.route('/view_employees_info', methods=['GET'])
@@ -808,7 +808,7 @@ def view_employees_info():
         user_id = get_jwt_identity()
         data = request.args
         store_id = data['store_id']
-        info = None #TODO: store_facade.() -> NOT STORE
+        info = None  # TODO: store_facade.() -> NOT STORE
         logger.info('employees info was sent successfully')
         return jsonify({'message': info}), 200
     except Exception as e:

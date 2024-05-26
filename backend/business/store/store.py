@@ -45,6 +45,14 @@ class Product:
         return self.__specification_id
 
     @property
+    def expiration_date(self) -> datetime:
+        return self.__expiration_date
+
+    @property
+    def condition(self) -> ProductCondition:
+        return self.__condition
+
+    @property
     def price(self) -> float:
         return self.__price
 
@@ -98,6 +106,18 @@ class ProductSpecification:
     @property
     def product_name(self) -> str:
         return self.__product_name
+
+    @property
+    def weight(self) -> float:
+        return self.__weight
+
+    @property
+    def description(self) -> str:
+        return self.__description
+
+    @property
+    def manufacturer(self) -> str:
+        return self.__manufacturer
 
     @property
     def tags(self) -> List[str]:
@@ -679,31 +699,32 @@ class Store:
         for productId in basket:
             product = self.get_product_by_id(productId)
             if product is not None:
-                totalPrice += product.get_price()
-        return totalPrice
-        
-    def getTotalPriceOfBasketAfterDiscount(self, basket: List[int]) -> float:
-        return self.getTotalPriceIfBasketBeforeDiscount(basket) #for now we assume that there is no discount
-    
-    
-    def getStoreInformation(self) -> str:
+                total_price += product.price
+        return total_price
+
+    def get_total_price_of_basket_after_discount(self, basket: List[int]) -> float:
+        return self.get_total_price_of_basket_before_discount(basket)  # for now, we assume that there is no discount
+
+    def get_store_information(self) -> str:
         """ 
         * Parameters: none
         * This function returns the store information as a string
         * Returns: the store information as a string
         """
         products = ""
-        for product in self.__storeProducts:
-            products += product.get_productName() + " "
-        
-        purchasePolicy = ""
-        for policy in self.__purchasePolicies:
-            purchasePolicy += policy.get_purchasePolicyId() + " "
-        
-        return "Store name: " + self.__storeName + " Store founder id: " + str(self.__storeFounderId) + " Store rating: " + str(self.__rating) + " Store founded date: " + str(self.__foundedDate) + " Store products: " + products + " Store purchase policies: " + purchasePolicy
-    
-    
-#---------------------storeFacade class---------------------#
+        for product in self.__store_products:
+            products += str(product.product_id) + " "
+
+        purchase_policy = ""
+        for policy in self.__purchase_policies:
+            purchase_policy += policy.purchase_policy_id + " "
+
+        return "Store name: " + self.__store_name + " Store founder id: " + str(
+            self.__store_founder_id) + " Store rating: " + str(self.__rating) + " Store founded date: " + str(
+            self.__founded_date) + " Store products: " + products + " Store purchase policies: " + purchase_policy
+
+
+# ---------------------storeFacade class---------------------#
 class StoreFacade:
     # singleton
     __instance = None
@@ -1472,24 +1493,28 @@ class StoreFacade:
         * This function calculates the total price of the shopping cart after applying all discounts
         * Returns: the total price of the shopping cart after applying all discounts
         """
-        return self.getTotalPriceBeforeDiscount(shoppingCart) # not implemented yet VERSION 2
-      
-    
-    def getStoreProductInformation(self, storeId: int) -> str:
+        return self.get_total_price_before_discount(shopping_cart)  # not implemented yet VERSION 2
+
+    def get_store_product_information(self, user_id: int, store_id: int) -> str:
         """
         * Parameters: storeId
         * This function returns the store information as a string
         * Returns: the store information as a string
         """
-        store = self.getStoreById(storeId)
+        store = self.get_store_by_id(store_id)
         products = ""
-        for product in store.get_products():
-            productSpecId = product.get_productSpecId()
-            productSpec = self.getProductSpecById(productSpecId)
-            expirationDate = product.get_expirationDate().strftime('%Y-%m-%d')
-            condition = product.get_condition().name
-            products += "Product ID: " + product.get_productId() + "Product name: " + productSpec.get_productName() + " Product weight: " + str(productSpec.get_weight()) + " Product description: " + productSpec.get_description() + " Product tags: ".join(productSpec.get_tags()) + " Product manufacturer: " + productSpec.get_manufacturer() + " Product expiration date: " + expirationDate + " Product condition: " + condition + " Product price: " + str(product.get_price()) + "\n" 
-    
+        for product in store.store_products:
+            product_spec_id = product.specification_id
+            product_spec = self.get_product_spec_by_id(product_spec_id)
+            expiration_date = product.expiration_date.strftime('%Y-%m-%d')
+            condition = product.condition.name
+            products += ("Product ID: " + str(product.product_id) + "Product name: " + product_spec.product_name
+                         + " Product weight: " + str(product_spec.weight) + " Product description: "
+                         + product_spec.description + " Product tags: ".join(product_spec.tags)
+                         + " Product manufacturer: " + product_spec.manufacturer + " Product expiration date: "
+                         + expiration_date + " Product condition: " + condition + " Product price: "
+                         + str(product.price) + "\n")
+
         return products
 
     # --------------------methods for market facade used by users team---------------------------#

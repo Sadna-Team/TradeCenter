@@ -182,7 +182,7 @@ class ImmediateSubPurchase(Purchase):
                  total_price: float,
                  status: PurchaseStatus, product_ids: List[int]):
         super().__init__(purchase_id, user_id, store_id, date_of_purchase, total_price, status)
-        self.productIds = product_ids
+        self._product_ids = product_ids
         logger.info('[ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: %s',
                     purchase_id)
 
@@ -201,6 +201,11 @@ class ImmediateSubPurchase(Purchase):
 
     def calculate_total_price_after_discounts(self, discounts: List[int]) -> float:
         return self.calculate_total_price()  # for now not implemented
+
+    # ---------------------------------Getters and Setters---------------------------------#
+    @property
+    def product_ids(self):
+        return self._product_ids
 
 
 # -----------------ImmediatePurchase class-----------------#
@@ -1213,7 +1218,7 @@ class PurchaseFacade:
         else:
             raise ValueError("Purchase is not immediate")
 
-    def invalidatePurchaseOfUser(self, purchase_id: int, user_id: int):
+    def invalidate_purchase_of_user_immediate(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
         * This function is responsible for invalidating the purchase of the user, whether it be due to not paying or not
@@ -1377,7 +1382,7 @@ class PurchaseFacade:
         else:
             raise ValueError("Purchase is not auction")
 
-    def invalidate_purchase_of_user(self, purchase_id: int, user_id: int):
+    def invalidate_purchase_of_user_auction(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
         * This function is responsible for invalidating the purchase of the user with the highest bid, whether it be due

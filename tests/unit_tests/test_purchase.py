@@ -36,7 +36,7 @@ class TestImmediateSubPurchase(unittest.TestCase):
         self.assertEqual(self.purchase.dateOfPurchase, datetime(2023, 1, 1))
         self.assertEqual(self.purchase.totalPrice, 200.0)
         self.assertEqual(self.purchase.status, PurchaseStatus.onGoing)
-        self.assertEqual(self.purchase.productIds, [10, 20, 30])
+        self.assertEqual(self.purchase._product_ids, [10, 20, 30])
 
     def test_getters(self):
         self.assertEqual(self.purchase.get_purchaseId, 1)
@@ -61,7 +61,7 @@ class TestImmediateSubPurchase(unittest.TestCase):
         self.purchase.__set_status(PurchaseStatus.completed)
         self.assertEqual(self.purchase.status, PurchaseStatus.completed)
         self.purchase.__set_productIds([40, 50, 60])
-        self.assertEqual(self.purchase.productIds, [40, 50, 60])
+        self.assertEqual(self.purchase._product_ids, [40, 50, 60])
 
     def test_updateStatus(self):
         self.purchase.updateStatus(PurchaseStatus.failed)
@@ -921,10 +921,10 @@ class TestPurchaseFacade(unittest.TestCase):
         purchaseId = 1
         userId = 1
 
-        self.purchase_facade.invalidatePurchaseOfUser(purchaseId, userId)
+        self.purchase_facade.invalidate_purchase_of_user_immediate(purchaseId, userId)
         
         self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
-        self.immediate_purchase_mock.invalidatePurchaseOfUser.assert_called_with(userId)
+        self.immediate_purchase_mock.invalidate_purchase_of_user_immediate.assert_called_with(userId)
 
     def test_storeAcceptOffer(self):
         purchaseId = 1
@@ -1124,7 +1124,7 @@ class TestPurchaseFacade(unittest.TestCase):
         purchaseId = 1
         userId = 1
 
-        self.purchase_facade.invalidatePurchaseOfUser(purchaseId, userId)
+        self.purchase_facade.invalidate_purchase_of_user_immediate(purchaseId, userId)
         self.purchase_facade.getPurchaseById.assert_called_with(purchaseId)
         self.auction_purchase_mock.invalidatePurchaseOfUser.assert_called_with(userId)
 

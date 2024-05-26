@@ -32,17 +32,17 @@ class Address:
     def house_number(self):
         return self.__house_number
 
-    def getLocationConstraints(self):
+    def get_location_constraints(self):
         pass
 
-    def getLocationCurrency(self):
+    def get_location_currency(self):
         pass
 
-    def getLocationTimezone(self):
+    def get_location_timezone(self):
         pass
 
-    def getLocationLanguage(self):
+    def get_location_language(self):
         pass
 
-    def getLocationWeight(self):
+    def get_location_weight(self):
         pass
