@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from enum import Enum
 import numpy as np
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 
 # -------------logging configuration----------------
 import logging
@@ -17,12 +17,12 @@ class Rating(ABC):
                  creation_date: datetime):
         if not (0.0 <= rating <= 5.0):
             raise ValueError("Rating must be a float between 0 and 5")
-        self._rating_id = rating_id
-        self._rating = rating
-        self._purchase_id = purchase_id
-        self._user_id = user_id
-        self._description = description
-        self._creation_date = creation_date
+        self._rating_id: int = rating_id
+        self._rating: float = rating
+        self._purchase_id: int = purchase_id
+        self._user_id: int = user_id
+        self._description: str = description
+        self._creation_date: datetime = creation_date
 
     # ---------------------------------Getters and Setters---------------------------------#
     @property
@@ -33,10 +33,9 @@ class Rating(ABC):
     def user_id(self):
         return self._user_id
 
-    # ---------------------------------Methods---------------------------------#
-    @abstractmethod
-    def calculate_rating(self):
-        pass
+    @property
+    def rating(self):
+        return self._rating
 
 
 # -----------------StoreRating class-----------------#
@@ -46,7 +45,7 @@ class StoreRating(Rating):
     def __init__(self, rating_id: int, rating: float, purchase_id: int, user_id: int, description: str, store_id: int,
                  creation_date: datetime = datetime.now()):
         super().__init__(rating_id, rating, purchase_id, user_id, description, creation_date)
-        self.__store_id = store_id
+        self.__store_id: int = store_id
         logger.info('[StoreRating] successfully created store rating object with rating id: %s', rating_id)
 
     # ---------------------------------Getters and Setters---------------------------------#
@@ -62,10 +61,6 @@ class StoreRating(Rating):
     def user_id(self):
         return self._user_id
 
-    # ---------------------------------Methods---------------------------------#
-    def calculate_rating(self):
-        return self._rating
-
 
 # -----------------ProductRating class-----------------#
 class ProductRating(Rating):
@@ -75,78 +70,42 @@ class ProductRating(Rating):
                  product_spec_id: int,
                  creation_date: datetime = datetime.now()):
         super().__init__(rating_id, rating, purchase_id, user_id, description, creation_date)
-        self.__product_spec_id = product_spec_id
+        self.__product_id = product_spec_id
         logger.info('[ProductRating] successfully created product rating object with rating id: %s', rating_id)
 
     # ---------------------------------Getters and Setters---------------------------------#
     @property
-    def product_spec_id(self):
-        return self.__product_spec_id
-
-    # ---------------------------------Methods---------------------------------#
-    def calculate_rating(self):
-        return self._rating
+    def product_id(self):
+        return self.__product_id
 
 
 # ---------------------purchaseStatus Enum---------------------#
 class PurchaseStatus(Enum):
     # Enum for the status of the purchase
-    notStarted = 1
-    onGoing = 2
-    failed = 3
-    accepted = 4
-    completed = 5
+    onGoing = 1
+    accepted = 2
+    completed = 3
 
 
 # -----------------Purchase Class-----------------#
 class Purchase(ABC):
     # interface for the purchase classes, contains the common attributes and methods for the purchase classes
-    def __init__(self, purchase_id: int, user_id: int, store_id: int, date_of_purchase: Optional[datetime],
-                 total_price: float,
-                 status: PurchaseStatus):
+    def __init__(self, purchase_id: int, user_id: int, date_of_purchase: Optional[datetime],
+                 total_price: float, total_price_after_discounts: float, status: PurchaseStatus):
         self._purchase_id = purchase_id
         self._user_id = user_id
-        self._store_id = store_id
         self._date_of_purchase = date_of_purchase
         self._total_price = total_price
+        self._total_price_after_discounts: float = total_price_after_discounts
         self._status = status
 
-    @abstractmethod
-    def update_status(self, status: PurchaseStatus):
-        """
-        * Parameters: status
-        * This function is responsible for updating the status of the purchase
-        * Returns: none
-        """
-        pass
-
-    @abstractmethod
-    def update_date_of_purchase(self, date_of_purchase: datetime):
-        """
-        * Parameters: dateOfPurchase
-        * This function is responsible for updating the date of the purchase
-        * Returns: none
-        """
-        pass
-
-    @abstractmethod
-    def calculate_total_price(self) -> float:
-        """
-        * Parameters: none
-        * This function is responsible for returning the proposed price for the product on bid, maybe plus delivery fee
-        later on
-        * Returns: float of proposed price
-        """
-        pass
-
-    @abstractmethod
     def check_if_completed_purchase(self) -> bool:
         """
         * Parameters: none
         * This function is responsible for checking if the purchase is completed, and updating if it is
         * Returns: true if completed, false otherwise
         """
-        pass
+        return self._status == PurchaseStatus.completed
 
     # ---------------------------------Getters and Setters---------------------------------#
     @property
@@ -156,10 +115,6 @@ class Purchase(ABC):
     @property
     def user_id(self):
         return self._user_id
-
-    @property
-    def store_id(self):
-        return self._store_id
 
     @property
     def date_of_purchase(self):
@@ -179,28 +134,12 @@ class ImmediateSubPurchase(Purchase):
     # purchaseId and storeId are unique identifier of the immediate purchase, storeId used to retrieve the details of
     # the store
     def __init__(self, purchase_id: int, store_id: int, user_id: int, date_of_purchase: Optional[datetime],
-                 total_price: float,
-                 status: PurchaseStatus, product_ids: List[int]):
-        super().__init__(purchase_id, user_id, store_id, date_of_purchase, total_price, status)
-        self._product_ids = product_ids
+                 total_price: float, total_price_after_discounts:float, status: PurchaseStatus, product_ids: List[int]):
+        super().__init__(purchase_id, user_id, date_of_purchase, total_price, total_price_after_discounts, status)
+        self._store_id: int = store_id
+        self._product_ids: List[int] = product_ids
         logger.info('[ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: %s',
                     purchase_id)
-
-    # ---------------------------------Methods---------------------------------#
-    def update_status(self, status: PurchaseStatus):
-        self._status = status
-
-    def update_date_of_purchase(self, date_of_purchase: datetime):
-        self._date_of_purchase = date_of_purchase
-
-    def calculate_total_price(self) -> float:
-        return self._total_price
-
-    def check_if_completed_purchase(self) -> bool:
-        pass
-
-    def calculate_total_price_after_discounts(self, discounts: List[int]) -> float:
-        return self.calculate_total_price()  # for now not implemented
 
     # ---------------------------------Getters and Setters---------------------------------#
     @property
@@ -215,21 +154,24 @@ class ImmediatePurchase(Purchase):
     # Note: List[Tuple[Tuple[int,float],List[int]]] -> List of shoppingBaskets where shoppingBasket is a tuple of a
     #       tuple of storeId and totalPrice and a list of productIds
     def __init__(self, purchase_id: int, user_id: int, total_price: float,
-                 shopping_cart: List[Tuple[Tuple[int, float], List[int]]], total_price_after_discounts: float = -1):
-        date_of_purchase = None  # for now, it will be updated once a purchase was accepted
-        status = PurchaseStatus.onGoing  # for now, it will be updated once a purchase was accepted
-        super().__init__(purchase_id, user_id, -1, date_of_purchase, total_price, status)
-        self._delivery_date = None  # for now, it will be updated once a purchase was accepted
-        self._total_price_after_discounts = total_price_after_discounts
-        self._immediate_sub_purchases = []
-        for shoppingBasket in shopping_cart:
-            self._immediate_sub_purchases.append(
-                ImmediateSubPurchase(purchase_id, user_id, shoppingBasket[0][0], self._date_of_purchase,
-                                     shoppingBasket[0][1], self._status, shoppingBasket[1]))
+                 shopping_cart: Dict[int, Tuple[Dict[int, int], float, float]],
+                 total_price_after_discounts: float = -1):
+        super().__init__(purchase_id, user_id, datetime.now(), total_price, total_price_after_discounts,
+                         PurchaseStatus.onGoing)
+        self._delivery_date: Optional[datetime] = None  # for now, it will be updated once a purchase was accepted
+        self._immediate_sub_purchases: List[ImmediateSubPurchase] = []
+        self.__sub_purchase_id_serializer: int = 0
+        for store_id in shopping_cart:
+            products = shopping_cart[store_id][0]
+            price = shopping_cart[store_id][1]
+            price_after_discounts = shopping_cart[store_id][2]
+            immediate_sub_purchase = ImmediateSubPurchase(self.__get_new_sub_purchase_id(), store_id, user_id,
+                                                          None, price, price_after_discounts, PurchaseStatus.onGoing,
+                                                          list(products.keys()))
+            self._immediate_sub_purchases.append(immediate_sub_purchase)
         logger.info('[ImmediatePurchase] successfully created immediate purchase object with purchase id: %s',
                     purchase_id)
 
-    # ---------------------------------Getters and Setters---------------------------------#
     @property
     def delivery_date(self):
         return self._delivery_date
@@ -242,91 +184,14 @@ class ImmediatePurchase(Purchase):
     def immediate_sub_purchases(self):
         return self._immediate_sub_purchases
 
-    # ---------------------------------Methods---------------------------------#
-    def update_status(self, status: PurchaseStatus):
-        """
-        * Parameters: status
-        * This function is responsible for updating the status of the purchase
-        * Returns: none
-        """
-        self._status = status
-        logger.info('[ImmediatePurchase] attempting to update status of immediate purchase with purchase id: %s',
-                    self.purchase_id)
-
-    def update_date_of_purchase(self, date_of_purchase: Optional[datetime]):
-        """
-        * Parameters: dateOfPurchase
-        * This function is responsible for updating the date of the purchase
-        * Returns: none
-        """
-        self._date_of_purchase = date_of_purchase
-        logger.info(
-            '[ImmediatePurchase] attempting to update date of purchase of immediate purchase with purchase id: %s',
-            self.purchase_id)
-
-    def calculate_total_price(self) -> float:
-        """
-        * Parameters: none
-        * This function is responsible for calculating the total price of the products in the shoppingCart before
-         discount
-        * Returns: total price of the current purchase
-        """
-        total_price = 0
-        for subPurchase in self._immediate_sub_purchases:
-            total_price += subPurchase.calculate_total_price()
-        return total_price
-
-    def calculate_total_price_after_discounts(self, discounts: List[int]) -> float:
-        # for now discounts is not properly declared
-        """
-        * Parameters: none
-        * This function is responsible for calculating the total price of the products in the shoppingCart after
-         discount
-        * Returns: total price of the current purchase after discount
-        """
-        # call method of shoppingCart to calculate the total price of the products in the shoppingCart after discount
-        return self.calculate_total_price()  # for now not implemented
-
-    def validated_purchase(self, delivery_date: datetime):
-        """
-        * Parameters: none
-        * This function is responsible for validating that the purchase is valid
-        * Returns: none
-        """
-        self.update_status(PurchaseStatus.accepted)
-        self.update_date_of_purchase(datetime.now())
-        self.delivery_date(delivery_date)
-
-    def invalid_purchase(self):
-        """
-        * Parameters: none
-        * This function is responsible for invalidating the purchase
-        * Returns: none
-        """
-        self.update_status(PurchaseStatus.failed)
-        self.update_date_of_purchase(None)
-        self.delivery_date(None)
-
-    def check_if_completed_purchase(self) -> bool:
-        # maybe later on, notify the user and ask if they received the purchase and only then we can go to completed
-        """
-        * Parameters: none
-        * This function is responsible for checking if the purchase is completed, and updating if it is
-        * Returns: true if completed, false otherwise
-        """
-        if self._status == PurchaseStatus.accepted:
-            if self.delivery_date() < datetime.now():
-                self.update_status(PurchaseStatus.completed)
-                logger.info('[ImmediatePurchase] purchase with purchase id: %s has been completed',
-                            self._purchase_id)
-                return True
-        logger.warning('[ImmediatePurchase] purchase with purchase id: %s has not been completed',
-                       self._purchase_id)
-        return False
+    def __get_new_sub_purchase_id(self) -> int:
+        new_id = self.__sub_purchase_id_serializer
+        self.__sub_purchase_id_serializer += 1
+        return new_id
 
 
 # -----------------BidPurchase class-----------------#
-class BidPurchase(Purchase):
+'''class BidPurchase(Purchase):
     # purchaseId and productId are the unique identifiers for the product rating, productSpec used to retrieve the
     # details of product
     def __init__(self, purchase_id: int, user_id: int, proposed_price: float, product_id: int, product_spec_id: int,
@@ -799,7 +664,7 @@ class LotteryPurchase(Purchase):
         logger.info('[LotteryPurchase] invalidating delivery of winner of lottery purchase with purchase id: %s',
                     self._purchase_id)
         if user_id == self._user_id:
-            self._status = PurchaseStatus.failed
+            self._status = PurchaseStatus.failed'''
 
 
 # -----------------PurchaseFacade class-----------------#
@@ -1093,7 +958,7 @@ class PurchaseFacade:
         for rating in self._ratings:
             if isinstance(rating, ProductRating):
                 if (rating.purchase_id == purchase_id and rating.user_id == user_id
-                        and rating.product_spec_id == product_spec_id):
+                        and rating.product_id == product_spec_id):
                     return True
         return False
 
@@ -1116,7 +981,7 @@ class PurchaseFacade:
         """
         logger.info('[PurchaseFacade] calculating new rating of product with product spec id: %s', product_spec_id)
         ratings = [rating for rating in self._ratings if
-                   isinstance(rating, ProductRating) and rating.product_spec_id == product_spec_id]
+                   isinstance(rating, ProductRating) and rating.product_id == product_spec_id]
         return sum([rating.rating for rating in ratings]) / len(ratings)
 
     def rate_store(self, purchase_id: int, user_id: int, store_id: int, rating: float, description: str) -> float:
@@ -1147,7 +1012,7 @@ class PurchaseFacade:
         else:
             raise ValueError("Purchase id is invalid")
 
-    def rate_product(self, purchase_id: int, user_id: int, product_spec_id: int, rating: float, description: str)\
+    def rate_product(self, purchase_id: int, user_id: int, product_spec_id: int, rating: float, description: str) \
             -> float:
         """
         * Parameters: purchaseId, userId, rating, productSpecId
