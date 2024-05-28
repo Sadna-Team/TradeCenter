@@ -37,6 +37,31 @@ class TestAuthentication(unittest.TestCase):
         self.assertTrue(self.auth.verify_password(password, hashed_password))
         self.assertFalse(self.auth.verify_password('wrong_password', hashed_password))
 
+    def test_register_user_succsess(self):
+        user_credentials = {
+            'password': 'test_password',
+            'email': 'test_email',
+            'username': 'test_username',
+            'year': 'test_year',
+            'month': 'test_month',
+            'day': 'test_day'
+        }
+        self.auth.register_user('test_user_id', user_credentials)
+        self.auth.user_facade.create_user.assert_called_once_with('test_user_id', user_credentials)
+
+    
+    def test_register_user_fail(self):
+        user_credentials = {
+            'password': 'test_password',
+            'email': 'test_email',
+            'username': 'test_username',
+            'year': 'test_year',
+            'month': 'test_month'
+        }
+        with self.assertRaises(ValueError):
+            self.auth.register_user('test_user_id', user_credentials)
+
+
     def test_start_guest(self):
         self.auth.user_facade.create_user.return_value = 'guest_user_id'
         token = self.auth.start_guest()
