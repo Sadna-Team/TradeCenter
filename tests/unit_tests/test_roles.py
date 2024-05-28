@@ -6,6 +6,7 @@ from backend.business.roles.roles import RolesFacade, StoreOwner, StoreManager, 
 class TestRolesFacade(unittest.TestCase):
     def setUp(self):
         self.facade = RolesFacade()
+        self.facade.clean_data()
         self.facade.add_admin(1)  # Setting up system admin for testing purposes
 
     def test_add_store(self):
@@ -56,15 +57,15 @@ class TestRolesFacade(unittest.TestCase):
 
     def test_set_manager_permissions(self):
         self.facade.add_store(1, 2)
-        self.facade.nominate_manager(1, 2, 3)
-        self.facade.accept_nomination(0, 3)  # Assuming the first nomination id is 0
+        nomination_id = self.facade.nominate_manager(1, 2, 3)
+        self.facade.accept_nomination(nomination_id, 3)  # Assuming the first nomination id is 0
         self.facade.set_manager_permissions(1, 2, 3, True, True, True, True, True, True, True)
         self.assertTrue(self.facade._RolesFacade__stores_to_roles[1][3].permissions.add_product)
 
     def test_remove_role(self):
         self.facade.add_store(1, 2)
-        self.facade.nominate_manager(1, 2, 3)
-        self.facade.accept_nomination(0, 3)  # Assuming the first nomination id is 0
+        nomination_id = self.facade.nominate_manager(1, 2, 3)
+        self.facade.accept_nomination(nomination_id, 3)  # Assuming the first nomination id is 0
         self.facade.remove_role(1, 2, 3)
         self.assertNotIn(3, self.facade._RolesFacade__stores_to_roles[1])
 
