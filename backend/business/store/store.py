@@ -22,49 +22,57 @@ class ProductCondition(Enum):
 
 
 # ---------------------product class---------------------#
-class Product:
+class Product:  
+    #TODO!!! ask ilay if we store the amount in product or in store, if we store in store we can have the same product in similar store.
+    #TODO ask...
+
     # id of product is productId. It is unique for each physical product
-    def __init__(self, product_id: int, store_id: int, specification_id: int, expiration_date: datetime,
-                 condition: ProductCondition, price: float):
+    def __init__(self, product_id: int, store_id: int, product_name: str, weight: float, description: str,
+                  amount_to_condition: Dict[ProductCondition, int], price: float):
         self.__product_id = product_id
         self.__store_id = store_id
-        self.__specification_id = specification_id
-        self.__expiration_date = expiration_date
-        self.__condition = condition
+        self.__product_name = product_name
+        self.__weight = weight
+        self.__description = description
+        self.__tags = [] # initialized with no tags
+        self.__amount_To_condition = amount_to_condition
         self.__price = price  # price is in dollars
-
         logger.info('[Product] successfully created product with id: ' + str(product_id))
 
     # ---------------------getters and setters---------------------
     @property
     def product_id(self) -> int:
         return self.__product_id
-
+    
     @property
-    def specification_id(self) -> int:
-        return self.__specification_id
-
+    def store_id(self) -> int:
+        return self.__store_id
+    
     @property
-    def expiration_date(self) -> datetime:
-        return self.__expiration_date
-
+    def product_name(self) -> str:
+        return self.__product_name
+    
     @property
-    def condition(self) -> ProductCondition:
-        return self.__condition
-
+    def weight(self) -> float:
+        return self.__weight
+    
+    @property
+    def description(self) -> str:
+        return self.__description
+    
+    @property
+    def tags(self) -> List[str]:
+        return self.__tags
+    
+    @property
+    def amount_to_condition(self) -> Dict[ProductCondition, int]:
+        return self.__amount_To_condition
+    
     @property
     def price(self) -> float:
         return self.__price
-
+    
     # ---------------------methods--------------------------------
-    def is_expired(self) -> bool:
-        """
-        * Parameters: none
-        * This function checks whether the product is expired or not
-        * Returns: True if the product is expired
-        """
-        return self.__expiration_date < datetime.now()
-
     def change_price(self, new_price: float) -> bool:
         """
         * Parameters: newPrice
@@ -82,48 +90,6 @@ class Product:
             raise ValueError('New price is not a valid float value')
 
 
-# ---------------------productSpecification class---------------------#
-class ProductSpecification:
-    # id of product specification is specificationId. It is unique for each product specification
-    # it is assumed that weight is stored in kilograms
-    def __init__(self, specification_id: int, product_name: str, weight: float, description: str, tags: List[str],
-                 manufacturer: str, store_ids: List[int] = []):
-        self.__specification_id = specification_id
-        self.__product_name = product_name
-        self.__weight = weight
-        self.__description = description
-        self.__tags = tags
-        self.__manufacturer = manufacturer
-        self.__storeIds = store_ids
-        logger.info(
-            '[ProductSpecification] successfully created product specification with id: ' + str(specification_id))
-
-    # ---------------------getters and setters---------------------
-    @property
-    def specification_id(self) -> int:
-        return self.__specification_id
-
-    @property
-    def product_name(self) -> str:
-        return self.__product_name
-
-    @property
-    def weight(self) -> float:
-        return self.__weight
-
-    @property
-    def description(self) -> str:
-        return self.__description
-
-    @property
-    def manufacturer(self) -> str:
-        return self.__manufacturer
-
-    @property
-    def tags(self) -> List[str]:
-        return self.__tags
-
-    # ---------------------methods--------------------------------
     def add_tag(self, tag: str) -> bool:
         """
         * Parameters: tag
@@ -141,7 +107,8 @@ class ProductSpecification:
         else:
             raise ValueError('Tag is not a valid string')
 
-    def remove_tag(self, tag: str) -> bool:
+
+    def remove_tag(self, tag: str) -> None:
         """
         * Parameters: tag
         * This function removes a tag from the product specification
