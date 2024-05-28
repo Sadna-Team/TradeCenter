@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict
 
 
 class PaymentStrategy(ABC):
@@ -33,7 +33,7 @@ class PaymentHandler:
         if PaymentHandler.__instance is None:
             PaymentHandler.__instance = object.__new__(cls)
         return PaymentHandler.__instance
-    
+
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized: bool = True
@@ -64,18 +64,20 @@ class PaymentHandler:
             * process_payment should return True if the payment was successful, and False / raise exception otherwise.
         """
         # NOTE: << should log payment here >>
-        return self._resolve_payment_strategy(payment_details).pay(amount, self.payment_config[payment_details.get("payment method")])
-    
+        return (self._resolve_payment_strategy(payment_details)
+                .pay(amount, self.payment_config[payment_details.get("payment method")]))
+
     def edit_payment_method(self, method_name: str, editing_data: Dict) -> None:
         """
             * edit_payment_method is a method that edits a user's payment method.
-            * edit_payment_method should return True if the payment method was edited successfully, and False / raise exception otherwise.
+            * edit_payment_method should return True if the payment method was edited successfully, and False / raise
+            exception otherwise.
         """
         # NOTE: << should log payment method edit here >>
         if method_name not in self.payment_config:
             raise ValueError("payment method not supported")
         self.payment_config[method_name] = editing_data
-        
+
     def add_payment_method(self, method_name: str, config: Dict) -> None:
         """
             * add_payment_method is a method that marks a user's payment method as fully supported in the system.
@@ -93,6 +95,7 @@ class PaymentHandler:
         if method_name not in self.payment_config:
             raise ValueError("payment method not supported")
         del self.payment_config[method_name]
+
 
 class SupplyStrategy(ABC):
     """
@@ -125,7 +128,7 @@ class SupplyHandler:
         if SupplyHandler.__instance is None:
             SupplyHandler.__instance = object.__new__(cls)
         return SupplyHandler.__instance
-    
+
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized: bool = True
@@ -156,19 +159,21 @@ class SupplyHandler:
             * process_supply should return True if the supply was successful, and False / raise exception otherwise.
         """
         # NOTE: << should log supply here >>
-        return self._resolve_supply_strategy(package_details).order(package_details, user_id, 
-                                                                    self.supply_config[package_details.get("supply method")])
-    
+        return self._resolve_supply_strategy(package_details).order(package_details, user_id,
+                                                                    self.supply_config[
+                                                                        package_details.get("supply method")])
+
     def edit_supply_method(self, method_name: str, editing_data: Dict) -> None:
         """
             * edit_supply_method is a method that edits a user's supply method.
-            * edit_supply_method should return True if the supply method was edited successfully, and False / raise exception otherwise.
+            * edit_supply_method should return True if the supply method was edited successfully, and False / raise
+            exception otherwise.
         """
         # NOTE: << should log supply method edit here >>
         if method_name not in self.supply_config:
             raise ValueError("supply method not supported")
         self.supply_config[method_name] = editing_data
-    
+
     def add_supply_method(self, method_name: str, config: Dict) -> None:
         """
             * add_supply_method is a method that marks a user's supply method as fully supported in the system.

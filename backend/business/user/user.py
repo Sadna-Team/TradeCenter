@@ -1,7 +1,6 @@
 from . import c
-from typing import Optional, List, Dict,Set
+from typing import List, Dict, Set
 import datetime
-from collections import defaultdict
 from abc import ABC, abstractmethod
 import threading
 
@@ -14,12 +13,10 @@ class ShoppingBasket:
         self.__store_id: int = store_id
         self.__products: Set = set()
 
-
     def add_product(self, product_id: int) -> None:
         if product_id in self.__products:
             raise ValueError("Product already exists in the basket")
         self.__products.add(product_id)
-
 
     def get_dto(self) -> List[int]:
         return list(self.__products)
@@ -77,9 +74,6 @@ class Member(State):
 
     def get_password(self):
         return self.__password
-
-
-
 
 
 class Notification:
@@ -203,8 +197,8 @@ class UserFacade:
     def remove_user(self, user_id: int):
         if user_id in self.__users:
             del self.__users[user_id]
-        for username, id in self.__usernames.items():
-            if id == user_id:
+        for username, u_id in self.__usernames.items():
+            if u_id == user_id:
                 del self.__usernames[username]
                 break
 
@@ -212,9 +206,6 @@ class UserFacade:
         (self.__get_user(user_id).get_notifications()
          .append(Notification(notification.get_notification_id(),
                               notification.get_message(), notification.get_date())))
-
-
-    
 
     def is_member(self, user_id: int) -> bool:
         return isinstance(self.__get_user(user_id), Member)

@@ -7,6 +7,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 
 
+
 class TestAuthentication(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)

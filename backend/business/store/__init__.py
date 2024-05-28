@@ -1,1 +1,1 @@
-#from .store import StoreFacade
+from .store import StoreFacade
