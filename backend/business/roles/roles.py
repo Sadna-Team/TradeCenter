@@ -194,6 +194,7 @@ class RolesFacade:
             self.__systems_nominations: Dict[int, Nomination] = {}
             self.__system_managers: List[int] = []
             self.__system_admin: int = -1
+            Nomination._Nomination__nomination_id_serializer = 0
 
     def clean_data(self):
         """
@@ -267,7 +268,7 @@ class RolesFacade:
         # add role to the store
         self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
         # delete all nominations of the nominee in the store
-        for n_id, nomination in self.__systems_nominations.items():
+        for n_id, nomination in self.__systems_nominations.copy().items():
             if nomination.nominee_id == nominee_id and nomination.store_id == nomination.store_id:
                 del self.__systems_nominations[n_id]
 
