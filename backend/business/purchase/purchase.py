@@ -1,18 +1,17 @@
 # ----------------- imports -----------------#
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-import numpy as np
 from typing import List, Tuple, Optional, Dict
+from backend.business.DTOs import PurchaseProductDTO, PurchaseDTO
 
 # -------------logging configuration----------------
 import logging
 
 logger = logging.getLogger('myapp')
 
-
 # -----------------Rating class-----------------#
-class Rating(ABC):
+'''class Rating(ABC):
     def __init__(self, rating_id: int, rating: float, purchase_id: int, user_id: int, description: str,
                  creation_date: datetime):
         if not (0.0 <= rating <= 5.0):
@@ -76,7 +75,7 @@ class ProductRating(Rating):
     # ---------------------------------Getters and Setters---------------------------------#
     @property
     def product_id(self):
-        return self.__product_id
+        return self.__product_id'''
 
 
 # ---------------------purchaseStatus Enum---------------------#
@@ -125,8 +124,18 @@ class Purchase(ABC):
         return self._total_price
 
     @property
+    def total_price_after_discounts(self):
+        return self._total_price_after_discounts
+
+    @property
     def status(self):
         return self._status
+
+    def accept(self):
+        self._status = PurchaseStatus.accepted
+
+    def complete(self):
+        self._status = PurchaseStatus.completed
 
 
 # -----------------ImmediateSubPurchases class-----------------#
@@ -134,17 +143,28 @@ class ImmediateSubPurchase(Purchase):
     # purchaseId and storeId are unique identifier of the immediate purchase, storeId used to retrieve the details of
     # the store
     def __init__(self, purchase_id: int, store_id: int, user_id: int, date_of_purchase: Optional[datetime],
-                 total_price: float, total_price_after_discounts:float, status: PurchaseStatus, product_ids: List[int]):
+                 total_price: float, total_price_after_discounts: float, status: PurchaseStatus,
+                 products: List[PurchaseProductDTO]):
         super().__init__(purchase_id, user_id, date_of_purchase, total_price, total_price_after_discounts, status)
         self._store_id: int = store_id
-        self._product_ids: List[int] = product_ids
+        self._products: List[PurchaseProductDTO] = products
         logger.info('[ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: %s',
                     purchase_id)
 
+    def accept(self):
+        self._status = PurchaseStatus.accepted
+
+    def complete(self):
+        self._status = PurchaseStatus.completed
+
     # ---------------------------------Getters and Setters---------------------------------#
     @property
-    def product_ids(self):
-        return self._product_ids
+    def store_id(self):
+        return self._store_id
+
+    @property
+    def products(self):
+        return self._products
 
 
 # -----------------ImmediatePurchase class-----------------#
@@ -154,7 +174,7 @@ class ImmediatePurchase(Purchase):
     # Note: List[Tuple[Tuple[int,float],List[int]]] -> List of shoppingBaskets where shoppingBasket is a tuple of a
     #       tuple of storeId and totalPrice and a list of productIds
     def __init__(self, purchase_id: int, user_id: int, total_price: float,
-                 shopping_cart: Dict[int, Tuple[Dict[int, int], float, float]],
+                 shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]],
                  total_price_after_discounts: float = -1):
         super().__init__(purchase_id, user_id, datetime.now(), total_price, total_price_after_discounts,
                          PurchaseStatus.onGoing)
@@ -167,7 +187,7 @@ class ImmediatePurchase(Purchase):
             price_after_discounts = shopping_cart[store_id][2]
             immediate_sub_purchase = ImmediateSubPurchase(self.__get_new_sub_purchase_id(), store_id, user_id,
                                                           None, price, price_after_discounts, PurchaseStatus.onGoing,
-                                                          list(products.keys()))
+                                                          products)
             self._immediate_sub_purchases.append(immediate_sub_purchase)
         logger.info('[ImmediatePurchase] successfully created immediate purchase object with purchase id: %s',
                     purchase_id)
@@ -188,6 +208,16 @@ class ImmediatePurchase(Purchase):
         new_id = self.__sub_purchase_id_serializer
         self.__sub_purchase_id_serializer += 1
         return new_id
+
+    def accept(self):
+        super().accept()
+        for sub_purchase in self._immediate_sub_purchases:
+            sub_purchase.accept()
+
+    def complete(self):
+        super().complete()
+        for sub_purchase in self._immediate_sub_purchases:
+            sub_purchase.complete()
 
 
 # -----------------BidPurchase class-----------------#
@@ -667,7 +697,6 @@ class LotteryPurchase(Purchase):
             self._status = PurchaseStatus.failed'''
 
 
-# -----------------PurchaseFacade class-----------------#
 class PurchaseFacade:
     # singleton
     __instance = None
@@ -680,40 +709,109 @@ class PurchaseFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self._purchases = []
-            self._ratings = []
+            self._purchases: Dict[int, Purchase] = {}
+            # self._ratings = []
             self._purchases_id_counter = 0
-            self._rating_id_counter = 0
+            # self._rating_id_counter = 0
             logger.info('[PurchaseFacade] successfully created purchase facade object')
 
     # -----------------Purchases in general-----------------#
     def create_immediate_purchase(self, user_id: int, total_price: float,
-                                  shopping_cart: List[Tuple[Tuple[int, float], List[int]]]) -> bool:
+                                  shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]]) -> None:
         """
         * Parameters: userId, dateOfPurchase, deliveryDate, shoppingCart, total_price_after_discounts
         * This function is responsible for creating an immediate purchase
         * Note: total_price_after_discounts is not calculated yet! Initialized as -1!
         * Returns: bool
         """
-        if user_id is not None:
-            if total_price is not None and total_price >= 0:
-                if shopping_cart is not None:
-                    total_price_after_discounts = -1
-                    immediate_purchase = ImmediatePurchase(self._purchases_id_counter, user_id, total_price,
-                                                           shopping_cart, total_price_after_discounts)
-                    self._purchases.append(immediate_purchase)
-                    self._purchases_id_counter += 1
-                    logger.info('[PurchaseFacade] created immediate purchase with purchase id: %s',
-                                immediate_purchase.purchase_id)
-                    return True
-                else:
-                    raise ValueError("Shopping cart is invalid")
-            else:
-                raise ValueError("Total price is invalid")
-        else:
-            raise ValueError("User id is invalid")
+        if total_price < 0:
+            raise ValueError("Total price must be a positive float")
 
-    def create_bid_purchase(self, user_id: int, proposed_price: float, product_id: int, product_spec_id: int,
+        pur = ImmediatePurchase(self.__get_new_purchase_id(), user_id, total_price, shopping_cart)
+
+        self._purchases[pur.purchase_id] = pur
+
+    def __get_new_purchase_id(self) -> int:
+        new_id = self._purchases_id_counter
+        self._purchases_id_counter += 1
+        return new_id
+
+    def get_purchases_of_user(self, user_id: int) -> List[PurchaseDTO]:
+        """
+        * Parameters: userId
+        * This function is responsible for returning the purchases of the user
+        * Returns: list of Purchase objects
+        """
+        purchases: List[PurchaseDTO] = []
+        for purchase in self._purchases.values():
+            if purchase.user_id == user_id:
+                if isinstance(purchase, ImmediatePurchase):
+                    for sub_purchase in purchase.immediate_sub_purchases:
+                        purchases.append(PurchaseDTO(sub_purchase.purchase_id, sub_purchase.store_id,
+                                                     sub_purchase.date_of_purchase, sub_purchase.total_price,
+                                                     sub_purchase.total_price_after_discounts,
+                                                     sub_purchase.status.value, sub_purchase.products))
+                # if another type of purchase
+
+        return purchases
+
+    def get_purchases_of_store(self, store_id: int) -> List[PurchaseDTO]:
+        """
+        * Parameters: storeId
+        * This function is responsible for returning the purchases of the store
+        * Returns: list of Purchase objects
+        """
+        purchases: List[PurchaseDTO] = []
+        for purchase in self._purchases.values():
+            if isinstance(purchase, ImmediatePurchase):
+                for sub_purchase in purchase.immediate_sub_purchases:
+                    if sub_purchase.store_id == store_id:
+                        purchases.append(PurchaseDTO(sub_purchase.purchase_id, sub_purchase.store_id,
+                                                     sub_purchase.date_of_purchase, sub_purchase.total_price,
+                                                     sub_purchase.total_price_after_discounts,
+                                                     sub_purchase.status.value, sub_purchase.products))
+        return purchases
+
+    def accept_purchase(self, purchase_id: int) -> None:
+        """
+        * Parameters: purchaseId
+        * This function is responsible for accepting the purchase
+        * Returns: none
+        """
+        logger.info('[PurchaseFacade] attempting to accept purchase with purchase id: %s', purchase_id)
+        purchase = self.__get_purchase_by_id(purchase_id)
+        purchase.accept()
+
+    def reject_purchase(self, purchase_id: int) -> None:
+        """
+        * Parameters: purchaseId
+        * This function is responsible for rejecting the purchase
+        * Returns: none
+        """
+        logger.info('[PurchaseFacade] attempting to reject purchase with purchase id: %s', purchase_id)
+        if not self.__check_if_purchase_exists(purchase_id):
+            raise ValueError("Purchase id is invalid")
+        del self._purchases[purchase_id]
+
+    def complete_purchase(self, purchase_id: int):
+        """
+        * Parameters: purchaseId
+        * This function is responsible for completing the purchase
+        * Returns: none
+        """
+        logger.info('[PurchaseFacade] attempting to complete purchase with purchase id: %s', purchase_id)
+        purchase = self.__get_purchase_by_id(purchase_id)
+        purchase.complete()
+
+    def __get_purchase_by_id(self, purchase_id: int) -> Purchase:
+        if self.__check_if_purchase_exists(purchase_id):
+            return self._purchases[purchase_id]
+        raise ValueError("Purchase id is invalid")
+
+    def __check_if_purchase_exists(self, purchase_id: int) -> bool:
+        return purchase_id in self._purchases
+
+    '''def create_bid_purchase(self, user_id: int, proposed_price: float, product_id: int, product_spec_id: int,
                             store_id: int,
                             is_offer_to_store: bool = True) -> bool:
         """
@@ -737,9 +835,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Proposed price is invalid")
         else:
-            raise ValueError("User id is invalid")
+            raise ValueError("User id is invalid")'''
 
-    def create_auction_purchase(self, base_price: float, starting_date: datetime, ending_date: datetime, store_id: int,
+    '''def create_auction_purchase(self, base_price: float, starting_date: datetime, ending_date: datetime, store_id: int,
                                 product_id: int, product_spec_id: int,
                                 users_with_proposed_prices: List[Tuple[int, float]] = []) -> bool:
         """
@@ -766,9 +864,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Starting date is invalid")
         else:
-            raise ValueError("Base price is invalid")
+            raise ValueError("Base price is invalid")'''
 
-    def create_lottery_purchase(self, user_id: int, full_price: float, store_id: int, product_id: int,
+    '''def create_lottery_purchase(self, user_id: int, full_price: float, store_id: int, product_id: int,
                                 product_spec_id: int,
                                 starting_date: datetime, ending_date: datetime,
                                 users_with_prices: List[Tuple[int, float]] = []) -> LotteryPurchase:
@@ -802,65 +900,27 @@ class PurchaseFacade:
             else:
                 raise ValueError("Full price is invalid")
         else:
-            raise ValueError("User id is invalid")
+            raise ValueError("User id is invalid")'''
 
-    def get_purchases_of_user(self, user_id: int) -> List[Purchase]:
-        """
-        * Parameters: userId
-        * This function is responsible for returning the purchases of the user
-        * Returns: list of Purchase objects
-        """
-        if user_id is not None:
-            return [purchase for purchase in self._purchases if purchase.user_id() == user_id]
-        else:
-            raise ValueError("User id is invalid")
-
-    def get_purchases_of_store(self, store_id: int) -> List[Purchase]:
-        """
-        * Parameters: storeId
-        * This function is responsible for returning the purchases of the store
-        * Returns: list of Purchase objects
-        """
-        purchases = []
-        if store_id is not None:
-            for purchase in self._purchases:
-                if isinstance(purchase, BidPurchase):
-                    if purchase.store_id == store_id:
-                        purchases.append(purchase)
-
-                if isinstance(purchase, AuctionPurchase):
-                    if purchase.store_id == store_id:
-                        purchases.append(purchase)
-                if isinstance(purchase, LotteryPurchase):
-                    if purchase.store_id == store_id:
-                        purchases.append(purchase)
-
-                if isinstance(purchase, ImmediatePurchase):
-                    for subPurchase in purchase.immediate_sub_purchases:
-                        if subPurchase.store_id == store_id:
-                            purchases.append(subPurchase)
-
-        return purchases
-
-    def get_on_going_purchases(self) -> List[Purchase]:
+    '''def get_on_going_purchases(self) -> List[Purchase]:
         """
         * Parameters: none
         * This function is responsible for returning the ongoing purchases
         * Returns: list of Purchase objects
         """
         logger.info('[PurchaseFacade] attempting to get ongoing purchases')
-        return [purchase for purchase in self._purchases if purchase.get_status() == PurchaseStatus.onGoing]
+        return [purchase for purchase in self._purchases if purchase.get_status() == PurchaseStatus.onGoing]'''
 
-    def get_completed_purchases(self) -> List[Purchase]:
+    '''def get_completed_purchases(self) -> List[Purchase]:
         """
         * Parameters: none
         * This function is responsible for returning the completed purchases
         * Returns: list of Purchase objects
         """
         logger.info('[PurchaseFacade] attempting to get completed purchases')
-        return [purchase for purchase in self._purchases if purchase.get_status() == PurchaseStatus.completed]
+        return [purchase for purchase in self._purchases if purchase.get_status() == PurchaseStatus.completed]'''
 
-    def get_failed_purchases(self) -> List[Purchase]:
+    '''def get_failed_purchases(self) -> List[Purchase]:
         """
         * Parameters: none
         * This function is responsible for returning the failed purchases
@@ -876,9 +936,9 @@ class PurchaseFacade:
         * Returns: list of Purchase objects
         """
         logger.info('[PurchaseFacade] attempting to get accepted purchases')
-        return [purchase for purchase in self._purchases if purchase.get_status() == PurchaseStatus.accepted]
+        return [purchase for purchase in self._purchases if purchase.get_status() == PurchaseStatus.accepted]'''
 
-    def get_purchase_by_id(self, purchase_id: int) -> Purchase:
+    '''def get_purchase_by_id(self, purchase_id: int) -> Purchase:
         """
         * Parameters: purchaseId
         * This function is responsible for returning the purchase by its id
@@ -889,9 +949,9 @@ class PurchaseFacade:
                 if purchase.purchase_id() == purchase_id:
                     return purchase
         else:
-            raise ValueError("Purchase id is invalid")
+            raise ValueError("Purchase id is invalid")'''
 
-    def update_status(self, purchase_id: int, status: PurchaseStatus):
+    '''def update_status(self, purchase_id: int, status: PurchaseStatus):
         """
         * Parameters: purchaseId
         * This function is responsible for updating the status of the purchase
@@ -900,9 +960,9 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] attempting to update status of purchase with purchase id: %s', purchase_id)
         purchase = self.get_purchase_by_id(purchase_id)
         if purchase is not None:
-            purchase.update_status(status)
+            purchase.update_status(status)'''
 
-    def update_date_of_purchase(self, purchase_id: int, date_of_purchase: datetime):
+    '''def update_date_of_purchase(self, purchase_id: int, date_of_purchase: datetime):
         """
         * Parameters: purchaseId
         * This function is responsible for updating the date of the purchase
@@ -912,9 +972,9 @@ class PurchaseFacade:
                     purchase_id)
         purchase = self.get_purchase_by_id(purchase_id)
         if purchase is not None:
-            purchase.update_date_of_purchase(date_of_purchase)
+            purchase.update_date_of_purchase(date_of_purchase)'''
 
-    def calculate_total_price(self, purchase_id: int) -> float:
+    '''def calculate_total_price(self, purchase_id: int) -> float:
         """
         * Parameters: purchaseId
         * This function is responsible for calculating the total price of the purchase
@@ -925,9 +985,9 @@ class PurchaseFacade:
         if purchase is not None:
             return purchase.calculate_total_price()
         else:
-            raise ValueError("Purchase id is invalid")
+            raise ValueError("Purchase id is invalid")'''
 
-    def has_user_already_rated_store(self, purchase_id: int, user_id: int, store_id: int) -> bool:
+    '''def has_user_already_rated_store(self, purchase_id: int, user_id: int, store_id: int) -> bool:
         """
         * Parameters: purchaseId, userId, storeId
         * This function is responsible for checking if the user has already rated the store in a given purchase
@@ -942,9 +1002,9 @@ class PurchaseFacade:
             if isinstance(rating, StoreRating):
                 if rating.purchase_id == purchase_id and rating.user_id == user_id and rating.store_id == store_id:
                     return True
-        return False
+        return False'''
 
-    def has_user_already_rated_product(self, purchase_id: int, user_id: int, product_spec_id: int) -> bool:
+    '''def has_user_already_rated_product(self, purchase_id: int, user_id: int, product_spec_id: int) -> bool:
         """
         * Parameters: purchaseId, userId, storeId
         * This function is responsible for checking if the user has already rated the product in a given purchase
@@ -960,9 +1020,9 @@ class PurchaseFacade:
                 if (rating.purchase_id == purchase_id and rating.user_id == user_id
                         and rating.product_id == product_spec_id):
                     return True
-        return False
+        return False'''
 
-    def calculate_new_store_rating(self, store_id: int) -> float:
+    '''def calculate_new_store_rating(self, store_id: int) -> float:
         """
         * Parameters: storeId
         * This function is responsible for calculating the new rating of the store
@@ -971,9 +1031,9 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] calculating new rating of store with store id: %s', store_id)
         ratings = [rating for rating in self._ratings if
                    isinstance(rating, StoreRating) and rating.store_id == store_id]
-        return sum([rating.rating() for rating in ratings]) / len(ratings)
+        return sum([rating.rating() for rating in ratings]) / len(ratings)'''
 
-    def calculate_new_product_rating(self, product_spec_id: int) -> float:
+    '''def calculate_new_product_rating(self, product_spec_id: int) -> float:
         """
         * Parameters: productSpecId
         * This function is responsible for calculating the new rating of the product
@@ -982,9 +1042,9 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] calculating new rating of product with product spec id: %s', product_spec_id)
         ratings = [rating for rating in self._ratings if
                    isinstance(rating, ProductRating) and rating.product_id == product_spec_id]
-        return sum([rating.rating for rating in ratings]) / len(ratings)
+        return sum([rating.rating for rating in ratings]) / len(ratings)'''
 
-    def rate_store(self, purchase_id: int, user_id: int, store_id: int, rating: float, description: str) -> float:
+    '''def rate_store(self, purchase_id: int, user_id: int, store_id: int, rating: float, description: str) -> float:
         """
         * Parameters: purchaseId, userId, rating, storeId
         * This function is responsible for rating the store
@@ -1010,9 +1070,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Store id is invalid")
         else:
-            raise ValueError("Purchase id is invalid")
+            raise ValueError("Purchase id is invalid")'''
 
-    def rate_product(self, purchase_id: int, user_id: int, product_spec_id: int, rating: float, description: str) \
+    '''def rate_product(self, purchase_id: int, user_id: int, product_spec_id: int, rating: float, description: str) \
             -> float:
         """
         * Parameters: purchaseId, userId, rating, productSpecId
@@ -1036,9 +1096,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not completed")
         else:
-            raise ValueError("Purchase id is invalid")
+            raise ValueError("Purchase id is invalid")'''
 
-    def check_if_completed_purchase(self, purchase_id: int) -> bool:
+    '''def check_if_completed_purchase(self, purchase_id: int) -> bool:
         """
         * Parameters: purchaseId
         * This function is responsible for checking if the purchase is completed, and updating if it is
@@ -1048,11 +1108,11 @@ class PurchaseFacade:
         if purchase is not None:
             return purchase.check_if_completed_purchase()
         else:
-            raise ValueError("Purchase id is invalid")
+            raise ValueError("Purchase id is invalid")'''
 
     # -----------------Immediate-----------------#
     # For now, we will return the price without any discounts.
-    def calculate_total_price_after_discounts(self, purchase_id: int) -> float:
+    '''def calculate_total_price_after_discounts(self, purchase_id: int) -> float:
         """
         * Parameters: purchaseId
         * This function is responsible for calculating the total price of the purchase after discounts
@@ -1066,9 +1126,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not immediate")
+            raise ValueError("Purchase is not immediate")'''
 
-    def validate_purchase_of_user_immediate(self, purchase_id: int, user_id: int, delivery_date: datetime):
+    '''def validate_purchase_of_user_immediate(self, purchase_id: int, user_id: int, delivery_date: datetime):
         """
         * Parameters: purchaseId, userId
         * This function is responsible for validating that the user successfully paid for the product and the product is
@@ -1081,9 +1141,9 @@ class PurchaseFacade:
             # immediate_purchase.validatePurchaseOfUser(user_id, delivery_date)
             pass
         else:
-            raise ValueError("Purchase is not immediate")
+            raise ValueError("Purchase is not immediate")'''
 
-    def invalidate_purchase_of_user_immediate(self, purchase_id: int, user_id: int):
+    '''def invalidate_purchase_of_user_immediate(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
         * This function is responsible for invalidating the purchase of the user, whether it be due to not paying or not
@@ -1096,10 +1156,10 @@ class PurchaseFacade:
             # immediate_purchase.invalidatePurchaseOfUser(user_id)
             pass
         else:
-            raise ValueError("Purchase is not immediate")
+            raise ValueError("Purchase is not immediate")'''
 
     # -----------------Bid-----------------#
-    def store_accept_offer(self, purchase_id: int):
+    '''def store_accept_offer(self, purchase_id: int):
         """
         * Parameters: purchaseId
         * Validate that all store owners and managers with permissions accepted the offer
@@ -1112,9 +1172,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not bid")
+            raise ValueError("Purchase is not bid")'''
 
-    def user_accept_offer(self, purchase_id: int, user_id: int):
+    '''def user_accept_offer(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
         * Function to accept the offer by the store
@@ -1127,9 +1187,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not bid")
+            raise ValueError("Purchase is not bid")'''
 
-    def store_reject_offer(self, purchase_id: int):
+    '''def store_reject_offer(self, purchase_id: int):
         """
         * Parameters: purchaseId
         * Validate that one store owner or managers with permissions rejected the offer
@@ -1142,9 +1202,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not bid")
+            raise ValueError("Purchase is not bid")'''
 
-    def user_reject_offer(self, purchase_id: int, user_id: int):
+    '''def user_reject_offer(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
         * Function to reject the offer by the store
@@ -1157,9 +1217,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not bid")
+            raise ValueError("Purchase is not bid")'''
 
-    def store_counter_offer(self, purchase_id: int, counter_offer: float):
+    '''def store_counter_offer(self, purchase_id: int, counter_offer: float):
         """
         * Parameters: purchaseId, counterOffer
         * This function is responsible for updating the counter offer of the purchase
@@ -1172,9 +1232,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not bid")
+            raise ValueError("Purchase is not bid")'''
 
-    def user_counter_offer(self, counter_offer: float, purchase_id: int):
+    '''def user_counter_offer(self, counter_offer: float, purchase_id: int):
         """
         * Parameters: purchaseId, counterOffer
         * This function is responsible for updating the counter offer of the purchase
@@ -1187,10 +1247,10 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not bid")
+            raise ValueError("Purchase is not bid")'''
 
     # -----------------Auction-----------------#
-    def add_auction_bid(self, user_id: int, proposed_price: float, purchase_id: int) -> bool:
+    '''def add_auction_bid(self, user_id: int, proposed_price: float, purchase_id: int) -> bool:
         """
         * Parameters: userId, proposedPrice, purchaseId
         * This function is responsible for adding the user and their proposed price to the list of users with proposed
@@ -1205,9 +1265,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not auction")
+            raise ValueError("Purchase is not auction")'''
 
-    def view_highest_bidding_offer(self, purchase_id: int) -> float:
+    '''def view_highest_bidding_offer(self, purchase_id: int) -> float:
         """
         * Parameters: purchaseId
         * This function is responsible for returning the highest bidding offer
@@ -1220,9 +1280,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not auction")
+            raise ValueError("Purchase is not auction")'''
 
-    def check_if_auction_ended(self, purchase_id: int) -> bool:
+    '''def check_if_auction_ended(self, purchase_id: int) -> bool:
         """
         * Parameters: purchaseId
         * This function is responsible for checking if the auction has ended
@@ -1232,9 +1292,9 @@ class PurchaseFacade:
         if isinstance(auction_purchase, AuctionPurchase):
             return auction_purchase.check_if_auction_ended()
         else:
-            raise ValueError("Purchase is not auction")
+            raise ValueError("Purchase is not auction")'''
 
-    def validate_purchase_of_user_auction(self, purchase_id: int, user_id: int, delivery_date: datetime):
+    '''def validate_purchase_of_user_auction(self, purchase_id: int, user_id: int, delivery_date: datetime):
         """
         * Parameters: purchaseId, userId
         * This function is responsible for validating that the user with the highest bid successfully paid for the
@@ -1245,9 +1305,9 @@ class PurchaseFacade:
         if isinstance(auction_purchase, AuctionPurchase):
             auction_purchase.validate_purchase_of_user(user_id, delivery_date)
         else:
-            raise ValueError("Purchase is not auction")
+            raise ValueError("Purchase is not auction")'''
 
-    def invalidate_purchase_of_user_auction(self, purchase_id: int, user_id: int):
+    '''def invalidate_purchase_of_user_auction(self, purchase_id: int, user_id: int):
         """
         * Parameters: purchaseId, userId
         * This function is responsible for invalidating the purchase of the user with the highest bid, whether it be due
@@ -1258,11 +1318,11 @@ class PurchaseFacade:
         if isinstance(auction_purchase, AuctionPurchase):
             auction_purchase.invalidate_purchase_of_user(user_id)
         else:
-            raise ValueError("Purchase is not auction")
+            raise ValueError("Purchase is not auction")'''
 
     # -----------------Lottery-----------------#
 
-    def calculate_remaining_time(self, purchase_id: int) -> timedelta:
+    '''def calculate_remaining_time(self, purchase_id: int) -> timedelta:
         """
         * Parameters: purchaseId
         * This function is responsible for calculating the remaining time for the auction
@@ -1275,9 +1335,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not lottery")
+            raise ValueError("Purchase is not lottery")'''
 
-    def add_lottery_offer(self, user_id: int, proposed_price: float, purchase_id: int) -> bool:
+    '''def add_lottery_offer(self, user_id: int, proposed_price: float, purchase_id: int) -> bool:
         """
         * Parameters: userId, proposedPrice, purchaseId
         * This function is responsible for adding the user and their proposed price to the list of users with proposed
@@ -1292,9 +1352,9 @@ class PurchaseFacade:
             else:
                 raise ValueError("Purchase is not ongoing")
         else:
-            raise ValueError("Purchase is not lottery")
+            raise ValueError("Purchase is not lottery")'''
 
-    def calculate_probability_of_user(self, user_id: int, purchase_id: int) -> float:
+    '''def calculate_probability_of_user(self, user_id: int, purchase_id: int) -> float:
         """
         * Parameters: userId, purchaseId
         * This function is responsible for calculating the probability of the user winning the lottery
@@ -1361,4 +1421,4 @@ class PurchaseFacade:
         if isinstance(lottery_purchase, LotteryPurchase):
             lottery_purchase.invalidate_delivery_of_winner(user_id)
         else:
-            raise ValueError("Purchase is not lottery")
+            raise ValueError("Purchase is not lottery")'''

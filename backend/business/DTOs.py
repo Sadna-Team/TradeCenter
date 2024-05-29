@@ -1,4 +1,7 @@
 import datetime
+from enum import Enum
+# import the datetime type
+from typing import List
 
 
 class NotificationDTO:
@@ -18,3 +21,24 @@ class NotificationDTO:
 
     def get(self) -> dict:
         return {"notification_id": self.__notification_id, "message": self.__message, "date": self.__date}
+
+
+class PurchaseProductDTO:
+    def __init__(self, product_id: int, name: str, description: str, price: float, amount: int):
+        self.__product_id: int = product_id
+        self.__name: str = name
+        self.__description: str = description
+        self.__price: float = price
+        self.__amount: int = amount
+
+
+class PurchaseDTO:
+    def __init__(self, purchase_id: int, store_id: int, date: datetime, total_price: float,
+                 total_price_after_discounts: float, status: int, products: List[PurchaseProductDTO]):
+        self.__purchase_id: int = purchase_id
+        self.__store_id: int = store_id
+        self.__date: datetime = date
+        self.__total: float = total_price
+        self._total_price_after_discounts: float = total_price_after_discounts
+        self.__status: int = status
+        self.__products: list[PurchaseProductDTO] = products

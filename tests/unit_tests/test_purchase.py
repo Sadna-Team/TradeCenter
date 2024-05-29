@@ -36,7 +36,7 @@ class TestImmediateSubPurchase(unittest.TestCase):
         self.assertEqual(self.purchase.dateOfPurchase, datetime(2023, 1, 1))
         self.assertEqual(self.purchase.totalPrice, 200.0)
         self.assertEqual(self.purchase.status, PurchaseStatus.onGoing)
-        self.assertEqual(self.purchase._product_ids, [10, 20, 30])
+        self.assertEqual(self.purchase._products, [10, 20, 30])
 
     def test_getters(self):
         self.assertEqual(self.purchase.get_purchaseId, 1)
@@ -61,7 +61,7 @@ class TestImmediateSubPurchase(unittest.TestCase):
         self.purchase.__set_status(PurchaseStatus.completed)
         self.assertEqual(self.purchase.status, PurchaseStatus.completed)
         self.purchase.__set_productIds([40, 50, 60])
-        self.assertEqual(self.purchase._product_ids, [40, 50, 60])
+        self.assertEqual(self.purchase._products, [40, 50, 60])
 
     def test_updateStatus(self):
         self.purchase.updateStatus(PurchaseStatus.failed)
