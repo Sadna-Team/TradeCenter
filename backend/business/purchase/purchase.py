@@ -98,14 +98,6 @@ class Purchase(ABC):
         self._total_price_after_discounts: float = total_price_after_discounts
         self._status = status
 
-    def check_if_completed_purchase(self) -> bool:
-        """
-        * Parameters: none
-        * This function is responsible for checking if the purchase is completed, and updating if it is
-        * Returns: true if completed, false otherwise
-        """
-        return self._status == PurchaseStatus.completed
-
     # ---------------------------------Getters and Setters---------------------------------#
     @property
     def purchase_id(self):
@@ -131,11 +123,13 @@ class Purchase(ABC):
     def status(self):
         return self._status
 
+    @abstractmethod
     def accept(self):
-        self._status = PurchaseStatus.accepted
+        pass
 
+    @abstractmethod
     def complete(self):
-        self._status = PurchaseStatus.completed
+        pass
 
 
 # -----------------ImmediateSubPurchases class-----------------#
@@ -152,9 +146,13 @@ class ImmediateSubPurchase(Purchase):
                     purchase_id)
 
     def accept(self):
+        if self._status != PurchaseStatus.onGoing:
+            raise ValueError("Purchase is not on going")
         self._status = PurchaseStatus.accepted
 
     def complete(self):
+        if self._status != PurchaseStatus.accepted:
+            raise ValueError("Purchase is not accepted")
         self._status = PurchaseStatus.completed
 
     # ---------------------------------Getters and Setters---------------------------------#
@@ -210,12 +208,16 @@ class ImmediatePurchase(Purchase):
         return new_id
 
     def accept(self):
-        super().accept()
+        if self._status != PurchaseStatus.onGoing:
+            raise ValueError("Purchase is not on going")
+        self._status = PurchaseStatus.accepted
         for sub_purchase in self._immediate_sub_purchases:
             sub_purchase.accept()
 
     def complete(self):
-        super().complete()
+        if self._status != PurchaseStatus.accepted:
+            raise ValueError("Purchase is not accepted")
+        self._status = PurchaseStatus.completed
         for sub_purchase in self._immediate_sub_purchases:
             sub_purchase.complete()
 

@@ -31,6 +31,26 @@ class PurchaseProductDTO:
         self.__price: float = price
         self.__amount: int = amount
 
+    @property
+    def product_id(self) -> int:
+        return self.__product_id
+    
+    @property
+    def name(self) -> str:
+        return self.__name
+    
+    @property
+    def description(self) -> str:
+        return self.__description
+    
+    @property
+    def price(self) -> float:
+        return self.__price
+    
+    @property
+    def amount(self) -> int:
+        return self.__amount
+
 
 class PurchaseDTO:
     def __init__(self, purchase_id: int, store_id: int, date: datetime, total_price: float,
