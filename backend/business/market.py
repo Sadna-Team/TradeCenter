@@ -113,7 +113,7 @@ class MarketFacade:
                 total_price += basket_price
 
             # TODO: something doesnt work here
-            purchase = self.purchase_facade.create_immediate_purchase(user_id, total_price, shopping_cart_with_prices)
+            #purchase = self.purchase_facade.create_immediate_purchase(user_id, total_price, shopping_cart_with_prices)
 
             # calculate the policies of the purchase using storeFacade + user location constraints
             for basket in shopping_cart:

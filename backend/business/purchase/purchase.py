@@ -718,7 +718,7 @@ class PurchaseFacade:
             logger.info('[PurchaseFacade] successfully created purchase facade object')
 
     # -----------------Purchases in general-----------------#
-    def create_immediate_purchase(self, user_id: int, total_price: float,
+    def create_immediate_purchase(self, user_id: int, total_price: float, total_price_after_discounts: float,
                                   shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]]) -> None:
         """
         * Parameters: userId, dateOfPurchase, deliveryDate, shoppingCart, total_price_after_discounts
@@ -726,10 +726,11 @@ class PurchaseFacade:
         * Note: total_price_after_discounts is not calculated yet! Initialized as -1!
         * Returns: bool
         """
-        if total_price < 0:
+        if total_price < 0 or total_price_after_discounts < 0:
             raise ValueError("Total price must be a positive float")
 
-        pur = ImmediatePurchase(self.__get_new_purchase_id(), user_id, total_price, shopping_cart)
+        pur = ImmediatePurchase(self.__get_new_purchase_id(), user_id, total_price, shopping_cart,
+                                total_price_after_discounts)
 
         self._purchases[pur.purchase_id] = pur
 
@@ -791,8 +792,9 @@ class PurchaseFacade:
         * Returns: none
         """
         logger.info('[PurchaseFacade] attempting to reject purchase with purchase id: %s', purchase_id)
-        if not self.__check_if_purchase_exists(purchase_id):
-            raise ValueError("Purchase id is invalid")
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if purchase.status == PurchaseStatus.accepted or purchase.status == PurchaseStatus.completed:
+            raise ValueError("Purchase already accepted or completed")
         del self._purchases[purchase_id]
 
     def complete_purchase(self, purchase_id: int):
@@ -812,6 +814,10 @@ class PurchaseFacade:
 
     def __check_if_purchase_exists(self, purchase_id: int) -> bool:
         return purchase_id in self._purchases
+
+    def clean_data(self):
+        self._purchases = {}
+        self._purchases_id_counter = 0
 
     '''def create_bid_purchase(self, user_id: int, proposed_price: float, product_id: int, product_spec_id: int,
                             store_id: int,
