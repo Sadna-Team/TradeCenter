@@ -1,7 +1,7 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import NotificationDTO
+from .DTOs import NotificationDTO, PurchaseDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
@@ -117,7 +117,7 @@ class MarketFacade:
                 total_price += basket_price
 
             # TODO: something doesnt work here
-            purchase = self.purchase_facade.create_immediate_purchase(user_id, total_price, shopping_cart_with_prices)
+            #purchase = self.purchase_facade.create_immediate_purchase(user_id, total_price, shopping_cart_with_prices)
 
             # calculate the policies of the purchase using storeFacade + user location constraints
             for basket in shopping_cart:
@@ -390,7 +390,7 @@ class MarketFacade:
             logger.info(f"User {user_id} has failed to remove a discount")
 
     # -------------Rating related methods-------------------#
-    def add_store_rating(self, user_id: int, purchase_id: int, description: str, rating: float):
+    '''def add_store_rating(self, user_id: int, purchase_id: int, description: str, rating: float):
         """
         * Parameters: user_id, purchase_id, description, rating
         * This function adds a rating to a store
@@ -402,9 +402,9 @@ class MarketFacade:
             self.store_facade.update_store_rating(store_id, new_rating)
             logger.info(f"User {user_id} has rated store {store_id} with {rating}")
         else:
-            logger.info(f"User {user_id} has failed to rate store {store_id}")
+            logger.info(f"User {user_id} has failed to rate store {store_id}")'''
 
-    def add_product_rating(self, user_id: int, purchase_id: int, description: str, product_spec_id: int, rating: float):
+    '''def add_product_rating(self, user_id: int, purchase_id: int, description: str, product_spec_id: int, rating: float):
         """
         * Parameters: user_id, purchase_id, description, productSpec_id, rating
         * This function adds a rating to a product
@@ -416,7 +416,7 @@ class MarketFacade:
             self.store_facade.update_product_spec_rating(store_id, product_spec_id, new_rating)
             logger.info(f"User {user_id} has rated product {product_spec_id} with {rating}")
         else:
-            logger.info(f"User {user_id} has failed to rate product {product_spec_id}")
+            logger.info(f"User {user_id} has failed to rate product {product_spec_id}")'''
 
     # -------------Policies related methods-------------------#
     def add_purchase_policy(self, user_id: int, store_id: int):
@@ -692,7 +692,7 @@ class MarketFacade:
 
     # -------------Purchase management related methods-------------------#
 
-    def create_bid_purchase(self, user_id: int, proposed_price: float, product_id: int, store_id: int):
+    '''def create_bid_purchase(self, user_id: int, proposed_price: float, product_id: int, store_id: int):
         """
         * Parameters: userId, proposedPrice, productId, storeId
         * This function creates a bid purchase
@@ -740,9 +740,9 @@ class MarketFacade:
                                                         starting_date, ending_date):
             logger.info(f"User {user_id} has created a lottery purchase")
         else:
-            logger.info(f"User {user_id} has failed to create a lottery purchase")
+            logger.info(f"User {user_id} has failed to create a lottery purchase")'''
 
-    def view_purchases_of_user(self, user_id: int) -> str:
+    def view_purchases_of_user(self, user_id: int) -> List[PurchaseDTO]:
         """
         * Parameters: user_id
         * This function returns the purchases of a user
@@ -750,27 +750,20 @@ class MarketFacade:
         """
         if not self.auth_facade.is_logged_in(user_id):
             raise ValueError("User is not logged in")
-        purchases = self.purchase_facade.get_purchases_of_user(user_id)
-        str_output = ""
-        for purchase in purchases:
-            str_output += purchase.__str__()
-        return str_output
+        return self.purchase_facade.get_purchases_of_user(user_id)
 
-    def view_purchases_of_store(self, user_id: int, store_id: int) -> str:
+    def view_purchases_of_store(self, user_id: int, store_id: int) -> List[PurchaseDTO]:
         """
         * Parameters: userId, store_id
         * This function returns the purchases of a store
         * Returns a string
         """
-        if not self.user_facade.is_member(user_id) or not self.auth_facade.is_logged_in(user_id):
+        if not self.auth_facade.is_logged_in(user_id):
             raise ValueError("User is not a member or is not logged in")
-        purchases = self.purchase_facade.get_purchases_of_store(store_id)
-        str_output = ""
-        for purchase in purchases:
-            str_output += purchase.__str__()
-        return str_output
+        # TODO: add check if user is system manager or store owner or store manager, if not raise error
+        return self.purchase_facade.get_purchases_of_store(store_id)
 
-    def view_purchases_of_user_in_store(self, user_id: int, store_id: int) -> str:
+    '''def view_purchases_of_user_in_store(self, user_id: int, store_id: int) -> str:
         """
         * Parameters: userId, store_id
         * This function returns the purchases of a user in a store
@@ -850,10 +843,10 @@ class MarketFacade:
         accepted_purchases = self.purchase_facade.get_accepted_purchases()
         for purchase in accepted_purchases:
             if self.purchase_facade.check_if_completed_purchase(purchase.purchase_id):
-                logger.info(f"Purchase {purchase.purchase_id} has been completed")
+                logger.info(f"Purchase {purchase.purchase_id} has been completed")'''
 
     # -------------Bid Purchase related methods-------------------#
-    def store_accept_offer(self, purchase_id: int):
+    '''def store_accept_offer(self, purchase_id: int):
         pass  # cant be implemented yet without notifications
 
     def store_reject_offer(self, purchase_id: int):
@@ -906,10 +899,10 @@ class MarketFacade:
         # notify the store owners and all relevant parties
         store_id = self.purchase_facade.get_purchase_by_id(purchase_id).store_id
         msg = f"User {user_id} has made a counter offer in purchase {purchase_id}"
-        self.notifier.notify_general_listeners(store_id, msg)  # Notify each listener of the store about the bid
+        self.notifier.notify_general_listeners(store_id, msg)  # Notify each listener of the store about the bid'''
 
     # -------------Auction Purchase related methods-------------------#
-    def add_auction_bid(self, purchase_id: int, user_id: int, price: float):
+    '''def add_auction_bid(self, purchase_id: int, user_id: int, price: float):
         """
         * Parameters: purchase_id, user_id, price
         * This function adds a bid to an auction purchase
@@ -982,10 +975,10 @@ class MarketFacade:
                     #TODO: call validatePurchaseOfUser(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
                     #else:
                     #TODO: call invalidatePurchase(purchase.get_purchaseId(), purchase.get_userId()
-                    logger.info(f"Auction {purchase.purchase_id()} has been completed")"""
+                    logger.info(f"Auction {purchase.purchase_id()} has been completed")"""'''
 
     # -------------Lottery Purchase related methods-------------------#
-    def add_lottery_offer(self, user_id: int, proposed_price: float, purchase_id: int):
+    '''def add_lottery_offer(self, user_id: int, proposed_price: float, purchase_id: int):
         """
         * Parameters: user_id, proposedPrice, purchase_id
         * This function adds a lottery ticket to a lottery purchase
@@ -1070,4 +1063,4 @@ class MarketFacade:
                         # logger.info(f"Lottery {purchase.get_purchaseId()} has been won!")
                     else:
                         #TODO: refund users who participated in the lottery
-                        logger.info(f"Lottery {purchase.purchase_id()} has failed! Refunded all participants")"""
+                        logger.info(f"Lottery {purchase.purchase_id()} has failed! Refunded all participants")"""'''

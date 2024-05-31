@@ -25,7 +25,8 @@ class ProductCondition(Enum):
 class Product:
     # id of product is productId. It is unique for each physical product
     def __init__(self, product_id: int, store_id: int, specification_id: int, expiration_date: datetime,
-                 condition: ProductCondition, price: float):
+                 condition: ProductCondition, price: float): #testing push
+        
         self.__product_id = product_id
         self.__store_id = store_id
         self.__specification_id = specification_id

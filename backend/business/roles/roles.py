@@ -195,6 +195,7 @@ class RolesFacade:
             self.__systems_nominations: Dict[int, Nomination] = {}
             self.__system_managers: List[int] = []
             self.__system_admin: int = -1
+            Nomination._Nomination__nomination_id_serializer = 0
 
     def clean_data(self):
         """
