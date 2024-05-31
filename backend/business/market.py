@@ -78,7 +78,11 @@ class MarketFacade:
         self.user_facade.clean_data()
         self.store_facade.clean_data()
         self.roles_facade.clean_data()
+        PaymentHandler().reset()
+        SupplyHandler().reset()
+
         # create the admin?
+        self.__create_admin()
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
@@ -197,19 +201,34 @@ class MarketFacade:
     def remove_system_manager(self, actor: int, user_id: int):
         self.roles_facade.remove_system_manager(actor, user_id)
 
-    def edit_payment_method(self, method_name: str, editing_data: Dict):
+    def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
+        PaymentHandler().add_payment_method(method_name, payment_config)
+    
+    def edit_payment_method(self, user_id: int, method_name: str, editing_data: Dict):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         PaymentHandler().edit_payment_method(method_name, editing_data)
 
-    def remove_payment_method(self, method_name: str):
+    def remove_payment_method(self, user_id: int, method_name: str):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         PaymentHandler().remove_payment_method(method_name)
 
-    def add_supply_method(self, method_name: str, supply_config: Dict):
+    def add_supply_method(self, user_id: int, method_name: str, supply_config: Dict):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         SupplyHandler().add_supply_method(method_name, supply_config)
 
-    def edit_supply_method(self, method_name: str, editing_data: Dict):
+    def edit_supply_method(self, user_id: int, method_name: str, editing_data: Dict):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         SupplyHandler().edit_supply_method(method_name, editing_data)
 
-    def remove_supply_method(self, method_name: str):
+    def remove_supply_method(self, user_id: int, method_name: str):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         SupplyHandler().remove_supply_method(method_name)
 
     # -------------------------------------- Store Related Methods --------------------------------------#
