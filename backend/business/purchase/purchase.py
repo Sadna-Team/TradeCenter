@@ -719,7 +719,7 @@ class PurchaseFacade:
 
     # -----------------Purchases in general-----------------#
     def create_immediate_purchase(self, user_id: int, total_price: float, total_price_after_discounts: float,
-                                  shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]]) -> None:
+                                  shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]]) -> int:
         """
         * Parameters: userId, dateOfPurchase, deliveryDate, shoppingCart, total_price_after_discounts
         * This function is responsible for creating an immediate purchase
@@ -733,6 +733,8 @@ class PurchaseFacade:
                                 total_price_after_discounts)
 
         self._purchases[pur.purchase_id] = pur
+
+        return pur.purchase_id
 
     def __get_new_purchase_id(self) -> int:
         new_id = self._purchases_id_counter
@@ -775,7 +777,7 @@ class PurchaseFacade:
                                                      sub_purchase.status.value, sub_purchase.products))
         return purchases
 
-    def accept_purchase(self, purchase_id: int) -> None:
+    def accept_purchase(self, purchase_id: int, delivery_date: datetime) -> None:
         """
         * Parameters: purchaseId
         * This function is responsible for accepting the purchase
@@ -784,6 +786,7 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] attempting to accept purchase with purchase id: %s', purchase_id)
         purchase = self.__get_purchase_by_id(purchase_id)
         purchase.accept()
+        # TODO: update delivery date
 
     def reject_purchase(self, purchase_id: int) -> None:
         """

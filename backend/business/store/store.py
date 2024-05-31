@@ -4,6 +4,7 @@ from typing import List, Dict, Tuple, Optional
 from .DiscountStrategy import DiscountStrategy
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
+from backend.business.DTOs import ProductDTO
 
 # -------------logging configuration----------------
 import logging
@@ -771,7 +772,7 @@ class StoreFacade:
         if category_id is not None:
             if product_id is not None:
                 category = self.get_category_by_id(category_id)
-                product = self.get_product_by_id(product_id)
+                product = self.__get_product_by_id(product_id)
                 if category is not None and product is not None:
                     category.add_product_to_category(product)
                 else:
@@ -794,7 +795,7 @@ class StoreFacade:
         if category_id is not None:
             if product_id is not None:
                 category = self.get_category_by_id(category_id)
-                product_spec = self.get_product_by_id(product_id)
+                product_spec = self.__get_product_by_id(product_id)
                 if category is not None and product_spec is not None:
                     category.remove_product_from_category(product_spec)
                 else:
@@ -866,7 +867,7 @@ class StoreFacade:
         logger.info('[StoreFacade] attempting to remove product')
         store = self.get_store_by_id(store_id)
         if store is not None:
-            product = self.get_product_by_id(product_id)
+            product = self.__get_product_by_id(product_id)
             if product is not None:
                 store.remove_product(product)
                 logger.info('[StoreFacade] successfully removed product')
@@ -896,7 +897,8 @@ class StoreFacade:
                 raise ValueError('Product is not found')
         else:
             raise ValueError('Store is not found')
-        
+
+    # TODO: remove condition
     def remove_product_amount(self, store_id: int, product_id: int, amount: int, condition: int) -> None:
         """
         * Parameters: store_id, product_id, amount, condition
@@ -1058,7 +1060,7 @@ class StoreFacade:
         return products
     
     #used for searches
-    def get_product_by_id(self, product_id: int) -> Optional[Product]:
+    def __get_product_by_id(self, product_id: int) -> Optional[Product]:
         """
         * Parameters: product_id
         * This function gets a product by its id
@@ -1069,6 +1071,9 @@ class StoreFacade:
             if product is not None:
                 return product
         return None
+
+    def get_product_by_id(self, product_id: int) -> Optional[ProductDTO]:
+        pass
 
     def add_store(self, location_id: int, store_name: str, store_founder_id: int) -> None:
         """
@@ -1346,6 +1351,7 @@ class StoreFacade:
             total_price = store.get_total_price_of_basket_before_discount(basket[1])
         return total_price
 
+    # TODO: get Dict[int, Dict[int, int]]
     def get_total_price_after_discount(self, shopping_cart: List[Tuple[int, List[Tuple[int,int]]]]) -> float:
         """
         * Parameters: shoppingCart

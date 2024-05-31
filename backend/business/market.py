@@ -1,7 +1,7 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import NotificationDTO, PurchaseDTO
+from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
@@ -94,64 +94,81 @@ class MarketFacade:
 
     def checkout(self, user_id: int, payment_details: Dict, address: Dict):
         # needs a whole revamp to work with the discounts and purchase policies and location restrictions
-        cart = self.user_facade.get_shopping_cart(user_id)
+        # cart = self.user_facade.get_shopping_cart(user_id)
+        # TODO: call actual user facade method
+        cart: Dict[int, Dict[int, int]] = {}  # store_id -> product_id -> amount
 
         # lock the __lock
-        with MarketFacade.__lock:
-            # check if the products are still available
-            for store_id, products in cart.items():
-                for product_id in products:
-                    if not self.store_facade.check_product_availability(store_id, product_id):
-                        raise ValueError(f"Product {product_id} is not available in the required amount")
+        # check if the products are still available
+        for store_id, products in cart.items():
+            for product_id in products:
+                amount = products[product_id]
+                if not self.store_facade.check_product_availability(store_id, product_id, amount):
+                    raise ValueError(f"Product {product_id} is not available in the required amount")
 
-            shopping_cart: List[Tuple[int, List[int]]] = []
-            shopping_cart_with_prices: List[Tuple[Tuple[int, float], List[int]]] = []
-            total_price = 0
-            # creating the shoppingCartObject and shopping_cart_with_prices
-            for store_id, products in cart.items():
-                basket_price = 0
-                for product_id in products:
-                    basket_price += self.store_facade.get_store_by_id(store_id).get_product_by_id(product_id).price
-                shopping_cart.append((store_id, products))
-                shopping_cart_with_prices.append(((store_id, basket_price), products))
-                total_price += basket_price
+        """
+        self.__product_id: int = product_id
+        self.__name: str = name
+        self.__description: str = description
+        self.__price: float = price
+        self.__amount: int = amount"""
 
-            # TODO: something doesnt work here
-            #purchase = self.purchase_facade.create_immediate_purchase(user_id, total_price, shopping_cart_with_prices)
+        # calculate the total price
+        purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = {}
+        total_price = 0
+        for store_id, products in cart.items():
+            basket_price = 0
+            purchase_products: List[PurchaseProductDTO] = []
+            for product_id in products:
+                amount = products[product_id]
+                name = self.store_facade.get_product_by_id(product_id).name
+                description = self.store_facade.get_product_by_id(product_id).description
+                price = self.store_facade.get_product_by_id(product_id).price
+                basket_price += price * amount
+                purchase_products.append(PurchaseProductDTO(product_id, name, description, price, amount))
+            purchase_shopping_cart[store_id] = (purchase_products, basket_price, basket_price)
+            total_price += basket_price
 
-            # calculate the policies of the purchase using storeFacade + user location constraints
-            for basket in shopping_cart:
-                if not self.store_facade.check_policies_of_store(basket[0], basket[1]):
-                    # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                    raise ValueError("Purchase does not meet the store's policies")
+        # purchase facade immediate
+        total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
+        pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
+                                                                purchase_shopping_cart)
 
-                    # TODO: (next version) attempt to find a delivery method for user
-            delivery_date = datetime.now()  # dummy
-
-            if delivery_date is None:
+        # calculate the policies of the purchase using storeFacade + user location constraints
+        for store_id in cart:
+            products: Dict[int, int] = cart[store_id]
+            # TODO: add check of policy
+            """if not self.store_facade.check_policies_of_store(basket[0], basket[1]):
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                raise ValueError("No delivery method found")
+                raise ValueError("Purchase does not meet the store's policies")"""
 
-            # charge the user:
+        # TODO: attempt to find a delivery method for user
+        delivery_date = datetime.now()  # dummy
 
-            # TODO: (next version) fix discounts
-            amount = self.store_facade.get_total_price_after_discount(shopping_cart)
-            if "payment method" not in payment_details:
-                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                raise ValueError("Payment method not specified")
+        if delivery_date is None:
+            # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+            raise ValueError("No delivery method found")
 
-            if not PaymentHandler().process_payment(amount, payment_details):
-                # invalidate Purchase
-                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                raise ValueError("Payment failed")
+        # charge the user:
 
-            # remove the products from the store
-            for store_id, products in cart.items():
-                for product_id in products:
-                    self.store_facade.remove_product_from_store(store_id, product_id)
+        # TODO: (next version) fix discounts
+        if "payment method" not in payment_details:
+            # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+            raise ValueError("Payment method not specified")
 
-            # if successful, validate purchase with delivery_date
-            # self.purchase_facade.validate_purchase_of_user_immediate(purchase.purchase_id, user_id, delivery_date)
+        if not PaymentHandler().process_payment(total_price_after_discounts, payment_details):
+            # invalidate Purchase
+            # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+            raise ValueError("Payment failed")
+
+        # remove the products from the store
+        for store_id, products in cart.items():
+            for product_id in products:
+                amount = products[product_id]
+                self.store_facade.remove_product_amount(store_id, product_id, amount)
+
+        # accept the purchase
+        self.purchase_facade.accept_purchase(pur_id, delivery_date)
 
         # clear the cart
         self.user_facade.clear_basket(user_id)
@@ -205,7 +222,7 @@ class MarketFacade:
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         PaymentHandler().add_payment_method(method_name, payment_config)
-    
+
     def edit_payment_method(self, user_id: int, method_name: str, editing_data: Dict):
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
@@ -510,20 +527,6 @@ class MarketFacade:
             logger.info(f"User {user_id} has closed store {store_id}")
         else:
             logger.info(f"User {user_id} has failed to close store {store_id}")
-
-    def add_product_spec(self, user_id: int, name: str, weight_in_kilos: float, description: str, tags: List[str],
-                         manufacturer: str):
-        """
-        * Parameters: userId, name, weightInKilos, tags, manufacturer
-        * This function adds a product specification to the system
-        * Returns None
-        """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.add_product_specification(name, weight_in_kilos, description, tags, manufacturer):
-            logger.info(f"User {user_id} has added a product specification")
-        else:
-            logger.info(f"User {user_id} has failed to add a product specification")
 
     # -------------Tags related methods-------------------#
     def add_tag_to_product_spec(self, user_id: int, product_spec_id: int, tag: str):
