@@ -1,8 +1,11 @@
 import unittest
 from flask import Flask, appcontext_pushed, appcontext_popped
-from flask_jwt_extended import JWTManager, create_access_token
+
 from backend.business.authentication.authentication import Authentication
 from unittest.mock import MagicMock
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager
+
 
 
 class TestAuthentication(unittest.TestCase):
@@ -10,7 +13,9 @@ class TestAuthentication(unittest.TestCase):
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'test_secret_key'  # Set a test secret key
         self.jwt = JWTManager(self.app)
+        self.bcrypt = Bcrypt(self.app)
         self.auth = Authentication()
+        self.auth.set_jwt(self.jwt, self.bcrypt)
         self.auth.user_facade = MagicMock()
 
         # Push application context for testing

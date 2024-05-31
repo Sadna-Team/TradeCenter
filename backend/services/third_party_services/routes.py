@@ -22,11 +22,17 @@ def add_third_party_payment_service():
             token (int): token of the user
             data (dict): data of the third party service to be added
     """
-    data = request.get_json()
-    token = get_jwt_identity()
-    method_name = data.get('method_name')
-    config = data.get('config')
-    payment_service.add_third_party_service(method_name, config)
+    try:
+        data = request.get_json()
+        user_id = get_jwt_identity()
+        method_name: str = data.get('method_name')
+        config = data.get('config')
+        if not method_name or not config:
+            raise ValueError("Missing method name or config in request body")
+        payment_service.add_third_party_service(user_id, method_name, config)
+        return jsonify({'message': 'Third party payment service added successfully'}), 200
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
 
 @third_party_bp.route('/payment/edit', methods=['PUT'])
 @jwt_required()
@@ -40,11 +46,17 @@ def edit_third_party_payment_service():
             service_id (int): id of the third party service to be edited
             data (dict): data of the third party service to be edited
     """
-    data = request.get_json()
-    token = get_jwt_identity()
-    method_name = data.get('method_name')
-    editing_data = data.get('editing_data')
-    payment_service.edit_third_party_service(method_name, editing_data)
+    try:
+        data = request.get_json()
+        user_id = get_jwt_identity()
+        method_name = data.get('method_name')
+        editing_data = data.get('editing_data')
+        if not method_name or not editing_data:
+           raise ValueError("Missing method name or editing data in request body")
+        payment_service.edit_third_party_service(user_id, method_name, editing_data)
+        return jsonify({'message': 'Third party payment service edited successfully'}), 200
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
 
 @third_party_bp.route('/payment/delete', methods=['DELETE'])
 @jwt_required()
@@ -57,10 +69,16 @@ def delete_third_party_payment_service():
             token (int): token of the user
             service_id (int): id of the third party service to be deleted
     """
-    data = request.get_json()
-    token = get_jwt_identity()
-    method_name = data.get('method_name')
-    payment_service.delete_third_party_service(method_name)
+    try:
+        data = request.get_json()
+        user_id = get_jwt_identity()
+        method_name = data.get('method_name')
+        if not method_name:
+            raise ValueError("Missing method name in request body")
+        payment_service.delete_third_party_service(user_id, method_name)
+        return jsonify({'message': 'Third party payment service deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
 
 @third_party_bp.route('/delivery/add', methods=['POST'])
 @jwt_required()
@@ -73,11 +91,17 @@ def add_third_party_delivery_service():
             token (int): token of the user
             data (dict): data of the third party service to be added
     """
-    data = request.get_json()
-    token = get_jwt_identity()
-    method_name = data.get('method_name')
-    config = data.get('config')
-    supply_service.add_third_party_service(method_name, config)
+    try:
+        data = request.get_json()
+        user_id = get_jwt_identity()
+        method_name = data.get('method_name')
+        config = data.get('config')
+        if not method_name or not config:
+            raise ValueError("Missing method name or config in request body")
+        supply_service.add_third_party_service(user_id, method_name, config)
+        return jsonify({'message': 'Third party delivery service added successfully'}), 200
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
 
 @third_party_bp.route('/delivery/edit', methods=['PUT'])
 @jwt_required()
@@ -91,11 +115,17 @@ def edit_third_party_delivery_service():
             service_id (int): id of the third party service to be edited
             data (dict): data of the third party service to be edited
     """
-    data = request.get_json()
-    token = get_jwt_identity()
-    method_name = data.get('method_name')
-    editing_data = data.get('editing_data')
-    supply_service.edit_third_party_service(method_name, editing_data)
+    try:
+        data = request.get_json()
+        user_id = get_jwt_identity()
+        method_name = data.get('method_name')
+        editing_data = data.get('editing_data')
+        if not method_name or not editing_data:
+            raise ValueError("Missing method name or editing data in request body")
+        supply_service.edit_third_party_service(user_id, method_name, editing_data)
+        return jsonify({'message': 'Third party delivery service edited successfully'}), 200
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
 
 @third_party_bp.route('/delivery/delete', methods=['DELETE'])
 @jwt_required()
@@ -108,7 +138,13 @@ def delete_third_party_delivery_service():
             token (int): token of the user
             service_id (int): id of the third party service to be deleted
     """
-    data: Dict = request.get_json()
-    token = get_jwt_identity()
-    method_name = data.get('method_name')
-    supply_service.delete_third_party_service(method_name)
+    try:
+        data: Dict = request.get_json()
+        user_id = get_jwt_identity()
+        method_name = data.get('method_name')
+        if not method_name:
+            raise ValueError("Missing method name in request body")
+        supply_service.delete_third_party_service(user_id, method_name)
+        return jsonify({'message': 'Third party delivery service deleted successfully'}), 200
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
