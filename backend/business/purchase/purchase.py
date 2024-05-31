@@ -786,7 +786,8 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] attempting to accept purchase with purchase id: %s', purchase_id)
         purchase = self.__get_purchase_by_id(purchase_id)
         purchase.accept()
-        # TODO: update delivery date
+        if isinstance(purchase, ImmediatePurchase):
+            purchase.delivery_date = delivery_date
 
     def reject_purchase(self, purchase_id: int) -> None:
         """
