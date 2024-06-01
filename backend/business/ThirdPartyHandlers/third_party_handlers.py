@@ -122,8 +122,8 @@ class BogoSupply(SupplyAdapter):
         """
         arrival_time = package_details.get("arrival time")
         sleep_time = (arrival_time - datetime.now()).total_seconds()
-        time.sleep(sleep_time)
         pur_id = package_details.get("purchase id")
+        time.sleep(sleep_time)
         on_arrival(pur_id)
 
 
@@ -174,21 +174,32 @@ class SupplyHandler:
         method = package_details.get("supply method")
         if method not in self.supply_config:
             raise ValueError("supply method not supported")
+        if "arrival time" not in package_details:
+            raise ValueError("Missing arrival time in package details")
+        date = package_details.get("arrival time")
+        if date < datetime.now():
+            raise ValueError("arrival time cannot be in the past")
         if method == "bogo":
             return BogoSupply()
         else:
             raise ValueError("Invalid supply method")
 
-    def process_supply(self, package_details: Dict, user_id: int, on_arrival: Callable[[int], None]) -> bool:
+    def process_supply(self, package_details: Dict, user_id: int, on_arrival: Callable[[int], None]) -> None:
         """
             * process_supply is a method that processes a supply using the SupplyHandler's SupplyAdapter object.
             * process_supply should return True if the supply was successful, and False / raise exception otherwise.
         """
         # NOTE: << should log supply here >>
+        if "supply method" not in package_details:
+            raise ValueError("Missing supply method in package details")
+        if "address" not in package_details:
+            raise ValueError("Missing address in package details")
         if not self._validate_supply_method(package_details.get("supply method"), package_details.get("address")):
             raise ValueError("supply method not supported for address")
         if "arrival time" not in package_details:
             raise ValueError("Missing arrival time in package details")
+        if "purchase id" not in package_details:
+            raise ValueError("Missing purchase id in package details")
         (self._resolve_supply_strategy(package_details)
          .order(package_details, user_id, self.supply_config[package_details.get("supply method")], on_arrival))
 

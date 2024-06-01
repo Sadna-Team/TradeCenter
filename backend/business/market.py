@@ -170,7 +170,7 @@ class MarketFacade:
         # clear the cart
         self.user_facade.clear_basket(user_id)
 
-        package_details = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date, 'purchase id': pur_id}
+        package_details = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date, 'purchase id': pur_id, "supply method": supply_method}
         if "supply method" not in package_details:
             raise ValueError("Supply method not specified")
         if package_details.get("supply method") not in SupplyHandler().supply_config:
