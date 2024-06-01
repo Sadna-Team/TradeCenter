@@ -92,7 +92,7 @@ class MarketFacade:
             if self.store_facade.check_product_availability(store_id, product_id):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id)
 
-    def checkout(self, user_id: int, payment_details: Dict, address: Dict):
+    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict):
         # needs a whole revamp to work with the discounts and purchase policies and location restrictions
         # cart = self.user_facade.get_shopping_cart(user_id)
         # TODO: call actual user facade method
@@ -143,13 +143,8 @@ class MarketFacade:
                 raise ValueError("Purchase does not meet the store's policies")"""
 
         # TODO: attempt to find a delivery method for user
-        delivery_date = datetime.now()  # dummy
-
-        if delivery_date is None:
-            # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-            raise ValueError("No delivery method found")
-
-        # charge the user:
+        package_details = {'stores': cart.keys(), "supply method": supply_method}
+        delivery_date = SupplyHandler().get_delivery_time(package_details, address)
 
         # TODO: (next version) fix discounts
         if "payment method" not in payment_details:
@@ -170,16 +165,18 @@ class MarketFacade:
         # accept the purchase
         self.purchase_facade.accept_purchase(pur_id, delivery_date)
 
+        
+
         # clear the cart
         self.user_facade.clear_basket(user_id)
 
-        package_details = {'shopping cart': cart, 'address': address}
+        package_details = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date, 'purchase id': pur_id}
         if "supply method" not in package_details:
             raise ValueError("Supply method not specified")
         if package_details.get("supply method") not in SupplyHandler().supply_config:
             raise ValueError("Invalid supply method")
-        if not SupplyHandler().process_supply(package_details, user_id):
-            raise ValueError("Supply failed")
+        on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
+        SupplyHandler().process_supply(package_details, user_id, on_arrival)
         for store_id in cart.keys():
             Notifier().notify_new_purchase(store_id, user_id)
 

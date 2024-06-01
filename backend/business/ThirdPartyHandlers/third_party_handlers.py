@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Tuple, Callable
+from datetime import datetime, timedelta
+import time
 
 
-class PaymentStrategy(ABC):
+class PaymentAdapter(ABC):
     """
-        * PaymentStrategy is an abstract class that defines the interface for payment strategies.
-        * Concrete implementations of PaymentStrategy should implement the pay method.
+        * PaymentAdapter is an abstract class that defines the interface for payment strategies.
+        * Concrete implementations of PaymentAdapter should implement the pay method.
         * Each pay method is an adapter for a specific external payment gateway.
     """
 
@@ -18,7 +20,7 @@ class PaymentStrategy(ABC):
         pass
 
 
-class BogoPayment(PaymentStrategy):
+class BogoPayment(PaymentAdapter):
     def pay(self, amount: float, payment_config: Dict) -> bool:
         """
             * For testing purposes, BogoPayment pay always returns True.
@@ -45,10 +47,10 @@ class PaymentHandler:
         """
         self.payment_config = {"bogo": {}}
 
-    def _resolve_payment_strategy(self, payment_details: Dict) -> PaymentStrategy:
+    def _resolve_payment_strategy(self, payment_details: Dict) -> PaymentAdapter:
         """
             * _resolve_payment_strategy is a method that resolves a payment strategy based on the payment method.
-            * _resolve_payment_strategy should return an instance of a PaymentStrategy subclass.
+            * _resolve_payment_strategy should return an instance of a PaymentAdapter subclass.
         """
         method = payment_details.get("payment method")  # NOTE: << should make the requested value a constant >>
         if method not in self.payment_config:
@@ -60,7 +62,7 @@ class PaymentHandler:
 
     def process_payment(self, amount: float, payment_details: Dict) -> bool:
         """
-            * process_payment is a method that processes a payment using the PaymentHandler's PaymentStrategy object.
+            * process_payment is a method that processes a payment using the PaymentHandler's PaymentAdapter object.
             * process_payment should return True if the payment was successful, and False / raise exception otherwise.
         """
         # NOTE: << should log payment here >>
@@ -97,28 +99,32 @@ class PaymentHandler:
         del self.payment_config[method_name]
 
 
-class SupplyStrategy(ABC):
+class SupplyAdapter(ABC):
     """
-        * SupplyStrategy is an abstract class that defines the interface for supply strategies.
-        * Concrete implementations of SupplyStrategy should implement the pay method.
+        * SupplyAdapter is an abstract class that defines the interface for supply strategies.
+        * Concrete implementations of SupplyAdapter should implement the pay method.
         * Each pay method is an adapter for a specific external payment gateway.
     """
 
     @abstractmethod
-    def order(self, package_details: Dict, user_id: int, supply_config: Dict) -> bool:
+    def order(self, package_details: Dict, user_id: int, supply_config: Dict, on_arrival: Callable[[int], None]) -> None:
         """
             * order is an abstract method that should be implemented by concrete supply strategies.
-            * order should return True if the order was successful, and False / raise exception otherwise.
+            * order should wait for the supply to arrive and call the on_arrival callback.
         """
         pass
 
 
-class BogoSupply(SupplyStrategy):
-    def order(self, package_details: Dict, user_id: int, supply_config: Dict) -> bool:
+class BogoSupply(SupplyAdapter):
+    def order(self, package_details: Dict, user_id: int, supply_config: Dict, on_arrival: Callable[[int], None]) -> None:
         """
             * For testing purposes, BogoSupply always returns True.
         """
-        return True
+        arrival_time = package_details.get("arrival time")
+        sleep_time = (arrival_time - datetime.now()).total_seconds()
+        time.sleep(sleep_time)
+        pur_id = package_details.get("purchase id")
+        on_arrival(pur_id)
 
 
 class SupplyHandler:
@@ -133,6 +139,7 @@ class SupplyHandler:
         if not hasattr(self, '_initialized'):
             self._initialized: bool = True
             self.supply_config: Dict = {"bogo": {}}
+            self.active_shipments: Dict[int, Tuple[int, datetime]] = {}
 
     def reset(self) -> None:
         """
@@ -140,10 +147,29 @@ class SupplyHandler:
         """
         self.supply_config = {"bogo": {}}
 
-    def _resolve_supply_strategy(self, package_details: Dict) -> SupplyStrategy:
+    def _validate_supply_method(self, method_name: str, address: str) -> bool:
+        """
+            * validate_supply_method is a method that validates a user's chosen supply method for his address.
+            * validate_supply_method should return True if the supply method is valid for the address, and False otherwise.
+        """
+        # NOTE: << should log supply method validation here >>
+        if method_name not in self.supply_config:
+            return False
+        return True
+    
+    def get_delivery_time(self, package_details: Dict, address: Dict) -> datetime:
+        """
+            * get_delivery_time is a method that returns the estimated delivery time for a package.
+        """
+        # NOTE: << should log delivery time here >>
+        if not self._validate_supply_method(package_details.get("supply method"), address):
+            raise ValueError(f"supply method not supported for address: {address}")
+        return datetime.now() + timedelta(minutes=1)
+
+    def _resolve_supply_strategy(self, package_details: Dict) -> SupplyAdapter:
         """
             * _resolve_supply_strategy is a private method that resolves a supply strategy based on the package details.
-            * _resolve_supply_strategy should return an instance of a SupplyStrategy subclass.
+            * _resolve_supply_strategy should return an instance of a SupplyAdapter subclass.
         """
         method = package_details.get("supply method")
         if method not in self.supply_config:
@@ -153,15 +179,18 @@ class SupplyHandler:
         else:
             raise ValueError("Invalid supply method")
 
-    def process_supply(self, package_details: Dict, user_id: int) -> bool:
+    def process_supply(self, package_details: Dict, user_id: int, on_arrival: Callable[[int], None]) -> bool:
         """
-            * process_supply is a method that processes a supply using the SupplyHandler's SupplyStrategy object.
+            * process_supply is a method that processes a supply using the SupplyHandler's SupplyAdapter object.
             * process_supply should return True if the supply was successful, and False / raise exception otherwise.
         """
         # NOTE: << should log supply here >>
-        return self._resolve_supply_strategy(package_details).order(package_details, user_id,
-                                                                    self.supply_config[
-                                                                        package_details.get("supply method")])
+        if not self._validate_supply_method(package_details.get("supply method"), package_details.get("address")):
+            raise ValueError("supply method not supported for address")
+        if "arrival time" not in package_details:
+            raise ValueError("Missing arrival time in package details")
+        (self._resolve_supply_strategy(package_details)
+         .order(package_details, user_id, self.supply_config[package_details.get("supply method")], on_arrival))
 
     def edit_supply_method(self, method_name: str, editing_data: Dict) -> None:
         """
