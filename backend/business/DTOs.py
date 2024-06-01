@@ -4,6 +4,26 @@ from enum import Enum
 from typing import List
 
 
+class AddressDTO:
+    def __init__(self, address_id, address, city, state, country, postal_code):
+        self.address_id = address_id
+        self.address = address
+        self.city = city
+        self.state = state
+        self.country = country
+        self.postal_code = postal_code
+
+    def to_dict(self):
+        return {
+            'address_id': self.address_id,
+            'address': self.address,
+            'city': self.city,
+            'state': self.state,
+            'country': self.country,
+            'postal_code': self.postal_code
+        }
+
+
 class NotificationDTO:
     def __init__(self, notification_id: int, message: str, date: datetime) -> None:
         self.__notification_id: int = notification_id
@@ -34,19 +54,19 @@ class PurchaseProductDTO:
     @property
     def product_id(self) -> int:
         return self.__product_id
-    
+
     @property
     def name(self) -> str:
         return self.__name
-    
+
     @property
     def description(self) -> str:
         return self.__description
-    
+
     @property
     def price(self) -> float:
         return self.__price
-    
+
     @property
     def amount(self) -> int:
         return self.__amount
@@ -132,3 +152,7 @@ class ProductDTO:
     def get(self) -> dict:
         return {"product_id": self.__product_id, "name": self.__name, "description": self.__description,
                 "price": self.__price, "amount": self.__amount}
+
+
+class TransactionException(Exception):
+    pass

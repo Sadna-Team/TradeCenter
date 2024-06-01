@@ -209,3 +209,6 @@ class UserFacade:
 
     def is_member(self, user_id: int) -> bool:
         return isinstance(self.__get_user(user_id), Member)
+
+    def restore_basket(self, user_id: int, basket: Dict[int, Dict[int, int]]):
+        pass
