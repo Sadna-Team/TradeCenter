@@ -7,31 +7,11 @@ from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
 from typing import List, Dict, Tuple, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 import threading
 import logging
 
 logger = logging.getLogger('myapp')
-
-
-class AddressDTO:
-    def __init__(self, address_id, address, city, state, country, postal_code):
-        self.address_id = address_id
-        self.address = address
-        self.city = city
-        self.state = state
-        self.country = country
-        self.postal_code = postal_code
-
-    def to_dict(self):
-        return {
-            'address_id': self.address_id,
-            'address': self.address,
-            'city': self.city,
-            'state': self.state,
-            'country': self.country,
-            'postal_code': self.postal_code
-        }
 
 
 def add_payment_method(method_name: str, payment_config: Dict):
@@ -93,92 +73,111 @@ class MarketFacade:
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id)
 
     def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict):
-        # needs a whole revamp to work with the discounts and purchase policies and location restrictions
-        # cart = self.user_facade.get_shopping_cart(user_id)
-        # TODO: call actual user facade method
+        products_removed = False
+        purchase_accepted = False
+        basket_cleared = False
         cart: Dict[int, Dict[int, int]] = {}  # store_id -> product_id -> amount
+        pur_id = -1
+        try:
+            # needs a whole revamp to work with the discounts and purchase policies and location restrictions
+            # cart = self.user_facade.get_shopping_cart(user_id)
+            # TODO: call actual user facade method
 
-        # lock the __lock
-        # check if the products are still available
-        for store_id, products in cart.items():
-            for product_id in products:
-                amount = products[product_id]
-                if not self.store_facade.check_product_availability(store_id, product_id, amount):
-                    raise ValueError(f"Product {product_id} is not available in the required amount")
+            # lock the __lock
+            # check if the products are still available
+            for store_id, products in cart.items():
+                for product_id in products:
+                    amount = products[product_id]
+                    if not self.store_facade.check_product_availability(store_id, product_id, amount):
+                        raise ValueError(f"Product {product_id} is not available in the required amount")
 
-        """
-        self.__product_id: int = product_id
-        self.__name: str = name
-        self.__description: str = description
-        self.__price: float = price
-        self.__amount: int = amount"""
+            """
+            self.__product_id: int = product_id
+            self.__name: str = name
+            self.__description: str = description
+            self.__price: float = price
+            self.__amount: int = amount"""
 
-        # calculate the total price
-        purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = {}
-        total_price = 0
-        for store_id, products in cart.items():
-            basket_price = 0
-            purchase_products: List[PurchaseProductDTO] = []
-            for product_id in products:
-                amount = products[product_id]
-                name = self.store_facade.get_product_by_id(product_id).name
-                description = self.store_facade.get_product_by_id(product_id).description
-                price = self.store_facade.get_product_by_id(product_id).price
-                basket_price += price * amount
-                purchase_products.append(PurchaseProductDTO(product_id, name, description, price, amount))
-            purchase_shopping_cart[store_id] = (purchase_products, basket_price, basket_price)
-            total_price += basket_price
+            # calculate the total price
+            purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = {}
+            total_price = 0
+            for store_id, products in cart.items():
+                basket_price = 0
+                purchase_products: List[PurchaseProductDTO] = []
+                for product_id in products:
+                    amount = products[product_id]
+                    name = self.store_facade.get_product_by_id(product_id).name
+                    description = self.store_facade.get_product_by_id(product_id).description
+                    price = self.store_facade.get_product_by_id(product_id).price
+                    basket_price += price * amount
+                    purchase_products.append(PurchaseProductDTO(product_id, name, description, price, amount))
+                purchase_shopping_cart[store_id] = (purchase_products, basket_price, basket_price)
+                total_price += basket_price
 
-        # purchase facade immediate
-        total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
-        pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
-                                                                purchase_shopping_cart)
+            # purchase facade immediate
+            total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
+            pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
+                                                                    purchase_shopping_cart)
 
-        # calculate the policies of the purchase using storeFacade + user location constraints
-        for store_id in cart:
-            products: Dict[int, int] = cart[store_id]
-            # TODO: add check of policy
-            """if not self.store_facade.check_policies_of_store(basket[0], basket[1]):
+            # remove the products from the store
+            for store_id, products in cart.items():
+                for product_id in products:
+                    amount = products[product_id]
+                    self.store_facade.remove_product_amount(store_id, product_id, amount)
+
+            products_removed = True
+
+            # calculate the policies of the purchase using storeFacade + user location constraints
+            for store_id in cart:
+                products: Dict[int, int] = cart[store_id]
+                # TODO: add check of policy
+                """if not self.store_facade.check_policies_of_store(basket[0], basket[1]):
+                    # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                    raise ValueError("Purchase does not meet the store's policies")"""
+
+            # TODO: attempt to find a delivery method for user
+            package_details = {'stores': cart.keys(), "supply method": supply_method}
+            delivery_date = SupplyHandler().get_delivery_time(package_details, address)
+
+            # accept the purchase
+            self.purchase_facade.accept_purchase(pur_id, delivery_date)
+            purchase_accepted = True
+
+            # clear the cart
+            self.user_facade.clear_basket(user_id)
+            basket_cleared = True
+
+            # TODO: (next version) fix discounts
+            if "payment method" not in payment_details:
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                raise ValueError("Purchase does not meet the store's policies")"""
+                raise ValueError("Payment method not specified")
 
-        # TODO: attempt to find a delivery method for user
-        package_details = {'stores': cart.keys(), "supply method": supply_method}
-        delivery_date = SupplyHandler().get_delivery_time(package_details, address)
+            if not PaymentHandler().process_payment(total_price_after_discounts, payment_details):
+                # invalidate Purchase
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                raise ValueError("Payment failed")
 
-        # TODO: (next version) fix discounts
-        if "payment method" not in payment_details:
-            # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-            raise ValueError("Payment method not specified")
-
-        if not PaymentHandler().process_payment(total_price_after_discounts, payment_details):
-            # invalidate Purchase
-            # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-            raise ValueError("Payment failed")
-
-        # remove the products from the store
-        for store_id, products in cart.items():
-            for product_id in products:
-                amount = products[product_id]
-                self.store_facade.remove_product_amount(store_id, product_id, amount)
-
-        # accept the purchase
-        self.purchase_facade.accept_purchase(pur_id, delivery_date)
-
-        
-
-        # clear the cart
-        self.user_facade.clear_basket(user_id)
-
-        package_details = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date, 'purchase id': pur_id, "supply method": supply_method}
-        if "supply method" not in package_details:
-            raise ValueError("Supply method not specified")
-        if package_details.get("supply method") not in SupplyHandler().supply_config:
-            raise ValueError("Invalid supply method")
-        on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
-        SupplyHandler().process_supply(package_details, user_id, on_arrival)
-        for store_id in cart.keys():
-            Notifier().notify_new_purchase(store_id, user_id)
+            package_details = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date,
+                               'purchase id': pur_id, "supply method": supply_method}
+            if "supply method" not in package_details:
+                raise ValueError("Supply method not specified")
+            if package_details.get("supply method") not in SupplyHandler().supply_config:
+                raise ValueError("Invalid supply method")
+            on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
+            SupplyHandler().process_supply(package_details, user_id, on_arrival)
+            for store_id in cart.keys():
+                Notifier().notify_new_purchase(store_id, user_id)
+        except Exception as e:
+            if products_removed:
+                for store_id, products in cart.items():
+                    for product_id in products:
+                        amount = products[product_id]
+                        self.store_facade.add_product_amount(store_id, product_id, amount)
+            if purchase_accepted:
+                self.purchase_facade.reject_purchase(pur_id)
+            if basket_cleared:
+                self.user_facade.restore_basket(user_id, cart)
+            raise e
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
