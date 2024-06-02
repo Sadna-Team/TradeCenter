@@ -190,8 +190,8 @@ class RolesFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.__stores_to_role_tree: Dict[int, Tree] = {}  # Dict[store_id, Tree[role_id]]
-            self.__stores_to_roles: Dict[int, Dict[int, StoreRole]] = {}  # Dict[store_id, Dict[role_id, StoreRole]]
+            self.__stores_to_role_tree: Dict[int, Tree] = {}  # Dict[store_id, Tree[user_id]]
+            self.__stores_to_roles: Dict[int, Dict[int, StoreRole]] = {}  # Dict[store_id, Dict[user_id, StoreRole]]
             self.__systems_nominations: Dict[int, Nomination] = {}
             self.__system_managers: List[int] = []
             self.__system_admin: int = -1
@@ -402,3 +402,15 @@ class RolesFacade:
             if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
                 return self.__stores_to_roles[store_id][user_id].permissions.get_bid
             return False
+    
+    def is_owner(self, store_id: int, user_id: int) -> bool:
+        if user_id in self.__stores_to_roles[store_id]:
+            if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
+                return True
+        return False
+    
+    def is_manager(self, store_id: int, user_id: int) -> bool:
+        if user_id in self.__stores_to_roles[store_id]:
+            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                return True
+        return False
