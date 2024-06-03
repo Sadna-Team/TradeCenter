@@ -1372,5 +1372,88 @@ class StoreFacade:
             return False
         else:
             raise ValueError('Store not found')
+        
 
-    
+    def get_store_info(self, store_id: int) -> str:
+        """
+        * Parameters: store_id
+        * This function gets the store information
+        * Returns: the store information
+        """
+        store = self.get_store_by_id(store_id)
+        if store is not None:
+            return "Store: " + store.store_name + " Founded by: " + str(store.store_founder_id) + " Rating: " + str(store.rating) + " Founded Date: " + str(store.founded_date) + "is active: " + str(store.is_active)
+        else:
+            raise ValueError('Store not found')
+        
+    def search_by_category(self, category_id: int) -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
+        """
+        * Parameters: category_id
+        * This function searches for products by category
+        * Returns: a dict of <store,rating> with a dict of <product,<<amount,price> rating>>>
+        """
+        category = self.get_category_by_id(category_id)
+        if category is not None:
+            information: Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int,float],float]]] = {}
+            for store in self.__stores:
+                products_in_store_that_are_in_category: Dict[int,Tuple[Tuple[int,float],float]] = {}
+                for product in category.get_all_products_recursively():
+                    if store.store_id == product.store_id:
+                        products_in_store_that_are_in_category[product.product_id] = ((product.amount, product.price), store.rating)
+                
+                if len(products_in_store_that_are_in_category) > 0:
+                    information[(store.store_id, store.rating)] = products_in_store_that_are_in_category
+            return information
+        else:
+            raise ValueError('Category not found')
+
+    def search_by_tags(self, tags: List[str]) -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
+        """
+        * Parameters: tags
+        * This function searches for products by tags
+        * Returns: a dict of <store,rating> with a dict of <product,<<amount,price> rating>>>
+        """ 
+        information: Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int,float],float]]] = {}
+        for store in self.__stores:
+            products_in_store_that_have_tags: Dict[int,Tuple[Tuple[int,float],float]] = {}
+            for product in store.store_products:
+                if all(tag in product.tags for tag in tags):
+                    products_in_store_that_have_tags[product.product_id] = ((product.amount, product.price), store.rating)
+            
+            if len(products_in_store_that_have_tags) > 0:
+                information[(store.store_id, store.rating)] = products_in_store_that_have_tags
+        return information
+        
+    def search_by_name(self, product_name: str) -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
+        """
+        * Parameters: product_name
+        * This function searches for products by name
+        * Returns: a dict of <store,rating> with a dict of <product,<<amount,price> rating>>>
+        """
+        information: Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int,float],float]]] = {}
+        for store in self.__stores:
+            products_in_store_that_have_name: Dict[int,Tuple[Tuple[int,float],float]] = {}
+            for product in store.store_products:
+                if product.product_name == product_name:
+                    products_in_store_that_have_name[product.product_id] = ((product.amount, product.price), store.rating)
+            
+            if len(products_in_store_that_have_name) > 0:
+                information[(store.store_id, store.rating)] = products_in_store_that_have_name
+        return information
+
+
+    def search_in_store(self, store_id: int, product_name: str) -> Dict[int, Tuple[Tuple[int, float], float]]:
+        """
+        * Parameters: store_id, search_term
+        * This function searches for products in a store
+        * Returns: a dict of <product,<<amount,price> rating>>
+        """
+        store = self.get_store_by_id(store_id)
+        if store is not None:
+            products_in_store: Dict[int,Tuple[Tuple[int,float],float]] = {}
+            for product in store.store_products:
+                if product.product_name == product_name:
+                    products_in_store[product.product_id] = ((product.amount, product.price), store.rating)
+            return products_in_store
+        else:
+            raise ValueError('Store not found')

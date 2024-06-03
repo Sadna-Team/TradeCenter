@@ -245,23 +245,16 @@ class MarketFacade:
         SupplyHandler().remove_supply_method(method_name)
 
     # -------------------------------------- Store Related Methods --------------------------------------#
-    def search_by_category(self, category_id: int, sort_type: int) -> List[Tuple[Tuple[int, int], Tuple[float, float]]]:
+    def search_by_category(self, category_id: int, sort_type: int) -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
         """
         * Parameters: categoryId, sortByLowesToHighestPrice
-        * This function returns the list of all productIds
+        * This function gets all necessary information of the products in the category with categoryId
         * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
         rating lowest to Highest, 4 is by highest to lowest
-        * Returns a list of product ids of the products in the category with categoryId
+        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products in the category with categoryId
         """
-        product_specifications_of_category = self.store_facade.get_product_spec_of_category(category_id)
-        product_ids_to_store: List[Tuple[Tuple[int, int], Tuple[float, float]]] = []
-        # TODO: types doesnt match
-        """for store in self.store_facade.stores:
-            for product in store.store_products:
-                if product.specification_id in product_specifications_of_category:
-                    product_ids_to_store.append((product.product_id, product.specification_id, store.store_id,
-                                              store.store_name, product.price,
-                                              store.ratings_of_product_spec_id[product.specification_id]))"""
+        product_ids_to_store = self.store_facade.search_by_category(category_id)
+
         if sort_type == 1:
             product_ids_to_store.sort(key=lambda x: x[1][0])
         elif sort_type == 2:
@@ -272,23 +265,17 @@ class MarketFacade:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
 
-    def search_by_tags(self, tags: List[str], sort_type: int) -> List[Tuple[Tuple[int, int], Tuple[float, float]]]:
+
+
+    def search_by_tags(self, tags: List[str], sort_type: int) -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
         """
         * Parameters: tags, sortByLowesToHighestPrice
-        * This function returns the list of all productIds
+        * This function returns the list of all productIds with the tags in tags
         * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
          rating lowest to Highest, 4 is by highest to lowest
-        * Returns a list of product ids of the products with the tags in tags
+        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products with the tags in tags
         """
-        product_specifications_of_tags = self.store_facade.get_product_specs_by_tags(tags)
-        product_ids_to_store: List[Tuple[Tuple[int, int], Tuple[float, float]]] = []
-        # TODO: types doesnt match
-        """for store in self.store_facade.stores:
-            for product in store.store_products:
-                if product.specification_id in product_specifications_of_tags:
-                    product_ids_to_store.append((product.product_id, product.specification_id, store.store_id, 
-                                                 store.store_name, product.price, 
-                                                 store.ratings_of_product_spec_id[product.specification_id]))"""
+        product_ids_to_store = self.store_facade.search_by_tags(tags)
 
         if sort_type == 1:
             product_ids_to_store.sort(key=lambda x: x[1][0])
@@ -300,23 +287,15 @@ class MarketFacade:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
 
-    def search_by_names(self, name: str, sort_type: int) -> List[Tuple[Tuple[int, int], Tuple[float, float]]]:
+    def search_by_names(self, name: str, sort_type: int) -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
         """
         * Parameters: names, sortByLowesToHighestPrice
         * This function returns the list of all productIds
         * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
          rating lowest to Highest, 4 is by highest to lowest
-        * Returns a list of product ids of the products with the names in names
+        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products with the name
         """
-        product_specifications_of_names = self.store_facade.get_product_spec_by_name(name)
-        product_ids_to_store: List[Tuple[Tuple[int, int], Tuple[float, float]]] = []
-        # TODO: types doesnt match
-        """for store in self.store_facade.stores:
-            for product in store.store_products:
-                if product.specification_id in product_specifications_of_names:
-                    product_ids_to_store.append((product.product_id, product.specification_id,
-                                              store.store_id, store.store_name, product.price,
-                                              store.ratings_of_product_spec_id[product.specification_id]))"""
+        product_ids_to_store = self.store_facade.search_by_names(name)
 
         if sort_type == 1:
             product_ids_to_store.sort(key=lambda x: x[1][0])
@@ -328,23 +307,16 @@ class MarketFacade:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
 
-    def search_product_in_store(self, store_id: int, name: str, sort_type: int) \
-            -> List[Tuple[int, Tuple[float, float]]]:
+    def search_product_in_store(self, store_id: int, name: str, sort_type: int) -> Dict[int, Tuple[Tuple[int, float], float]]:
         """
         * Parameters: storeId, names, sortByLowesToHighestPrice
         * This function returns the list of all productIds
         * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
         rating lowest to Highest, 4 is by highest to lowest
-        * Returns a list of product ids of the products with the names in names
+        * Returns a dict of <productId, <amount, price> rating> of the product in a store
+ product ids of the products with the names in names
         """
-        product_specifications_of_names = self.store_facade.get_product_spec_by_name(name)
-        product_ids_to_store: List[Tuple[int, Tuple[float, float]]] = []
-        store = self.store_facade.get_store_by_id(store_id)
-        # TODO: types doesnt match
-        """for product in store.store_products:
-            if product.specification_id in product_specifications_of_names:
-                product_ids_to_store.append((product.product_id, product.price,
-                                          store.ratings_of_product_spec_id[product.specification_id]))"""
+        product_ids_to_store = self.store_facade.search_product_in_store(store_id, name)
 
         if sort_type == 1:
             product_ids_to_store.sort(key=lambda x: x[1][0])
@@ -355,6 +327,7 @@ class MarketFacade:
         elif sort_type == 4:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
+    
 
     def get_store_info(self, user_id: int, store_id: int) -> Optional[str]:
         """
@@ -363,8 +336,8 @@ class MarketFacade:
         * Returns the store information
         """
         # TODO: check if user has necessary permissions to view store information
-        if self.store_facade.get_store_by_id(store_id) is not None:
-            return self.store_facade.get_store_by_id(store_id).get_store_information()
+        if self.store_facade.get_store_info(store_id) is not None:
+            return self.store_facade.get_store_info(store_id)
         return None
 
     def get_store_product_info(self, user_id: int, store_id: int) -> str:
@@ -459,8 +432,7 @@ class MarketFacade:
         pass
 
     # -------------Products related methods-------------------#
-    def add_product(self, user_id: int, store_id: int, product_spec_id: int, expiration_date: datetime, condition: int,
-                    price: float):
+    def add_product(self, user_id: int, store_id: int, product_name: str, weight: float, description: str, price: float):
         """
         * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
         * This function adds a product to the store
@@ -468,7 +440,7 @@ class MarketFacade:
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add a product to the store")
-        if self.store_facade.add_product_to_store(store_id, product_spec_id, expiration_date, condition, price):
+        if self.store_facade.add_product_to_store(store_id, product_name,weight, description, price ):
             logger.info(f"User {user_id} has added a product to store {store_id}")
         else:
             logger.info(f"User {user_id} has failed to add a product to store {store_id}")
@@ -485,6 +457,34 @@ class MarketFacade:
             logger.info(f"User {user_id} has removed a product from store {store_id}")
         else:
             logger.info(f"User {user_id} has failed to remove a product from store {store_id}")
+
+    def add_product_amount(self, user_id: int, store_id: int, product_id: int, amount: int):
+        """
+        * Parameters: userId, store_id, product_id, amount
+        * This function adds an amount of a product to the store
+        * Returns None
+        """
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
+            raise ValueError("User does not have the necessary permissions to add an amount of a product to the store")
+        if self.store_facade.add_product_amount(store_id, product_id, amount):
+            logger.info(f"User {user_id} has added an amount of product {product_id} to store {store_id}")
+        else:
+            logger.info(f"User {user_id} has failed to add an amount of product {product_id} to store {store_id}")
+
+        
+    def remove_product_amount(self, user_id: int, store_id: int, product_id: int, amount: int):
+        """
+        * Parameters: userId, store_id, product_id, amount
+        * This function removes an amount of a product from the store
+        * Returns None
+        """
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
+            raise ValueError("User does not have the necessary permissions to remove an amount of a product from the store")
+        if self.store_facade.remove_product_amount(store_id, product_id, amount):
+            logger.info(f"User {user_id} has removed an amount of product {product_id} from store {store_id}")
+        else:
+            logger.info(f"User {user_id} has failed to remove an amount of product {product_id} from store {store_id}")
+        
 
     def change_product_price(self, user_id: int, store_id: int, product_id: int, new_price: float):
         """
@@ -525,20 +525,20 @@ class MarketFacade:
             logger.info(f"User {user_id} has failed to close store {store_id}")
 
     # -------------Tags related methods-------------------#
-    def add_tag_to_product_spec(self, user_id: int, product_spec_id: int, tag: str):
+    def add_tag_to_product(self, user_id: int, store_id: int, product_id: int, tag: str):
         """
-        * Parameters: userId, productSpecId, tag
+        * Parameters: user_id, product_id, tag
         * This function adds a tag to a product specification
         * Returns None
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.add_tag_to_product_specification(product_spec_id, tag):
-            logger.info(f"User {user_id} has added a tag to product specification {product_spec_id}")
+        if self.store_facade.add_tag_to_product(store_id, product_id, tag):
+            logger.info(f"User {user_id} has added a tag to product {product_id}")
         else:
-            logger.info(f"User {user_id} has failed to add a tag to product specification {product_spec_id}")
+            logger.info(f"User {user_id} has failed to add a tag to product {product_id}")
 
-    def remove_tag_from_product_spec(self, user_id: int, product_spec_id: int, tag: str):
+    def remove_tag_from_product_spec(self, user_id: int, store_id:int, product_id: int, tag: str):
         """
         * Parameters: userId, productSpecId, tag
         * This function removes a tag from a product specification
@@ -546,54 +546,27 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.remove_tags_from_product_specification(product_spec_id, tag):
-            logger.info(f"User {user_id} has removed a tag from product specification {product_spec_id}")
+        if self.store_facade.remove_tags_from_product(store_id, product_id, tag):
+            logger.info(f"User {user_id} has removed a tag from product {product_id}")
         else:
-            logger.info(f"User {user_id} has failed to remove a tag from product specification {product_spec_id}")
+            logger.info(f"User {user_id} has failed to remove a tag from product {product_id}")
 
-    # -------------ProductSpec related methods-------------------#
-    def change_product_spec_name(self, user_id: int, product_spec_id: int, new_name: str):
+    # -------------Product related methods-------------------#
+    def change_product_description(self, user_id: int, store_id:int, product_id: int, description: str):
         """
-        * Parameters: userId, productSpecId, newName
-        * This function changes the name of a product specification
+        * Parameters: user_id, product_id, description
+        * This function changes the description of a product
         * Returns None
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.change_name_of_product_specification(product_spec_id, new_name):
-            logger.info(f"User {user_id} has changed the name of product specification {product_spec_id}")
-        else:
-            logger.info(f"User {user_id} has failed to change the name of product specification {product_spec_id}")
-
-    def change_product_spec_manufacturer(self, user_id: int, product_spec_id: int, manufacturer: str):
-        """
-        * Parameters: userId, productSpecId, manufacturer
-        * This function changes the manufacturer of a product specification
-        * Returns None
-        """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.change_manufacturer_of_product_specification(product_spec_id, manufacturer):
-            logger.info(f"User {user_id} has changed the manufacturer of product specification {product_spec_id}")
-        else:
-            logger.info(f"User {user_id} has failed to change the manufacturer of product specification"
-                        f" {product_spec_id}")
-
-    def change_product_spec_description(self, user_id: int, product_spec_id: int, description: str):
-        """
-        * Parameters: userId, productSpecId, description
-        * This function changes the description of a product specification
-        * Returns None
-        """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.change_description_of_product_specification(product_spec_id, description):
-            logger.info(f"User {user_id} has changed the description of product specification {product_spec_id}")
+        if self.store_facade.change_description_of_product(store_id,product_id, description):
+            logger.info(f"User {user_id} has changed the description of product specification {product_id}")
         else:
             logger.info(f"User {user_id} has failed to change the description of product "
-                        f"specification {product_spec_id}")
+                        f" {product_id}")
 
-    def change_product_spec_weight(self, user_id: int, product_spec_id: int, weight_in_kilos: float):
+    def change_product_weight(self, user_id: int, store_id:int, product_id: int, weight_in_kilos: float):
         """
         * Parameters: userId, productSpecId, weightInKilos
         * This function changes the weight of a product specification
@@ -601,10 +574,10 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.change_weight_of_product_specification(product_spec_id, weight_in_kilos):
-            logger.info(f"User {user_id} has changed the weight of product specification {product_spec_id}")
+        if self.store_facade.change_weight_of_product(store_id, product_id, weight_in_kilos):
+            logger.info(f"User {user_id} has changed the weight of product {product_id}")
         else:
-            logger.info(f"User {user_id} has failed to change the weight of product specification {product_spec_id}")
+            logger.info(f"User {user_id} has failed to change the weight of product {product_id}")
 
     # -------------Category related methods-------------------#
     def add_category(self, user_id: int, category_name: str):
@@ -660,32 +633,32 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to remove a sub category from category {category_id}")
 
-    def assign_product_spec_to_category(self, user_id: int, category_id: int, product_spec_id: int):
+    def assign_product_to_category(self, user_id: int, category_id: int, product_id: int):
         """
-        * Parameters: userId, categoryId, productSpecId
-        * This function assigns a product specification to a category
-        * NOTE: it is assumed that the product specification exists in the system
+        * Parameters: user_id, category_id, product_id
+        * This function assigns a product to a category
+        * NOTE: it is assumed that the product exists in the system
         * Returns None
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.assign_product_spec_to_category(category_id, product_spec_id):
-            logger.info(f"User {user_id} has assigned a product specification to category {category_id}")
+        if self.store_facade.assign_product_to_category(category_id, product_id):
+            logger.info(f"User {user_id} has assigned a product to category {category_id}")
         else:
-            logger.info(f"User {user_id} has failed to assign a product specification to category {category_id}")
+            logger.info(f"User {user_id} has failed to assign a product to category {category_id}")
 
-    def remove_product_spec_from_category(self, user_id: int, category_id: int, product_spec_id: int):
+    def remove_product_from_category(self, user_id: int, category_id: int, product_id: int):
         """
-        * Parameters: userId, categoryId, productSpecId
-        * This function removes a product specification from a category
+        * Parameters: user_id, category_id, product_id
+        * This function removes a product from a category
         * Returns None
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.remove_product_spec_from_category(category_id, product_spec_id):
-            logger.info(f"User {user_id} has removed a product specification from category {category_id}")
+        if self.store_facade.remove_product_from_category(category_id, product_id):
+            logger.info(f"User {user_id} has removed a product from category {category_id}")
         else:
-            logger.info(f"User {user_id} has failed to remove a product specification from category {category_id}")
+            logger.info(f"User {user_id} has failed to remove a product from category {category_id}")
 
     # -------------PurchaseFacade methods:-------------------#
 
