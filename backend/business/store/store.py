@@ -221,6 +221,15 @@ class Category:
     @property
     def sub_categories(self) -> List['Category']:
         return self.__sub_categories
+    
+    @property
+    def category_products(self) -> List[Product]:
+        return self.__category_products
+    
+    @property
+    def category_name(self) -> str:
+        return self.__category_name
+    
 
     # ---------------------methods--------------------------------
     def add_parent_category(self, parent_category_id: int) -> None:
@@ -446,8 +455,8 @@ class Store:
         if user_id == self.__store_founder_id:
             self.__is_active = False
             logger.info('[Store] successfully closed store with id: ' + str(self.__store_id))
-        logger.warning('[Store] User is not the founder of the store')
-        raise ValueError('User is not the founder of the store')
+        else:
+            raise ValueError('User is not the founder of the store')
 
     # We assume that the marketFacade verified that the user attempting to add the product is a store Owner
     def add_product(self, product: Product) -> None:
@@ -559,7 +568,8 @@ class Store:
         if 0.0 <= new_rating <= 5.0:
             self.__rating = new_rating
             logger.info('[Store] successfully updated rating of store with id: ' + str(self.__store_id))
-        raise ValueError('New rating is not a valid float value')
+        else: 
+            raise ValueError('New rating is not a valid float value')
 
     def update_product_rating(self, product_id: int, new_rating: float) -> None:
         """
@@ -570,8 +580,8 @@ class Store:
         if 0.0 <= new_rating <= 5.0:
             self.__ratings_of_product[product_id] = new_rating
             logger.info('[Store] successfully updated rating of product with id: ' + str(product_id))
-        logger.warning('[Store] New rating is not a valid integer value')
-        raise ValueError('New rating is not a valid float value')
+        else:
+            raise ValueError('New rating is not a valid float value')
 
     def get_total_price_of_basket_before_discount(self, basket: Dict[int,int]) -> float:
         """
@@ -633,10 +643,6 @@ class StoreFacade:
             self.__product_id_counter = 0  # Counter for product IDs
             logger.info('successfully created storeFacade')
 
-    @property
-    def stores(self) -> List[Store]:
-        return self.__stores
-
     def clean_data(self):
         """
         For testing purposes only
@@ -648,6 +654,20 @@ class StoreFacade:
         self.__store_id_counter = 0
         self.__discount_id_counter = 0
         self.__product_id_counter = 0
+
+    # ---------------------getters and setters---------------------
+    @property
+    def categories(self) -> List[Category]:
+        return self.__categories
+    
+    @property
+    def discounts(self) -> List[DiscountStrategy]:
+        return self.__discounts
+    
+    
+    @property
+    def stores(self) -> List[Store]:
+        return self.__stores
 
 
     # ---------------------methods--------------------------------
@@ -661,6 +681,9 @@ class StoreFacade:
             if category.category_id == category_id:
                 return category
         return None
+    
+    
+    
     
     def add_category(self, category_name: str) -> None:
         """
