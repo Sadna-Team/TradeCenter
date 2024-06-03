@@ -16,11 +16,6 @@ logger = logging.getLogger('myapp')
 POUNDS_PER_KILOGRAM = 2.20462
 
 
-# ---------------------productCondition Enum---------------------#
-class ProductCondition(Enum):
-    NEW = 1
-    USED = 2
-
 
 # ---------------------product class---------------------#
 class Product:  
@@ -32,7 +27,7 @@ class Product:
         self.__weight = weight
         self.__description = description
         self.__tags: List[str] = [] # initialized with no tags
-        self.__amount_To_condition: Dict[ProductCondition, int] = {}
+        self.__amount = 0 # amount of the product in the store
         self.__price = price  # price is in dollars
         logger.info('[Product] successfully created product with id: ' + str(product_id))
 
@@ -62,9 +57,9 @@ class Product:
         return self.__tags
     
     @property
-    def amount_to_condition(self) -> Dict[ProductCondition, int]:
-        return self.__amount_To_condition
-    
+    def amount(self) -> int:
+        return self.__amount
+
     @property
     def price(self) -> float:
         return self.__price
@@ -108,9 +103,7 @@ class Product:
             if new_weight >= 0:
                 self.__weight = new_weight
                 logger.info(
-                    '[Product] successfully changed weight of product with id: ' + str(
-                        self.__product_id))
-                return True
+                    '[Product] successfully changed weight of product with id: ' + str(self.__product_id))
             else:
                 raise ValueError('New weight is a negative value')
         else:
@@ -151,7 +144,6 @@ class Product:
                 self.__tags.remove(tag)
                 logger.info(
                     '[Product] successfully removed tag from product with id: ' + str(self.__product_id))
-                return True
             else:
                 raise ValueError('Tag is not in the list of tags')
         else:
@@ -166,7 +158,7 @@ class Product:
         """
         return tag in self.__tags
 
-    def add_product(self, amount: int, condition: ProductCondition) -> None:
+    def add_product(self, amount: int) -> None:
         """
         * Parameters: amount, condition
         * This function adds a product to the store
@@ -174,21 +166,15 @@ class Product:
         """
         if amount is not None:
             if amount >= 0:
-                if condition is not None:
-                    if condition in self.__amount_To_condition:
-                        self.__amount_To_condition[condition] += amount
-                    else:
-                        self.__amount_To_condition[condition] = amount
-                    logger.info('[Product] successfully added product to store with id: ' + str(self.__product_id))
-                else:
-                    raise ValueError('Condition is not a valid enum value')
+                self.__amount += amount
+                logger.info('[Product] successfully added product to store with id: ' + str(self.__product_id))
             else:
                 raise ValueError('Amount is a negative value')
         else:
             raise ValueError('Amount is not a valid integer value')
 
 
-    def remove_product(self, amount: int, condition: ProductCondition) -> None:
+    def remove_product(self, amount: int) -> None:
         """
         * Parameters: amount, condition
         * This function removes a product from the store
@@ -196,18 +182,11 @@ class Product:
         """
         if amount is not None:
             if amount >= 0:
-                if condition is not None:
-                    if condition in self.__amount_To_condition:
-                        if self.__amount_To_condition[condition] >= amount:
-                            self.__amount_To_condition[condition] -= amount
-                            logger.info(
-                                '[Product] successfully removed product from store with id: ' + str(self.__product_id))
-                        else:
-                            raise ValueError('Amount is greater than the amount of the product')
-                    else:
-                        raise ValueError('Condition is not in the list of conditions')
+                if amount <= self.__amount: 
+                    self.__amount -= amount
+                    logger.info('[Product] successfully removed product from store with id: ' + str(self.__product_id))
                 else:
-                    raise ValueError('Condition is not a valid enum value')
+                    raise ValueError('Amount is greater than the amount of the product')
             else:
                 raise ValueError('Amount is a negative value')
         else:
@@ -225,7 +204,7 @@ class Category:
     def __init__(self, category_id: int, category_name: str):
         self.__category_id = category_id
         self.__category_name = category_name
-        self.__parent_category_id: int = None
+        self.__parent_category_id: int = -1 # -1 means that the category does not have a parent category for now
         self.__category_products: List[Product] = []
         self.__sub_categories: List['Category'] = []
         logger.info('[Category] successfully created category with id: ' + str(category_id))
@@ -250,7 +229,7 @@ class Category:
         * This function adds a parent category to the category
         * Returns: none
         """
-        if self.__parent_category_id is None:
+        if self.__parent_category_id == -1:
             self.__parent_category_id = parent_category_id
             logger.info('[Category] successfully added parent category to category with id: ' + str(self.__category_id))
         else:
@@ -263,7 +242,7 @@ class Category:
         * Returns: none
         """
         if self.__parent_category_id is not None:
-            self.__parent_category_id = None
+            self.__parent_category_id = -1
             logger.info(
                 '[Category] successfully removed parent category from category with id: ' + str(self.__category_id))
         else:
@@ -340,7 +319,7 @@ class Category:
         * This function checks that the current category has a parent category or not
         * Returns: True if the current category has a parent category, False otherwise
         """
-        return self.__parent_category_id is not None and self.__parent_category_id >= 0
+        return self.__parent_category_id >= 0
 
     def add_product_to_category(self, product: Product) -> None:
         """
@@ -368,7 +347,6 @@ class Category:
             if product in self.__category_products:
                 self.__category_products.remove(product)
                 logger.info('[Category] successfully removed product from category with id: ' + str(self.__category_id))
-                return True
             else:
                 raise ValueError('Product is not in the list of products')
         else:
@@ -408,7 +386,7 @@ class Store:
         self.__location_id = location_id
         self.__store_name = store_name
         self.__store_founder_id = store_founder_id
-        self.__rating = 0
+        self.__rating: float = 0.0
         self.__is_active = True
         self.__store_products: List[Product] = []
         self.__purchase_policies: List[PurchasePolicyStrategy] = []
@@ -455,9 +433,9 @@ class Store:
         return self.__founded_date
 
     @property
-    def ratings_of_product_spec_id(self) -> Dict[int, float]:
-        return self.__ratings_of_product_spec_id
-
+    def ratings_of_product(self) -> Dict[int, float]:
+        return self.__ratings_of_product
+    
     # ---------------------methods--------------------------------
     def close_store(self, user_id: int) -> None:
         """
@@ -497,9 +475,13 @@ class Store:
         """
         if product_id is not None:
             product = self.get_product_by_id(product_id)
-            self.__store_products.remove(product)
-            self.__ratings_of_product.pop(product_id)
-            logger.info('[Store] successfully removed product from store with id: ' + str(self.__store_id))
+            if product is not None:
+                self.__store_products.remove(product)
+                self.__ratings_of_product.pop(product_id)
+                logger.info('[Store] successfully removed product from store with id: ' + str(self.__store_id))
+            else:
+                raise ValueError('Product is not found')
+            
         else:
             raise ValueError('Product is not a valid product')
 
@@ -515,7 +497,7 @@ class Store:
         return None
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a purchase policy
-    def add_purchase_policy(self) -> None:  # TODO: for now we dont have the necessary fields for purchase_policy
+    ''' def add_purchase_policy(self) -> None:  # TODO: for now we dont have the necessary fields for purchase_policy
         """
         * Parameters: none
         * This function adds a purchase policy to the store
@@ -524,7 +506,7 @@ class Store:
         purchase_policy = PurchasePolicyStrategy(self.__purchase_policy_id_counter, self.__store_id)
         self.__purchase_policies.append(purchase_policy)
         self.__purchase_policy_id_counter += 1
-        logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__store_id))
+        logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__store_id))'''
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a purchase policy
     def remove_purchase_policy(self, purchase_policy_id: int) -> None:
@@ -537,11 +519,10 @@ class Store:
         if purchase_policy is not None:
             self.__purchase_policies.remove(purchase_policy)
             logger.info('[Store] successfully removed purchase policy from store with id: ' + str(self.__store_id))
-            return True
         else:
             raise ValueError('Purchase policy is not a valid purchase policy')
 
-    def update_purchase_policy(self, purchase_policy: PurchasePolicyStrategy) -> bool:
+    def update_purchase_policy(self, purchase_policy: PurchasePolicyStrategy) -> None:
         # not implemented yet
         pass
 
@@ -582,30 +563,33 @@ class Store:
 
     def update_product_rating(self, product_id: int, new_rating: float) -> None:
         """
-        * Parameters: productSpecId, newRating
+        * Parameters: product_id, new_rating
         * This function updates the rating of the product
         * Returns: none
         """
         if 0.0 <= new_rating <= 5.0:
             self.__ratings_of_product[product_id] = new_rating
-            logger.info('[Store] successfully updated rating of product specification with id: ' + str(product_id))
+            logger.info('[Store] successfully updated rating of product with id: ' + str(product_id))
         logger.warning('[Store] New rating is not a valid integer value')
         raise ValueError('New rating is not a valid float value')
 
-    def get_total_price_of_basket_before_discount(self, basket: List[Tuple[int, int]]) -> float:
+    def get_total_price_of_basket_before_discount(self, basket: Dict[int,int]) -> float:
         """
         * Parameters: basket
         * This function calculates the total price of the basket
         * Returns: the total price of the basket
         """
-        total_price = 0
-        for product_with_amount in basket:
-            product = self.get_product_by_id(product_with_amount[0])
+        total_price = 0.0
+        for product_id, amount in basket.items():
+            product = self.get_product_by_id(product_id)
             if product is not None:
-                total_price += product.price * product_with_amount[1]
+                total_price += product.price * amount
+            else:
+                raise ValueError('Product is not found')
         return total_price
+    
 
-    def get_total_price_of_basket_after_discount(self, basket: List[Tuple[int, int]]) -> float:
+    def get_total_price_of_basket_after_discount(self, basket: Dict[int,int]) -> float:
         return self.get_total_price_of_basket_before_discount(basket)  # for now, we assume that there is no discount
 
     def get_store_information(self) -> str:
@@ -644,7 +628,6 @@ class StoreFacade:
             self.__stores: List[Store] = []  # List to store stores
             self.__discounts: List[DiscountStrategy] = []  # List to store discounts
             self.__category_id_counter = 0  # Counter for category IDs
-            self.__product_specification_id_counter = 0  # Counter for product specification IDs
             self.__store_id_counter = 0  # Counter for store IDs
             self.__discount_id_counter = 0  # Counter for discount IDs
             self.__product_id_counter = 0  # Counter for product IDs
@@ -659,7 +642,6 @@ class StoreFacade:
         For testing purposes only
         """
         self.__categories = []
-        self.__product_specifications = []
         self.__stores = []
         self.__discounts = []
         self.__category_id_counter = 0
@@ -680,7 +662,7 @@ class StoreFacade:
                 return category
         return None
     
-    def add_category(self, category_name: str, parent_category_id: int = None) -> None:
+    def add_category(self, category_name: str) -> None:
         """
         * Parameters: categoryName, parentCategoryId
         * This function adds a category to the store
@@ -688,7 +670,7 @@ class StoreFacade:
         """
         logger.info('[StoreFacade] attempting to add category')
         if category_name is not None:
-            category = Category(self.__category_id_counter, category_name, parent_category_id)
+            category = Category(self.__category_id_counter, category_name)
             self.__categories.append(category)
             self.__category_id_counter += 1
         else:
@@ -707,7 +689,7 @@ class StoreFacade:
         if category_to_remove is not None:
             
             if category_to_remove.has_parent_category():
-                parent_category = self.category_by_id(category_to_remove.parent_category_id)
+                parent_category = self.get_category_by_id(category_to_remove.parent_category_id)
 
             #removing the subCategories of the category
             for subCategory in category_to_remove.sub_categories:
@@ -795,9 +777,9 @@ class StoreFacade:
         if category_id is not None:
             if product_id is not None:
                 category = self.get_category_by_id(category_id)
-                product_spec = self.__get_product_by_id(product_id)
-                if category is not None and product_spec is not None:
-                    category.remove_product_from_category(product_spec)
+                product = self.__get_product_by_id(product_id)
+                if category is not None and product is not None:
+                    category.remove_product_from_category(product)
                 else:
                     raise ValueError('Product or category is not found')
             else:
@@ -822,10 +804,10 @@ class StoreFacade:
     def add_product_to_store(self, store_id: int, product_name: str, weight: float, description: str, price: float) -> None:
         """
         * Parameters: productName, weight, description, tags, manufacturer, storeIds
-        * This function adds a product specification to the store
+        * This function adds a product to the store
         * Returns: none
         """
-        logger.info('[StoreFacade] attempting to add product specification')
+        logger.info('[StoreFacade] attempting to add product')
         store = self.get_store_by_id(store_id)
         if store is not None:
             if product_name is not None:
@@ -840,7 +822,6 @@ class StoreFacade:
                                         store.add_product(product)
                                         self.__product_id_counter += 1
                                         logger.info('[StoreFacade] successfully added product')
-                                        return True
                                     else:
                                         raise ValueError('Price is a negative value')
                                 else:
@@ -867,16 +848,12 @@ class StoreFacade:
         logger.info('[StoreFacade] attempting to remove product')
         store = self.get_store_by_id(store_id)
         if store is not None:
-            product = self.__get_product_by_id(product_id)
-            if product is not None:
-                store.remove_product(product)
-                logger.info('[StoreFacade] successfully removed product')
-            else:
-                raise ValueError('Product is not found')
+            store.remove_product(product_id)
+            logger.info('[StoreFacade] successfully removed product')
         else:
             raise ValueError('Store is not found')
 
-    def add_product_amount(self, store_id: int, product_id: int, amount: int, condition: int) -> None:
+    def add_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
         * Parameters: store_id, product_id, amount, condition
         * This function adds a product to the store
@@ -887,19 +864,14 @@ class StoreFacade:
         if store is not None:
             product = store.get_product_by_id(product_id)
             if product is not None:
-                product_condition = ProductCondition(condition)
-                if product_condition is not None:
-                    product.add_product(amount, product_condition)
-                    logger.info('[StoreFacade] successfully added product amount')
-                else:
-                    raise ValueError('Condition is not a valid enum value')
+                product.add_product(amount)
+                logger.info('[StoreFacade] successfully added product amount')
             else:
                 raise ValueError('Product is not found')
         else:
             raise ValueError('Store is not found')
 
-    # TODO: remove condition
-    def remove_product_amount(self, store_id: int, product_id: int, amount: int, condition: int) -> None:
+    def remove_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
         * Parameters: store_id, product_id, amount, condition
         * This function removes a product from the store
@@ -910,12 +882,8 @@ class StoreFacade:
         if store is not None:
             product = store.get_product_by_id(product_id)
             if product is not None:
-                product_condition = ProductCondition(condition)
-                if product_condition is not None:
-                    product.remove_product(amount, product_condition)
-                    logger.info('[StoreFacade] successfully removed product amount')
-                else:
-                    raise ValueError('Condition is not a valid enum value')
+                product.remove_product(amount)
+                logger.info('[StoreFacade] successfully removed product amount')
             else:
                 raise ValueError('Product is not found')
         else:
@@ -924,7 +892,7 @@ class StoreFacade:
     def change_weight_of_product(self, store_id: int, product_id: int, new_weight: float) -> None:
         """
         * Parameters: store_id, product_id, new_weight
-        * This function changes the weight of the product specification
+        * This function changes the weight of the product
         * Returns: None
         """
         logger.info('[StoreFacade] attempting to change weight of product')
@@ -943,7 +911,7 @@ class StoreFacade:
     def change_description_of_product(self, store_id: int ,product_id: int, new_description: str) -> None:
         """
         * Parameters: store_id, product_id, new_description
-        * This function changes the description of the product specification
+        * This function changes the description of the product
         * Returns: None
         """
         logger.info('[StoreFacade] attempting to change description of product')
@@ -980,7 +948,7 @@ class StoreFacade:
     def add_tag_to_product(self, store_id: int, product_id: int, tag: str) -> None:
         """
         * Parameters: store_id, product_id, tag
-        * This function adds a tag to the product specification
+        * This function adds a tag to the product
         * Returns: None
         """
         logger.info('[StoreFacade] attempting to add tag to product')
@@ -999,7 +967,7 @@ class StoreFacade:
     def remove_tags_from_product(self,store_id: int, product_id: int, tag: str) -> None:
         """
         * Parameters: store_id, product_id, tag
-        * This function removes a tag from the product specification
+        * This function removes a tag from the product
         * Returns: None
         """
         logger.info('[StoreFacade] attempting to remove tag from product')
@@ -1073,12 +1041,22 @@ class StoreFacade:
         return None
 
     def get_product_by_id(self, product_id: int) -> Optional[ProductDTO]:
-        pass
+        """
+        * Parameters: product_id
+        * This function gets a product by its id
+        * Returns: the product with the given id
+        """
+        for store in self.__stores:
+            product = store.get_product_by_id(product_id)
+            if product is not None:
+                return ProductDTO(product.product_id, product.store_id, product.product_name, product.weight,
+                                   product.description, product.price, product.amount, product.tags)
+        return None
 
     def add_store(self, location_id: int, store_name: str, store_founder_id: int) -> None:
         """
         * Parameters: locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate,
-         ratingsOfProductSpecId
+         ratingsOfProduct_Id
         * This function adds a store to the store
         * Returns: None
         """
@@ -1121,7 +1099,7 @@ class StoreFacade:
                 return store
         return None
 
-    def add_purchase_policy_to_store(self, store_id: int) -> None:
+    ''' def add_purchase_policy_to_store(self, store_id: int) -> None:
         # TODO: for now we dont know how to implement the purchasePolicy and what fields it receives
         """
         * Parameters: storeId, purchasePolicy
@@ -1137,7 +1115,7 @@ class StoreFacade:
             if store is not None:
                 return store.add_purchase_policy()
             else:
-                raise ValueError('Store not found')
+                raise ValueError('Store not found')'''
 
     def remove_purchase_policy_from_store(self, store_id: int, purchase_policy_id: int) -> None:
         """
@@ -1164,7 +1142,7 @@ class StoreFacade:
         else:
             raise ValueError('Store id is not a valid integer value')
 
-    def update_purchase_policy_of_store(self, store_id: int, purchase_policy_id: int) -> bool:
+    def update_purchase_policy_of_store(self, store_id: int, purchase_policy_id: int) -> None:
         pass
 
     def check_policies_of_store(self, store_id: int, basket: List[int]) -> bool:
@@ -1219,12 +1197,12 @@ class StoreFacade:
                 else:
                     raise ValueError('New rating is not a valid float value')
             else:
-                raise ValueError('Product specification id is not a valid integer value')
+                raise ValueError('Product id is not a valid integer value')
         else:
             raise ValueError('Store id is not a valid integer value')
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
-    def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float) -> None:
+    '''def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float) -> None:
         """
         * Parameters: description, startDate, endingDate, percentage
         * This function adds a discount to the store
@@ -1252,7 +1230,7 @@ class StoreFacade:
             else:
                 raise ValueError('Start date is not a valid datetime value')
         else:
-            raise ValueError('Description is not a valid string')
+            raise ValueError('Description is not a valid string')'''
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
     def remove_discount(self, discount_id: int) -> None:
@@ -1266,7 +1244,6 @@ class StoreFacade:
             discount = self.get_discount_by_discount_id(discount_id)
             if discount is not None:
                 self.__discounts.remove(discount)
-                return True
             else:
                 raise ValueError('Discount not found')
         else:
@@ -1284,7 +1261,6 @@ class StoreFacade:
                 discount = self.get_discount_by_discount_id(discount_id)
                 if discount is not None:
                     discount.change_discount_percentage(new_percentage)
-                    return True
                 else:
                     raise ValueError('Discount not found')
             else:
@@ -1304,7 +1280,6 @@ class StoreFacade:
                 discount = self.get_discount_by_discount_id(discount_id)
                 if discount is not None:
                     discount.change_discount_description(new_description)
-                    return True
                 else:
                     raise ValueError('Discount not found')
             else:
@@ -1313,14 +1288,17 @@ class StoreFacade:
             raise ValueError('Discount id is not a valid integer value')
 
     def get_discount_by_store(self, store_id: int) -> List[DiscountStrategy]:
+        return []
         # not implemented yet
-        pass
+        
 
     def get_discount_by_product(self, product_id: int) -> List[DiscountStrategy]:
+        return []
         # not implemented yet
         pass
 
     def get_discount_by_category(self, category_id: int) -> List[DiscountStrategy]:
+        return []
         # not implemented yet
         pass
 
@@ -1335,24 +1313,28 @@ class StoreFacade:
                 return discount
         return None
 
-    def apply_discounts(self, shopping_cart: List[Tuple[int, List[Tuple[int, int]]]]) -> float:
+    def apply_discounts(self, shopping_cart: Dict[int, Dict[int,int]]) -> float:
+        return 0.0
         # not implemented yet
         pass
 
-    def get_total_price_before_discount(self, shopping_cart: List[Tuple[int, List[Tuple[int, int]]]]) -> float:
+    def get_total_price_before_discount(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
         """
         * Parameters: shoppingCart
         * This function calculates the total price of the shopping cart before applying any discounts
         * Returns: the total price of the shopping cart before applying any discounts
         """
-        total_price = 0
-        for basket in shopping_cart:
-            store = self.get_store_by_id(basket[0])
-            total_price = store.get_total_price_of_basket_before_discount(basket[1])
+        total_price = 0.0
+        for store_id, products in shopping_cart.items():
+            store = self.get_store_by_id(store_id)
+            if store is not None:
+                total_price += store.get_total_price_of_basket_before_discount(products)
+            else:
+                raise ValueError('Store not found')
         return total_price
 
     # TODO: get Dict[int, Dict[int, int]]
-    def get_total_price_after_discount(self, shopping_cart: List[Tuple[int, List[Tuple[int,int]]]]) -> float:
+    def get_total_price_after_discount(self, shopping_cart: Dict[int, Dict[int,int]]) -> float:
         """
         * Parameters: shoppingCart
         * This function calculates the total price of the shopping cart after applying all discounts
@@ -1368,17 +1350,10 @@ class StoreFacade:
         """
         store = self.get_store_by_id(store_id)
         products = ""
-        for product in store.store_products:
-            product_spec_id = product.specification_id
-            product_spec = self.get_product_spec_by_id(product_spec_id)
-            expiration_date = product.expiration_date.strftime('%Y-%m-%d')
-            condition = product.condition.name
-            products += ("Product ID: " + str(product.product_id) + "Product name: " + product_spec.product_name
-                         + " Product weight: " + str(product_spec.weight) + " Product description: "
-                         + product_spec.description + " Product tags: ".join(product_spec.tags)
-                         + " Product manufacturer: " + product_spec.manufacturer + " Product expiration date: "
-                         + expiration_date + " Product condition: " + condition + " Product price: "
-                         + str(product.price) + "\n")
+        if store is not None:
+            for product in store.store_products:
+                products += str(product.product_id) + " " + "Product name: " + product.product_name + " Product weight: " + str(product.weight) + " Product description: " + product.description + " Product price: " + str(product.price) + " Product amount: " + str(product.amount) + " Product tags: " + ''.join(x for x in product.tags) + "\n"
+            return "Store name: " + store.store_name + " Store founder id: " + str(store.store_founder_id) + " Store rating: " + str(store.rating) + " Store founded date: " + str(store.founded_date) + " Store products: " + products
 
         return products
 
@@ -1398,15 +1373,4 @@ class StoreFacade:
         else:
             raise ValueError('Store not found')
 
-    #TODO: Change this method and remove it entirely.
-    def calculate_total_price(self, basket: Dict[int, List[int]]) -> int:
-        """
-        * Parameters: basket
-        * This function calculates the total price of the basket
-        * Returns: the total price of the basket
-        """
-        total_price = 0
-        for storeId, productIds in basket.items():
-            store = self.get_store_by_id(storeId)
-            total_price += store.get_total_price_of_basket_after_discount(productIds)
-        return total_price
+    
