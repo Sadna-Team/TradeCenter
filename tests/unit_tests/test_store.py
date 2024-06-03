@@ -1,572 +1,249 @@
-import unittest
-from unittest.mock import patch, Mock
-
+import datetime
+import pytest
 from backend.business.store.store import *
-
-from backend.business.store.store import Product
-from backend.business.store.store import ProductSpecification
-from backend.business.store.store import Category
+from typing import List, Dict, Tuple
 
 
-class Test_productFunctions(unittest.TestCase):
+#product default vars:
+default_product_id: int = 0
+default_product_name: str = "product"
+default_product_weight: float = 1.0
+default_product_description: str = "description"
+default_product_price: float = 10.0
 
-    def setUp(self, mock_obj) -> None:
-        self.mock_product = Mock(spec = Product)
-        self.mock_product.product_id = 1
-        self.mock_product.storeId = 1
-        self.mock_product.specificationId = 1
-        self.mock_product.exporationDate = '2024-12-31'
-        self.mock_product.condition = 'New'
-        self.mock_product.price = 10.00
-        
-    def test_get_productId(self):
-        self.assertEqual(self.mock_product.get_productId(), 1)
+#category default vars:
+default_category_id: int = 0
+default_category_name: str = "category"
 
-    def test_set_productId(self):
-        self.mock_product.set_productId(2)
-        self.assertEqual(self.mock_product.get_productId(), 2)
+#store default vars:
+default_store_id: int = 0
+default_location_id: int = 0
+default_store_name: str = "store"
+default_store_founder_id: int = 0
 
-    def test_get_storeId(self):
-        self.assertEqual(self.mock_product.get_storeId(), 1)
 
-    def test_set_storeId(self):
-        self.mock_product.set_storeId(2)
-        self.assertEqual(self.mock_product.get_storeId(), 2)
+@pytest.fixture
+def product():
+    return Product(default_product_id, default_store_id, default_product_name, default_product_weight, default_product_description, default_product_price)
+
+@pytest.fixture
+def category():
+    return Category(default_category_id, default_category_name)
+
+@pytest.fixture
+def store():
+    return Store(default_store_id, default_location_id, default_store_name, default_store_founder_id)
+
+
+
+@pytest.fixture(autouse=True)
+def clean():
+    clean_data()
+    yield
+
+
+#Product tests:
+
+def test_change_product_price(product):
+    new_price = 20.0
+    product.change_price(new_price)
+    assert product.price == new_price
     
-    def test_get_specificationId(self):
-        self.assertEqual(self.mock_product.get_specificationId(), 1)
-
-    def test_set_specificationId(self):
-        self.mock_product.set_specificationId(2)
-        self.assertEqual(self.mock_product.get_specificationId(), 2)
+def test_change_product_description(product):
+    new_description = "new description"
+    product.change_description(new_description)
+    assert product.description == new_description
     
-    def test_get_exporationDate(self):
-        self.assertEqual(self.mock_product.get_exporationDate(), '2024-12-31')
-
-    def test_set_exporationDate(self):
-        self.mock_product.set_exporationDate('2025-12-31')
-        self.assertEqual(self.mock_product.get_exporationDate(), '2025-12-31')
     
-    def test_get_condition(self):
-        self.assertEqual(self.mock_product.get_condition(), 'New')
-
-    def test_set_condition(self):
-        self.mock_product.set_condition('Used')
-        self.assertEqual(self.mock_product.get_condition(), 'Used')
+def test_change_product_weight(product):
+    new_weight = 2.0
+    product.change_weight(new_weight)
+    assert product.weight == new_weight
     
-    def test_get_price(self):
-        self.assertEqual(self.mock_product.get_price(), 10.00)
+def test_add_tag_to_product(product):
+    tag = "tag"
+    product.add_tag(tag)
+    assert tag in product.tags
     
-    def test_set_price(self):
-        self.mock_product.set_price(20.00)
-        self.assertEqual(self.mock_product.get_price(), 20.00)
+def test_remove_tag_from_product(product):
+    tag = "tag"
+    product.add_tag(tag)
+    product.remove_tag(tag)
+    assert tag not in product.tags
     
-    def test_isExpired(self):
-        self.assertEqual(self.mock_product.isExpired(), False)
+def test_has_tag(product):
+    tag = "tag"
+    product.add_tag(tag)
+    assert product.has_tag(tag)
     
-    def test_changePrice_success(self):
-        self.assertEqual(self.mock_product.changePrice(5.00), True)
-        self.assertEqual(self.mock_product.get_price(), 5.00)
-
-    def test_changePrice_fail(self):
-        self.assertEqual(self.mock_product.changePrice(-5.00), False)
-        self.assertEqual(self.mock_product.get_price(), 10.00)
-
-
-class Test_productSpecificationFunctions:
-
-    def setUp(self):
-        self.mock_productSpecification = Mock(spec = ProductSpecification)
-        self.mock_productSpecification.specificationId = 1
-        self.mock_productSpecification.productName = 'Test Product'
-        self.mock_productSpecification.weight = 1.0
-        self.mock_productSpecification.description = 'Test Description'
-        self.mock_productSpecification.tags = ['Test', 'Product']
-        self.mock_productSpecification.manufacturer = 'Test Manufacturer'
-        self.mock_productSpecification.storeIds = [1, 2]
-
-    def test_get_specificationId(self):
-        self.assertEqual(self.mock_productSpecification.get_specificationId(), 1)
-
-    def test_set_specificationId(self):
-        self.mock_productSpecification.set_specificationId(2)
-        self.assertEqual(self.mock_productSpecification.get_specificationId(), 2)
-
-    def test_get_productName(self):
-        self.assertEqual(self.mock_productSpecification.get_productName(), 'Test Product')
     
-    def test_set_productName(self):
-        self.mock_productSpecification.set_productName('New Product')
-        self.assertEqual(self.mock_productSpecification.get_productName(), 'New Product')
+def test_add_product(product, store):
+    product_id = product.add_product(store)
+    assert product_id == product.id
+    assert product in store.products
     
-    def test_get_weight(self):
-        self.assertEqual(self.mock_productSpecification.get_weight(), 1.0)
-
-    def test_set_weight(self):
-        self.mock_productSpecification.set_weight(2.0)
-        self.assertEqual(self.mock_productSpecification.get_weight(), 2.0)
-
-    def test_get_description(self):
-        self.assertEqual(self.mock_productSpecification.get_description(), 'Test Description')
-    
-    def test_set_description(self):
-        self.mock_productSpecification.set_description('New Description')
-        self.assertEqual(self.mock_productSpecification.get_description(), 'New Description')
-
-    def test_get_tags(self):
-        self.assertEqual(self.mock_productSpecification.get_tags(), ['Test', 'Product'])
-
-    def test_set_tags(self):
-        self.mock_productSpecification.set_tags(['New', 'Product'])
-        self.assertEqual(self.mock_productSpecification.get_tags(), ['New', 'Product'])
-    
-    def test_get_manufacturer(self):
-        self.assertEqual(self.mock_productSpecification, 'Test Manufacturer')
-
-    def test_set_manufacturer(self):
-        self.mock_productSpecification.set_manufacturer('New Manufacturer')
-        self.assertEqual(self.mock_productSpecification.get_manufacturer(), 'New Manufacturer')
-
-    def test_get_storeIds(self):
-        self.assertEqual(self.mock_productSpecification.get_storeIds(), [1, 2])
-
-    def test_set_storeIds(self):
-        self.mock_productSpecification.set_storeIds([2, 3])
-        self.assertEqual(self.mock_productSpecification.get_storeIds(), [2, 3])
-
-    def test_addTag_Success(self):
-        result = self.mock_productSpecification.addTag('New')
-        self.assertEqual(result, True)
-        self.assertEqual(self.mock_productSpecification.get_tags(), ['Test', 'Product', 'New'])
-    
-    def test_addTag_Fail_None(self):
-        result = self.mock_productSpecification.addTag(None)
-        self.assertEqual(result, False)
-        self.assertEqual(self.mock_productSpecification.get_tags(), ['Test', 'Product'])
-
-    def test_addTag_Fail_Exists(self):
-        result = self.mock_productSpecification.addTag('Test')
-        self.assertEqual(result, False)
-        self.assertEqual(self.mock_productSpecification.get_tags(), ['Test', 'Product'])
-
-    def test_removeTag_Success(self):
-        result = self.mock_productSpecification.removeTag('Test')
-        self.assertEqual(result, True)
-        self.assertEqual(self.mock_productSpecification.get_tags(), ['Product'])
-
-    def test_removeTag_Fail_None(self):
-        result = self.mock_productSpecification.removeTag(None)
-        self.assertEqual(result, False)
-        self.assertEqual(self.mock_productSpecification.get_tags(), ['Test', 'Product'])
-
-    def test_removeTag_Fail_NotExists(self):
-        result = self.mock_productSpecification.removeTag('New')
-        self.assertEqual(result, False)
-        self.assertEqual(self.mock_productSpecification.get_tags(), ['Test', 'Product'])
-
-    def test_hasTag(self):
-        self.assertEqual(self.mock_productSpecification.hasTag('Test'), True)
-        self.assertEqual(self.mock_productSpecification.hasTag('New'), False)
-
-    def test_addStoreId_Success(self):
-        result = self.mock_productSpecification.addStoreId(3)
-        self.assertEqual(result, True)
-        self.assertEqual(self.mock_productSpecification.get_storeIds(), [1, 2, 3])
-    
-    def test_addStoreId_Fail_Exists(self):
-        result = self.mock_productSpecification.addStoreId(1)
-        self.assertEqual(result, False)
-        self.assertEqual(self.mock_productSpecification.get_storeIds(), [1, 2])
-
-    def test_removeStoreId_Success(self):
-        result = self.mock_productSpecification.removeStoreId(2)
-        self.assertEqual(result, True)
-        self.assertEqual(self.mock_productSpecification.get_storeIds(), [1])
-
-    def test_removeStoreId_Fail_NotExists(self):
-        result = self.mock_productSpecification.removeStoreId(3)
-        self.assertEqual(result, False)
-        self.assertEqual(self.mock_productSpecification.get_storeIds(), [1, 2])
-
-    def test_isSoldByStore(self):
-        self.assertEqual(self.mock_productSpecification.isSoldByStore(1), True)
-        self.assertEqual(self.mock_productSpecification.isSoldByStore(3), False)    
+def test_remove_product(product, store):
+    product_id = product.add_product(store)
+    product.remove_product(store)
+    assert product not in store.products
     
 
-    def test_changeNameOfProductSpecification(self):
-        self.assertEqual(self.mock_productSpecification.changeNameOfProductSpecification('New Product'), True)
-        self.assertEqual(self.mock_productSpecification.get_productName(), 'New Product')
-
-# ------------------------ Catagory Tests ------------------------------------
-class TestCategory(unittest.TestCase):
-
-    def test_add_parent_category(self):
-        category = Category(categoryId=1, categoryName="Parent Category")
-        category.set_parentCategoryId = Mock()
-
-        category.add_parent_category(parent_category_id=2)
-
-        category.set_parentCategoryId.assert_called_once_with(2)
-
-    def test_remove_parent_category(self):
-        category = Category(categoryId=1, categoryName="Parent Category", parentCategoryId=2)
-        category.set_parentCategoryId = Mock()
-
-        category.remove_parent_category()
-
-        category.set_parentCategoryId.assert_called_once_with(None)
-
-    def test_add_sub_category_success(self):
-        category = Category(categoryId=1, categoryName="Parent Category")
-        sub_category = Category(categoryId=2, categoryName="Sub Category")
-
-        sub_category.add_parent_category = Mock()
-        category.add_sub_category(sub_category)
-
-        sub_category.add_parent_category.assert_called_once_with(category.get_categoryId())
-        self.assertIn(sub_category, category.get_subCategories())
-
-    def test_add_sub_category_fail_invalid(self):
-        category = Category(categoryId=1, categoryName="Parent Category")
-        sub_category = Category(categoryId=1, categoryName="Sub Category")  # Same ID as parent
-
-        sub_category.add_parent_category = Mock()
-        category.add_sub_category(sub_category)
-
-        sub_category.add_parent_category.assert_not_called()
-        self.assertNotIn(sub_category, category.get_subCategories())
-
-    def test_add_sub_category_fail_already_has_parent(self):
-        category = Category(categoryId=1, categoryName="Parent Category", parentCategoryId=2)
-        sub_category = Category(categoryId=2, categoryName="Sub Category")
-
-        sub_category.add_parent_category = Mock()
-        category.add_sub_category(sub_category)
-
-        sub_category.add_parent_category.assert_not_called()
-        self.assertNotIn(sub_category, category.get_subCategories())
-
-    def test_remove_sub_category_success(self):
-        category = Category(categoryId=1, categoryName="Parent Category")
-        sub_category = Category(categoryId=2, categoryName="Sub Category")
-        category.add_sub_category(sub_category)
-
-        sub_category.remove_parent_category = Mock()
-        category.remove_sub_category(sub_category)
-
-        sub_category.remove_parent_category.assert_called_once()
-        self.assertNotIn(sub_category, category.get_subCategories())
-
-    def test_remove_sub_category_fail_not_sub_category(self):
-        category = Category(categoryId=1, categoryName="Parent Category")
-        sub_category = Category(categoryId=2, categoryName="Sub Category")
-
-        sub_category.remove_parent_category = Mock()
-        category.remove_sub_category(sub_category)
-
-        sub_category.remove_parent_category.assert_not_called()
-        self.assertNotIn(sub_category, category.get_subCategories())
-
-    def test_is_parent_category(self):
-        parent_category = Category(categoryId=1, categoryName="Parent Category")
-        sub_category = Category(categoryId=2, categoryName="Sub Category", parentCategoryId=1)
-
-        self.assertTrue(parent_category.is_parent_category(sub_category))
-        self.assertFalse(sub_category.is_parent_category(parent_category))
-
-    def test_is_sub_category(self):
-        parent_category = Category(categoryId=1, categoryName="Parent Category")
-        sub_category = Category(categoryId=2, categoryName="Sub Category", parentCategoryId=1)
-
-        self.assertTrue(sub_category.is_sub_category(parent_category))
-        self.assertFalse(parent_category.is_sub_category(sub_category))
-
-    def test_has_parent_category(self):
-        parent_category = Category(categoryId=1, categoryName="Parent Category")
-        sub_category = Category(categoryId=2, categoryName="Sub Category", parentCategoryId=1)
-
-        self.assertTrue(sub_category.has_parent_category())
-        self.assertFalse(parent_category.has_parent_category())
-
-    def test_add_product_to_category_success(self):
-        category = Category(categoryId=1, categoryName="Category")
-        product = Mock()
-
-        category.add_product_to_category(product)
-
-        self.assertIn(product, category.get_categoryProducts())
-
-    def test_add_product_to_category_fail_already_exists(self):
-        category = Category(categoryId=1, categoryName="Category")
-        product = Mock()
-        category.add_product_to_category(product)
-
-        result = category.add_product_to_category(product)
-
-        self.assertFalse(result)
-
-    def test_remove_product_from_category_success(self):
-        category = Category(categoryId=1, categoryName="Category")
-        product = Mock()
-        category.add_product_to_category(product)
-
-        result = category.remove_product_from_category(product)
-
-        self.assertTrue(result)
-        self.assertNotIn(product, category.get_categoryProducts())
-
-    def test_remove_product_from_category_fail_not_exists(self):
-        category = Category(categoryId=1, categoryName="Category")
-        product = Mock()
-
-        result = category.remove_product_from_category(product)
-
-        self.assertFalse(result)
-
-    def test_get_all_products_recursively(self):
-        category = Category(categoryId=1, categoryName="Category")
-        product1 = Mock()
-        product2 = Mock()
-        category.add_product_to_category(product1)
-
-        sub_category = Category(categoryId=2, categoryName="Sub Category")
-        sub_category.add_product_to_category(product2)
-        category.add_sub_category(sub_category)
-
-        all_products = category.get_all_products_recursively()
-
-        self.assertIn(product1, all_products)
-        self.assertIn(product2, all_products)
-
-    def test_get_all_product_names(self):
-        category = Category(categoryId=1, categoryName="Category")
-        product1 = Mock()
-        product1.get_productName.return_value = "Product 1"
-        product2 = Mock()
-        product2.get_productName.return_value = "Product 2"
-        category.add_product_to_category(product1)
-
-        sub_category = Category(categoryId=2, categoryName="Sub Category")
-        sub_category.add_product_to_category(product2)
-        category.add_sub_category(sub_category)
-
-        all_product_names = category.get_all_product_names()
-
-        self.assertIn("Product 1", all_product_names)
-        self.assertIn("Product 2", all_product_names)
-
-class TestStore(unittest.TestCase):
-
-    def test_close_store_success(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-        store.set_isActive = Mock()
-
-        result = store.close_store(user_id=1)
-
-        store.set_isActive.assert_called_once_with(False)
-        self.assertTrue(result)
-
-    def test_close_store_fail_not_founder(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-        store.set_isActive = Mock()
-
-        result = store.close_store(user_id=2)
-
-        store.set_isActive.assert_not_called()
-        self.assertFalse(result)
-
-    def test_add_product_success(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-        product = Mock()
-
-        result = store.add_product(product)
-
-        self.assertIn(product, store.get_storeProducts())
-        self.assertTrue(result)
-
-    def test_add_product_fail_already_exists(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-        product = Mock()
-        store.add_product(product)
-
-        result = store.add_product(product)
-
-        self.assertFalse(result)
-
-    def test_remove_product_success(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-        product = Mock()
-        store.add_product(product)
-
-        result = store.remove_product(product_id=product.get_productId())
-
-        self.assertNotIn(product, store.get_storeProducts())
-        self.assertTrue(result)
-
-    def test_remove_product_fail_not_exists(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-
-        result = store.remove_product(product_id=1)
-
-        self.assertFalse(result)
-
-    def test_change_price_of_product_success(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-        product = Mock()
-        store.add_product(product)
-
-        result = store.change_price_of_product(product_id=product.get_productId(), new_price=50)
-
-        self.assertTrue(result)
-
-    def test_change_price_of_product_fail_invalid_product_id(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-
-        result = store.change_price_of_product(product_id=1, new_price=50)
-
-        self.assertFalse(result)
-
-    def test_change_price_of_product_fail_product_not_found(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-
-        result = store.change_price_of_product(product_id=1, new_price=50)
-
-        self.assertFalse(result)
-
-    def test_get_product_by_id_success(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-        product = Mock()
-        product.get_productId.return_value = 1
-        store.add_product(product)
-
-        result = store.get_product_by_id(product_id=1)
-
-        self.assertEqual(result, product)
-
-    def test_get_product_by_id_fail_not_exists(self):
-        store = Store(store_id=1, location_id=1, store_name="Test Store", store_founder_id=1, isActive=True)
-
-        result = store.get_product_by_id(product_id=1)
-
-        self.assertIsNone(result)
-
-class TestStoreFacade(unittest.TestCase):
-
-    def setUp(self):
-        self.store_facade = StoreFacade()
-
-    def test_add_store_success(self):
-        result = self.store_facade.add_store(1, "Test Store", 1, True)
-        self.assertTrue(result)
-
-    def test_add_store_fail_invalid_name(self):
-        result = self.store_facade.add_store(1, "", 1, True)
-        self.assertFalse(result)
-
-    def test_close_store_success(self):
-        self.store_facade.add_store(1, "Test Store", 1, True)
-        result = self.store_facade.close_store(0, 1)
-        self.assertTrue(result)
-
-    def test_close_store_fail_invalid_id(self):
-        self.store_facade.add_store(1, "Test Store", 1, True)
-        result = self.store_facade.close_store(1, 1)
-        self.assertFalse(result)
-
-    def test_add_product_to_store_success(self):
-        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        self.store_facade.add_store(1, "Test Store", 1, True)
-        result = self.store_facade.add_product_to_store(0, 0, datetime.now(), 1, 1000.0)
-        self.assertTrue(result)
-
-    def test_add_product_to_store_fail_invalid_store_id(self):
-        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        result = self.store_facade.add_product_to_store(0, 0, datetime.now(), 1, 1000.0)
-        self.assertFalse(result)
-
-    def test_add_product_to_store_fail_invalid_product_id(self):
-        self.store_facade.add_store(1, "Test Store", 1, True)
-        result = self.store_facade.add_product_to_store(0, 0, datetime.now(), 1, 1000.0)
-        self.assertFalse(result)
-
-    # Add more relevant tests here
-
-    def test_add_category_success(self):
-        result = self.store_facade.add_category("Electronics")
-        self.assertTrue(result)
-
-    def test_add_category_fail_duplicate_name(self):
-        self.store_facade.add_category("Electronics")
-        result = self.store_facade.add_category("Electronics")
-        self.assertFalse(result)
-
-    def test_remove_category_success(self):
-        self.store_facade.add_category("Electronics")
-        result = self.store_facade.remove_category(0)
-        self.assertTrue(result)
-
-    def test_remove_category_fail_invalid_id(self):
-        result = self.store_facade.remove_category(0)
-        self.assertFalse(result)
-
-    def test_get_category_by_id_success(self):
-        self.store_facade.add_category("Electronics")
-        category = self.store_facade.get_category_by_id(0)
-        self.assertIsNotNone(category)
-
-    def test_get_category_by_id_fail_invalid_id(self):
-        category = self.store_facade.get_category_by_id(0)
-        self.assertIsNone(category)
-
-    def test_assign_subcategory_to_category_success(self):
-        self.store_facade.add_category("Electronics")
-        self.store_facade.add_category("Phones")
-        result = self.store_facade.assign_sub_category_to_category(1, 0)
-        self.assertTrue(result)
-
-    def test_assign_subcategory_to_category_fail_invalid_category_id(self):
-        self.store_facade.add_category("Electronics")
-        result = self.store_facade.assign_sub_category_to_category(1, 0)
-        self.assertFalse(result)
-
-    def test_delete_subcategory_from_category_success(self):
-        self.store_facade.add_category("Electronics")
-        self.store_facade.add_category("Phones")
-        self.store_facade.assign_sub_category_to_category(1, 0)
-        result = self.store_facade.delete_sub_category_from_category(0, 1)
-        self.assertTrue(result)
-
-    def test_delete_subcategory_from_category_fail_invalid_category_id(self):
-        self.store_facade.add_category("Electronics")
-        self.store_facade.add_category("Phones")
-        self.store_facade.assign_sub_category_to_category(1, 0)
-        result = self.store_facade.delete_sub_category_from_category(0, 1)
-        self.assertFalse(result)
-
-    def test_assign_product_spec_to_category_success(self):
-        self.store_facade.add_category("Electronics")
-        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        result = self.store_facade.assign_product_spec_to_category(0, 0)
-        self.assertTrue(result)
-
-    def test_assign_product_spec_to_category_fail_invalid_category_id(self):
-        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        result = self.store_facade.assign_product_spec_to_category(0, 0)
-        self.assertFalse(result)
-
-    def test_remove_product_spec_from_category_success(self):
-        self.store_facade.add_category("Electronics")
-        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        self.store_facade.assign_product_spec_to_category(0, 0)
-        result = self.store_facade.remove_product_spec_from_category(0, 0)
-        self.assertTrue(result)
-
-    def test_remove_product_spec_from_category_fail_invalid_category_id(self):
-        self.store_facade.add_product_specification("Laptop", 2.5, "Description", ["electronics"], "Manufacturer")
-        self.store_facade.assign_product_spec_to_category(0, 0)
-        result = self.store_facade.remove_product_spec_from_category(0, 0)
-        self.assertFalse(result)
-
-
-if __name__ == '__main__':
-    unittest.main()
+#Category tests:
+
+def test_add_parent_category(category):
+    parent_category = Category(1, "parent")
+    category.add_parent_category(parent_category)
+    assert parent_category in category.parent_categories
+    
+def test_remove_parent_category(category):
+    parent_category = Category(1, "parent")
+    category.add_parent_category(parent_category)
+    category.remove_parent_category(parent_category)
+    assert parent_category not in category.parent_categories
+    
+def test_add_sub_category(category):
+    sub_category = Category(1, "sub")
+    category.add_sub_category(sub_category)
+    assert sub_category in category.sub_categories
+    
+def test_remove_sub_category(category):
+    sub_category = Category(1, "sub")
+    category.add_sub_category(sub_category)
+    category.remove_sub_category(sub_category)
+    assert sub_category not in category.sub_categories
+    
+def test_is_parent_category(category):
+    parent_category = Category(1, "parent")
+    category.add_parent_category(parent_category)
+    assert category.is_parent_category(parent_category)
+    
+def test_is_sub_category(category):
+    sub_category = Category(1, "sub")
+    category.add_sub_category(sub_category)
+    assert category.is_sub_category(sub_category)
+    
+def test_has_parent_category(category):
+    parent_category = Category(1, "parent")
+    category.add_parent_category(parent_category)
+    assert category.has_parent_category(parent_category)
+    
+def test_add_product_to_category(category, product):
+    category.add_product_to_category(product)
+    assert product in category.products
+    
+def test_remove_product_from_category(category, product):
+    category.add_product_to_category(product)
+    category.remove_product_from_category(product)
+    assert product not in category.products
+    
+
+#Store tests:
+
+def test_close_store(store):
+    store.close_store()
+    assert store.is_active == False
+    
+def test_add_product_to_store(store, product):
+    store.add_product(product)
+    assert product in store.products
+    
+def test_remove_product_from_store(store, product):
+    store.add_product(product)
+    store.remove_product(product)
+    assert product not in store.products
+    
+def test_update_store_rating(store):
+    rating = 5
+    store.update_store_rating(rating)
+    assert store.rating == rating
+    
+def test_update_product_rating(product):
+    rating = 5
+    product.update_product_rating(rating)
+    assert product.rating == rating
+    
+#StoreFacade tests:
+
+def test_add_category():
+    category_name = "category"
+    category_id = StoreFacade().add_category(category_name)
+    assert category_id == 0
+    assert category_name in StoreFacade().categories
+    
+def test_remove_category():
+    category_name = "category"
+    category_id = StoreFacade().add_category(category_name)
+    StoreFacade().remove_category(category_id)
+    assert category_name not in StoreFacade().categories
+    
+def test_assign_sub_category_to_parent_category():
+    parent_category_id = StoreFacade().add_category("parent")
+    sub_category_id = StoreFacade().add_category("sub")
+    StoreFacade().assign_sub_category_to_category(sub_category_id, parent_category_id)
+    assert sub_category_id in StoreFacade().categories[parent_category_id].sub_categories
+    
+def test_remove_sub_category_from_parent_category():
+    parent_category_id = StoreFacade().add_category("parent")
+    sub_category_id = StoreFacade().add_category("sub")
+    StoreFacade().assign_sub_category_to_category(sub_category_id, parent_category_id)
+    StoreFacade().delete_sub_category_from_category(sub_category_id, parent_category_id)
+    assert sub_category_id not in StoreFacade().categories[parent_category_id].sub_categories
+    
+
+
+def test_assign_product_to_category():
+    product_id = 0
+    product = Product(product_id, default_store_id, default_product_name, default_product_weight, default_product_description, default_product_price)
+    category_id = StoreFacade().add_category("category")
+    StoreFacade().assign_product_to_category(product, category_id)
+    assert product in StoreFacade().categories[category_id].products
+    
+def test_remove_a_product_from_category():
+    product_id = 0
+    product = Product(product_id, default_store_id, default_product_name, default_product_weight, default_product_description, default_product_price)
+    category_id = StoreFacade().add_category("category")
+    StoreFacade().assign_product_to_category(product, category_id)
+    StoreFacade().remove_product_from_category(product, category_id)
+    assert product not in StoreFacade().categories[category_id].products
+    
+    
+def test_add_a_product_to_store():
+    product_id = 0
+    product = Product(product_id, default_store_id, default_product_name, default_product_weight, default_product_description, default_product_price)
+    StoreFacade().add_product_to_store(default_store_id, product)
+    assert product in StoreFacade().stores[default_store_id].products
+    
+def test_remove_a_product_from_store():
+    product_id = 0
+    product = Product(product_id, default_store_id, default_product_name, default_product_weight, default_product_description, default_product_price)
+    StoreFacade().add_product_to_store(default_store_id, product)
+    StoreFacade().remove_product_from_store(default_store_id, product_id)
+    assert product not in StoreFacade().stores[default_store_id].products
+    
+    
+def test_add_product_amount_to_store():
+    StoreFacade().add_product_amount(default_store_id, default_product_id,10)
+    assert StoreFacade().stores[default_store_id].get_product_by_id(default_product_id).amount == 10
+    
+
+def test_remove_product_amount_from_store():
+    StoreFacade().add_product_amount(default_store_id, default_product_id,5)
+    StoreFacade().remove_product_amount(default_store_id, default_product_id,5)
+    assert StoreFacade().stores[default_store_id].get_product_by_id(default_product_id).amount == 10
+    
+    
+    
+def test_add_store():
+    store_id = StoreFacade().add_store(default_location_id, default_store_name, default_store_founder_id)
+    assert store_id == 0
+    assert default_store_name in StoreFacade().stores
+    
+def test_remove_store():
+    store_id = StoreFacade().add_store(default_location_id, default_store_name, default_store_founder_id)
+    StoreFacade().remove_store(store_id)
+    assert default_store_name not in StoreFacade().stores
+    
+    
+
+def clean_data():
+    StoreFacade().clean_data()
