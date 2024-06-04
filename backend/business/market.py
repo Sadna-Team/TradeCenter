@@ -1,37 +1,17 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import NotificationDTO
+from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
 from typing import List, Dict, Tuple, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 import threading
 import logging
 
 logger = logging.getLogger('myapp')
-
-
-class AddressDTO:
-    def __init__(self, address_id, address, city, state, country, postal_code):
-        self.address_id = address_id
-        self.address = address
-        self.city = city
-        self.state = state
-        self.country = country
-        self.postal_code = postal_code
-
-    def to_dict(self):
-        return {
-            'address_id': self.address_id,
-            'address': self.address,
-            'city': self.city,
-            'state': self.state,
-            'country': self.country,
-            'postal_code': self.postal_code
-        }
 
 
 def add_payment_method(method_name: str, payment_config: Dict):
@@ -78,7 +58,11 @@ class MarketFacade:
         self.user_facade.clean_data()
         self.store_facade.clean_data()
         self.roles_facade.clean_data()
+        PaymentHandler().reset()
+        SupplyHandler().reset()
+
         # create the admin?
+        self.__create_admin()
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
@@ -88,79 +72,112 @@ class MarketFacade:
             if self.store_facade.check_product_availability(store_id, product_id):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id)
 
-    def checkout(self, user_id: int, payment_details: Dict, address: Dict):
-        # needs a whole revamp to work with the discounts and purchase policies and location restrictions
-        cart = self.user_facade.get_shopping_cart(user_id)
+    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict):
+        products_removed = False
+        purchase_accepted = False
+        basket_cleared = False
+        cart: Dict[int, Dict[int, int]] = {}  # store_id -> product_id -> amount
+        pur_id = -1
+        try:
+            # needs a whole revamp to work with the discounts and purchase policies and location restrictions
+            # cart = self.user_facade.get_shopping_cart(user_id)
+            # TODO: call actual user facade method
 
-        # lock the __lock
-        with MarketFacade.__lock:
+            # lock the __lock
             # check if the products are still available
             for store_id, products in cart.items():
                 for product_id in products:
-                    if not self.store_facade.check_product_availability(store_id, product_id):
+                    amount = products[product_id]
+                    if not self.store_facade.check_product_availability(store_id, product_id, amount):
                         raise ValueError(f"Product {product_id} is not available in the required amount")
 
-            shopping_cart: List[Tuple[int, List[int]]] = []
-            shopping_cart_with_prices: List[Tuple[Tuple[int, float], List[int]]] = []
+            """
+            self.__product_id: int = product_id
+            self.__name: str = name
+            self.__description: str = description
+            self.__price: float = price
+            self.__amount: int = amount"""
+
+            # calculate the total price
+            purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = {}
             total_price = 0
-            # creating the shoppingCartObject and shopping_cart_with_prices
             for store_id, products in cart.items():
                 basket_price = 0
+                purchase_products: List[PurchaseProductDTO] = []
                 for product_id in products:
-                    basket_price += self.store_facade.get_store_by_id(store_id).get_product_by_id(product_id).price
-                shopping_cart.append((store_id, products))
-                shopping_cart_with_prices.append(((store_id, basket_price), products))
+                    amount = products[product_id]
+                    name = self.store_facade.get_product_by_id(product_id).name
+                    description = self.store_facade.get_product_by_id(product_id).description
+                    price = self.store_facade.get_product_by_id(product_id).price
+                    basket_price += price * amount
+                    purchase_products.append(PurchaseProductDTO(product_id, name, description, price, amount))
+                purchase_shopping_cart[store_id] = (purchase_products, basket_price, basket_price)
                 total_price += basket_price
 
-            # TODO: something doesnt work here
-            purchase = self.purchase_facade.create_immediate_purchase(user_id, total_price, shopping_cart_with_prices)
-
-            # calculate the policies of the purchase using storeFacade + user location constraints
-            for basket in shopping_cart:
-                if not self.store_facade.check_policies_of_store(basket[0], basket[1]):
-                    # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                    raise ValueError("Purchase does not meet the store's policies")
-
-                    # TODO: (next version) attempt to find a delivery method for user
-            delivery_date = datetime.now()  # dummy
-
-            if delivery_date is None:
-                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                raise ValueError("No delivery method found")
-
-            # charge the user:
-
-            # TODO: (next version) fix discounts
-            amount = self.store_facade.get_total_price_after_discount(shopping_cart)
-            if "payment method" not in payment_details:
-                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                raise ValueError("Payment method not specified")
-
-            if not PaymentHandler().process_payment(amount, payment_details):
-                # invalidate Purchase
-                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                raise ValueError("Payment failed")
+            # purchase facade immediate
+            total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
+            pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
+                                                                    purchase_shopping_cart)
 
             # remove the products from the store
             for store_id, products in cart.items():
                 for product_id in products:
-                    self.store_facade.remove_product_from_store(store_id, product_id)
+                    amount = products[product_id]
+                    self.store_facade.remove_product_amount(store_id, product_id, amount)
 
-            # if successful, validate purchase with delivery_date
-            # self.purchase_facade.validate_purchase_of_user_immediate(purchase.purchase_id, user_id, delivery_date)
+            products_removed = True
 
-        # clear the cart
-        self.user_facade.clear_basket(user_id)
+            # calculate the policies of the purchase using storeFacade + user location constraints
+            for store_id in cart:
+                products: Dict[int, int] = cart[store_id]
+                # TODO: add check of policy
+                """if not self.store_facade.check_policies_of_store(basket[0], basket[1]):
+                    # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                    raise ValueError("Purchase does not meet the store's policies")"""
 
-        package_details = {'shopping cart': cart, 'address': address}
-        if "supply method" not in package_details:
-            raise ValueError("Supply method not specified")
-        if package_details.get("supply method") not in SupplyHandler().supply_config:
-            raise ValueError("Invalid supply method")
-        if not SupplyHandler().process_supply(package_details, user_id):
-            raise ValueError("Supply failed")
-        for store_id in cart.keys():
-            Notifier().notify_new_purchase(store_id, user_id)
+            # TODO: attempt to find a delivery method for user
+            package_details = {'stores': cart.keys(), "supply method": supply_method}
+            delivery_date = SupplyHandler().get_delivery_time(package_details, address)
+
+            # accept the purchase
+            self.purchase_facade.accept_purchase(pur_id, delivery_date)
+            purchase_accepted = True
+
+            # clear the cart
+            self.user_facade.clear_basket(user_id)
+            basket_cleared = True
+
+            # TODO: (next version) fix discounts
+            if "payment method" not in payment_details:
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                raise ValueError("Payment method not specified")
+
+            if not PaymentHandler().process_payment(total_price_after_discounts, payment_details):
+                # invalidate Purchase
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                raise ValueError("Payment failed")
+
+            package_details = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date,
+                               'purchase id': pur_id, "supply method": supply_method}
+            if "supply method" not in package_details:
+                raise ValueError("Supply method not specified")
+            if package_details.get("supply method") not in SupplyHandler().supply_config:
+                raise ValueError("Invalid supply method")
+            on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
+            SupplyHandler().process_supply(package_details, user_id, on_arrival)
+            for store_id in cart.keys():
+                Notifier().notify_new_purchase(store_id, user_id)
+        except Exception as e:
+            if products_removed:
+                for store_id, products in cart.items():
+                    for product_id in products:
+                        amount = products[product_id]
+                        self.store_facade.add_product_amount(store_id, product_id, amount)
+            if purchase_accepted:
+                self.purchase_facade.reject_purchase(pur_id)
+            if basket_cleared:
+                self.user_facade.restore_basket(user_id, cart)
+            raise e
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
@@ -197,19 +214,34 @@ class MarketFacade:
     def remove_system_manager(self, actor: int, user_id: int):
         self.roles_facade.remove_system_manager(actor, user_id)
 
-    def edit_payment_method(self, method_name: str, editing_data: Dict):
+    def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
+        PaymentHandler().add_payment_method(method_name, payment_config)
+
+    def edit_payment_method(self, user_id: int, method_name: str, editing_data: Dict):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         PaymentHandler().edit_payment_method(method_name, editing_data)
 
-    def remove_payment_method(self, method_name: str):
+    def remove_payment_method(self, user_id: int, method_name: str):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         PaymentHandler().remove_payment_method(method_name)
 
-    def add_supply_method(self, method_name: str, supply_config: Dict):
+    def add_supply_method(self, user_id: int, method_name: str, supply_config: Dict):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         SupplyHandler().add_supply_method(method_name, supply_config)
 
-    def edit_supply_method(self, method_name: str, editing_data: Dict):
+    def edit_supply_method(self, user_id: int, method_name: str, editing_data: Dict):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         SupplyHandler().edit_supply_method(method_name, editing_data)
 
-    def remove_supply_method(self, method_name: str):
+    def remove_supply_method(self, user_id: int, method_name: str):
+        if not self.roles_facade.is_system_manager(user_id):
+            raise ValueError("User is not a system manager")
         SupplyHandler().remove_supply_method(method_name)
 
     # -------------------------------------- Store Related Methods --------------------------------------#
@@ -371,7 +403,7 @@ class MarketFacade:
             logger.info(f"User {user_id} has failed to remove a discount")
 
     # -------------Rating related methods-------------------#
-    def add_store_rating(self, user_id: int, purchase_id: int, description: str, rating: float):
+    '''def add_store_rating(self, user_id: int, purchase_id: int, description: str, rating: float):
         """
         * Parameters: user_id, purchase_id, description, rating
         * This function adds a rating to a store
@@ -383,9 +415,9 @@ class MarketFacade:
             self.store_facade.update_store_rating(store_id, new_rating)
             logger.info(f"User {user_id} has rated store {store_id} with {rating}")
         else:
-            logger.info(f"User {user_id} has failed to rate store {store_id}")
+            logger.info(f"User {user_id} has failed to rate store {store_id}")'''
 
-    def add_product_rating(self, user_id: int, purchase_id: int, description: str, product_spec_id: int, rating: float):
+    '''def add_product_rating(self, user_id: int, purchase_id: int, description: str, product_spec_id: int, rating: float):
         """
         * Parameters: user_id, purchase_id, description, productSpec_id, rating
         * This function adds a rating to a product
@@ -397,7 +429,7 @@ class MarketFacade:
             self.store_facade.update_product_spec_rating(store_id, product_spec_id, new_rating)
             logger.info(f"User {user_id} has rated product {product_spec_id} with {rating}")
         else:
-            logger.info(f"User {user_id} has failed to rate product {product_spec_id}")
+            logger.info(f"User {user_id} has failed to rate product {product_spec_id}")'''
 
     # -------------Policies related methods-------------------#
     def add_purchase_policy(self, user_id: int, store_id: int):
@@ -491,20 +523,6 @@ class MarketFacade:
             logger.info(f"User {user_id} has closed store {store_id}")
         else:
             logger.info(f"User {user_id} has failed to close store {store_id}")
-
-    def add_product_spec(self, user_id: int, name: str, weight_in_kilos: float, description: str, tags: List[str],
-                         manufacturer: str):
-        """
-        * Parameters: userId, name, weightInKilos, tags, manufacturer
-        * This function adds a product specification to the system
-        * Returns None
-        """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.add_product_specification(name, weight_in_kilos, description, tags, manufacturer):
-            logger.info(f"User {user_id} has added a product specification")
-        else:
-            logger.info(f"User {user_id} has failed to add a product specification")
 
     # -------------Tags related methods-------------------#
     def add_tag_to_product_spec(self, user_id: int, product_spec_id: int, tag: str):
@@ -673,7 +691,7 @@ class MarketFacade:
 
     # -------------Purchase management related methods-------------------#
 
-    def create_bid_purchase(self, user_id: int, proposed_price: float, product_id: int, store_id: int):
+    '''def create_bid_purchase(self, user_id: int, proposed_price: float, product_id: int, store_id: int):
         """
         * Parameters: userId, proposedPrice, productId, storeId
         * This function creates a bid purchase
@@ -721,9 +739,9 @@ class MarketFacade:
                                                         starting_date, ending_date):
             logger.info(f"User {user_id} has created a lottery purchase")
         else:
-            logger.info(f"User {user_id} has failed to create a lottery purchase")
+            logger.info(f"User {user_id} has failed to create a lottery purchase")'''
 
-    def view_purchases_of_user(self, user_id: int) -> str:
+    def view_purchases_of_user(self, user_id: int) -> List[PurchaseDTO]:
         """
         * Parameters: user_id
         * This function returns the purchases of a user
@@ -731,27 +749,20 @@ class MarketFacade:
         """
         if not self.auth_facade.is_logged_in(user_id):
             raise ValueError("User is not logged in")
-        purchases = self.purchase_facade.get_purchases_of_user(user_id)
-        str_output = ""
-        for purchase in purchases:
-            str_output += purchase.__str__()
-        return str_output
+        return self.purchase_facade.get_purchases_of_user(user_id)
 
-    def view_purchases_of_store(self, user_id: int, store_id: int) -> str:
+    def view_purchases_of_store(self, user_id: int, store_id: int) -> List[PurchaseDTO]:
         """
         * Parameters: userId, store_id
         * This function returns the purchases of a store
         * Returns a string
         """
-        if not self.user_facade.is_member(user_id) or not self.auth_facade.is_logged_in(user_id):
+        if not self.auth_facade.is_logged_in(user_id):
             raise ValueError("User is not a member or is not logged in")
-        purchases = self.purchase_facade.get_purchases_of_store(store_id)
-        str_output = ""
-        for purchase in purchases:
-            str_output += purchase.__str__()
-        return str_output
+        # TODO: add check if user is system manager or store owner or store manager, if not raise error
+        return self.purchase_facade.get_purchases_of_store(store_id)
 
-    def view_purchases_of_user_in_store(self, user_id: int, store_id: int) -> str:
+    '''def view_purchases_of_user_in_store(self, user_id: int, store_id: int) -> str:
         """
         * Parameters: userId, store_id
         * This function returns the purchases of a user in a store
@@ -831,10 +842,10 @@ class MarketFacade:
         accepted_purchases = self.purchase_facade.get_accepted_purchases()
         for purchase in accepted_purchases:
             if self.purchase_facade.check_if_completed_purchase(purchase.purchase_id):
-                logger.info(f"Purchase {purchase.purchase_id} has been completed")
+                logger.info(f"Purchase {purchase.purchase_id} has been completed")'''
 
     # -------------Bid Purchase related methods-------------------#
-    def store_accept_offer(self, purchase_id: int):
+    '''def store_accept_offer(self, purchase_id: int):
         pass  # cant be implemented yet without notifications
 
     def store_reject_offer(self, purchase_id: int):
@@ -887,10 +898,10 @@ class MarketFacade:
         # notify the store owners and all relevant parties
         store_id = self.purchase_facade.get_purchase_by_id(purchase_id).store_id
         msg = f"User {user_id} has made a counter offer in purchase {purchase_id}"
-        self.notifier.notify_general_listeners(store_id, msg)  # Notify each listener of the store about the bid
+        self.notifier.notify_general_listeners(store_id, msg)  # Notify each listener of the store about the bid'''
 
     # -------------Auction Purchase related methods-------------------#
-    def add_auction_bid(self, purchase_id: int, user_id: int, price: float):
+    '''def add_auction_bid(self, purchase_id: int, user_id: int, price: float):
         """
         * Parameters: purchase_id, user_id, price
         * This function adds a bid to an auction purchase
@@ -963,10 +974,10 @@ class MarketFacade:
                     #TODO: call validatePurchaseOfUser(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
                     #else:
                     #TODO: call invalidatePurchase(purchase.get_purchaseId(), purchase.get_userId()
-                    logger.info(f"Auction {purchase.purchase_id()} has been completed")"""
+                    logger.info(f"Auction {purchase.purchase_id()} has been completed")"""'''
 
     # -------------Lottery Purchase related methods-------------------#
-    def add_lottery_offer(self, user_id: int, proposed_price: float, purchase_id: int):
+    '''def add_lottery_offer(self, user_id: int, proposed_price: float, purchase_id: int):
         """
         * Parameters: user_id, proposedPrice, purchase_id
         * This function adds a lottery ticket to a lottery purchase
@@ -1051,4 +1062,4 @@ class MarketFacade:
                         # logger.info(f"Lottery {purchase.get_purchaseId()} has been won!")
                     else:
                         #TODO: refund users who participated in the lottery
-                        logger.info(f"Lottery {purchase.purchase_id()} has failed! Refunded all participants")"""
+                        logger.info(f"Lottery {purchase.purchase_id()} has failed! Refunded all participants")"""'''
