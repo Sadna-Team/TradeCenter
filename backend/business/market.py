@@ -1,12 +1,12 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO
+from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple
 from datetime import datetime
 import threading
 import logging
@@ -67,12 +67,12 @@ class MarketFacade:
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
 
-    def add_product_to_basket(self, user_id: int, store_id: int, product_id: int):
+    def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
         with MarketFacade.__lock:
-            if self.store_facade.check_product_availability(store_id, product_id):
+            if self.store_facade.check_product_availability(store_id, product_id, amount):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id)
 
-    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict):
+    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict) -> int:
         products_removed = False
         purchase_accepted = False
         basket_cleared = False
@@ -83,47 +83,18 @@ class MarketFacade:
             # cart = self.user_facade.get_shopping_cart(user_id)
             # TODO: call actual user facade method
 
-            # lock the __lock
-            # check if the products are still available
-            for store_id, products in cart.items():
-                for product_id in products:
-                    amount = products[product_id]
-                    if not self.store_facade.check_product_availability(store_id, product_id, amount):
-                        raise ValueError(f"Product {product_id} is not available in the required amount")
-
-            """
-            self.__product_id: int = product_id
-            self.__name: str = name
-            self.__description: str = description
-            self.__price: float = price
-            self.__amount: int = amount"""
-
             # calculate the total price
-            purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = {}
-            total_price = 0
-            for store_id, products in cart.items():
-                basket_price = 0
-                purchase_products: List[PurchaseProductDTO] = []
-                for product_id in products:
-                    amount = products[product_id]
-                    name = self.store_facade.get_product_by_id(product_id).name
-                    description = self.store_facade.get_product_by_id(product_id).description
-                    price = self.store_facade.get_product_by_id(product_id).price
-                    basket_price += price * amount
-                    purchase_products.append(PurchaseProductDTO(product_id, name, description, price, amount))
-                purchase_shopping_cart[store_id] = (purchase_products, basket_price, basket_price)
-                total_price += basket_price
+            total_price = self.store_facade.get_total_price_before_discount(cart)
+            total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
 
             # purchase facade immediate
-            total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
+            purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = (
+                self.store_facade.get_purchase_shopping_cart(cart))
             pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
                                                                     purchase_shopping_cart)
 
             # remove the products from the store
-            for store_id, products in cart.items():
-                for product_id in products:
-                    amount = products[product_id]
-                    self.store_facade.remove_product_amount(store_id, product_id, amount)
+            self.store_facade.check_and_remove_shopping_cart(cart)
 
             products_removed = True
 
@@ -167,6 +138,8 @@ class MarketFacade:
             SupplyHandler().process_supply(package_details, user_id, on_arrival)
             for store_id in cart.keys():
                 Notifier().notify_new_purchase(store_id, user_id)
+
+            return pur_id
         except Exception as e:
             if products_removed:
                 for store_id, products in cart.items():
@@ -245,13 +218,15 @@ class MarketFacade:
         SupplyHandler().remove_supply_method(method_name)
 
     # -------------------------------------- Store Related Methods --------------------------------------#
-    def search_by_category(self, category_id: int, sort_type: int) -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
+    def search_by_category(self, category_id: int, sort_type: int) \
+            -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
         """
         * Parameters: categoryId, sortByLowesToHighestPrice
         * This function gets all necessary information of the products in the category with categoryId
         * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
         rating lowest to Highest, 4 is by highest to lowest
-        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products in the category with categoryId
+        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products in the
+        category with categoryId
         """
         product_ids_to_store = self.store_facade.search_by_category(category_id)
 
@@ -265,15 +240,15 @@ class MarketFacade:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
 
-
-
-    def search_by_tags(self, tags: List[str], sort_type: int) -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
+    def search_by_tags(self, tags: List[str], sort_type: int) \
+            -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
         """
         * Parameters: tags, sortByLowesToHighestPrice
         * This function returns the list of all productIds with the tags in tags
         * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
          rating lowest to Highest, 4 is by highest to lowest
-        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products with the tags in tags
+        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products with the
+        tags in tags
         """
         product_ids_to_store = self.store_facade.search_by_tags(tags)
 
@@ -287,13 +262,15 @@ class MarketFacade:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
 
-    def search_by_names(self, name: str, sort_type: int) -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
+    def search_by_names(self, name: str, sort_type: int) \
+            -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
         """
         * Parameters: names, sortByLowesToHighestPrice
         * This function returns the list of all productIds
         * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
          rating lowest to Highest, 4 is by highest to lowest
-        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products with the name
+        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products with the
+        name
         """
         product_ids_to_store = self.store_facade.search_by_names(name)
 
@@ -307,7 +284,8 @@ class MarketFacade:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
 
-    def search_product_in_store(self, store_id: int, name: str, sort_type: int) -> Dict[int, Tuple[Tuple[int, float], float]]:
+    def search_product_in_store(self, store_id: int, name: str, sort_type: int) \
+            -> Dict[int, Tuple[Tuple[int, float], float]]:
         """
         * Parameters: storeId, names, sortByLowesToHighestPrice
         * This function returns the list of all productIds
@@ -327,27 +305,23 @@ class MarketFacade:
         elif sort_type == 4:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
-    
 
-    def get_store_info(self, user_id: int, store_id: int) -> Optional[str]:
+    def get_store_info(self, user_id: int, store_id: int) -> StoreDTO:
         """
         * Parameters: storeId
         * This function returns the store information
         * Returns the store information
         """
         # TODO: check if user has necessary permissions to view store information
-        if self.store_facade.get_store_info(store_id) is not None:
-            return self.store_facade.get_store_info(store_id)
-        return None
+        return self.store_facade.get_store_info(store_id)
 
-    def get_store_product_info(self, user_id: int, store_id: int) -> str:
+    def get_store_product_info(self, user_id: int, store_id: int) -> List[ProductDTO]:
         """
         * Parameters: storeId
         * This function returns the store product information
         * Returns the store product information
         """
-        # TODO: check if user has necessary permissions to view store product information
-        return self.store_facade.get_store_product_information(user_id, store_id)
+        return self.get_store_info(user_id, store_id).products
 
     # -------------Discount related methods-------------------#
     def add_discount(self, user_id: int, description: str, start_date: datetime, ending_date: datetime,
@@ -432,7 +406,8 @@ class MarketFacade:
         pass
 
     # -------------Products related methods-------------------#
-    def add_product(self, user_id: int, store_id: int, product_name: str, weight: float, description: str, price: float):
+    def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
+                    tags: List[str]):
         """
         * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
         * This function adds a product to the store
@@ -440,10 +415,7 @@ class MarketFacade:
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add a product to the store")
-        if self.store_facade.add_product_to_store(store_id, product_name,weight, description, price ):
-            logger.info(f"User {user_id} has added a product to store {store_id}")
-        else:
-            logger.info(f"User {user_id} has failed to add a product to store {store_id}")
+        self.store_facade.add_product_to_store(store_id, product_name, description, price, tags)
 
     def remove_product(self, user_id: int, store_id: int, product_id: int):
         """
@@ -453,10 +425,7 @@ class MarketFacade:
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to remove a product from the store")
-        if self.store_facade.remove_product_from_store(store_id, product_id):
-            logger.info(f"User {user_id} has removed a product from store {store_id}")
-        else:
-            logger.info(f"User {user_id} has failed to remove a product from store {store_id}")
+        self.store_facade.remove_product_from_store(store_id, product_id)
 
     def add_product_amount(self, user_id: int, store_id: int, product_id: int, amount: int):
         """
@@ -466,12 +435,8 @@ class MarketFacade:
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add an amount of a product to the store")
-        if self.store_facade.add_product_amount(store_id, product_id, amount):
-            logger.info(f"User {user_id} has added an amount of product {product_id} to store {store_id}")
-        else:
-            logger.info(f"User {user_id} has failed to add an amount of product {product_id} to store {store_id}")
+        self.store_facade.add_product_amount(store_id, product_id, amount)
 
-        
     def remove_product_amount(self, user_id: int, store_id: int, product_id: int, amount: int):
         """
         * Parameters: userId, store_id, product_id, amount
@@ -479,26 +444,9 @@ class MarketFacade:
         * Returns None
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
-            raise ValueError("User does not have the necessary permissions to remove an amount of a product from the store")
-        if self.store_facade.remove_product_amount(store_id, product_id, amount):
-            logger.info(f"User {user_id} has removed an amount of product {product_id} from store {store_id}")
-        else:
-            logger.info(f"User {user_id} has failed to remove an amount of product {product_id} from store {store_id}")
-        
-
-    def change_product_price(self, user_id: int, store_id: int, product_id: int, new_price: float):
-        """
-        * Parameters: userId, store_id, product_id, newPrice
-        * This function changes the price of a product
-        * Returns None
-        """
-        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError(
-                "User does not have the necessary permissions to change the price of a product in the store")
-        if self.store_facade.change_price_of_product(store_id, product_id, new_price):
-            logger.info(f"User {user_id} has changed the price of product {product_id} in store {store_id}")
-        else:
-            logger.info(f"User {user_id} has failed to change the price of product {product_id} in store {store_id}")
+                "User does not have the necessary permissions to remove an amount of a product from the store")
+        self.store_facade.remove_product_amount(store_id, product_id, amount)
 
     # -------------Store related methods-------------------#
     def add_store(self, founder_id: int, location_id: int, store_name: str):
@@ -519,10 +467,7 @@ class MarketFacade:
         """
         if not self.auth_facade.is_logged_in(user_id):
             raise ValueError("User is not logged in")
-        if self.store_facade.close_store(store_id, user_id):
-            logger.info(f"User {user_id} has closed store {store_id}")
-        else:
-            logger.info(f"User {user_id} has failed to close store {store_id}")
+        self.store_facade.close_store(user_id, store_id)
 
     # -------------Tags related methods-------------------#
     def add_tag_to_product(self, user_id: int, store_id: int, product_id: int, tag: str):
@@ -531,28 +476,33 @@ class MarketFacade:
         * This function adds a tag to a product specification
         * Returns None
         """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.add_tag_to_product(store_id, product_id, tag):
-            logger.info(f"User {user_id} has added a tag to product {product_id}")
-        else:
-            logger.info(f"User {user_id} has failed to add a tag to product {product_id}")
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
+            raise ValueError("User does not have the necessary permissions to add a tag to a product in the store")
+        self.add_tag_to_product(user_id, store_id, product_id, tag)
 
-    def remove_tag_from_product_spec(self, user_id: int, store_id:int, product_id: int, tag: str):
+    def remove_tag_from_product(self, user_id: int, store_id: int, product_id: int, tag: str):
         """
         * Parameters: userId, productSpecId, tag
         * This function removes a tag from a product specification
         * Returns None
         """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.remove_tags_from_product(store_id, product_id, tag):
-            logger.info(f"User {user_id} has removed a tag from product {product_id}")
-        else:
-            logger.info(f"User {user_id} has failed to remove a tag from product {product_id}")
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
+            raise ValueError("User does not have the necessary permissions to remove a tag to a product in the store")
+        self.store_facade.remove_tag_from_product(store_id, product_id, tag)
 
     # -------------Product related methods-------------------#
-    def change_product_description(self, user_id: int, store_id:int, product_id: int, description: str):
+    def change_product_price(self, user_id: int, store_id: int, product_id: int, new_price: float):
+        """
+        * Parameters: userId, store_id, product_id, newPrice
+        * This function changes the price of a product
+        * Returns None
+        """
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
+            raise ValueError(
+                "User does not have the necessary permissions to change the price of a product in the store")
+        self.store_facade.change_price_of_product(store_id, product_id, new_price)
+
+    def change_product_description(self, user_id: int, store_id: int, product_id: int, description: str):
         """
         * Parameters: user_id, product_id, description
         * This function changes the description of a product
@@ -560,27 +510,10 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.change_description_of_product(store_id,product_id, description):
-            logger.info(f"User {user_id} has changed the description of product specification {product_id}")
-        else:
-            logger.info(f"User {user_id} has failed to change the description of product "
-                        f" {product_id}")
-
-    def change_product_weight(self, user_id: int, store_id:int, product_id: int, weight_in_kilos: float):
-        """
-        * Parameters: userId, productSpecId, weightInKilos
-        * This function changes the weight of a product specification
-        * Returns None
-        """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.change_weight_of_product(store_id, product_id, weight_in_kilos):
-            logger.info(f"User {user_id} has changed the weight of product {product_id}")
-        else:
-            logger.info(f"User {user_id} has failed to change the weight of product {product_id}")
+        self.store_facade.change_description_of_product(store_id, product_id, description)
 
     # -------------Category related methods-------------------#
-    def add_category(self, user_id: int, category_name: str):
+    def add_category(self, user_id: int, category_name: str) -> int:
         """
         * Parameters: userId, categoryName
         * This function adds a category to the system
@@ -588,10 +521,7 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.add_category(category_name):
-            logger.info(f"User {user_id} has added a category")
-        else:
-            logger.info(f"User {user_id} has failed to add a category")
+        return self.store_facade.add_category(category_name)
 
     def remove_category(self, user_id: int, category_id: int):
         """
@@ -601,10 +531,7 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.remove_category(category_id):
-            logger.info(f"User {user_id} has removed a category")
-        else:
-            logger.info(f"User {user_id} has failed to remove a category")
+        self.store_facade.remove_category(category_id)
 
     def add_sub_category_to_category(self, user_id: int, sub_category_id: int, parent_category_id: int):
         """
@@ -615,10 +542,7 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.assign_sub_category_to_category(sub_category_id, parent_category_id):
-            logger.info(f"User {user_id} has added a sub category to category {parent_category_id}")
-        else:
-            logger.info(f"User {user_id} has failed to add a sub category to category {parent_category_id}")
+        self.add_sub_category_to_category(user_id, sub_category_id, parent_category_id)
 
     def remove_sub_category_from_category(self, user_id: int, category_id: int, sub_category_id: int):
         """
@@ -628,37 +552,28 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        if self.store_facade.delete_sub_category_from_category(category_id, sub_category_id):
-            logger.info(f"User {user_id} has removed a sub category from category {category_id}")
-        else:
-            logger.info(f"User {user_id} has failed to remove a sub category from category {category_id}")
+        self.remove_sub_category_from_category(user_id, category_id, sub_category_id)
 
-    def assign_product_to_category(self, user_id: int, category_id: int, product_id: int):
+    def assign_product_to_category(self, user_id: int, category_id: int, store_id: int, product_id: int):
         """
         * Parameters: user_id, category_id, product_id
         * This function assigns a product to a category
         * NOTE: it is assumed that the product exists in the system
         * Returns None
         """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.assign_product_to_category(category_id, product_id):
-            logger.info(f"User {user_id} has assigned a product to category {category_id}")
-        else:
-            logger.info(f"User {user_id} has failed to assign a product to category {category_id}")
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
+            raise ValueError("User does not have the necessary permissions to assign a product to a category")
+        self.store_facade.assign_product_to_category(category_id, store_id, product_id)
 
-    def remove_product_from_category(self, user_id: int, category_id: int, product_id: int):
+    def remove_product_from_category(self, user_id: int, category_id: int, store_id: int, product_id: int):
         """
         * Parameters: user_id, category_id, product_id
         * This function removes a product from a category
         * Returns None
         """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
-        if self.store_facade.remove_product_from_category(category_id, product_id):
-            logger.info(f"User {user_id} has removed a product from category {category_id}")
-        else:
-            logger.info(f"User {user_id} has failed to remove a product from category {category_id}")
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
+            raise ValueError("User does not have the necessary permissions to remove a product from a category")
+        self.remove_product_from_category(user_id, category_id, store_id, product_id)
 
     # -------------PurchaseFacade methods:-------------------#
 
