@@ -602,5 +602,30 @@ def test_search_by_name(store_facade):
     out = store_facade.search_by_name('product')
     assert out[0][0].product_id == 0
 
+def test_search_in_store_by_category(store_facade):
+    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_category('category')
+    store_facade.add_category('sub_category')
+    store_facade.add_category('subsub_category')
+    store_facade.assign_sub_category_to_category(1, 0)
+    store_facade.assign_sub_category_to_category(2, 1)
+    store_facade.add_product_to_store(0, 'product', 'description', 10.0)
+    store_facade.assign_product_to_category(0, 0, 0)
+    out = store_facade.search_by_category(0, 0)
+    assert out[0][0].product_id == 0
 
+def test_search_in_store_by_category_fail(store_facade):
+    with pytest.raises(ValueError):
+        store_facade.search_by_category(0, 0)
 
+def test_search_in_store_by_tags(store_facade):
+    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_product_to_store(0, 'product', 'description', 10.0, ['tag'])
+    out = store_facade.search_by_tags(['tag'], 0)
+    assert out[0][0].product_id == 0
+
+def test_search_in_store_by_name(store_facade):
+    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_product_to_store(0, 'product', 'description', 10.0)
+    out = store_facade.search_by_name('product', 0)
+    assert out[0][0].product_id == 0
