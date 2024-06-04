@@ -90,6 +90,5 @@ class TestRolesFacade(unittest.TestCase):
         self.facade.add_admin(1)
         self.assertTrue(self.facade.is_system_manager(1))
 
-
 if __name__ == '__main__':
     unittest.main()

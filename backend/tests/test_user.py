@@ -33,18 +33,18 @@ class TestShoppingBasket(unittest.TestCase):
 class TestShoppingCart(unittest.TestCase):
 
     def test_add_product_to_basket(self):
-        cart = SoppingCart(user_id=1)
+        cart = ShoppingCart(user_id=1)
         cart.add_product_to_basket(store_id=1, product_id=100)
         self.assertEqual(cart.get_dto(), {1: [100]})
 
     def test_remove_product_from_cart(self):
-        cart = SoppingCart(user_id=1)
+        cart = ShoppingCart(user_id=1)
         cart.add_product_to_basket(store_id=1, product_id=100)
         cart.remove_product_from_cart(store_id=1, product_id=100)
         self.assertEqual(cart.get_dto(), {1: []})
 
     def test_remove_product_from_cart_store_not_found(self):
-        cart = SoppingCart(user_id=1)
+        cart = ShoppingCart(user_id=1)
         with self.assertRaises(ValueError):
             cart.remove_product_from_cart(store_id=1, product_id=100)
 
@@ -84,13 +84,13 @@ class TestUser(unittest.TestCase):
         with self.assertRaises(ValueError):
             User(user_id=1, currency='GBP')
 
-    @patch.object(SoppingCart, 'add_product_to_basket')
+    @patch.object(ShoppingCart, 'add_product_to_basket')
     def test_add_product_to_basket(self, mock_add_product_to_basket):
         user = User(user_id=1, currency='USD')
         user.add_product_to_basket(store_id=1, product_id=100)
         mock_add_product_to_basket.assert_called_once_with(1, 100)
 
-    @patch.object(SoppingCart, 'remove_product_from_cart')
+    @patch.object(ShoppingCart, 'remove_product_from_cart')
     def test_remove_product_from_cart(self, mock_remove_product_from_cart):
         user = User(user_id=1, currency='USD')
         user.add_product_to_basket(store_id=1, product_id=100)

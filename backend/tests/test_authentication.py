@@ -61,7 +61,9 @@ class TestAuthentication(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.auth.register_user('test_user_id', user_credentials)
 
+
         
+
     def test_start_guest(self):
         self.auth.user_facade.create_user.return_value = 'guest_user_id'
         token = self.auth.start_guest()
