@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import Enum
 # import the datetime type
 from typing import List
 
