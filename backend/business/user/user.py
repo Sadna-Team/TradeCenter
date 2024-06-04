@@ -60,14 +60,42 @@ class ShoppingCart:
         self.__shopping_baskets[store_id].subtract_product(product_id, quantity)
 
 
+class Notification:
+    def __init__(self, notification_id: int, message: str, date: datetime) -> None:
+        self.__notification_id: int = notification_id
+        self.__message: str = message
+        self.__date: datetime = date
+
+    def get_notification_dto(self) -> NotificationDTO:
+        return NotificationDTO(self.__notification_id, self.__message, self.__date)
+
+
 class State(ABC):
     @abstractmethod
     def get_password(self):
         pass
 
+    def get_notifications(self) -> List[Notification]:
+        pass
+
+    def add_notification(self, notification: Notification):
+        pass
+
+    def clear_notifications(self):
+        pass
+
 
 class Guest(State):
     def get_password(self):
+        raise ValueError("User is not registered")
+
+    def get_notifications(self):
+        raise ValueError("User is not registered")
+
+    def add_notification(self, notification: Notification):
+        raise ValueError("User is not registered")
+
+    def clear_notifications(self):
         raise ValueError("User is not registered")
 
 
@@ -81,19 +109,19 @@ class Member(State):
         self.__password: str = password
         self.__birthdate: datetime = datetime.date(year, month, day)
         self.__phone: str = phone
+        self.__notifications: List[Notification] = []
 
     def get_password(self):
         return self.__password
 
+    def get_notifications(self):
+        return self.__notifications
 
-class Notification:
-    def __init__(self, notification_id: int, message: str, date: datetime) -> None:
-        self.__notification_id: int = notification_id
-        self.__message: str = message
-        self.__date: datetime = date
+    def add_notification(self, notification: Notification):
+        self.__notifications.append(notification)
 
-    def get_notification_dto(self) -> NotificationDTO:
-        return NotificationDTO(self.__notification_id, self.__message, self.__date)
+    def clear_notifications(self):
+        self.__notifications.clear()
 
 
 class User:
@@ -105,13 +133,15 @@ class User:
         self.__currency: str = currency
         self.__member: State = Guest()
         self.__shopping_cart: ShoppingCart = ShoppingCart(user_id)
-        self.__notifications: List[Notification] = []
 
     def add_notification(self, notification: Notification) -> None:
-        self.__notifications.append(notification)
+        self.__member.add_notification(notification)
 
     def get_notifications(self) -> List[Notification]:
-        return self.__notifications
+        return self.__member.get_notifications()
+
+    def clear_notifications(self) -> None:
+        self.__member.clear_notifications()
 
     def add_product_to_basket(self, store_id: int, product_id: int, quantity: int) -> None:
         self.__shopping_cart.add_product_to_basket(store_id, product_id, quantity)
@@ -202,7 +232,7 @@ class UserFacade:
 
     def clear_notifications(self, user_id: int) -> None:
         with UserFacade.__notification_lock:
-            self.__get_user(user_id).get_notifications().clear()
+            self.__get_user(user_id).clear_notifications()
 
     def notify_user(self, user_id: int, notification: NotificationDTO) -> None:
         with UserFacade.__notification_lock:
