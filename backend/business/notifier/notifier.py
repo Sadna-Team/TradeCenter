@@ -2,11 +2,15 @@ from .. import UserFacade
 from typing import Dict
 from datetime import datetime
 from .. import NotificationDTO
+from threading import Lock
 
 
 class Notifier:
     # singleton
     __instance = None
+    __create_lock = Lock()
+    __sign_lock = Lock()
+    __store_lock: Dict[int, Lock] = {}
 
     def __new__(cls):
         if Notifier.__instance is None:
@@ -29,8 +33,9 @@ class Notifier:
         self._notification_id = 0
 
     def _generate_notification_id(self) -> int:
-        self._notification_id += 1
-        return self._notification_id
+        with self.__create_lock:
+            self._notification_id += 1
+            return self._notification_id
 
     def _notify(self, user_id: int, message: str) -> None:
         """
@@ -129,21 +134,26 @@ class Notifier:
         * It would alert him to the events that are relevant to the store (new purchase, store update, removed
         management position)
         """
-        if store_id not in self._listeners:
-            self._listeners[store_id] = []
-        if user_id not in self._listeners[store_id]:
-            self._listeners[store_id].append(user_id)
-        else:
-            raise ValueError("User is already a listener for the store with ID:", store_id)
+        with self.__sign_lock:
+            if store_id not in self._listeners:
+                self._listeners[store_id] = []
+                self.__store_lock[store_id] = Lock()
+
+        with self.__store_lock[store_id]:
+            if user_id not in self._listeners[store_id]:
+                self._listeners[store_id].append(user_id)
+            else:
+                raise ValueError("User is already a listener for the store with ID:", store_id)
 
     def unsign_listener(self, user_id: int, store_id: int) -> None:
         """
         * Parameters: user_id: int, store_id: int
         * This function removes a user (manager or owner) from the store listeners.
         """
-        if store_id in self._listeners:
-            self._listeners[store_id].remove(user_id)
-            if not self._listeners[store_id]:
-                self._listeners.pop(store_id)
-        else:
-            raise ValueError("No listeners for the store with ID:", store_id)
+        with self.__store_lock[store_id]:
+            if store_id in self._listeners:
+                self._listeners[store_id].remove(user_id)
+                if not self._listeners[store_id]:
+                    self._listeners.pop(store_id)
+            else:
+                raise ValueError("No listeners for the store with ID:", store_id)
