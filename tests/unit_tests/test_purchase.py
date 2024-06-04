@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 import pytest
 from backend.business.purchase.purchase import ImmediateSubPurchase, PurchaseStatus, ImmediatePurchase, PurchaseFacade
 from backend.business.DTOs import PurchaseProductDTO
@@ -10,7 +10,7 @@ default_completed_purchase_id: int = 2
 default_ongoing_subpurchase_id: int = 3
 default_accepted_subpurchase_id: int = 4
 default_completed_subpurchase_id: int = 5
-default_date: datetime = datetime.datetime.now()
+default_date: datetime = datetime.now()
 default_user_id: int = 0
 default_store_id: int = 0
 default_products_list: List[PurchaseProductDTO] = [PurchaseProductDTO(0, "carrot", "good condition", 20, 10),
@@ -196,25 +196,25 @@ def test_get_purchases_of_store_empty(purchase_facade):
 
 def test_accept_purchase_facade(purchase_facade):
     create_purchase_default(purchase_facade)
-    purchase_facade.accept_purchase(0)
+    purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
     assert purchase_facade._purchases[0].status == PurchaseStatus.accepted
 
 
 def test_accept_purchase_facade_purchase_doesnt_exist(purchase_facade):
     with pytest.raises(ValueError):
-        purchase_facade.accept_purchase(0)
+        purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
 
 
 def test_accept_purchase_facade_purchase_already_accepted(purchase_facade):
     create_purchase_default(purchase_facade)
-    purchase_facade.accept_purchase(0)
+    purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
     with pytest.raises(ValueError):
-        purchase_facade.accept_purchase(0)
+        purchase_facade.accept_purchase(0 , datetime.now() + timedelta(days=1))
 
 
 def test_complete_purchase_facade(purchase_facade):
     create_purchase_default(purchase_facade)
-    purchase_facade.accept_purchase(0)
+    purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
     purchase_facade.complete_purchase(0)
     assert purchase_facade._purchases[0].status == PurchaseStatus.completed
 
@@ -232,7 +232,7 @@ def test_complete_purchase_facade_purchase_not_accepted(purchase_facade):
 
 def test_complete_purchase_facade_purchase_already_completed(purchase_facade):
     create_purchase_default(purchase_facade)
-    purchase_facade.accept_purchase(0)
+    purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
     purchase_facade.complete_purchase(0)
     with pytest.raises(ValueError):
         purchase_facade.complete_purchase(0)
@@ -251,7 +251,7 @@ def test_reject_purchase_facade_purchase_doesnt_exist(purchase_facade):
 
 def test_reject_purchase_facade_purchase_already_accepted(purchase_facade):
     create_purchase_default(purchase_facade)
-    purchase_facade.accept_purchase(0)
+    purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
     with pytest.raises(ValueError):
         purchase_facade.reject_purchase(0)
 
