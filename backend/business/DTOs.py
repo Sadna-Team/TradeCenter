@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from enum import Enum
 # import the datetime type
 from typing import List
@@ -121,14 +121,11 @@ class PurchaseDTO:
                 "status": self.__status, "products": [product.get() for product in self.__products]}
 
 class ProductDTO:
-    def __init__(self, product_id: int, store_id: int, name: str, weight: float, description: str, price: float, amount: int, tags: list[str]):
+    def __init__(self, product_id: int, name: str, description: str, price: float, tags: list[str]):
         self.__product_id: int = product_id
-        self.__store_id: int = store_id
         self.__name: str = name
-        self.__weight: float = weight
         self.__description: str = description
         self.__price: float = price
-        self.__amount: int = amount
         self.__tags: list[str] = tags
 
     @property
@@ -146,15 +143,58 @@ class ProductDTO:
     @property
     def price(self) -> float:
         return self.__price
-
+    
     @property
-    def amount(self) -> int:
-        return self.__amount
+    def tags(self) -> list[str]:
+        return self.__tags
 
     def get(self) -> dict:
         return {"product_id": self.__product_id, "name": self.__name, "description": self.__description,
                 "price": self.__price, "amount": self.__amount}
 
+
+class StoreDTO:
+    def __init__(self, store_id: int, location_id: int, store_name: str, store_founder_id: int, is_active: bool, found_date: datetime, products: List[ProductDTO] = []):
+        self.__store_id: int = store_id
+        self.__location_id: int = location_id
+        self.__store_name: str = store_name
+        self.__store_founder_id: int = store_founder_id
+        self.__is_active: bool = is_active
+        self.__found_date: datetime = found_date
+        self.__products: List[ProductDTO] = products
+
+    @property
+    def store_id(self) -> int:
+        return self.__store_id
+    
+    @property
+    def location_id(self) -> int:
+        return self.__location_id
+    
+    @property
+    def store_name(self) -> str:
+        return self.__store_name
+    
+    @property
+    def store_founder_id(self) -> int:
+        return self.__store_founder_id
+    
+    @property
+    def is_active(self) -> bool:
+        return self.__is_active
+    
+    @property
+    def found_date(self) -> datetime:
+        return self.__found_date
+    
+    @property
+    def products(self) -> List[ProductDTO]:
+        return self.__products
+
+    def get(self) -> dict:
+        return {"store_id": self.__store_id, "location_id": self.__location_id, "store_name": self.__store_name,
+                "store_founder_id": self.__store_founder_id, "is_active": self.__is_active, "found_date": self.__found_date,
+                "products": [product.get() for product in self.__products]}
 
 class TransactionException(Exception):
     pass
