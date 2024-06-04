@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
-
-
+from threading import Lock
 
 class Permissions:
     def __init__(self):
@@ -181,6 +180,9 @@ class Tree:
 class RolesFacade:
     # singleton
     __instance = None
+    __creation_lock = Lock()
+    __stores_locks = Dict[int, Lock]  # Dict[store_id, Lock]
+    __system_managers_lock = Lock()
 
     def __new__(cls):
         if RolesFacade.__instance is None:
@@ -209,10 +211,15 @@ class RolesFacade:
         Nomination._Nomination__nomination_id_serializer = 0
 
     def add_store(self, store_id: int, owner_id: int) -> None:
+        """
+        Add the first owner to the store roles (the store is already created)
+        Called in the market facade
+        """
         if store_id in self.__stores_to_roles:
             raise ValueError("Store already exists")
         self.__stores_to_roles[store_id] = {owner_id: StoreOwner()}
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
+        self.__stores_locks[store_id] = Lock()
 
     def close_store(self, store_id: int, actor_id: int) -> None:
         if store_id not in self.__stores_to_roles:
@@ -229,22 +236,24 @@ class RolesFacade:
                 del self.__systems_nominations[nomination_id]
 
     def nominate_owner(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
-        self.__check_nomination_validation(store_id, nominator_id, nominee_id)
-        # check that nominator is an owner
-        if not isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner):
-            raise ValueError("Nominator is not an owner")
-        nomination = Nomination(store_id, nominator_id, nominee_id, StoreOwner())
-        self.__systems_nominations[nomination.nomination_id] = nomination
-        return nomination.nomination_id
+        with self.__stores_locks[store_id]:
+            self.__check_nomination_validation(store_id, nominator_id, nominee_id)
+            # check that nominator is an owner
+            if not isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner):
+                raise ValueError("Nominator is not an owner")
+            nomination = Nomination(store_id, nominator_id, nominee_id, StoreOwner())
+            self.__systems_nominations[nomination.nomination_id] = nomination
+            return nomination.nomination_id
 
     def nominate_manager(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
-        self.__check_nomination_validation(store_id, nominator_id, nominee_id)
-        # check that nominator is an owner or that he is a manager with permissions to add a manager
-        if not self.__authorized_to_add_manager(store_id, nominator_id):
-            raise ValueError("Nominator is not authorized to nominate a manager")
-        nomination = Nomination(store_id, nominator_id, nominee_id, StoreManager())
-        self.__systems_nominations[nomination.nomination_id] = nomination
-        return nomination.nomination_id
+        with self.__stores_locks[store_id]:
+            self.__check_nomination_validation(store_id, nominator_id, nominee_id)
+            # check that nominator is an owner or that he is a manager with permissions to add a manager
+            if not self.__authorized_to_add_manager(store_id, nominator_id):
+                raise ValueError("Nominator is not authorized to nominate a manager")
+            nomination = Nomination(store_id, nominator_id, nominee_id, StoreManager())
+            self.__systems_nominations[nomination.nomination_id] = nomination
+            return nomination.nomination_id
 
     def __authorized_to_add_manager(self, store_id: int, nominator_id: int) -> bool:
         return isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner) or \
@@ -285,49 +294,54 @@ class RolesFacade:
     def set_manager_permissions(self, store_id: int, actor_id: int, manager_id: int, add_product: bool,
                                 change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
                                 change_discount_types: bool, add_manager: bool, get_bid: bool) -> None:
-        if store_id not in self.__stores_to_roles:
-            raise ValueError("Store does not exist")
-        if manager_id not in self.__stores_to_roles[store_id]:
-            raise ValueError("Manager is not a member of the store")
-        if not isinstance(self.__stores_to_roles[store_id][manager_id], StoreManager):
-            raise ValueError("User is not a manager")
-        if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, manager_id):
-            raise ValueError("Actor is not a owner/manager of the manager")
-        (self.__stores_to_roles[store_id][manager_id].permissions
-         .set_permissions(add_product, change_purchase_policy, change_purchase_types, change_discount_policy,
-                          change_discount_types, add_manager, get_bid))
+        with self.__stores_locks[store_id]:
+            if store_id not in self.__stores_to_roles:
+                raise ValueError("Store does not exist")
+            if manager_id not in self.__stores_to_roles[store_id]:
+                raise ValueError("Manager is not a member of the store")
+            if not isinstance(self.__stores_to_roles[store_id][manager_id], StoreManager):
+                raise ValueError("User is not a manager")
+            if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, manager_id):
+                raise ValueError("Actor is not a owner/manager of the manager")
+            (self.__stores_to_roles[store_id][manager_id].permissions
+             .set_permissions(add_product, change_purchase_policy, change_purchase_types, change_discount_policy,
+                              change_discount_types, add_manager, get_bid))
 
     def remove_role(self, store_id: int, actor_id: int, removed_id: int) -> None:
-        if store_id not in self.__stores_to_roles:
-            raise ValueError("Store does not exist")
-        if removed_id not in self.__stores_to_roles[store_id]:
-            raise ValueError("Removed user is not a member of the store")
-        if not self.__authorized_to_add_manager(store_id, actor_id):
-            raise ValueError("Actor is not authorized to remove a role")
-        if not actor_id != removed_id and not self.__stores_to_role_tree[store_id].is_descendant(actor_id, removed_id):
-            raise ValueError("Actor is not an ancestor of the removed user")
-        if self.__stores_to_role_tree[store_id].is_root(removed_id):
-            raise ValueError("Cannot remove the root owner of the store")
-        removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
-        for user_id in removed:
-            del self.__stores_to_roles[store_id][user_id]
+        with self.__stores_locks[store_id]:
+            if store_id not in self.__stores_to_roles:
+                raise ValueError("Store does not exist")
+            if removed_id not in self.__stores_to_roles[store_id]:
+                raise ValueError("Removed user is not a member of the store")
+            if not self.__authorized_to_add_manager(store_id, actor_id):
+                raise ValueError("Actor is not authorized to remove a role")
+            if not actor_id != removed_id and not self.__stores_to_role_tree[store_id].is_descendant(actor_id, removed_id):
+                raise ValueError("Actor is not an ancestor of the removed user")
+            if self.__stores_to_role_tree[store_id].is_root(removed_id):
+                raise ValueError("Cannot remove the root owner of the store")
+            removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
+            for user_id in removed:
+                del self.__stores_to_roles[store_id][user_id]
 
     def is_system_manager(self, user_id: int) -> bool:
-        return user_id in self.__system_managers
+        with self.__system_managers_lock:
+            return user_id in self.__system_managers
 
     def add_system_manager(self, actor: int, user_id: int) -> None:
-        if not self.is_system_manager(actor):
-            raise ValueError("Actor is not a system manager")
-        self.__system_managers.append(user_id)
+        with self.__system_managers_lock:
+            if not self.is_system_manager(actor):
+                raise ValueError("Actor is not a system manager")
+            self.__system_managers.append(user_id)
 
     def remove_system_manager(self, actor: int, user_id: int) -> None:
-        if user_id == self.__system_admin:
-            raise ValueError("Cannot remove the system admin")
-        if not self.is_system_manager(actor):
-            raise ValueError("Actor is not a system manager")
-        if user_id not in self.__system_managers:
-            raise ValueError("User is not a system manager")
-        self.__system_managers.remove(user_id)
+        with self.__system_managers_lock:
+            if user_id == self.__system_admin:
+                raise ValueError("Cannot remove the system admin")
+            if not self.is_system_manager(actor):
+                raise ValueError("Actor is not a system manager")
+            if user_id not in self.__system_managers:
+                raise ValueError("User is not a system manager")
+            self.__system_managers.remove(user_id)
 
     def add_admin(self, user_id: int) -> None:
         """
@@ -348,69 +362,78 @@ class RolesFacade:
         raise ValueError("User is a manager")
 
     def has_add_product_permission(self, store_id: int, user_id: int) -> bool:
-        try:
-            return self.__has_permission(store_id, user_id)
-        except ValueError:
-            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                return self.__stores_to_roles[store_id][user_id].permissions.add_product
-            return False
+        with self.__stores_locks[store_id]:
+            try:
+                return self.__has_permission(store_id, user_id)
+            except ValueError:
+                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                    return self.__stores_to_roles[store_id][user_id].permissions.add_product
+                return False
 
     def has_change_purchase_policy_permission(self, store_id: int, user_id: int) -> bool:
-        try:
-            return self.__has_permission(store_id, user_id)
-        except ValueError:
-            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                return self.__stores_to_roles[store_id][user_id].permissions.change_purchase_policy
-            return False
+        with self.__stores_locks[store_id]:
+            try:
+                return self.__has_permission(store_id, user_id)
+            except ValueError:
+                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                    return self.__stores_to_roles[store_id][user_id].permissions.change_purchase_policy
+                return False
 
     def has_change_purchase_types_permission(self, store_id: int, user_id: int) -> bool:
-        try:
-            return self.__has_permission(store_id, user_id)
-        except ValueError:
-            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                return self.__stores_to_roles[store_id][user_id].permissions.change_purchase_types
-            return False
+        with self.__stores_locks[store_id]:
+            try:
+                return self.__has_permission(store_id, user_id)
+            except ValueError:
+                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                    return self.__stores_to_roles[store_id][user_id].permissions.change_purchase_types
+                return False
 
     def has_change_discount_policy_permission(self, store_id: int, user_id: int) -> bool:
-        try:
-            return self.__has_permission(store_id, user_id)
-        except ValueError:
-            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                return self.__stores_to_roles[store_id][user_id].permissions.change_discount_policy
-            return False
+        with self.__stores_locks[store_id]:
+            try:
+                return self.__has_permission(store_id, user_id)
+            except ValueError:
+                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                    return self.__stores_to_roles[store_id][user_id].permissions.change_discount_policy
+                return False
 
     def has_change_discount_types_permission(self, store_id: int, user_id: int) -> bool:
-        try:
-            return self.__has_permission(store_id, user_id)
-        except ValueError:
-            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                return self.__stores_to_roles[store_id][user_id].permissions.change_discount_types
-            return False
+        with self.__stores_locks[store_id]:
+            try:
+                return self.__has_permission(store_id, user_id)
+            except ValueError:
+                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                    return self.__stores_to_roles[store_id][user_id].permissions.change_discount_types
+                return False
 
     def has_add_manager_permission(self, store_id: int, user_id: int) -> bool:
-        try:
-            return self.__has_permission(store_id, user_id)
-        except ValueError:
-            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                return self.__stores_to_roles[store_id][user_id].permissions.add_manager
-            return False
+        with self.__stores_locks[store_id]:
+            try:
+                return self.__has_permission(store_id, user_id)
+            except ValueError:
+                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                    return self.__stores_to_roles[store_id][user_id].permissions.add_manager
+                return False
 
     def has_get_bid_permission(self, store_id: int, user_id: int) -> bool:
-        try:
-            return self.__has_permission(store_id, user_id)
-        except ValueError:
-            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                return self.__stores_to_roles[store_id][user_id].permissions.get_bid
-            return False
+        with self.__stores_locks[store_id]:
+            try:
+                return self.__has_permission(store_id, user_id)
+            except ValueError:
+                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                    return self.__stores_to_roles[store_id][user_id].permissions.get_bid
+                return False
     
     def is_owner(self, store_id: int, user_id: int) -> bool:
-        if user_id in self.__stores_to_roles[store_id]:
-            if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
-                return True
-        return False
+        with self.__stores_locks[store_id]:
+            if user_id in self.__stores_to_roles[store_id]:
+                if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
+                    return True
+            return False
     
     def is_manager(self, store_id: int, user_id: int) -> bool:
-        if user_id in self.__stores_to_roles[store_id]:
-            if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                return True
-        return False
+        with self.__stores_locks[store_id]:
+            if user_id in self.__stores_to_roles[store_id]:
+                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
+                    return True
+            return False
