@@ -121,12 +121,14 @@ class PurchaseDTO:
                 "status": self.__status, "products": [product.get() for product in self.__products]}
 
 class ProductDTO:
-    def __init__(self, product_id: int, name: str, description: str, price: float, tags: list[str]):
+    def __init__(self, product_id: int, name: str, description: str, price: float, tags: list[str], weight: float, amount: int):
         self.__product_id: int = product_id
         self.__name: str = name
         self.__description: str = description
         self.__price: float = price
         self.__tags: list[str] = tags
+        self.__weight: float = weight
+        self.__amount: int = amount
 
     @property
     def product_id(self) -> int:
@@ -147,6 +149,14 @@ class ProductDTO:
     @property
     def tags(self) -> list[str]:
         return self.__tags
+    
+    @property
+    def weight(self) -> float:
+        return self.__weight
+
+    @property
+    def amount(self) -> int:
+        return self.__amount
 
     def get(self) -> dict:
         return {"product_id": self.__product_id, "name": self.__name, "description": self.__description,

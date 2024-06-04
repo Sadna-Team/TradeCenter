@@ -11,18 +11,19 @@ import logging
 
 logger = logging.getLogger('myapp')
 
-
 # ---------------------------------------------------
 
 # ---------------------product class---------------------#
 class Product:
     # id of product is productId. It is unique for each physical product
-    def __init__(self, product_id: int, product_name: str, description: str, price: float):
+    def __init__(self, product_id: int, product_name: str, description: str, price: float, weight: float, amount: int=0):
         self.__product_id: int = product_id
         self.__product_name: str = product_name
         self.__description: str = description
         self.__tags: List[str] = []  # initialized with no tags
         self.__price: float = price  # price is in dollars
+        self.__weight: float = weight  # weight is in kg
+        self.__amount: int = amount  # amount of the product in the store
         logger.info('[Product] successfully created product with id: ' + str(product_id))
 
     # ---------------------getters and setters---------------------
@@ -46,6 +47,14 @@ class Product:
     def price(self) -> float:
         return self.__price
 
+    @property
+    def weight(self) -> float:
+        return self.__weight
+    
+    @property
+    def amount(self) -> int:
+        return self.__amount
+    
     # ---------------------methods--------------------------------
     def create_product_dto(self) -> ProductDTO:
         """
@@ -53,7 +62,7 @@ class Product:
         * This function creates a product DTO from the product
         * Returns: the product DTO
         """
-        return ProductDTO(self.__product_id, self.__product_name, self.__description, self.__price, self.__tags)
+        return ProductDTO(self.__product_id, self.__product_name, self.__description, self.__price, self.__tags, weight=self.__weight, amount=self.__amount)
 
     def change_price(self, new_price: float) -> None:
         """
@@ -119,6 +128,25 @@ class Product:
         """
         return tag in self.__tags
 
+    def change_weight(self, new_weight: float) -> None:
+        """
+        * Parameters: newWeight
+        * This function changes the weight of the product
+        * Returns: none
+        """
+        if new_weight >= 0:
+            self.__weight = new_weight
+            logger.info('[Product] successfully changed weight of product with id: ' + str(self.__product_id))
+        else:
+            raise ValueError('New weight is a negative value')
+
+    def restock(self, amount) -> None:
+        self.__amount += amount
+
+    def remove_amount(self, amount) -> None:
+        if self.__amount < amount:
+            raise ValueError('Amount is greater than the available amount of the product')
+        self.__amount -= amount
 
 # ---------------------category class---------------------#
 class Category:
@@ -282,7 +310,6 @@ class Category:
             products.update(subCategory.get_all_products_recursively())
         return list(products)
 
-
 '''
     def get_all_product_names(self) -> str:
         """
@@ -296,7 +323,6 @@ class Category:
         return names
 '''
 
-
 class Store:
     # id of store is storeId. It is unique for each store
     def __init__(self, store_id: int, location_id: int, store_name: str, store_founder_id: int):
@@ -305,7 +331,7 @@ class Store:
         self.__store_name = store_name
         self.__store_founder_id = store_founder_id
         self.__is_active = True
-        self.__store_products: Dict[int, Tuple[Product, int]] = {}
+        self.__store_products: Dict[int, Product] = {}
         self.__product_id_counter = 0  # product Id
         self.__purchase_policies: List[PurchasePolicyStrategy] = []
         self.__founded_date = datetime.now()
@@ -359,16 +385,16 @@ class Store:
             raise ValueError('User is not the founder of the store')
 
     # We assume that the marketFacade verified that the user attempting to add the product is a store Owner
-    def add_product(self, name: str, description: str, price: float, tags: List[str], amount: int = 0) -> None:
+    def add_product(self, name: str, description: str, price: float, tags: List[str], weight: float, amount: int = 0) -> None:
         """
         * Parameters: name, description, price, tags, amount
         * This function adds a product to the store
         * Returns: none
         """
-        product = Product(self.__product_id_counter, name, description, price)
+        product = Product(self.__product_id_counter, name, description, price, weight, amount)
         for tag in tags:
             product.add_tag(tag)
-        self.__store_products[self.__product_id_counter] = (product, amount)
+        self.__store_products[self.__product_id_counter] = product
         self.__product_id_counter += 1
         logger.info('[Store] successfully added product to store with id: ' + str(self.__store_id))
 
@@ -385,28 +411,25 @@ class Store:
         except KeyError:
             raise ValueError('Product is not found')
 
-    def get_product_by_id(self, product_id: int) -> Optional[Product]:
+    def get_product_by_id(self, product_id: int) -> Product:
         """
         * Parameters: productId
         * This function gets a product by its ID
         * Returns: the product with the given ID
         """
         try:
-            return self.__store_products[product_id][0]
+            return self.__store_products[product_id]
         except KeyError:
-            return None
+            raise ValueError('Product is not found')
 
-    def get_product_dto_by_id(self, product_id: int) -> Optional[ProductDTO]:
+    def get_product_dto_by_id(self, product_id: int) -> ProductDTO:
         """
         * Parameters: productId
         * This function gets a product DTO by its ID
         * Returns: the product DTO with the given ID
         """
-        product = self.get_product_by_id(product_id)
-        if product is not None:
-            return product.create_product_dto()
-        return None
-
+        return self.get_product_by_id(product_id).create_product_dto()
+        
     def add_purchase_policy(self) -> None:
         # TODO: implement this function
         pass
@@ -454,7 +477,7 @@ class Store:
         """
         store_dto = StoreDTO(self.__store_id, self.__location_id, self.__store_name, self.__store_founder_id,
                              self.__is_active, self.__founded_date)
-        product_dtos = [product[0].create_product_dto() for product in self.__store_products.values()]
+        product_dtos = [product.create_product_dto() for product in self.__store_products.values()]
         store_dto.products = product_dtos
         return store_dto
 
@@ -473,8 +496,7 @@ class Store:
         * Returns: none
         """
         if product_id in self.__store_products:
-            self.__store_products[product_id] = (
-            self.__store_products[product_id][0], self.__store_products[product_id][1] + amount)
+            self.__store_products[product_id].restock(amount)
             logger.info('[Store] successfully restocked product with id: ' + str(product_id))
         else:
             raise ValueError('Product is not found')
@@ -487,10 +509,9 @@ class Store:
         """
         if product_id not in self.__store_products:
             raise ValueError('Product is not found')
-        if self.__store_products[product_id][1] < amount:
+        if self.__store_products[product_id].amount < amount:
             raise ValueError('Amount is greater than the available amount of the product')
-        self.__store_products[product_id] = (
-        self.__store_products[product_id][0], self.__store_products[product_id][1] - amount)
+        self.__store_products[product_id].remove_amount(amount)
         logger.info('[Store] successfully removed product amount with id: ' + str(product_id))
 
     def change_description_of_product(self, product_id: int, new_description: str) -> None:
@@ -560,10 +581,17 @@ class Store:
         * Returns: true if the store has the given amount of the product
         """
         if product_id in self.__store_products:
-            return self.__store_products[product_id][1] >= amount
+            return self.__store_products[product_id].amount >= amount
         return False
 
-
+    def change_weight_of_product(self, product_id: int, new_weight: float) -> None:
+        """
+        * Parameters: productId, newWeight
+        * This function changes the weight of the product
+        * Returns: none
+        """
+        product = self.get_product_by_id(product_id)
+        product.change_weight(new_weight)
 # ---------------------end of classes---------------------#
 
 # ---------------------storeFacade class---------------------#
@@ -703,7 +731,7 @@ class StoreFacade:
         category = self.get_category_by_id(category_id)
         category.remove_product_from_category(store_id, product_id)
 
-    def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float,
+    def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float, weight: float,
                              tags: List[str] = []) -> None:
         """
         * Parameters: productName, weight, description, tags, manufacturer, storeIds
@@ -718,7 +746,7 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
-        store.add_product(product_name, description, price, tags)
+        store.add_product(product_name, description, price, tags, weight)
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
         """
@@ -764,6 +792,15 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.change_price_of_product(product_id, new_price)
+
+    def change_weight_of_product(self, store_id: int, product_id: int, new_weight: float) -> None:
+        """
+        * Parameters: store_id, product_id, new_weight
+        * This function changes the weight of the product
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        store.change_weight_of_product(product_id, new_weight)
 
     def add_tag_to_product(self, store_id: int, product_id: int, tag: str) -> None:
         """
