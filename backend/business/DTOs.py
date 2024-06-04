@@ -190,6 +190,10 @@ class StoreDTO:
     @property
     def products(self) -> List[ProductDTO]:
         return self.__products
+    
+    @products.setter
+    def products(self, products: List[ProductDTO]):
+        self.__products = products
 
     def get(self) -> dict:
         return {"store_id": self.__store_id, "location_id": self.__location_id, "store_name": self.__store_name,

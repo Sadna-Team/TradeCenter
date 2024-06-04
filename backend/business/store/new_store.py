@@ -117,7 +117,6 @@ class Product:
         """
         return tag in self.__tags
 
-
 # ---------------------category class---------------------#
 class Category:
     # id of category is categoryId. It is unique for each category. Products are stored in either the category or found
@@ -166,7 +165,7 @@ class Category:
             self.__parent_category_id = parent_category_id
             logger.info('[Category] successfully added parent category to category with id: ' + str(self.__category_id))
         else:
-            logger.warning('[Category] Category already has a parent category')
+            raise ValueError('Category already has a parent category')
 
     def remove_parent_category(self) -> None:
         """
@@ -174,7 +173,7 @@ class Category:
         * This function removes the parent category of the category
         * Returns: none
         """
-        if self.__parent_category_id is not None:
+        if self.__parent_category_id != -1:
             self.__parent_category_id = -1
             logger.info(
                 '[Category] successfully removed parent category from category with id: ' + str(self.__category_id))
@@ -469,7 +468,7 @@ class Store:
         * Returns: none
         """
         if product_id in self.__store_products:
-            self.__store_products[product_id][1] += amount
+            self.__store_products[product_id] = (self.__store_products[product_id][0], self.__store_products[product_id][1] + amount)
             logger.info('[Store] successfully restocked product with id: ' + str(product_id))
         else:
             raise ValueError('Product is not found')
@@ -484,7 +483,7 @@ class Store:
             raise ValueError('Product is not found')
         if self.__store_products[product_id][1] < amount:
             raise ValueError('Amount is greater than the available amount of the product')
-        self.__store_products[product_id][1] -= amount
+        self.__store_products[product_id] = (self.__store_products[product_id][0], self.__store_products[product_id][1] - amount)
         logger.info('[Store] successfully removed product amount with id: ' + str(product_id))
 
     def change_description_of_product(self, product_id: int, new_description: str) -> None:
@@ -571,8 +570,8 @@ class StoreFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.__categories: Dict[int, Category] = []  # category_id: Category
-            self.__stores: Dict[int, Store] = []  # store_id: Store
+            self.__categories: Dict[int, Category] = {}  # category_id: Category
+            self.__stores: Dict[int, Store] = {}  # store_id: Store
             self.__discounts: List[DiscountStrategy] = []  # List to store discounts
             self.__category_id_counter = 0  # Counter for category IDs
             self.__store_id_counter = 0  # Counter for store IDs
@@ -583,8 +582,8 @@ class StoreFacade:
         """
         For testing purposes only
         """
-        self.__categories = []
-        self.__stores = []
+        self.__categories = {}
+        self.__stores = {}
         self.__discounts = []
         self.__category_id_counter = 0
         self.__store_id_counter = 0
@@ -711,7 +710,7 @@ class StoreFacade:
         else:
             raise ValueError('Category is not found')
     
-    def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float) -> None:
+    def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float, tags: List[str]=[]) -> None:
         """
         * Parameters: productName, weight, description, tags, manufacturer, storeIds
         * This function adds a product to the store
@@ -727,7 +726,7 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
-        store.add_product(product_name, description, price)
+        store.add_product(product_name, description, price, tags)
              
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
         """
