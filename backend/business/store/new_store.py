@@ -1,6 +1,5 @@
 # ---------- Imports ------------#
-from enum import Enum
-from typing import List, Dict, Tuple, Optional, Set
+from typing import List, Dict, Tuple, Optional
 from .DiscountStrategy import DiscountStrategy
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
@@ -177,7 +176,7 @@ class Category:
         return self.__sub_categories
 
     @property
-    def category_products(self) -> List[int]:
+    def category_products(self) -> List[Tuple[int, int]]:
         return self.__category_products
 
     @property
@@ -487,7 +486,7 @@ class Store:
         * This function returns the store information as a string
         * Returns: the store information as a string
         """
-        return self.create_store_dto(self)
+        return self.create_store_dto()
 
     def restock_product(self, product_id: int, amount: int) -> None:
         """
