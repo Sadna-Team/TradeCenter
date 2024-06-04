@@ -12,7 +12,7 @@ class ShoppingBasket:
     # id of ShoppingBasket is (user_id, store_id)
     def __init__(self, store_id: int) -> None:
         self.__store_id: int = store_id
-        self.__products: Dict = defaultdict(int) # productId -> quantity
+        self.__products: Dict = defaultdict(int)  # productId -> quantity
 
     def add_product(self, product_id: int, quantity: int) -> None:
         self.__products[product_id] += quantity
@@ -143,7 +143,9 @@ class User:
 
 class UserFacade:
     # singleton
-    __lock = threading.Lock()
+    __create_lock = threading.Lock()
+    __register_lock = threading.Lock()
+    __notification_lock = threading.Lock()
     _instance = None
     __id_serializer: int = 0
 
@@ -166,8 +168,13 @@ class UserFacade:
         self.__usernames.clear()
         UserFacade.__id_serializer = 0
 
+    def __get_user(self, user_id: int) -> User:
+        if user_id not in self.__users:
+            raise ValueError("User not found")
+        return self.__users[user_id]
+
     def create_user(self, currency: str = "USD") -> int:
-        with UserFacade.__lock:
+        with UserFacade.__create_lock:
             new_id = UserFacade.__id_serializer
             UserFacade.__id_serializer += 1
         user = User(new_id, currency)
@@ -176,37 +183,42 @@ class UserFacade:
 
     def register_user(self, user_id: int, email: str, username: str, password: str,
                       year: int, month: int, day: int, phone: str) -> None:
-        if username in self.__usernames:
-            raise ValueError("Username already exists")
-        if user_id not in self.__users:
-            raise ValueError("User not found")
-        self.__get_user(user_id).register(email, username, password, year, month, day, phone)
-        self.__usernames[username] = user_id
+        with UserFacade.__register_lock:
+            if username in self.__usernames:
+                raise ValueError("Username already exists")
+            if user_id not in self.__users:
+                raise ValueError("User not found")
+            self.__get_user(user_id).register(email, username, password, year, month, day, phone)
+            self.__usernames[username] = user_id
 
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
-        notifications = self.__get_user(user_id).get_notifications()
-        out = []
-        for notification in notifications:
-            out.append(notification.get_notification_dto())
-        self.clear_notifications(user_id)
+        with UserFacade.__notification_lock:
+            notifications = self.__get_user(user_id).get_notifications()
+            out = []
+            for notification in notifications:
+                out.append(notification.get_notification_dto())
+            self.clear_notifications(user_id)
         return out
 
     def clear_notifications(self, user_id: int) -> None:
-        self.__get_user(user_id).get_notifications().clear()
+        with UserFacade.__notification_lock:
+            self.__get_user(user_id).get_notifications().clear()
+
+    def notify_user(self, user_id: int, notification: NotificationDTO) -> None:
+        with UserFacade.__notification_lock:
+            self.__get_user(user_id).add_notification(
+                Notification(notification.get_notification_id(),
+                             notification.get_message(), notification.get_date()))
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
         self.__get_user(user_id).add_product_to_basket(store_id, product_id, quantity)
-
-    def __get_user(self, user_id: int) -> User:
-        if user_id not in self.__users:
-            raise ValueError("User not found")
-        return self.__users[user_id]
 
     def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
         return self.__get_user(user_id).get_shopping_cart()
 
     def remove_product_from_cart(self, user_id: int, store_id: int, product_id: int) -> None:
         self.__get_user(user_id).remove_product_from_cart(store_id, product_id)
+
     def subtract_product_from_cart(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
         self.__get_user(user_id).subtract_product_from_cart(store_id, product_id, quantity)
 
@@ -228,11 +240,6 @@ class UserFacade:
             if u_id == user_id:
                 del self.__usernames[username]
                 break
-
-    def notify_user(self, user_id: int, notification: NotificationDTO) -> None:
-        self.__get_user(user_id).add_notification(
-            Notification(notification.get_notification_id(),
-            notification.get_message(), notification.get_date()))
 
     def is_member(self, user_id: int) -> bool:
         return self.__get_user(user_id).is_member()
