@@ -6,7 +6,7 @@ from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 import threading
 import logging
@@ -218,73 +218,35 @@ class MarketFacade:
         SupplyHandler().remove_supply_method(method_name)
 
     # -------------------------------------- Store Related Methods --------------------------------------#
-    def search_by_category(self, category_id: int, sort_type: int) \
-            -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
+    def search_by_category(self, category_id: int, store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
         """
-        * Parameters: categoryId, sortByLowesToHighestPrice
+        * Parameters: categoryId, storeId(optional)
         * This function gets all necessary information of the products in the category with categoryId
-        * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
-        rating lowest to Highest, 4 is by highest to lowest
-        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products in the
-        category with categoryId
+        * Returns a dict from storeId to a list of ProductDTOs
         """
-        product_ids_to_store = self.store_facade.search_by_category(category_id)
+        product_dtos = self.store_facade.search_by_category(category_id, store_id)
+        return product_dtos
 
-        if sort_type == 1:
-            product_ids_to_store.sort(key=lambda x: x[1][0])
-        elif sort_type == 2:
-            product_ids_to_store.sort(key=lambda x: x[1][0], reverse=True)
-        elif sort_type == 3:
-            product_ids_to_store.sort(key=lambda x: x[1][1])
-        elif sort_type == 4:
-            product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
-        return product_ids_to_store
-
-    def search_by_tags(self, tags: List[str], sort_type: int) \
-            -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
+    def search_by_tags(self, tags: List[str], store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
         """
-        * Parameters: tags, sortByLowesToHighestPrice
-        * This function returns the list of all productIds with the tags in tags
-        * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
-         rating lowest to Highest, 4 is by highest to lowest
-        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products with the
-        tags in tags
+        * Parameters: tags, storeId(optional)
+        * This function returns all necessary information of the products with the tags
+        * Returns a dict from storeId to a list of ProductDTOs
         """
-        product_ids_to_store = self.store_facade.search_by_tags(tags)
+        product_dtos = self.store_facade.search_by_tags(tags, store_id)
+        return product_dtos
 
-        if sort_type == 1:
-            product_ids_to_store.sort(key=lambda x: x[1][0])
-        elif sort_type == 2:
-            product_ids_to_store.sort(key=lambda x: x[1][0], reverse=True)
-        elif sort_type == 3:
-            product_ids_to_store.sort(key=lambda x: x[1][1])
-        elif sort_type == 4:
-            product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
-        return product_ids_to_store
-
-    def search_by_names(self, name: str, sort_type: int) \
-            -> Dict[Tuple[int, float], Dict[int, Tuple[Tuple[int, float], float]]]:
+    def search_by_names(self, name: str, store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
         """
-        * Parameters: names, sortByLowesToHighestPrice
-        * This function returns the list of all productIds
-        * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
-         rating lowest to Highest, 4 is by highest to lowest
-        * Returns a dict of <storeId,rating> to a dict of <productId, <amount, price> rating> of the products with the
-        name
+        * Parameters: name, storeId(optional)
+        * This function returns all necessary information of the products with the name
+        * Returns a dict from storeId to a list of ProductDTOs
         """
-        product_ids_to_store = self.store_facade.search_by_names(name)
+        product_dtos = self.store_facade.search_by_name(name, store_id)
+        return product_dtos
+        
 
-        if sort_type == 1:
-            product_ids_to_store.sort(key=lambda x: x[1][0])
-        elif sort_type == 2:
-            product_ids_to_store.sort(key=lambda x: x[1][0], reverse=True)
-        elif sort_type == 3:
-            product_ids_to_store.sort(key=lambda x: x[1][1])
-        elif sort_type == 4:
-            product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
-        return product_ids_to_store
-
-    def search_product_in_store(self, store_id: int, name: str, sort_type: int) \
+    '''    def search_product_in_store(self, store_id: int, name: str, sort_type: int) \
             -> Dict[int, Tuple[Tuple[int, float], float]]:
         """
         * Parameters: storeId, names, sortByLowesToHighestPrice
@@ -305,15 +267,16 @@ class MarketFacade:
         elif sort_type == 4:
             product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
         return product_ids_to_store
+    '''
 
     def get_store_info(self, user_id: int, store_id: int) -> StoreDTO:
-        """
-        * Parameters: storeId
-        * This function returns the store information
-        * Returns the store information
-        """
-        # TODO: check if user has necessary permissions to view store information
-        return self.store_facade.get_store_info(store_id)
+            """
+            * Parameters: storeId
+            * This function returns the store information
+            * Returns the store information
+            """
+            # TODO: check if user has necessary permissions to view store information
+            return self.store_facade.get_store_info(store_id)
 
     def get_store_product_info(self, user_id: int, store_id: int) -> List[ProductDTO]:
         """

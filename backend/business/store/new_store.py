@@ -612,7 +612,7 @@ class StoreFacade:
         return list(self.__stores.keys())
 
     # ---------------------methods--------------------------------
-    def get_category_by_id(self, category_id: int) -> Optional[Category]:
+    def get_category_by_id(self, category_id: int) -> Category:
         """
         * Parameters: categoryId
         * This function gets a category by its ID
@@ -621,7 +621,7 @@ class StoreFacade:
         try:
             return self.__categories[category_id]
         except KeyError:
-            return None
+            raise ValueError('Category is not found')
 
     def add_category(self, category_name: str) -> int:
         """
@@ -646,9 +646,6 @@ class StoreFacade:
         * Returns: none
         """
         category_to_remove = self.get_category_by_id(category_id)
-        if category_to_remove is None:
-            raise ValueError('Category is not found')
-
         cond = category_to_remove.has_parent_category()
         parent_category = self.get_category_by_id(category_to_remove.parent_category_id) if cond else None
 
@@ -673,10 +670,7 @@ class StoreFacade:
         """
         sub_category = self.get_category_by_id(sub_category_id)
         category = self.get_category_by_id(category_id)
-        if sub_category is not None and category is not None:
-            category.add_sub_category(sub_category)
-        else:
-            raise ValueError('Subcategory or category not found')
+        category.add_sub_category(sub_category)
 
     def delete_sub_category_from_category(self, category_id: int, sub_category_id: int) -> None:
         """
@@ -687,10 +681,7 @@ class StoreFacade:
         """
         category = self.get_category_by_id(category_id)
         sub_category = self.get_category_by_id(sub_category_id)
-        if category is not None and sub_category is not None:
-            category.remove_sub_category(sub_category)
-        else:
-            raise ValueError('Subcategory or category not found')
+        category.remove_sub_category(sub_category)
 
     def assign_product_to_category(self, category_id: int, store_id: int, product_id: int) -> None:
         """
@@ -699,10 +690,7 @@ class StoreFacade:
         * Returns: none
         """
         category = self.get_category_by_id(category_id)
-        if category is not None:
-            category.add_product_to_category(store_id, product_id)
-        else:
-            raise ValueError('Product or category not found')
+        category.add_product_to_category(store_id, product_id)
 
     def remove_product_from_category(self, category_id: int, store_id: int, product_id: int) -> None:
         """
@@ -713,10 +701,7 @@ class StoreFacade:
         * Returns: None
         """
         category = self.get_category_by_id(category_id)
-        if category is not None:
-            category.remove_product_from_category(store_id, product_id)
-        else:
-            raise ValueError('Category is not found')
+        category.remove_product_from_category(store_id, product_id)
 
     def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float,
                              tags: List[str] = []) -> None:
@@ -843,7 +828,7 @@ class StoreFacade:
         if store_id in self.__stores:
             return self.__stores[store_id]
         raise ValueError('Store not found')
-
+    
     ''' def add_purchase_policy_to_store(self, store_id: int) -> None:
         # TODO: for now we dont know how to implement the purchasePolicy and what fields it receives
         """
@@ -1035,49 +1020,77 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         return store.create_store_dto()
 
-    def search_by_category(self, category_id: int) -> List[ProductDTO]:
+    def search_by_category(self, category_id: int, store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
         """
-        * Parameters: category_id
+        * Parameters: category_id, store_id(default=None)
         * This function searches for products by category
-        * Returns: a list of productDTOs
+        * Returns: a dict from store_id to a list of productDTOs
         """
-        category = self.get_category_by_id(category_id)
-        if category is None:
-            raise ValueError('Category not found')
-        products = []
-        for (store_id, product_id) in category.get_all_products_recursively():
+        products: Dict[int, List[ProductDTO]] = {}
+        if store_id is not None:
             store = self.__get_store_by_id(store_id)
-            if store is not None:
+            for (curr_store_id, product_id) in self.get_category_by_id(category_id).get_all_products_recursively():
+                if store_id == curr_store_id:
+                    product = store.get_product_dto_by_id(product_id)
+                    if store_id not in products:
+                        products[store_id] = []
+                    products[store_id].append(product)
+        else:
+            for (store_id, product_id) in self.get_category_by_id(category_id).get_all_products_recursively():
+                if store_id not in products:
+                    products[store_id] = []
+                store = self.__get_store_by_id(store_id)
                 product = store.get_product_dto_by_id(product_id)
-                if product is not None:
-                    products.append(product)
+                products[store_id].append(product)
         return products
-
-    def search_by_tags(self, tags: List[str]) -> List[ProductDTO]:
+        
+    def search_by_tags(self, tags: List[str], store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
         """
-        * Parameters: tags
+        * Parameters: tags, store_id(default=None)
         * This function searches for products by tags
-        * Returns: a list of productDTOs
+        * Returns: a dict from store_id to a list of productDTOs
         """
-        products: List[ProductDTO] = []
-        for store in self.__stores.values():
+        products: Dict[int, List[ProductDTO]] = {}
+        if store_id is not None:
+            store = self.__get_store_by_id(store_id)
             for product_id in store.store_products:
-                # check if the product has all the tags:
                 product = store.get_product_dto_by_id(product_id)
                 if all(tag in product.tags for tag in tags):
-                    products.append(product)
+                    if store_id not in products:
+                        products[store_id] = []
+                    products[store_id].append(product)
+        else:
+            for store in self.__stores.values():
+                for product_id in store.store_products:
+                    product = store.get_product_dto_by_id(product_id)
+                    if all(tag in product.tags for tag in tags):
+                        if store.store_id not in products:
+                            products[store.store_id] = []
+                        products[store.store_id].append(product)
         return products
 
-    def search_by_name(self, product_name: str) -> List[ProductDTO]:
+    def search_by_name(self, product_name: str, store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
         """
-        * Parameters: product_name
+        * Parameters: product_name, store_id(default=None)
         * This function searches for products by name
-        * Returns: a dict of <store,rating> with a dict of <product,<<amount,price> rating>>>
+        * Returns: a dict from store_id to a list of productDTOs
         """
-        products = []
-        for store in self.__stores.values():
+        products: Dict[int, List[ProductDTO]] = {}
+        if store_id is not None:
+            store = self.__get_store_by_id(store_id)
             for product_id in store.store_products:
                 product = store.get_product_dto_by_id(product_id)
                 if product.name == product_name:
-                    products.append(product)
+                    if store_id not in products:
+                        products[store_id] = []
+                    products[store_id].append(product)
+        else:
+            for store in self.__stores.values():
+                for product_id in store.store_products:
+                    product = store.get_product_dto_by_id(product_id)
+                    if product.name == product_name:
+                        if store.store_id not in products:
+                            products[store.store_id] = []
+                        products[store.store_id].append(product)
         return products
+        
