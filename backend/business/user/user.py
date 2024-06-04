@@ -3,6 +3,7 @@ from typing import List, Dict, Set
 import datetime
 from abc import ABC, abstractmethod
 import threading
+from collections import defaultdict
 
 from .. import NotificationDTO
 
@@ -11,43 +12,52 @@ class ShoppingBasket:
     # id of ShoppingBasket is (user_id, store_id)
     def __init__(self, store_id: int) -> None:
         self.__store_id: int = store_id
-        self.__products: Set = set()
+        self.__products: Dict = defaultdict(int) # productId -> quantity
 
-    def add_product(self, product_id: int) -> None:
-        if product_id in self.__products:
-            raise ValueError("Product already exists in the basket")
-        self.__products.add(product_id)
+    def add_product(self, product_id: int, quantity: int) -> None:
+        self.__products[product_id] += quantity
 
-    def get_dto(self) -> List[int]:
-        return list(self.__products)
+    def get_dto(self) -> Dict[int, int]:
+        return self.__products
 
     def remove_product(self, product_id: int):
         if product_id not in self.__products:
             raise ValueError("Product not found")
-        self.__products.remove(product_id)
+        del self.__products[product_id]
+
+    def subtract_product(self, product_id: int, quantity: int):
+        if product_id not in self.__products:
+            raise ValueError("Product not found")
+        if self.__products[product_id] < quantity:
+            raise ValueError("Not enough quantity")
+        self.__products[product_id] -= quantity
 
 
-class SoppingCart:
+class ShoppingCart:
     # id of ShoppingBasket is (user_id)
     def __init__(self, user_id: int) -> None:
         self.__user_id: int = user_id
         self.__shopping_baskets: dict[int, ShoppingBasket] = {}
 
-    def add_product_to_basket(self, store_id: int, product_id: int) -> None:
+    def add_product_to_basket(self, store_id: int, product_id: int, quantity: int) -> None:
         if store_id not in self.__shopping_baskets:
             self.__shopping_baskets[store_id] = ShoppingBasket(store_id)
-        self.__shopping_baskets[store_id].add_product(product_id)
+        self.__shopping_baskets[store_id].add_product(product_id, quantity)
 
-    def get_dto(self) -> Dict[int, List[int]]:
-        return {
-            store_id: basket.get_dto() for store_id, basket in self.__shopping_baskets.items()
-        }
+    def get_dto(self) -> Dict[int, Dict[int, int]]:
+        return {store_id: basket.get_dto() for store_id, basket in self.__shopping_baskets.items()}
 
     def remove_product_from_cart(self, store_id: int, product_id: int) -> None:
         if store_id not in self.__shopping_baskets:
             raise ValueError("Store not found")
 
         self.__shopping_baskets[store_id].remove_product(product_id)
+
+    def subtract_product_from_cart(self, store_id: int, product_id: int, quantity: int) -> None:
+        if store_id not in self.__shopping_baskets:
+            raise ValueError("Store not found")
+
+        self.__shopping_baskets[store_id].subtract_product(product_id, quantity)
 
 
 class State(ABC):
@@ -94,30 +104,41 @@ class User:
         self.__id: int = user_id
         self.__currency: str = currency
         self.__member: State = Guest()
-        self.__shopping_cart: SoppingCart = SoppingCart(user_id)
+        self.__shopping_cart: ShoppingCart = ShoppingCart(user_id)
         self.__notifications: List[Notification] = []
+
+    def add_notification(self, notification: Notification) -> None:
+        self.__notifications.append(notification)
 
     def get_notifications(self) -> List[Notification]:
         return self.__notifications
 
-    def add_product_to_basket(self, store_id: int, product_id: int) -> None:
-        self.__shopping_cart.add_product_to_basket(store_id, product_id)
+    def add_product_to_basket(self, store_id: int, product_id: int, quantity: int) -> None:
+        self.__shopping_cart.add_product_to_basket(store_id, product_id, quantity)
 
-    def get_shopping_cart(self) -> Dict[int, List[int]]:
+    def get_shopping_cart(self) -> Dict[int, Dict[int, int]]:
         return self.__shopping_cart.get_dto()
 
     def register(self, email: str, username: str, password: str, year: int, month: int, day: int,
                  phone: str) -> None:
+        if isinstance(self.__member, Member):
+            raise ValueError("User is already registered")
         self.__member = Member(email, username, password, year, month, day, phone)
 
     def remove_product_from_cart(self, store_id: int, product_id: int) -> None:
         self.__shopping_cart.remove_product_from_cart(store_id, product_id)
 
+    def subtract_product_from_cart(self, store_id: int, product_id: int, quantity: int):
+        self.__shopping_cart.subtract_product_from_cart(store_id, product_id, quantity)
+
     def clear_basket(self):
-        self.__shopping_cart = SoppingCart(self.__id)
+        self.__shopping_cart = ShoppingCart(self.__id)
 
     def get_password(self):
         return self.__member.get_password()
+
+    def is_member(self):
+        return isinstance(self.__member, Member)
 
 
 class UserFacade:
@@ -163,27 +184,31 @@ class UserFacade:
         self.__usernames[username] = user_id
 
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
-        notifications: List[NotificationDTO] = [notification.get_notification_dto()
-                                                for notification in self.__get_user(user_id).get_notifications()]
-        self.__clear_notifications(user_id)
-        return notifications
+        notifications = self.__get_user(user_id).get_notifications()
+        out = []
+        for notification in notifications:
+            out.append(notification.get_notification_dto())
+        self.clear_notifications(user_id)
+        return out
 
-    def __clear_notifications(self, user_id: int) -> None:
+    def clear_notifications(self, user_id: int) -> None:
         self.__get_user(user_id).get_notifications().clear()
 
-    def add_product_to_basket(self, user_id: int, store_id: int, product_id: int) -> None:
-        self.__get_user(user_id).add_product_to_basket(store_id, product_id)
+    def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
+        self.__get_user(user_id).add_product_to_basket(store_id, product_id, quantity)
 
     def __get_user(self, user_id: int) -> User:
         if user_id not in self.__users:
             raise ValueError("User not found")
         return self.__users[user_id]
 
-    def get_shopping_cart(self, user_id: int) -> Dict[int, List[int]]:
+    def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
         return self.__get_user(user_id).get_shopping_cart()
 
     def remove_product_from_cart(self, user_id: int, store_id: int, product_id: int) -> None:
         self.__get_user(user_id).remove_product_from_cart(store_id, product_id)
+    def subtract_product_from_cart(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
+        self.__get_user(user_id).subtract_product_from_cart(store_id, product_id, quantity)
 
     def clear_basket(self, user_id: int) -> None:
         self.__get_user(user_id).clear_basket()
@@ -197,18 +222,17 @@ class UserFacade:
     def remove_user(self, user_id: int):
         if user_id in self.__users:
             del self.__users[user_id]
+        else:
+            raise ValueError("User not found")
         for username, u_id in self.__usernames.items():
             if u_id == user_id:
                 del self.__usernames[username]
                 break
 
     def notify_user(self, user_id: int, notification: NotificationDTO) -> None:
-        (self.__get_user(user_id).get_notifications()
-         .append(Notification(notification.get_notification_id(),
-                              notification.get_message(), notification.get_date())))
+        self.__get_user(user_id).add_notification(
+            Notification(notification.get_notification_id(),
+            notification.get_message(), notification.get_date()))
 
     def is_member(self, user_id: int) -> bool:
-        return isinstance(self.__get_user(user_id), Member)
-
-    def restore_basket(self, user_id: int, basket: Dict[int, Dict[int, int]]):
-        pass
+        return self.__get_user(user_id).is_member()

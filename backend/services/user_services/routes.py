@@ -1,10 +1,10 @@
 # API endpoints and their corresponding route handlers
 
-#-------------logging configuration----------------
+# -------------logging configuration----------------
 import logging
 
 logger = logging.getLogger('myapp')
-#---------------------------------------------------
+# ---------------------------------------------------
 
 from flask import Blueprint, request, jsonify
 from backend.business.authentication.authentication import Authentication
@@ -18,7 +18,8 @@ user_bp = Blueprint('user', __name__)
 user_facade = UserFacade()
 
 
-#---------------------------------------------------------------authentication usecase routes---------------------------------------------------------------
+# ---------------------------------------------------------------authentication use case 
+# routes---------------------------------------------------------------
 
 
 @auth_bp.route('/', methods=['GET'])
@@ -30,7 +31,7 @@ def start():
         Returns:
             token (str): token of the guest
     """
-    logger.info('recieved request from a guest to enter the app')
+    logger.info('received request from a guest to enter the app')
     user_token = authentication_facade.start_guest()
     if user_token:
         logger.info('guest entered the app successfully')
@@ -50,7 +51,7 @@ def register():
             user_id (int): id of the user
             register_credentials (?): credentials of the new user required for registration
     """
-    logger.info('recieved request to register a new user')
+    logger.info('received request to register a new user')
     data = request.get_json()
     register_credentials = data.get('register_credentials')
     try:
@@ -74,7 +75,7 @@ def login():
             username (str): the username of the user
             password (str): the password of the user
     """
-    logger.info('recieved request to login a user')
+    logger.info('received request to login a user')
     data = request.get_json()
     try:
         if not 'username' in data or not 'password' in data:
@@ -90,7 +91,6 @@ def login():
         return jsonify({'message': str(e)}), 400
 
 
-
 @auth_bp.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
@@ -98,7 +98,7 @@ def logout():
         Use Case 2.3.1:
         Logout a user
     """
-    logger.info('recieved request to logout a user')
+    logger.info('received request to logout a user')
     try:
         jti = get_jwt()['jti']
         user_id = get_jwt_identity()
@@ -112,7 +112,8 @@ def logout():
         return jsonify({'message': str(e)}), 400
 
 
-#---------------------------------------------------------------user usecase routes---------------------------------------------------------------
+# ---------------------------------------------------------------user use case
+# routes---------------------------------------------------------------
 
 
 @user_bp.route('/notifications', methods=['GET'])
@@ -122,7 +123,7 @@ def show_notifications():
         Use Case 1.5 + 1.6:
         Show notifications for a user which is logged in (member)
     """
-    logger.info('recieved request to show notifications to the user')
+    logger.info('received request to show notifications to the user')
     try:
         user_id = get_jwt_identity()
         notifications = user_facade.get_notifications(user_id)
@@ -145,13 +146,14 @@ def add_product_to_basket():
             store_id (int): id of the store
             product_id (int): id of the product to be added to the basket
     """
-    logger.info('recieved request to add a product to the basket')
+    logger.info('received request to add a product to the basket')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = data['store_id']
         product_id = data['product_id']
-        user_facade.add_product_to_basket(user_id, store_id, product_id)
+        quantity = data.get('quantity', 1)
+        user_facade.add_product_to_basket(user_id, store_id, product_id, quantity)
         logger.info('successfully added product to basket')
         return jsonify({'message': 'successfully added product to basket'}), 200
     except Exception as e:
@@ -169,7 +171,7 @@ def remove_product_from_basket():
         Data:
             product_id (int): id of the product to be removed from the shopping cart
     """
-    logger.info('recieved request to remove a product from the basket')
+    logger.info('received request to remove a product from the basket')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -182,6 +184,26 @@ def remove_product_from_basket():
         logger.error('remove_product_from_basket - ', str(e))
         return jsonify({'message': str(e)}), 400
 
+@user_bp.route('/subtract_from_basket', methods=['POST'])
+@jwt_required()
+def subtract_product_from_basket():
+    """
+        Use Case
+    """
+    logger.info('received request to subtract a product from the basket')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = data['store_id']
+        product_id = data['product_id']
+        quantity = data['quantity']
+        user_facade.subtract_product_from_cart(user_id, store_id, product_id, quantity)
+        logger.info('successfully subtracted the product from the basket')
+        return jsonify({'message': 'successfully subtracted the product from the basket'}), 200
+    except Exception as e:
+        logger.error('subtract_product_from_basket - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
 
 @user_bp.route('/show_cart', methods=['GET'])
 @jwt_required()
@@ -190,7 +212,7 @@ def show_cart():
         Use Case 2.2.4.1:
         Show the shopping cart of a user
     """
-    logger.info('recieved request to show the shopping cart')
+    logger.info('received request to show the shopping cart')
     try:
         user_id = get_jwt_identity()
         shopping_cart = user_facade.get_shopping_cart(user_id)
