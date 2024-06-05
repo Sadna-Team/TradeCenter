@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 from threading import Lock
 
+
 class Permissions:
     def __init__(self):
         self.__add_product: bool = False
@@ -57,10 +58,16 @@ class StoreRole(ABC):
     def __init__(self):
         pass
 
+    def __str__(self):
+        return self.__class__.__name__
+
 
 class StoreOwner(StoreRole):
     def __init__(self):
         super().__init__()
+
+    def __str__(self):
+        return "StoreOwner"
 
 
 class StoreManager(StoreRole):
@@ -70,6 +77,9 @@ class StoreManager(StoreRole):
     @property
     def permissions(self) -> Permissions:
         return self.__permissions
+
+    def __str__(self):
+        return "StoreManager"
 
 
 class Nomination:
@@ -315,7 +325,8 @@ class RolesFacade:
                 raise ValueError("Removed user is not a member of the store")
             if not self.__authorized_to_add_manager(store_id, actor_id):
                 raise ValueError("Actor is not authorized to remove a role")
-            if not actor_id != removed_id and not self.__stores_to_role_tree[store_id].is_descendant(actor_id, removed_id):
+            if not actor_id != removed_id and not self.__stores_to_role_tree[store_id].is_descendant(actor_id,
+                                                                                                     removed_id):
                 raise ValueError("Actor is not an ancestor of the removed user")
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
                 raise ValueError("Cannot remove the root owner of the store")
@@ -423,17 +434,24 @@ class RolesFacade:
                 if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
                     return self.__stores_to_roles[store_id][user_id].permissions.get_bid
                 return False
-    
+
     def is_owner(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
             if user_id in self.__stores_to_roles[store_id]:
                 if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
                     return True
             return False
-    
+
     def is_manager(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
             if user_id in self.__stores_to_roles[store_id]:
                 if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
                     return True
             return False
+
+    def get_store_owners(self, store_id: int) -> Dict[int, str]:  # Dict[user_id, role]
+        with self.__stores_locks[store_id]:
+            owners = {}
+            for user_id, role in self.__stores_to_roles[store_id].items():
+                owners[user_id] = role.__str__()
+            return owners

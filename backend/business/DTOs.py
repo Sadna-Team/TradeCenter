@@ -22,21 +22,6 @@ class AddressDTO:
             'postal_code': self.postal_code
         }
 
-class UserDTO:
-    def __init__(self, user_id: int, birthdate: Optional[datetime]=None):
-        self.__user_id: int = user_id
-        self.__birthdate: datetime = birthdate
-
-    @property
-    def user_id(self) -> int:
-        return self.__user_id
-
-    @property
-    def birthdate(self) -> datetime:
-        return self.__birthdate
-
-    def get(self) -> dict:
-        return {"user_id": self.__user_id, "birthdate": self.__birthdate}
 
 class NotificationDTO:
     def __init__(self, notification_id: int, message: str, date: datetime) -> None:
@@ -224,6 +209,7 @@ class StoreDTO:
                 "store_founder_id": self.__store_founder_id, "is_active": self.__is_active, "found_date": self.__found_date,
                 "products": [product.get() for product in self.__products]}
 
+
 class TransactionException(Exception):
     pass
 
@@ -247,3 +233,45 @@ class CategoryDTO:
     
     def get(self) -> dict:
         return {"category_id": self.__category_id, "category name": self.__category_name, "parent_category_id": self.__parent_category_id}
+
+class UserDTO:
+    def __init__(self, user_id: int, email: str, username: str, year: int, month: int, day: int, phone: str, role: str):
+        self.__user_id: int = user_id
+        self.__email: str = email
+        self.__username: str = username
+        self.__year: int = year
+        self.__month: int = month
+        self.__day: int = day
+        self.__phone: str = phone
+        self.__role: str = role
+    @property
+    def user_id(self) -> int:
+        return self.__user_id
+
+    @property
+    def email(self) -> str:
+        return self.__email
+
+    @property
+    def username(self) -> str:
+        return self.__username
+
+    @property
+    def year(self) -> int:
+        return self.__year
+
+    @property
+    def month(self) -> int:
+        return self.__month
+
+    @property
+    def day(self) -> int:
+        return self.__day
+
+    @property
+    def phone(self) -> str:
+        return self.__phone
+
+    @property
+    def role(self) -> str:
+        return self.__role
