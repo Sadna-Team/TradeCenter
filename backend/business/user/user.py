@@ -331,3 +331,9 @@ class UserFacade:
         for user_id, role in roles.items():
             out[user_id] = self.__get_user(user_id).get_user_dto(role)
         return out
+      
+    def restore_basket(self, user_id: int, cart: Dict[int, Dict[int, int]]):
+        self.__get_user(user_id).clear_basket()
+        for store_id, products in cart.items():
+            for product_id, quantity in products.items():
+                self.add_product_to_basket(user_id, store_id, product_id, quantity)

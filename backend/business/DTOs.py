@@ -209,9 +209,6 @@ class StoreDTO:
                 "store_founder_id": self.__store_founder_id, "is_active": self.__is_active, "found_date": self.__found_date,
                 "products": [product.get() for product in self.__products]}
 
-class TransactionException(Exception):
-    pass
-
 class UserDTO:
     def __init__(self, user_id: int, email: str, username: str, year: int, month: int, day: int, phone: str, role: str):
         self.__user_id: int = user_id
@@ -253,5 +250,3 @@ class UserDTO:
     @property
     def role(self) -> str:
         return self.__role
-
-

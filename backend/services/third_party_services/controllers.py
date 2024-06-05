@@ -1,116 +1,111 @@
 # communication with business logic
 from abc import ABC, abstractmethod
 from backend.business.market import MarketFacade
+from flask import jsonify
 from typing import Dict
 
+import logging
+
+logger = logging.getLogger('myapp')
+
+
 class ThirdPartyService(ABC):
+    def __init__(self):
+        self.__market_facade = MarketFacade()
+
     @abstractmethod
-    def add_third_party_service(self, user_id: int, method_name: str, config: Dict) -> None:
+    def add_third_party_service(self, user_id: int, method_name: str, config: Dict):
         """
-            Use Case 1.2.1:
             Add a third party service to be supported by the platform
-
-            Args:
-                method_name (str): name of the third party service
-                config (dict): configuration of the third party service
-
-            Returns:
-                ?
         """
         pass
-    
+
     @abstractmethod
-    def edit_third_party_service(self, user_id: int, method_name: str, editing_data: Dict) -> None:
+    def edit_third_party_service(self, user_id: int, method_name: str, editing_data: Dict):
         """
-            Use Case 1.2.2:
             Edit a third party service supported by the platform
-
-            Args:
-                method_name (str): name of the third party service
-                editing_data (dict): data to be edited
-
-            Returns:
-                ?
         """
         pass
 
     @abstractmethod
-    def delete_third_party_service(self, user_id: int, method_name: str) -> None:
+    def delete_third_party_service(self, user_id: int, method_name: str):
         """
-            Use Case 1.2.3:
             Delete a third party service supported by the platform
-
-            Args:
-                method_name (str): name of the third party service
-
-            Returns:
-                ?
         """
         pass
+
 
 class PaymentService(ThirdPartyService):
-
-    def add_third_party_service(self, user_id: int, method_name: str, config: Dict) -> None:
+    def add_third_party_service(self, user_id: int, method_name: str, config: Dict):
         """
-            Use Case 1.2.1:
             Add a third party service to be supported by the platform
-
-            Args:
-                method_name (str): name of the third party service
-                config (dict): configuration of the third party service
         """
-        MarketFacade().add_payment_method(user_id, method_name, config)
+        try:
+            self.__market_facade.add_payment_method(user_id, method_name, config)
+            logger.info('Third party payment service added successfully')
+            return jsonify({'message': 'Third party payment service added successfully'}), 200
+        except Exception as e:
+            logger.error('Failed to add third party payment service')
+            return jsonify({'message': str(e)}), 400
 
-    def edit_third_party_service(self, user_id: int, method_name: str, editing_data: Dict) -> None:
+    def edit_third_party_service(self, user_id: int, method_name: str, editing_data: Dict):
         """
-            Use Case 1.2.2:
             Edit a third party service supported by the platform
-
-            Args:
-                method_name (str): name of the third party service
-                editing_data (dict): data to be edited
         """
-        MarketFacade().edit_payment_method(user_id, method_name, editing_data)
+        try:
+            self.__market_facade.edit_payment_method(user_id, method_name, editing_data)
+            logger.info('Third party payment service edited successfully')
+            return jsonify({'message': 'Third party payment service edited successfully'}), 200
+        except Exception as e:
+            logger.error('Failed to edit third party payment service')
+            return jsonify({'message': str(e)}), 400
 
-    def delete_third_party_service(self, user_id: int, method_name: str) -> None:
+    def delete_third_party_service(self, user_id: int, method_name: str):
         """
-            Use Case 1.2.3:
             Delete a third party service supported by the platform
-
-            Args:
-                method_name (str): name of the third party service
         """
-        MarketFacade().remove_payment_method(user_id, method_name)
+        try:
+            self.__market_facade.remove_payment_method(user_id, method_name)
+            logger.info('Third party payment service deleted successfully')
+            return jsonify({'message': 'Third party payment service deleted successfully'}), 200
+        except Exception as e:
+            logger.error('Failed to delete third party payment service')
+            return jsonify({'message': str(e)}), 400
+
 
 class SupplyService(ThirdPartyService):
-    def add_third_party_service(self, user_id: int, method_name: str, config: Dict) -> None:
+    def add_third_party_service(self, user_id: int, method_name: str, config: Dict):
         """
-            Use Case 1.2.1:
             Add a third party service to be supported by the platform
-
-            Args:
-                method_name (str): name of the third party service
-                config (dict): configuration of the third party service
         """
-        MarketFacade().add_supply_method(user_id, method_name, config)
+        try:
+            self.__market_facade.add_supply_method(user_id, method_name, config)
+            logger.info('Third party supply service added successfully')
+            return jsonify({'message': 'Third party supply service added successfully'}), 200
+        except Exception as e:
+            logger.error('Failed to add third party supply service')
+            return jsonify({'message': str(e)}), 400
 
-    def edit_third_party_service(self, user_id: int, method_name: str, editing_data: Dict) -> None:
+    def edit_third_party_service(self, user_id: int, method_name: str, editing_data: Dict):
         """
-            Use Case 1.2.2:
             Edit a third party service supported by the platform
-
-            Args:
-                method_name (str): name of the third party service
-                editing_data (dict): data to be edited
         """
-        MarketFacade().edit_supply_method(user_id, method_name, editing_data)
+        try:
+            self.__market_facade.edit_supply_method(user_id, method_name, editing_data)
+            logger.info('Third party supply service edited successfully')
+            return jsonify({'message': 'Third party supply service edited successfully'}), 200
+        except Exception as e:
+            logger.error('Failed to edit third party supply service')
+            return jsonify({'message': str(e)}), 400
 
-    def delete_third_party_service(self, user_id: int, method_name: str) -> None:
+    def delete_third_party_service(self, user_id: int, method_name: str):
         """
-            Use Case 1.2.3:
             Delete a third party service supported by the platform
-
-            Args:
-                method_name (str): name of the third party service
         """
-        MarketFacade().remove_supply_method(user_id, method_name)
+        try:
+            self.__market_facade.remove_supply_method(user_id, method_name)
+            logger.info('Third party supply service deleted successfully')
+            return jsonify({'message': 'Third party supply service deleted successfully'}), 200
+        except Exception as e:
+            logger.error('Failed to delete third party supply service')
+            return jsonify({'message': str(e)}), 400
