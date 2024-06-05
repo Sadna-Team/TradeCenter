@@ -82,6 +82,8 @@ class MarketFacade:
             cart = self.user_facade.get_shopping_cart(user_id)
 
             # calculate the total price
+            self.store_facade.validate_purchase_policies(cart, self.user_facade.get_user_purchase_data(user_id))
+
             total_price = self.store_facade.get_total_price_before_discount(cart)
             total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
 
@@ -337,31 +339,29 @@ class MarketFacade:
             logger.info(f"User {user_id} has failed to rate product {product_spec_id}")'''
 
     # -------------Policies related methods-------------------#
-    '''def add_purchase_policy(self, user_id: int, store_id: int):
+    def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str):
+
         # for now, we dont support the creation of different types of policies
         """
-        * Parameters: userId, store_id
+        * Parameters: userId, store_id, policy_name
         * This function adds a purchase policy to the store
         * Returns None
         """
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
-            self.store_facade.add_purchase_policy_to_store(store_id)
+            self.store_facade.add_purchase_policy_to_store(store_id, policy_name)
         else:
-            raise ValueError("User does not have the necessary permissions to add a policy to the store")'''
+            raise ValueError("User does not have the necessary permissions to add a policy to the store")
 
-    def remove_purchase_policy(self, user_id, store_id: int, policy_id: int):
+    def remove_purchase_policy(self, user_id, store_id: int, policy_name: str):
         """
-        * Parameters: store_id, policy_id
+        * Parameters: store_id, policy_name
         * This function removes a purchase policy from the store
         * Returns None
         """
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
-            self.store_facade.remove_purchase_policy_from_store(store_id, policy_id)
+            self.store_facade.remove_purchase_policy_from_store(store_id, policy_name)
         else:
             raise ValueError("User does not have the necessary permissions to remove a policy from the store")
-
-    def change_purchase_policy(self, user_id: int, store_id: int, policy_id: int):  # not implemented yet
-        pass
 
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,

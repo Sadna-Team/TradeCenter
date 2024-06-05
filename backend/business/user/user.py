@@ -1,11 +1,17 @@
 from . import c
-from typing import List, Dict, Set
+from typing import List, Dict, Optional, Set, Tuple
 import datetime
 from abc import ABC, abstractmethod
 import threading
 from collections import defaultdict
+
+
+# NOTE: This is a workaround to avoid circular imports
+#from .. import NotificationDTO
+
+# NOTE: Solution:
+from backend.business.DTOs import NotificationDTO, UserDTO, PurchaseUserDTO
 from .. import NotificationDTO
-from backend.business.DTOs import UserDTO
 
 
 class ShoppingBasket:
@@ -63,10 +69,10 @@ class ShoppingCart:
 
 
 class Notification:
-    def __init__(self, notification_id: int, message: str, date: datetime) -> None:
+    def __init__(self, notification_id: int, message: str, date: datetime.datetime) -> None:
         self.__notification_id: int = notification_id
         self.__message: str = message
-        self.__date: datetime = date
+        self.__date: datetime.datetime = date
 
     def get_notification_dto(self) -> NotificationDTO:
         return NotificationDTO(self.__notification_id, self.__message, self.__date)
@@ -98,7 +104,7 @@ class State(ABC):
         pass
 
     @abstractmethod
-    def get_birthdate(self):
+    def get_birthdate(self) -> Optional[datetime.datetime]:
         pass
 
     @abstractmethod
@@ -125,7 +131,7 @@ class Guest(State):
     def get_username(self):
         raise ValueError("User is not registered")
 
-    def get_birthdate(self):
+    def get_birthdate(self) -> Optional[datetime.datetime]:
         raise ValueError("User is not registered")
 
     def get_phone(self):
@@ -140,7 +146,7 @@ class Member(State):
         self.__email: str = email
         self.__username: str = username
         self.__password: str = password
-        self.__birthdate: datetime = datetime.date(year, month, day)
+        self.__birthdate: datetime.datetime = datetime.date(year, month, day)
         self.__phone: str = phone
         self.__notifications: List[Notification] = []
 
@@ -162,12 +168,11 @@ class Member(State):
     def get_username(self):
         return self.__username
 
-    def get_birthdate(self):
+    def get_birthdate(self) -> Optional[datetime.datetime]:
         return self.__birthdate
 
     def get_phone(self):
         return self.__phone
-
 
 class User:
     def __init__(self, user_id: int, currency: str = 'USD') -> None:
@@ -214,6 +219,12 @@ class User:
 
     def is_member(self):
         return isinstance(self.__member, Member)
+    
+    def create_purchase_user_dto(self) -> PurchaseUserDTO:
+        try:
+            return PurchaseUserDTO(self.__id, self.__member.get_birthdate())
+        except ValueError:
+            return PurchaseUserDTO(self.__id)
 
     def get_user_dto(self, role: str) -> UserDTO:
         if not self.is_member():
@@ -254,6 +265,10 @@ class UserFacade:
         if user_id not in self.__users:
             raise ValueError("User not found")
         return self.__users[user_id]
+    
+    def get_user(self, user_id: int) -> UserDTO:
+        user = self.__get_user(user_id)
+        return user.create_dto()
 
     def create_user(self, currency: str = "USD") -> int:
         with UserFacade.__create_lock:
@@ -307,7 +322,7 @@ class UserFacade:
     def clear_basket(self, user_id: int) -> None:
         self.__get_user(user_id).clear_basket()
 
-    def get_password(self, username: str) -> (int, str):
+    def get_password(self, username: str) -> Tuple[int, str]:
         if username not in self.__usernames:
             raise ValueError("User not found")
         user_id = self.__usernames.get(username)
