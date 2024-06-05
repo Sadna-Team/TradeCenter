@@ -495,7 +495,7 @@ class Store:
             raise ValueError('User is not the founder of the store')
 
     # We assume that the marketFacade verified that the user attempting to add the product is a store Owner
-    def add_product(self, name: str, description: str, price: float, tags: List[str], weight: float, amount: int = 0) -> None:
+    def add_product(self, name: str, description: str, price: float, tags: List[str], weight: float, amount: int = 0) -> int:
         """
         * Parameters: name, description, price, tags, amount
         * This function adds a product to the store
@@ -507,6 +507,7 @@ class Store:
         self.__store_products[self.__product_id_counter] = product
         self.__product_id_counter += 1
         logger.info('[Store] successfully added product to store with id: ' + str(self.__store_id))
+        return product.product_id
 
     # We assume that the marketFacade verified that the user attempting to remove the product is a store owner/purchased
     def remove_product(self, product_id: int) -> None:
@@ -851,7 +852,7 @@ class StoreFacade:
         category.remove_product_from_category(store_id, product_id)
 
     def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float, weight: float,
-                             tags: Optional[List[str]]=[], amount: Optional[int]=0) -> None:
+                             tags: Optional[List[str]]=[], amount: Optional[int]=0) -> int:
         """
         * Parameters: productName, weight, description, tags, manufacturer, storeIds
         * This function adds a product to the store
@@ -865,7 +866,7 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
-        store.add_product(product_name, description, price, tags, weight)
+        return store.add_product(product_name, description, price, tags, weight)
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
         """
@@ -950,7 +951,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         return store.get_tags_of_product(product_id)
 
-    def add_store(self, location_id: int, store_name: str, store_founder_id: int) -> None:
+    def add_store(self, location_id: int, store_name: str, store_founder_id: int) -> int:
         """
         * Parameters: locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate,
          ratingsOfProduct_Id
@@ -964,6 +965,7 @@ class StoreFacade:
         store = Store(self.__store_id_counter, location_id, store_name, store_founder_id)
         self.__stores[self.__store_id_counter] = store
         self.__store_id_counter += 1
+        return store.store_id
 
     def close_store(self, store_id: int, user_id: int) -> None:
         """
@@ -1002,10 +1004,6 @@ class StoreFacade:
                 return store.add_purchase_policy()
             else:
                 raise ValueError('Store not found')'''
-
-    def remove_purchase_policy_from_store(self, store_id: int, purchase_policy_id: int) -> None:
-        # TODO: implement this function
-        pass
 
     def update_purchase_policy_of_store(self, store_id: int, purchase_policy_id: int) -> None:
         # TODO: implement this function

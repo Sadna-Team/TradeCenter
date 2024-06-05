@@ -1,18 +1,17 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO
+from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO, PurchaseUserDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
 from typing import List, Dict, Tuple, Optional
-from datetime import datetime
+import datetime
 import threading
 import logging
 
 logger = logging.getLogger('myapp')
-
 
 def add_payment_method(method_name: str, payment_config: Dict):
     PaymentHandler().add_payment_method(method_name, payment_config)
@@ -58,6 +57,8 @@ class MarketFacade:
         self.user_facade.clean_data()
         self.store_facade.clean_data()
         self.roles_facade.clean_data()
+        self.purchase_facade.clean_data()
+        self.notifier.clean_data()
         PaymentHandler().reset()
         SupplyHandler().reset()
 
@@ -81,8 +82,13 @@ class MarketFacade:
         try:
             cart = self.user_facade.get_shopping_cart(user_id)
 
+            if not cart:
+                raise ValueError("Cart is empty")
+
+            user_dto = self.user_facade.get_user(user_id)
+            user_purchase_dto = PurchaseUserDTO(user_dto.user_id, datetime.date(user_dto.year, user_dto.month, user_dto.day))
             # calculate the total price
-            self.store_facade.validate_purchase_policies(cart, self.user_facade.get_user_purchase_data(user_id))
+            self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
 
             total_price = self.store_facade.get_total_price_before_discount(cart)
             total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
@@ -158,7 +164,7 @@ class MarketFacade:
         self.user_facade.notify_user(new_owner_id,
                                      NotificationDTO(-1, f"You have been nominated to be the owner of store"
                                                          f" {store_id}. nomination id: {nomination_id} ",
-                                                     datetime.now()))
+                                                     datetime.datetime.now()))
 
     def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_id: int):
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
@@ -166,7 +172,7 @@ class MarketFacade:
         self.user_facade.notify_user(new_manager_id,
                                      NotificationDTO(-1, f"You have been nominated to be the manager of store"
                                                          f" {store_id}. nomination id: {nomination_id} ",
-                                                     datetime.now()))
+                                                     datetime.datetime.now()))
 
     def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
         if accept:
@@ -236,7 +242,6 @@ class MarketFacade:
         product_dtos = self.store_facade.search_by_tags(tags, store_id)
         return product_dtos
 
-      
     def search_by_name(self, name: str, store_id: Optional[int] = None) -> Dict[int, List[ProductDTO]]:
         """
         * Parameters: name, storeId(optional)
@@ -365,7 +370,7 @@ class MarketFacade:
 
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
-                    weight: float, tags: List[str]):
+                    weight: float, tags: List[str]) -> int:
         """
         * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
         * This function adds a product to the store
@@ -373,7 +378,7 @@ class MarketFacade:
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add a product to the store")
-        self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags)
+        return self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags)
 
     def remove_product(self, user_id: int, store_id: int, product_id: int):
         """
@@ -407,7 +412,7 @@ class MarketFacade:
         self.store_facade.remove_product_amount(store_id, product_id, amount)
 
     # -------------Store related methods-------------------#
-    def add_store(self, founder_id: int, location_id: int, store_name: str):
+    def add_store(self, founder_id: int, location_id: int, store_name: str) -> int:
         """
         * Parameters: founderId, locationId, storeName
         * This function adds a store to the system
@@ -415,7 +420,7 @@ class MarketFacade:
         """
         if not self.user_facade.is_member(founder_id):
             raise ValueError("User is not a member")
-        self.store_facade.add_store(location_id, store_name, founder_id)
+        return self.store_facade.add_store(location_id, store_name, founder_id)
 
     def close_store(self, user_id: int, store_id: int):
         """

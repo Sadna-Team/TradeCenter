@@ -131,7 +131,7 @@ class Guest(State):
     def get_username(self):
         raise ValueError("User is not registered")
 
-    def get_birthdate(self) -> Optional[datetime.datetime]:
+    def get_birthdate(self) -> Optional[datetime]:
         raise ValueError("User is not registered")
 
     def get_phone(self):
@@ -146,7 +146,7 @@ class Member(State):
         self.__email: str = email
         self.__username: str = username
         self.__password: str = password
-        self.__birthdate: datetime.datetime = datetime.date(year, month, day)
+        self.__birthdate: datetime = datetime.date(year, month, day)
         self.__phone: str = phone
         self.__notifications: List[Notification] = []
 
@@ -168,7 +168,7 @@ class Member(State):
     def get_username(self):
         return self.__username
 
-    def get_birthdate(self) -> Optional[datetime.datetime]:
+    def get_birthdate(self) -> Optional[datetime]:
         return self.__birthdate
 
     def get_phone(self):
