@@ -208,6 +208,3 @@ class StoreDTO:
         return {"store_id": self.__store_id, "location_id": self.__location_id, "store_name": self.__store_name,
                 "store_founder_id": self.__store_founder_id, "is_active": self.__is_active, "found_date": self.__found_date,
                 "products": [product.get() for product in self.__products]}
-
-class TransactionException(Exception):
-    pass

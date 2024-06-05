@@ -273,3 +273,9 @@ class UserFacade:
 
     def is_member(self, user_id: int) -> bool:
         return self.__get_user(user_id).is_member()
+
+    def restore_basket(self, user_id: int, cart: Dict[int, Dict[int, int]]):
+        self.__get_user(user_id).clear_basket()
+        for store_id, products in cart.items():
+            for product_id, quantity in products.items():
+                self.add_product_to_basket(user_id, store_id, product_id, quantity)
