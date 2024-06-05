@@ -1,9 +1,7 @@
 # API endpoints and their corresponding route handlers
 
 from flask import Blueprint, request, jsonify
-from backend.business.authentication.authentication import Authentication
-from backend.business.user.user import UserFacade
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from backend.services.third_party_services.controllers import PaymentService, SupplyService
 from typing import Dict
 
