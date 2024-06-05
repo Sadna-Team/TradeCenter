@@ -370,7 +370,7 @@ class MarketFacade:
 
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
-                    weight: int, tags: List[str]):
+                    weight: float, tags: List[str]):
         """
         * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
         * This function adds a product to the store

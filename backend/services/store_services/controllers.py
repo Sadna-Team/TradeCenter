@@ -1,197 +1,233 @@
 # communication with business logic
+from backend.business import MarketFacade
+from flask import jsonify
 
-class StoreService():
-    def show_store_info(self, token):
+import logging
+
+logger = logging.getLogger('myapp')
+
+
+class StoreService:
+    def __init__(self):
+        self.__market_facade = MarketFacade()
+
+    def add_discount(self):
+        pass
+
+    def remove_discount(self):
+        pass
+
+    def edit_discount(self):
+        pass
+
+    def add_purchase_policy(self):
+        pass
+
+    def remove_purchase_policy(self):
+        pass
+
+    def edit_purchase_policy(self):
+        pass
+
+    def show_store_info(self, user_id: int, store_id: int):
         """
             Use Case 2.2.1.1:
             Show information about the stores in the system
-
-            Args:
-                token (?): token of the user
-
-            Returns:
-                ?
         """
-        pass
+        try:
+            info = self.__market_facade.get_store_info(user_id, store_id)
+            logger.info('store info was sent successfully')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('store info was not sent')
+            return jsonify({'message': str(e)}), 400
 
-    def show_store_products(self, token, store_id):
+    def show_store_products(self, user_id: int, store_id: int):
         """
             Use Case 2.2.1.2:
             Show products of a store
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-
-            Returns:
-                ?
         """
-        pass
+        try:
+            info = self.__market_facade.get_store_product_info(user_id, store_id)
+            logger.info('store products info was sent successfully')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('store products info was not sent')
+            return jsonify({'message': str(e)}), 400
 
-
-    def add_new_store(self, token, store_data):
+    def add_new_store(self, user_id: int, location_id: int, store_name: str):
         """
             Use Case 2.3.2:
             Add a store to the system and set the user as the store owner
-
-            Args:
-                token (int): token of the user
-                store_data (?): data of the store to be added
-
-            Returns:
-                ?
         """
-        pass
+        try:
+            self.__market_facade.add_store(user_id, location_id, store_name)
+            logger.info('store was added successfully')
+            return jsonify({'message': 'store was added successfully'}), 200
+        except Exception as e:
+            logger.error('store was not added')
+            return jsonify({'message': str(e)}), 400
 
-    def add_product_to_store(self, token, store_id, product_data):
+    def add_product_to_store(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
+                             weight: float, tags: list[str]):
         """
             Use Case 2.4.1:
             Add a product to a store
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                product_data (?): data of the product to be added
-
-            Returns:
-                ?
         """
-        pass
+        try:
+            self.__market_facade.add_product(user_id, store_id, product_name, description, price, weight, tags)
+            logger.info('product was added successfully')
+            return jsonify({'message': 'product was added successfully'}), 200
+        except Exception as e:
+            logger.error('product was not added')
+            return jsonify({'message': str(e)}), 400
 
-    def change_store_purchace_policy(self, token, store_id, policy_data):
+    def remove_product_from_store(self, user_id: int, store_id: int, product_id: int):
         """
-            Use Case 2.4.2.1:
-            Change the purchase policy of a store
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                policy_data (?): data of the new purchase policy
-
-            Returns:
-                ?
+            Use Case 2.4.2:
+            Remove a product from a store
         """
-        pass
+        try:
+            self.__market_facade.remove_product(user_id, store_id, product_id)
+            logger.info('product was removed successfully')
+            return jsonify({'message': 'product was removed successfully'}), 200
+        except Exception as e:
+            logger.error('product was not removed')
+            return jsonify({'message': str(e)}), 400
 
-    def change_store_purchace_types(self, token, store_id, types_data):
+    def add_category(self, user_id: int, category_name: str):
         """
-            Use Case 2.4.2.2:
-            Change the purchase types of a store
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                types_data (?): data of the new purchase types
-
-            Returns:
-                ?
+            Use Case 2.4.4:
+            Add a category to a store
         """
-        pass
+        try:
+            self.__market_facade.add_category(user_id, category_name)
+            logger.info('category was added successfully')
+            return jsonify({'message': 'category was added successfully'}), 200
+        except Exception as e:
+            logger.error('category was not added')
+            return jsonify({'message': str(e)}), 400
 
-    def change_store_discount_types(self, token, store_id, types_data):
+    def remove_category(self, user_id: int, category_id: int):
         """
-            Use Case 2.4.2.3:
-            Change the discount types of a store
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                types_data (?): data of the new discount types
-
-            Returns:
-                ?
+            Use Case 2.4.5:
+            Remove a category from a store
         """
-        pass
+        try:
+            self.__market_facade.remove_category(user_id, category_id)
+            logger.info('category was removed successfully')
+            return jsonify({'message': 'category was removed successfully'}), 200
+        except Exception as e:
+            logger.error('category was not removed')
+            return jsonify({'message': str(e)}), 400
 
-    def change_store_discount_policy(self, token, store_id, policy_data):
+    def add_subcategory_to_category(self, user_id: int, category_id: int, parent_category_id: int):
         """
-            Use Case 2.4.2.4:
-            Change the discount policy of a store
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                policy_data (?): data of the new discount policy
-
-            Returns:
-                ?
+            Use Case 2.4.8:
+            Add a subcategory to a category
         """
-        pass
+        try:
+            self.__market_facade.add_sub_category_to_category(user_id, category_id, parent_category_id)
+            logger.info('subcategory was added successfully')
+            return jsonify({'message': 'subcategory was added successfully'}), 200
+        except Exception as e:
+            logger.error('subcategory was not added')
+            return jsonify({'message': str(e)}), 400
 
-    def add_store_owner(self, token, store_id, owner_id, new_owner_id):
+    def remove_subcategory_from_category(self, user_id: int, category_id: int, parent_category_id: int):
+        """
+            Use Case 2.4.10:
+            Remove a subcategory from a category
+        """
+        try:
+            self.__market_facade.remove_sub_category_from_category(user_id, category_id, parent_category_id)
+            logger.info('subcategory was removed successfully')
+            return jsonify({'message': 'subcategory was removed successfully'}), 200
+        except Exception as e:
+            logger.error('subcategory was not removed')
+            return jsonify({'message': str(e)}), 400
+
+    def assign_product_to_category(self, user_id: int, category_id: int, store_id: int, product_id: int):
+        """
+            Use Case 2.4.11:
+            Add a product to a category
+        """
+        try:
+            self.__market_facade.assign_product_to_category(user_id, category_id, store_id, product_id)
+            logger.info('product was added to category successfully')
+            return jsonify({'message': 'product was added to category successfully'}), 200
+        except Exception as e:
+            logger.error('product was not added to category')
+            return jsonify({'message': str(e)}), 400
+
+    def add_store_owner(self, user_id: int, store_id: int, new_owner_id: int):
         """
             Use Case 2.4.3.1:
-            Send promototion to a new owner to a store.
-            User still needs to accept the promotion!
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                owner_id (int): id of the current owner
-                new_owner_id (int): id of the new owner
-
-            Returns:
-                ?
+            Send promotion to a new owner to a store.
+            User still needs to accept the promotion! 
         """
-        pass
+        try:
+            self.__market_facade.nominate_store_owner(user_id, store_id, new_owner_id)
+            logger.info('store owner was added successfully')
+            return jsonify({'message': 'store owner was added successfully'}), 200
+        except Exception as e:
+            logger.error('store owner was not added')
+            return jsonify({'message': str(e)}), 400
 
-    def add_store_manager(self, token, store_id, manager_id, permissions):
+    def add_store_manager(self, user_id: int, store_id: int, manager_id: int):
         """
-            Use Case 2.4.6.1:
-            Send promototion to a new manager to a store.
-            User still needs to accept the promotion!
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                manager_id (int): id of the new manager
-                permissions (?): permissions of the new manager
-
-            Returns:
-                ?
+            Use Case 2.4.6:
+            Add a store manager
         """
-        pass
+        try:
+            self.__market_facade.nominate_store_manager(store_id, user_id, manager_id)
+            logger.info('store manager was added successfully')
+            return jsonify({'message': 'store manager was added successfully'}), 200
+        except Exception as e:
+            logger.error('store manager was not added')
+            return jsonify({'message': str(e)}), 400
 
-    def edit_manager_permissions(self, token, store_id, manager_id, permissions):
+
+    def edit_manager_permissions(self, user_id: int, store_id: int, manager_id: int, add_product: bool,
+                           change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
+                           change_discount_types: bool, add_manager: bool, get_bid: bool):
         """
             Use Case 2.4.7:
             Edit the permissions of a store manager
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-                manager_id (int): id of the manager
-                permissions (?): new permissions of the manager
-
-            Returns:
-                ?
         """
-        pass
+        try:
+            self.__market_facade.change_permissions(user_id, store_id, manager_id, add_product, change_purchase_policy,
+                                                    change_purchase_types, change_discount_policy,
+                                                    change_discount_types, add_manager, get_bid)
+            logger.info('manager permissions were edited successfully')
+            return jsonify({'message': 'manager permissions were edited successfully'}), 200
+        except Exception as e:
+            logger.error('manager permissions were not edited')
+            return jsonify({'message': str(e)}), 400
 
-    def closing_store(self, token, store_id):
+    def closing_store(self, user_id, store_id):
         """
             Use Case 2.4.9:
             Close a store
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-
-            Returns:
-                ?
         """
-        pass
+        try:
+            self.__market_facade.close_store(user_id, store_id)
+            logger.info('store was closed successfully')
+            return jsonify({'message': 'store was closed successfully'}), 200
+        except Exception as e:
+            logger.error('store was not closed')
+            return jsonify({'message': str(e)}), 400
 
-    def view_employees_info(self, token, store_id):
+    def view_employees_info(self, user_id: int, store_id: int):
         """
             Use Case 2.4.11:
             View information about the employees of a store
-
-            Args:
-                token (?): token of the user
-                store_id (int): id of the store
-
-            Returns:
-                ?
         """
+        '''try:
+            info = self.__market_facade.get_employees_info(user_id, store_id)
+            logger.info('employees info was sent successfully')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('employees info was not sent')
+            return jsonify({'message': str(e)}), 400'''
         pass
