@@ -1,25 +1,49 @@
 # --------------- imports ---------------#
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Optional
+
+from backend.business.store.constraints import Constraint
 
 
 # --------------- Discount class ---------------#
 class DiscountStrategy(ABC):
     # interface responsible for representing discounts in general. discountId unique verifier.
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
-                 percentage: float):
-        self._discount_id = discount_id
-        self._discount_description = discount_description
-        self._starting_date = starting_date
-        self._ending_date = ending_date
-        self._percentage = percentage
+                 percentage: float, predicate: Optional[Constraint]):
+        self.__discount_id = discount_id
+        self.__discount_description = discount_description
+        self.__starting_date = starting_date
+        self.__ending_date = ending_date
+        self.__percentage = percentage
+        self.__predicate = predicate
 
     @property
     def discount_id(self):
-        return self._discount_id
+        return self.__discount_id
+    
+    @property
+    def discount_description(self):
+        return self.__discount_description
+    
+    @property
+    def starting_date(self):
+        return self.__starting_date
+    
+    @property
+    def ending_date(self):
+        return self.__ending_date
+    
+    @property
+    def percentage(self):
+        return self.__percentage
+    
+    @property
+    def predicate(self):
+        return self.__predicate
 
     @abstractmethod
-    def calculate_discount(self, price: float) -> float:
+    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
         pass
 
     @abstractmethod
@@ -28,22 +52,33 @@ class DiscountStrategy(ABC):
 
     @abstractmethod
     def change_discount_description(self, new_description: str) -> None:
+        pass
+
+    @abstractmethod
+    def is_simple_discount(self) -> bool:
+        pass
+
+    @abstractmethod
+    def change_predicate(self, new_predicate: Constraint) -> None:
         pass
 
 
 class CategoryDiscount(DiscountStrategy):
-    # not implemented at this version
-    @abstractmethod
-    def calculate_discount(self, price: float) -> float:
-        pass
+    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+                 percentage: float, predicate: Optional[Constraint], category_id: int, applied_to_subcategories: bool):
+        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
+        self.__category_id = category_id //OR THE CATEGORY ITSELF IDK
+        self.__applied_to_subcategories = applied_to_subcategories
 
-    @abstractmethod
-    def change_discount_percentage(self, new_percentage: float) -> None:
-        pass
-
-    @abstractmethod
-    def change_discount_description(self, new_description: str) -> None:
-        pass
+    @property
+    def category_id(self):
+        return self.__category_id
+    
+    @property
+    def applied_to_subcategories(self):
+        return self.__applied_to_subcategories
+    
+    def calculate_discount(self, basket: BasketDTO) -> float:
 
 
 class StoreDiscount(DiscountStrategy):
@@ -96,3 +131,10 @@ class ProductDiscount(DiscountStrategy):
         """
         self._discount_description = new_description
         return True
+
+
+class maxDiscountStrategy(DiscountStrategy):
+
+
+class additiveDiscountStrategy(DiscountStrategy):
+    
