@@ -1,77 +1,127 @@
 # communication with business logic
 from backend.business.authentication.authentication import Authentication
+from backend.business.user.user import UserFacade
+from backend.business.roles.roles import RolesFacade
+import logging
+from flask import jsonify
+
+logger = logging.getLogger('myapp')
+
 
 class UserService:
-    def show_notifications(self, token):
+    # singleton
+    instance = None
+
+    def __new__(cls):
+        if cls.instance is None:
+            cls.instance = super(UserService, cls).__new__(cls)
+            cls.instance.authentication_service = AuthenticationService()
+        return cls.instance
+
+    def __init__(self):
+        self.authentication_service = AuthenticationService()
+        self.user_facade = UserFacade()
+        self.roles_facade = RolesFacade()
+
+    def show_notifications(self, user_id: int):
         """
             Use Case 1.5 + 1.6:
             Show notifications for a user which is logged in (member)
 
             Args:
-                token (int): token of the user
+                user_id (int): id of the user
 
             Returns:
-                ?
+                list: list of notifications
         """
-        pass
+        try:
+            notifications = self.user_facade.get_notifications(user_id)
+            logger.info('notifications retrieved successfully')
+            return jsonify({'notifications': notifications}), 200
 
-    def add_product_to_basket(self, token, store_id, product_id):
+        except Exception as e:
+            logger.error('show_notifications - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, quantity: int):
         """
             Use Case 2.2.3:
             Add a product to the basket
 
             Args:
-                token (?): token of the user
+                user_id (int): id of the user
                 store_id (int): id of the store
                 product_id (int): id of the product to be added to the basket
+                quantity (int): quantity of the product to be added
 
             Returns:
-                ?
+                response (str): response of the operation
         """
-        pass
+        try:
+            self.user_facade.add_product_to_basket(user_id, store_id, product_id, quantity)
+            logger.info('product added to the basket successfully')
+            return jsonify({'message': 'product added to the basket successfully'}), 200
 
-    def show_shopping_cart(self, token):
+        except Exception as e:
+            logger.error('add_product_to_basket - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def show_shopping_cart(self, user_id: int):
         """
             Use Case 2.2.4.1:
             Show the shopping cart of a user
 
             Args:
-                token (?): token of the user
+                user_id (int): id of the user
 
             Returns:
                 ?
         """
-        pass
+        try:
+            shopping_cart = self.user_facade.get_shopping_cart(user_id)
+            logger.info('shopping cart retrieved successfully')
+            return jsonify({'shopping_cart': shopping_cart}), 200
+        except Exception as e:
+            logger.error('show_shopping_cart - ' + str(e))
+            return jsonify({'message': str(e)}), 400
 
-    def remove_product_from_cart(self, token, product_id):
+    def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, quantity: int):
         """
             Use Case 2.2.4.2:
             Remove a product from the shopping cart
 
             Args:
-                token (?): token of the user
+                user_id (int): id of the user
+                store_id (int): id of the store
                 product_id (int): id of the product to be removed from the shopping cart
+                quantity (int): quantity of the product to be removed
 
             Returns:
-                ?
+                response (str): response of the operation
         """
-        pass
+        try:
+            self.user_facade.remove_product_from_cart(user_id, store_id, product_id, quantity)
+            logger.info('product removed from the basket successfully')
+            return jsonify({'message': 'product removed from the basket successfully'}), 200
 
-    def checkout(self, token, payment_method, payment_details):
+        except Exception as e:
+            logger.error('remove_product_from_basket - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def checkout(self, user_id: int, payment_method: str, payment_details: dict):
         """
             Use Case 2.2.5:
             Checkout the shopping cart
 
             Args:
-                token (?): token of the user
+                user_id (int): id of the user
                 payment_method (?): payment method to be used
                 payment_details (?): payment details
 
             Returns:
-                ?
+                response (str): response of the operation
         """
         pass
-
 
     def accept_promotion(self, user_id: int, nomination_id: int, accept: bool):
         """
@@ -87,16 +137,23 @@ class UserService:
             Returns:
                 ?
         """
-        pass
+        try:
+            if accept:
+                self.roles_facade.accept_nomination(user_id, nomination_id)
+                logger.info('promotion accepted successfully')
+                return jsonify({'message': 'promotion accepted successfully'}), 200
+            else:
+                self.roles_facade.decline_nomination(user_id, nomination_id)
+                logger.info('promotion declined successfully')
+                return jsonify({'message': 'promotion declined successfully'}), 200
 
-    def change_admin_permissions(self, user_id: int, store_id: int, manager_id: int, add_product: bool, remove_product: bool, edit_product: bool, appoint_owner: bool, appoint_manager: bool, remove_owner: bool, remove_manager: bool):
-        pass
-
-
+        except Exception as e:
+            logger.error('accept_promotion - ' + str(e))
+            return jsonify({'message': str(e)}), 400
 
 
 class AuthenticationService:
-    #singleton
+    # singleton
     instance = None
 
     def __new__(cls):
@@ -104,9 +161,11 @@ class AuthenticationService:
             cls.instance = super(AuthenticationService, cls).__new__(cls)
             cls.instance.authentication = Authentication()
         return cls.instance
+
     def __init__(self):
         self.authentication = Authentication()
-    def guest_login(self):
+
+    def start_guest(self):
         """
             Use Case 1.2:
             Start the application and generate token for guest
@@ -114,40 +173,16 @@ class AuthenticationService:
             Returns:
                 token (str): token of the guest
         """
-        return self.authentication.start_guest()
+        try:
+            user_token = self.authentication.start_guest()
+            logger.info('guest entered the app successfully')
+            return jsonify({'token': user_token}), 200
 
+        except Exception as e:
+            logger.error('start - guest failed to enter the app')
+            return jsonify({'message': str(e)}), 400
 
-    def login(self, token, user_credentials):
-        """
-            Use Case 2.1.4:
-            Login a user
-
-            Args:
-                token (?): token of the user
-                user_credentials (?): credentials of the user required for login
-
-            Returns:
-                ?
-        """
-
-        
-
-    pass
-
-    def logout(self, token):
-        """
-            Use Case 2.3.1:
-            Logout a user
-
-            Args:
-                token (?): token of the user
-
-            Returns:
-                ?
-        """
-        pass
-
-    def register(self, user_id, register_credentials):
+    def register(self, user_id: int, register_credentials: dict):
         """
             Use Case 2.1.3:
             Register a new user
@@ -157,7 +192,55 @@ class AuthenticationService:
                 register_credentials (?): credentials of the new user required for registration
 
             Returns:
-                ?
+                token (str): token of the user
         """
-        self.authentication.register_user(user_id, register_credentials)
+        try:
+            self.authentication.register_user(user_id, register_credentials)
+            logger.info('User registered successfully')
+            return jsonify({'message': 'User registered successfully - great success'}), 201
 
+        except Exception as e:
+            logger.error('register - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def login(self, username: str, password: str):
+        """
+            Use Case 2.1.4:
+            Login a user
+
+            Args:
+                username (str): the username of the user
+                password (str): the password of the user
+
+            Returns:
+                token (str): token of the user
+        """
+        try:
+            user_token = self.authentication.login_user(username, password)
+            logger.info('User logged in successfully')
+            return jsonify({'token': user_token}), 200
+
+        except Exception as e:
+            logger.error('login - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def logout(self, jti: str, user_id: int):
+        """
+            Use Case 2.3.2:
+            Logout a user
+
+            Args:
+                jti (str): token of the user
+                user_id (int): id of the user
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            self.authentication.logout_user(jti, user_id)
+            logger.info('User logged out successfully')
+            return jsonify({'message': 'User logged out successfully'}), 200
+
+        except Exception as e:
+            logger.error('logout - ' + str(e))
+            return jsonify({'message': str(e)}), 400

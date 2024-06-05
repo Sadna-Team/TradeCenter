@@ -211,3 +211,47 @@ class StoreDTO:
 
 class TransactionException(Exception):
     pass
+
+class UserDTO:
+    def __init__(self, user_id: int, email: str, username: str, year: int, month: int, day: int, phone: str, role: str):
+        self.__user_id: int = user_id
+        self.__email: str = email
+        self.__username: str = username
+        self.__year: int = year
+        self.__month: int = month
+        self.__day: int = day
+        self.__phone: str = phone
+        self.__role: str = role
+    @property
+    def user_id(self) -> int:
+        return self.__user_id
+
+    @property
+    def email(self) -> str:
+        return self.__email
+
+    @property
+    def username(self) -> str:
+        return self.__username
+
+    @property
+    def year(self) -> int:
+        return self.__year
+
+    @property
+    def month(self) -> int:
+        return self.__month
+
+    @property
+    def day(self) -> int:
+        return self.__day
+
+    @property
+    def phone(self) -> str:
+        return self.__phone
+
+    @property
+    def role(self) -> str:
+        return self.__role
+
+
