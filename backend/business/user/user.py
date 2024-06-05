@@ -4,8 +4,8 @@ import datetime
 from abc import ABC, abstractmethod
 import threading
 from collections import defaultdict
-
 from .. import NotificationDTO
+from backend.business.DTOs import UserDTO
 
 
 class ShoppingBasket:
@@ -77,13 +77,32 @@ class State(ABC):
     def get_password(self):
         pass
 
+    @abstractmethod
     def get_notifications(self) -> List[Notification]:
         pass
 
+    @abstractmethod
     def add_notification(self, notification: Notification):
         pass
 
+    @abstractmethod
     def clear_notifications(self):
+        pass
+
+    @abstractmethod
+    def get_email(self):
+        pass
+
+    @abstractmethod
+    def get_username(self):
+        pass
+
+    @abstractmethod
+    def get_birthdate(self):
+        pass
+
+    @abstractmethod
+    def get_phone(self):
         pass
 
 
@@ -98,6 +117,18 @@ class Guest(State):
         raise ValueError("User is not registered")
 
     def clear_notifications(self):
+        raise ValueError("User is not registered")
+
+    def get_email(self):
+        raise ValueError("User is not registered")
+
+    def get_username(self):
+        raise ValueError("User is not registered")
+
+    def get_birthdate(self):
+        raise ValueError("User is not registered")
+
+    def get_phone(self):
         raise ValueError("User is not registered")
 
 
@@ -124,6 +155,18 @@ class Member(State):
 
     def clear_notifications(self):
         self.__notifications.clear()
+
+    def get_email(self):
+        return self.__email
+
+    def get_username(self):
+        return self.__username
+
+    def get_birthdate(self):
+        return self.__birthdate
+
+    def get_phone(self):
+        return self.__phone
 
 
 class User:
@@ -171,6 +214,13 @@ class User:
 
     def is_member(self):
         return isinstance(self.__member, Member)
+
+    def get_user_dto(self, role: str) -> UserDTO:
+        if not self.is_member():
+            raise ValueError("User is not registered")
+        return UserDTO(self.__id, self.__member.get_email(), self.__member.get_username(),
+                       self.__member.get_birthdate().year, self.__member.get_birthdate().month,
+                       self.__member.get_birthdate().day, self.__member.get_phone(), role)
 
 
 class UserFacade:
@@ -275,3 +325,9 @@ class UserFacade:
 
     def is_member(self, user_id: int) -> bool:
         return self.__get_user(user_id).is_member()
+
+    def get_users_dto(self, roles: Dict[int, str]) -> Dict[int, UserDTO]:  # user_id -> role
+        out = {}
+        for user_id, role in roles.items():
+            out[user_id] = self.__get_user(user_id).get_user_dto(role)
+        return out

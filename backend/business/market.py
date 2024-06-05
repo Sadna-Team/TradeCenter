@@ -1,7 +1,7 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO
+from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
@@ -218,7 +218,7 @@ class MarketFacade:
         SupplyHandler().remove_supply_method(method_name)
 
     # -------------------------------------- Store Related Methods --------------------------------------#
-    def search_by_category(self, category_id: int, store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
+    def search_by_category(self, category_id: int, store_id: Optional[int] = None) -> Dict[int, List[ProductDTO]]:
         """
         * Parameters: categoryId, storeId(optional)
         * This function gets all necessary information of the products in the category with categoryId
@@ -227,7 +227,7 @@ class MarketFacade:
         product_dtos = self.store_facade.search_by_category(category_id, store_id)
         return product_dtos
 
-    def search_by_tags(self, tags: List[str], store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
+    def search_by_tags(self, tags: List[str], store_id: Optional[int] = None) -> Dict[int, List[ProductDTO]]:
         """
         * Parameters: tags, storeId(optional)
         * This function returns all necessary information of the products with the tags
@@ -236,7 +236,7 @@ class MarketFacade:
         product_dtos = self.store_facade.search_by_tags(tags, store_id)
         return product_dtos
 
-    def search_by_names(self, name: str, store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
+    def search_by_names(self, name: str, store_id: Optional[int] = None) -> Dict[int, List[ProductDTO]]:
         """
         * Parameters: name, storeId(optional)
         * This function returns all necessary information of the products with the name
@@ -244,7 +244,6 @@ class MarketFacade:
         """
         product_dtos = self.store_facade.search_by_name(name, store_id)
         return product_dtos
-        
 
     '''    def search_product_in_store(self, store_id: int, name: str, sort_type: int) \
             -> Dict[int, Tuple[Tuple[int, float], float]]:
@@ -270,13 +269,13 @@ class MarketFacade:
     '''
 
     def get_store_info(self, user_id: int, store_id: int) -> StoreDTO:
-            """
+        """
             * Parameters: storeId
             * This function returns the store information
             * Returns the store information
             """
-            # TODO: check if user has necessary permissions to view store information
-            return self.store_facade.get_store_info(store_id)
+        # TODO: check if user has necessary permissions to view store information
+        return self.store_facade.get_store_info(store_id)
 
     def get_store_product_info(self, user_id: int, store_id: int) -> List[ProductDTO]:
         """
@@ -914,3 +913,7 @@ class MarketFacade:
                     else:
                         #TODO: refund users who participated in the lottery
                         logger.info(f"Lottery {purchase.purchase_id()} has failed! Refunded all participants")"""'''
+
+    def get_usersDTO_by_store(self, store_id: int) -> Dict[int, UserDTO]:
+        roles = self.roles_facade.get_store_owners(store_id)
+        return self.user_facade.get_users_dto(roles)
