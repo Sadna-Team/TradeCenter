@@ -147,7 +147,7 @@ class SupplyHandler:
         """
         self.supply_config = {"bogo": {}}
 
-    def _validate_supply_method(self, method_name: str, address: str) -> bool:
+    def _validate_supply_method(self, method_name: str, address: dict) -> bool:
         """
             * validate_supply_method is a method that validates a user's chosen supply method for his address.
             * validate_supply_method should return True if the supply method is valid for the address, and False otherwise.
