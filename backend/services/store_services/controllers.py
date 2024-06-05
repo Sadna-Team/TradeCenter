@@ -29,26 +29,24 @@ class StoreService:
     def edit_purchase_policy(self):
         pass
 
-    def show_store_info(self, user_id: int, store_id: int):
+    def show_store_info(self, store_id: int):
         """
-            Use Case 2.2.1.1:
             Show information about the stores in the system
         """
         try:
-            info = self.__market_facade.get_store_info(user_id, store_id)
+            info = self.__market_facade.get_store_info(store_id)
             logger.info('store info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:
             logger.error('store info was not sent')
             return jsonify({'message': str(e)}), 400
 
-    def show_store_products(self, user_id: int, store_id: int):
+    def show_store_products(self, store_id: int):
         """
-            Use Case 2.2.1.2:
             Show products of a store
         """
         try:
-            info = self.__market_facade.get_store_product_info(user_id, store_id)
+            info = self.__market_facade.get_store_product_info(store_id)
             logger.info('store products info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:
@@ -57,7 +55,6 @@ class StoreService:
 
     def add_new_store(self, user_id: int, location_id: int, store_name: str):
         """
-            Use Case 2.3.2:
             Add a store to the system and set the user as the store owner
         """
         try:
@@ -71,7 +68,6 @@ class StoreService:
     def add_product_to_store(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
                              weight: float, tags: list[str]):
         """
-            Use Case 2.4.1:
             Add a product to a store
         """
         try:
@@ -84,7 +80,6 @@ class StoreService:
 
     def remove_product_from_store(self, user_id: int, store_id: int, product_id: int):
         """
-            Use Case 2.4.2:
             Remove a product from a store
         """
         try:
@@ -97,7 +92,6 @@ class StoreService:
 
     def add_category(self, user_id: int, category_name: str):
         """
-            Use Case 2.4.4:
             Add a category to a store
         """
         try:
@@ -110,7 +104,6 @@ class StoreService:
 
     def remove_category(self, user_id: int, category_id: int):
         """
-            Use Case 2.4.5:
             Remove a category from a store
         """
         try:
@@ -123,7 +116,6 @@ class StoreService:
 
     def add_subcategory_to_category(self, user_id: int, category_id: int, parent_category_id: int):
         """
-            Use Case 2.4.8:
             Add a subcategory to a category
         """
         try:
@@ -136,7 +128,6 @@ class StoreService:
 
     def remove_subcategory_from_category(self, user_id: int, category_id: int, parent_category_id: int):
         """
-            Use Case 2.4.10:
             Remove a subcategory from a category
         """
         try:
@@ -149,7 +140,6 @@ class StoreService:
 
     def assign_product_to_category(self, user_id: int, category_id: int, store_id: int, product_id: int):
         """
-            Use Case 2.4.11:
             Add a product to a category
         """
         try:
@@ -162,7 +152,6 @@ class StoreService:
 
     def add_store_owner(self, user_id: int, store_id: int, new_owner_id: int):
         """
-            Use Case 2.4.3.1:
             Send promotion to a new owner to a store.
             User still needs to accept the promotion! 
         """
@@ -176,7 +165,6 @@ class StoreService:
 
     def add_store_manager(self, user_id: int, store_id: int, manager_id: int):
         """
-            Use Case 2.4.6:
             Add a store manager
         """
         try:
@@ -192,7 +180,6 @@ class StoreService:
                            change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
                            change_discount_types: bool, add_manager: bool, get_bid: bool):
         """
-            Use Case 2.4.7:
             Edit the permissions of a store manager
         """
         try:
@@ -207,7 +194,6 @@ class StoreService:
 
     def closing_store(self, user_id, store_id):
         """
-            Use Case 2.4.9:
             Close a store
         """
         try:
@@ -220,7 +206,6 @@ class StoreService:
 
     def view_employees_info(self, user_id: int, store_id: int):
         """
-            Use Case 2.4.11:
             View information about the employees of a store
         """
         '''try:

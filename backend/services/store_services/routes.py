@@ -21,12 +21,6 @@ def add_discount():
         Use Case 2.4.2
         Add a discount to a store
         
-        Data:
-            description (str): description of the discount
-            start_date (datetime): start date of the discount
-            end_date (datetime): end date of the discount
-            percentage (float): percentage of the discount
-        
     """
     '''logger.info('received request to add discount')
     try:
@@ -50,12 +44,6 @@ def remove_discount():
     """
         Use Case 2.4.2
         Remove a discount from a store
-        
-        Data:
-            user_id (int): id of the user
-            discount_id (int): id of the discount to remove
-            
-        
     """
     '''logger.info('received request to remove discount')
     try:
@@ -76,11 +64,6 @@ def edit_discount():
     """
         Use Case 2.4.2
         Edit a discount of a store
-        
-        Data:
-            user_id (int): id of the user
-            discount_id (int): id of the discount to edit
-        
     """
     '''logger.info('received request to edit discount')
     try:
@@ -101,12 +84,7 @@ def add_purchase_policy():
     """
         Use Case 2.2.4.2
         Add a purchase policy to a store
-        
-        Data:
-            user_id (int): id of the user
-            store_id (int): id of the store
             TODO: later on the details of policy!
-        
     """
     '''logger.info('received request to add purchase policy')
     try:
@@ -127,12 +105,6 @@ def remove_purchase_policy():
     """
         Use Case 2.2.4.2
         Remove a purchase policy from a store
-        
-        Data:
-            user_id (int): id of the user
-            store_id (int): id of the store
-            policy_id (int): id of the policy to remove
-            
     """
     '''logger.info('received request to remove purchase policy')
     try:
@@ -154,12 +126,6 @@ def edit_purchase_policy():
     """
         Use Case 2.2.4.2
         Edit a purchase policy of a store
-        
-        Data:
-            user_id (int): id of the user
-            store_id (int): id of the store
-            policy_id (int): id of the policy to edit
-            
     """
     '''logger.info('received request to edit purchase policy')
     try:
@@ -184,14 +150,13 @@ def show_store_info():
     """
     logger.info('received request to send store info')
     try:
-        user_id = get_jwt_identity()
         data = request.args
         store_id = int(data['store_id'])
     except Exception as e:
         logger.error('show_store_info - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.show_store_info(user_id, store_id)
+    return store_service.show_store_info(store_id)
 
 
 @store_bp.route('/store_products', methods=['GET'])
@@ -203,14 +168,13 @@ def show_store_products():
     """
     logger.info('received request to send store products')
     try:
-        user_id = get_jwt_identity()
         data = request.args
         store_id = int(data['store_id'])
     except Exception as e:
         logger.error('show_store_products - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.show_store_products(user_id, store_id)
+    return store_service.show_store_products(store_id)
 
 
 @store_bp.route('/add_store', methods=['POST'])
@@ -507,9 +471,6 @@ def view_employees_info():
     """
         Use Case 2.4.11:
         View information about the employees of a store
-
-        Data:
-            store_id (int): id of the store
     """
     logger.info('received request to view employees info')
     try:
