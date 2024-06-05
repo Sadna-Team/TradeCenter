@@ -6,9 +6,8 @@ from typing import Optional
 from backend.business.store.constraints import Constraint
 
 
-# --------------- Discount class ---------------#
-class DiscountStrategy(ABC):
-    # interface responsible for representing discounts in general. discountId unique verifier.
+# --------------- Discount interface ---------------#
+class Discount(ABC):
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint]):
         self.__discount_id = discount_id
@@ -46,24 +45,25 @@ class DiscountStrategy(ABC):
     def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
         pass
 
-    @abstractmethod
     def change_discount_percentage(self, new_percentage: float) -> None:
-        pass
+        if new_percentage < 0 or new_percentage > 1:
+            raise ValueError("Invalid percentage")
+        self.__percentage = new_percentage        
 
-    @abstractmethod
+
     def change_discount_description(self, new_description: str) -> None:
-        pass
+        self.__discount_description = new_description
 
-    @abstractmethod
     def is_simple_discount(self) -> bool:
-        pass
-
-    @abstractmethod
+        if self.__predicate is None:
+            return True
+        return False        
+    
     def change_predicate(self, new_predicate: Constraint) -> None:
-        pass
+        self.__predicate = new_predicate
 
-
-class CategoryDiscount(DiscountStrategy):
+# --------------- Category Discount ---------------#
+class CategoryDiscount(Discount):
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint], category_id: int, applied_to_subcategories: bool):
         super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
@@ -78,10 +78,12 @@ class CategoryDiscount(DiscountStrategy):
     def applied_to_subcategories(self):
         return self.__applied_to_subcategories
     
-    def calculate_discount(self, basket: BasketDTO) -> float:
 
+    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
+        pass
 
-class StoreDiscount(DiscountStrategy):
+# --------------- Store Discount ---------------#
+class StoreDiscount(Discount):
     # not implemented at this version
     @abstractmethod
     def calculate_discount(self, price: float) -> float:
@@ -96,45 +98,42 @@ class StoreDiscount(DiscountStrategy):
         pass
 
 
-class ProductDiscount(DiscountStrategy):
+# --------------- Product Discount ---------------#
+class ProductDiscount(Discount):
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, product_id: int):
         super().__init__(discount_id, discount_description, starting_date, ending_date, percentage)
         self.product_id = product_id
 
-    def calculate_discount(self, price: float) -> float:
-        """
-        * Parameters: price in float
-        * This function is responsible for verifying if the discount is valid and returning the price with the discount.
-        * Returns: price after discount in float or without depending on if the discount is valid.
-        """
-        if self._starting_date <= datetime.now() <= self._ending_date:
-            return price - price * self._percentage
-        return price
-
-    def change_discount_percentage(self, new_percentage: float) -> bool:
-        """
-        * Parameters: new_percentage in float
-        * This function is responsible for changing the discount percentage.
-        * Returns: None
-        """
-        if new_percentage < 0 or new_percentage > 1:
-            return False
-        self._percentage = new_percentage
-        return True
-
-    def change_discount_description(self, new_description: str) -> bool:
-        """
-        * Parameters: newDescription in str
-        * This function is responsible for changing the discount description.
-        * Returns: None
-        """
-        self._discount_description = new_description
-        return True
-
-
-class maxDiscountStrategy(DiscountStrategy):
-
-
-class additiveDiscountStrategy(DiscountStrategy):
     
+    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
+        pass
+
+
+# --------------- Max Discount classes ---------------#
+class maxDiscount(Discount):
+    # class responsible for returning the total price of the maximum discount.
+    def __init__(self, ListDiscount: list[Discount]):
+        self.__ListDiscount = ListDiscount
+
+    def calculate_discount(self, basket: BasketDTO, user: UserDTO) -> float:
+        """
+        * Parameters: basket in BasketDTO, user in UserDTO
+        * This function is responsible for calculating the discount based on the basket and user.
+        * Returns: float
+        """
+        return max([discount.calculate_discount(basket, user) for discount in self.__ListDiscount])
+
+
+class additiveDiscountStrategy(Discount):
+    # class responsible for returning the total price of the maximum discount.
+    def __init__(self, ListDiscount: list[Discount]):
+        self.__ListDiscount = ListDiscount
+
+    def calculate_discount(self, basket: BasketDTO, user: UserDTO) -> float:
+        """
+        * Parameters: basket in BasketDTO, user in UserDTO
+        * This function is responsible for calculating the discount based on the basket and user.
+        * Returns: float
+        """
+        return sum([discount.calculate_discount(basket, user) for discount in self.__ListDiscount])
