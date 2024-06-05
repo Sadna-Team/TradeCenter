@@ -2,8 +2,7 @@ from datetime import datetime
 from dateutil import relativedelta
 import pytest
 from backend.business.store.new_store import Store, Product, Category, StoreFacade
-from backend.business.DTOs import ProductDTO, UserDTO
-
+from backend.business.DTOs import ProductDTO, PurchaseUserDTO
 @pytest.fixture
 def product():
     return Product(product_id=0, product_name='product', description='very good product', price=10.0, weight=30.0, amount=10)
@@ -654,7 +653,7 @@ def test_remove_purchase_policy_fail(store):
 def test_check_purchase_policy(store):
     store.add_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
     store.add_purchase_policy("not_too_much_gun_powder")
-    user_dto = UserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 21))
+    user_dto = PurchaseUserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 21))
     alcohol_product = ProductDTO(product_id=0, name='alcohol', description='description', price=10.0, tags=['alcohol'], weight=10.0, amount=10)
     tabbaco_product = ProductDTO(product_id=1, name='tabbaco', description='description', price=10.0, tags=['tabbaco'], weight=10.0, amount=10)
     gun_powder_product = ProductDTO(product_id=2, name='gun_powder', description='description', price=10.0, tags=['gun_powder'], weight=10.0, amount=5)
@@ -664,7 +663,7 @@ def test_check_purchase_policy(store):
 def test_check_purchase_policy_fail(store):
     store.add_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
     store.add_purchase_policy("not_too_much_gun_powder")
-    user_dto = UserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 17))
+    user_dto = PurchaseUserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 17))
     alcohol_product = ProductDTO(product_id=0, name='alcohol', description='description', price=10.0, tags=['alcohol'], weight=10.0, amount=10)
     tabbaco_product = ProductDTO(product_id=1, name='tabbaco', description='description', price=10.0, tags=['tabbaco'], weight=10.0, amount=10)
     gun_powder_product = ProductDTO(product_id=2, name='gun_powder', description='description', price=10.0, tags=['gun_powder'], weight=10.0, amount=5)
@@ -698,7 +697,7 @@ def test_validate_purchase_policies(store_facade):
     store_facade.add_purchase_policy_to_store(0, "not_too_much_gun_powder")
     store_facade.add_purchase_policy_to_store(1, "no_alcohol_and_tabbaco_bellow_18")
     store_facade.add_purchase_policy_to_store(1, "not_too_much_gun_powder")
-    user_dto = UserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 21))
+    user_dto = PurchaseUserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 21))
     store_facade.add_product_to_store(0, 'alcohol', 'description', 10.0, 10.0, ['alcohol'], 10)
     store_facade.add_product_to_store(0, 'tabbaco', 'description', 10.0, 10.0, ['tabbaco'], 10)
     store_facade.add_product_to_store(0, 'gun_powder', 'description', 10.0, 10.0, ['gun_powder'], 5)
@@ -715,7 +714,7 @@ def test_validate_purchase_policies_fail(store_facade):
     store_facade.add_purchase_policy_to_store(0, "not_too_much_gun_powder")
     store_facade.add_purchase_policy_to_store(1, "no_alcohol_and_tabbaco_bellow_18")
     store_facade.add_purchase_policy_to_store(1, "not_too_much_gun_powder")
-    user_dto = UserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 17))
+    user_dto = PurchaseUserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 17))
     store_facade.add_product_to_store(0, 'alcohol', 'description', 10.0, 10.0, ['alcohol'], 10)
     store_facade.add_product_to_store(0, 'tabbaco', 'description', 10.0, 10.0, ['tabbaco'], 10)
     store_facade.add_product_to_store(0, 'gun_powder', 'description', 10.0, 10.0, ['gun_powder'], 5)

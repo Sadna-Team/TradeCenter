@@ -10,7 +10,7 @@ from collections import defaultdict
 #from .. import NotificationDTO
 
 # NOTE: Solution:
-from backend.business.DTOs import NotificationDTO, UserDTO
+from backend.business.DTOs import NotificationDTO, UserDTO, PurchaseUserDTO
 from .. import NotificationDTO
 
 
@@ -94,8 +94,6 @@ class State(ABC):
     @abstractmethod
     def clear_notifications(self):
         pass
-    def get_birthdate(self) -> Optional[datetime.datetime]:
-        pass
 
     @abstractmethod
     def get_email(self):
@@ -106,7 +104,7 @@ class State(ABC):
         pass
 
     @abstractmethod
-    def get_birthdate(self):
+    def get_birthdate(self) -> Optional[datetime.datetime]:
         pass
 
     @abstractmethod
@@ -126,9 +124,6 @@ class Guest(State):
 
     def clear_notifications(self):
         raise ValueError("User is not registered")
-    
-    def get_birthdate(self) -> Optional[datetime.datetime]:
-        return None
 
     def get_email(self):
         raise ValueError("User is not registered")
@@ -136,7 +131,7 @@ class Guest(State):
     def get_username(self):
         raise ValueError("User is not registered")
 
-    def get_birthdate(self):
+    def get_birthdate(self) -> Optional[datetime.datetime]:
         raise ValueError("User is not registered")
 
     def get_phone(self):
@@ -173,7 +168,7 @@ class Member(State):
     def get_username(self):
         return self.__username
 
-    def get_birthdate(self):
+    def get_birthdate(self) -> Optional[datetime.datetime]:
         return self.__birthdate
 
     def get_phone(self):
@@ -225,8 +220,11 @@ class User:
     def is_member(self):
         return isinstance(self.__member, Member)
     
-    def create_dto(self) -> UserDTO:
-        return UserDTO(self.__id, self.__member.get_birthdate())
+    def create_purchase_user_dto(self) -> PurchaseUserDTO:
+        try:
+            return PurchaseUserDTO(self.__id, self.__member.get_birthdate())
+        except ValueError:
+            return PurchaseUserDTO(self.__id)
 
     def get_user_dto(self, role: str) -> UserDTO:
         if not self.is_member():

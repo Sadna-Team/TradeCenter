@@ -275,3 +275,20 @@ class UserDTO:
     @property
     def role(self) -> str:
         return self.__role
+
+
+class PurchaseUserDTO:
+    def __init__(self, user_id: int, birthdate: Optional[datetime]=None):
+        self.__user_id: int = user_id
+        self.__birthdate: datetime = birthdate
+
+    @property
+    def user_id(self) -> int:
+        return self.__user_id
+    
+    @property
+    def birthdate(self) -> datetime:
+        return self.__birthdate
+    
+    def get(self) -> dict:
+        return {"user_id": self.__user_id, "birthdate": self.__birthdate}

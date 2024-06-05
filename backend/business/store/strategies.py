@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Callable, Dict
-from backend.business.DTOs import UserDTO, CategoryDTO, ProductDTO
+from backend.business.DTOs import PurchaseUserDTO, CategoryDTO, ProductDTO
 
 
 class PurchaseComposite(ABC):
@@ -63,9 +63,9 @@ class NotFilter(PurchaseComposite):
         return not self.__filter.pass_filter()
 
 class UserFilter(PurchaseComposite):
-    def __init__(self, user: UserDTO, predicate: Callable[[UserDTO], bool]):
-        self.__user: UserDTO = user
-        self.__predicate: Callable[[UserDTO], bool] = predicate
+    def __init__(self, user: PurchaseUserDTO, predicate: Callable[[PurchaseUserDTO], bool]):
+        self.__user: PurchaseUserDTO = user
+        self.__predicate: Callable[[PurchaseUserDTO], bool] = predicate
         self.__name = "UserFilter"
 
     def __str__(self) -> str:

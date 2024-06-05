@@ -3,7 +3,7 @@ from typing import List, Dict, Tuple, Optional, Callable
 from .DiscountStrategy import DiscountStrategy
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
-from backend.business.DTOs import ProductDTO, StoreDTO, PurchaseProductDTO, UserDTO
+from backend.business.DTOs import ProductDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
 
 # -------------logging configuration----------------
@@ -368,7 +368,7 @@ def pred_has_tabbaco(products: Dict[ProductDTO, int]) -> bool:
             return True
     return False
 
-def pred_older_then_18(user: UserDTO) -> bool:
+def pred_older_then_18(user: PurchaseUserDTO) -> bool:
     """
     * Parameters: products
     * This function checks if the products are older than 18
@@ -391,7 +391,7 @@ def pred_funny_name(products: Dict[ProductDTO, int]) -> bool:
             return True
     return False
 
-def filter_no_alcohol_and_tabbaco_bellow_18(products: Dict[ProductDTO, int], user: UserDTO) -> PurchaseComposite:
+def filter_no_alcohol_and_tabbaco_bellow_18(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
     """
     * Parameters: products, user
     * This function checks if the products contain alcohol and the user is older than 18
@@ -403,7 +403,7 @@ def filter_no_alcohol_and_tabbaco_bellow_18(products: Dict[ProductDTO, int], use
     total_filter = OrFilter([user_old_enough, AndFilter([no_alcohol, no_tabbaco])])
     return total_filter
 
-def filter_no_alcohol_past_time(products: Dict[ProductDTO, int], user: UserDTO) -> PurchaseComposite:
+def filter_no_alcohol_past_time(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
     """
     * Parameters: products
     * This function checks if the products contain alcohol and the time is after 22
@@ -411,7 +411,7 @@ def filter_no_alcohol_past_time(products: Dict[ProductDTO, int], user: UserDTO) 
     """
     return ProductFilter(products, pred_no_alcohol_past_time)
 
-def filter_not_too_much_gun_powder(products: Dict[ProductDTO, int], user: UserDTO) -> PurchaseComposite:
+def filter_not_too_much_gun_powder(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
     """
     * Parameters: products
     * This function checks if the products contain too much gun powder
@@ -419,7 +419,7 @@ def filter_not_too_much_gun_powder(products: Dict[ProductDTO, int], user: UserDT
     """
     return NotFilter(ProductFilter(products, pred_not_too_much_gun_powder))
 
-def filter_no_funny_name(products: Dict[ProductDTO, int], user: UserDTO) -> PurchaseComposite:
+def filter_no_funny_name(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
     """
     * Parameters: products
     * This function checks if the products have a funny name
@@ -444,7 +444,7 @@ class Store:
         self.__is_active = True
         self.__store_products: Dict[int, Product] = {}
         self.__product_id_counter = 0  # product Id
-        self.__purchase_policy: Dict[str, Callable[[Dict[ProductDTO, int], UserDTO], PurchaseComposite]] = {} # purchase policy
+        self.__purchase_policy: Dict[str, Callable[[Dict[ProductDTO, int], PurchaseUserDTO], PurchaseComposite]] = {} # purchase policy
         self.__founded_date = datetime.now()
         self.__purchase_policy_id_counter = 0  # purchase policy Id
         logger.info('[Store] successfully created store with id: ' + str(store_id))
@@ -559,7 +559,7 @@ class Store:
         else:
             raise ValueError('Policy name is not found')
 
-    def check_purchase_policy(self, products: Dict[ProductDTO, int], user: UserDTO) -> None:
+    def check_purchase_policy(self, products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> None:
         """
         * Parameters: products, user
         * This function checks if the purchase policy is satisfied
@@ -1268,7 +1268,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         store.remove_purchase_policy(policy_name)
 
-    def validate_purchase_policies(self, cart: Dict[int, Dict[int, int]], user: UserDTO) -> None:
+    def validate_purchase_policies(self, cart: Dict[int, Dict[int, int]], user: PurchaseUserDTO) -> None:
         """
         * Parameters: cart, user
         * This function validates the purchase policies of the stores

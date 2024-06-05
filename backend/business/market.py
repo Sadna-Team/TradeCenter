@@ -82,7 +82,7 @@ class MarketFacade:
             cart = self.user_facade.get_shopping_cart(user_id)
 
             # calculate the total price
-            self.store_facade.validate_purchase_policies(cart, self.user_facade.get_user(user_id))
+            self.store_facade.validate_purchase_policies(cart, self.user_facade.get_user_purchase_data(user_id))
 
             total_price = self.store_facade.get_total_price_before_discount(cart)
             total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
@@ -350,7 +350,7 @@ class MarketFacade:
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
             self.store_facade.add_purchase_policy_to_store(store_id, policy_name)
         else:
-            raise ValueError("User does not have the necessary permissions to add a policy to the store")'''
+            raise ValueError("User does not have the necessary permissions to add a policy to the store")
 
     def remove_purchase_policy(self, user_id, store_id: int, policy_name: str):
         """
