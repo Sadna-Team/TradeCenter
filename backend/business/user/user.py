@@ -4,8 +4,8 @@ import datetime
 from abc import ABC, abstractmethod
 import threading
 from collections import defaultdict
-
 from .. import NotificationDTO
+from backend.business.DTOs import UserDTO
 
 
 class ShoppingBasket:
@@ -20,9 +20,12 @@ class ShoppingBasket:
     def get_dto(self) -> Dict[int, int]:
         return self.__products
 
-    def remove_product(self, product_id: int):
+    def remove_product(self, product_id: int, quantity: int):
         if product_id not in self.__products:
             raise ValueError("Product not found")
+        if self.__products[product_id] < quantity:
+            raise ValueError("Not enough quantity")
+
         del self.__products[product_id]
 
     def subtract_product(self, product_id: int, quantity: int):
@@ -47,11 +50,10 @@ class ShoppingCart:
     def get_dto(self) -> Dict[int, Dict[int, int]]:
         return {store_id: basket.get_dto() for store_id, basket in self.__shopping_baskets.items()}
 
-    def remove_product_from_cart(self, store_id: int, product_id: int) -> None:
+    def remove_product_from_cart(self, store_id: int, product_id: int, quantity: int) -> None:
         if store_id not in self.__shopping_baskets:
             raise ValueError("Store not found")
-
-        self.__shopping_baskets[store_id].remove_product(product_id)
+        self.__shopping_baskets[store_id].remove_product(product_id, quantity)
 
     def subtract_product_from_cart(self, store_id: int, product_id: int, quantity: int) -> None:
         if store_id not in self.__shopping_baskets:
@@ -75,13 +77,32 @@ class State(ABC):
     def get_password(self):
         pass
 
+    @abstractmethod
     def get_notifications(self) -> List[Notification]:
         pass
 
+    @abstractmethod
     def add_notification(self, notification: Notification):
         pass
 
+    @abstractmethod
     def clear_notifications(self):
+        pass
+
+    @abstractmethod
+    def get_email(self):
+        pass
+
+    @abstractmethod
+    def get_username(self):
+        pass
+
+    @abstractmethod
+    def get_birthdate(self):
+        pass
+
+    @abstractmethod
+    def get_phone(self):
         pass
 
 
@@ -96,6 +117,18 @@ class Guest(State):
         raise ValueError("User is not registered")
 
     def clear_notifications(self):
+        raise ValueError("User is not registered")
+
+    def get_email(self):
+        raise ValueError("User is not registered")
+
+    def get_username(self):
+        raise ValueError("User is not registered")
+
+    def get_birthdate(self):
+        raise ValueError("User is not registered")
+
+    def get_phone(self):
         raise ValueError("User is not registered")
 
 
@@ -122,6 +155,18 @@ class Member(State):
 
     def clear_notifications(self):
         self.__notifications.clear()
+
+    def get_email(self):
+        return self.__email
+
+    def get_username(self):
+        return self.__username
+
+    def get_birthdate(self):
+        return self.__birthdate
+
+    def get_phone(self):
+        return self.__phone
 
 
 class User:
@@ -155,8 +200,8 @@ class User:
             raise ValueError("User is already registered")
         self.__member = Member(email, username, password, year, month, day, phone)
 
-    def remove_product_from_cart(self, store_id: int, product_id: int) -> None:
-        self.__shopping_cart.remove_product_from_cart(store_id, product_id)
+    def remove_product_from_cart(self, store_id: int, product_id: int, quantity: int):
+        self.__shopping_cart.remove_product_from_cart(store_id, product_id, quantity)
 
     def subtract_product_from_cart(self, store_id: int, product_id: int, quantity: int):
         self.__shopping_cart.subtract_product_from_cart(store_id, product_id, quantity)
@@ -169,6 +214,13 @@ class User:
 
     def is_member(self):
         return isinstance(self.__member, Member)
+
+    def get_user_dto(self, role: str) -> UserDTO:
+        if not self.is_member():
+            raise ValueError("User is not registered")
+        return UserDTO(self.__id, self.__member.get_email(), self.__member.get_username(),
+                       self.__member.get_birthdate().year, self.__member.get_birthdate().month,
+                       self.__member.get_birthdate().day, self.__member.get_phone(), role)
 
 
 class UserFacade:
@@ -246,8 +298,8 @@ class UserFacade:
     def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
         return self.__get_user(user_id).get_shopping_cart()
 
-    def remove_product_from_cart(self, user_id: int, store_id: int, product_id: int) -> None:
-        self.__get_user(user_id).remove_product_from_cart(store_id, product_id)
+    def remove_product_from_cart(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
+        self.__get_user(user_id).remove_product_from_cart(store_id, product_id, quantity)
 
     def subtract_product_from_cart(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
         self.__get_user(user_id).subtract_product_from_cart(store_id, product_id, quantity)
@@ -274,6 +326,12 @@ class UserFacade:
     def is_member(self, user_id: int) -> bool:
         return self.__get_user(user_id).is_member()
 
+    def get_users_dto(self, roles: Dict[int, str]) -> Dict[int, UserDTO]:  # user_id -> role
+        out = {}
+        for user_id, role in roles.items():
+            out[user_id] = self.__get_user(user_id).get_user_dto(role)
+        return out
+      
     def restore_basket(self, user_id: int, cart: Dict[int, Dict[int, int]]):
         self.__get_user(user_id).clear_basket()
         for store_id, products in cart.items():

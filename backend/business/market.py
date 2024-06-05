@@ -1,7 +1,7 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO
+from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
@@ -234,6 +234,7 @@ class MarketFacade:
         product_dtos = self.store_facade.search_by_tags(tags, store_id)
         return product_dtos
 
+      
     def search_by_name(self, name: str, store_id: Optional[int] = None) -> Dict[int, List[ProductDTO]]:
         """
         * Parameters: name, storeId(optional)
@@ -909,3 +910,7 @@ class MarketFacade:
                     else:
                         #TODO: refund users who participated in the lottery
                         logger.info(f"Lottery {purchase.purchase_id()} has failed! Refunded all participants")"""'''
+
+    def get_usersDTO_by_store(self, store_id: int) -> Dict[int, UserDTO]:
+        roles = self.roles_facade.get_store_owners(store_id)
+        return self.user_facade.get_users_dto(roles)
