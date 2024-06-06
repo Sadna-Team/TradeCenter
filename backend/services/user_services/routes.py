@@ -7,7 +7,7 @@ logger = logging.getLogger('myapp')
 # ---------------------------------------------------
 
 from flask import Blueprint, request, jsonify
-from controllers import AuthenticationService, UserService
+from backend.services.user_services.controllers import AuthenticationService, UserService
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
 
 auth_bp = Blueprint('auth', __name__)
@@ -49,6 +49,7 @@ def register():
     try:
         data = request.get_json()
         register_credentials = data.get('register_credentials')
+        logger.info('register credentials: ' + str(register_credentials))
         userid = get_jwt_identity()
 
     except Exception as e:
