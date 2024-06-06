@@ -264,3 +264,65 @@ def test_checkout_failed_no_products(default_user_cart):
     assert (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
             ._ShoppingCart__shopping_baskets)
     assert len(purchase_facade.get_purchases_of_store(user_id1)) == 0
+
+def test_nominate_store_owner():
+    pass
+
+def test_nominate_store_manager():
+    pass
+
+def test_add_purchase_policy():
+    pass
+
+def test_remove_purchase_policy():
+    pass
+
+def test_add_product():
+    pass
+
+def test_remove_product():
+    pass
+
+def test_add_product_amount():
+    pass
+
+def test_remove_product_amount():
+    pass
+
+def test_add_store():
+    pass
+
+# NOTE: not necessary to test for now since the function is not used
+def test_add_tag_to_product():
+    pass
+
+# NOTE: not necessary to test for now since the function is not used
+def test_remove_tag_from_product():
+    pass
+
+# NOTE: not necessary to test for now since the function is not used
+def test_change_product_price():
+    pass
+
+# NOTE: not necessary to test for now since the function is not used
+def test_change_product_description():
+    pass
+
+def test_add_category():
+    pass
+
+def test_remove_category():
+    pass
+
+def test_add_sub_category_to_category():
+    pass
+
+def test_remove_sub_category_from_category():
+    pass
+
+def test_assign_product_to_category():
+    pass
+
+# NOTE: not necessary to test for now since the function is not used
+def test_remove_product_from_category():
+    pass
