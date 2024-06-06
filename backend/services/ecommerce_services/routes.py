@@ -13,7 +13,6 @@ market_bp = Blueprint('market', __name__)
 
 purchase_service = PurchaseService()
 
-
 @market_bp.route('/checkout', methods=['POST'])
 @jwt_required()
 def checkout():
