@@ -36,6 +36,7 @@ def add_discount():
     except Exception as e:
         logger.error('add_discount - ', str(e))
         return jsonify({'message': str(e)}), 400'''
+    pass
 
 
 @store_bp.route('/remove_discount', methods=['POST'])
@@ -56,6 +57,7 @@ def remove_discount():
     except Exception as e:
         logger.error('remove_discount - ', str(e))
         return jsonify({'message': str(e)}), 400'''
+    pass
 
 
 @store_bp.route('/edit_discount', methods=['POST'])
@@ -76,6 +78,7 @@ def edit_discount():
     except Exception as e:
         logger.error('edit_discount - ', str(e))
         return jsonify({'message': str(e)}), 400'''
+    pass
 
 
 @store_bp.route('/add_purchase_policy', methods=['POST'])
@@ -97,6 +100,7 @@ def add_purchase_policy():
     except Exception as e:
         logger.error('add_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400'''
+    pass
 
 
 @store_bp.route('/remove_purchase_policy', methods=['POST'])
@@ -118,6 +122,7 @@ def remove_purchase_policy():
     except Exception as e:
         logger.error('remove_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400'''
+    pass
 
 
 @store_bp.route('/change_purchase_policy', methods=['POST'])
@@ -139,6 +144,7 @@ def edit_purchase_policy():
     except Exception as e:
         logger.error('edit_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400'''
+    pass
 
 
 @store_bp.route('/store_info', methods=['GET'])
