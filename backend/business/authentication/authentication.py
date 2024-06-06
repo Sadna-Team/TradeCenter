@@ -96,6 +96,7 @@ class Authentication:
         else:
             self.blacklist.add(jti)
             self.logged_in.remove(user_id)
+            return self.start_guest()
 
     def logout_guest(self, jti, user_id):
         if user_id not in self.guests:

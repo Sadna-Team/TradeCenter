@@ -1,6 +1,6 @@
 # communication with business logic
 from backend.business.authentication.authentication import Authentication
-from backend.business.user.user import UserFacade
+from backend.business.user import UserFacade
 from backend.business.roles.roles import RolesFacade
 import logging
 from flask import jsonify
@@ -15,11 +15,9 @@ class UserService:
     def __new__(cls):
         if cls.instance is None:
             cls.instance = super(UserService, cls).__new__(cls)
-            cls.instance.authentication_service = AuthenticationService()
         return cls.instance
 
     def __init__(self):
-        self.authentication_service = AuthenticationService()
         self.user_facade = UserFacade()
         self.roles_facade = RolesFacade()
 
@@ -237,9 +235,9 @@ class AuthenticationService:
                 response (str): response of the operation
         """
         try:
-            self.authentication.logout_user(jti, user_id)
+            token = self.authentication.logout_user(jti, user_id)
             logger.info('User logged out successfully')
-            return jsonify({'message': 'User logged out successfully'}), 200
+            return jsonify({'message': 'User logged out successfully', 'token': token}), 200
 
         except Exception as e:
             logger.error('logout - ' + str(e))
