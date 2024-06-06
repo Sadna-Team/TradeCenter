@@ -190,9 +190,6 @@ class Tree:
 class RolesFacade:
     # singleton
     __instance = None
-    __creation_lock = Lock()
-    __stores_locks = Dict[int, Lock]  # Dict[store_id, Lock]
-    __system_managers_lock = Lock()
 
     def __new__(cls):
         if RolesFacade.__instance is None:
@@ -208,6 +205,10 @@ class RolesFacade:
             self.__system_managers: List[int] = []
             self.__system_admin: int = -1
             Nomination._Nomination__nomination_id_serializer = 0
+
+            self.__creation_lock = Lock()
+            self.__stores_locks: Dict[int, Lock] = {}  # Dict[store_id, Lock]
+            self.__system_managers_lock = Lock()
 
     def clean_data(self):
         """

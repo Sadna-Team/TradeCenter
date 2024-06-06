@@ -420,7 +420,10 @@ class MarketFacade:
         """
         if not self.user_facade.is_member(founder_id):
             raise ValueError("User is not a member")
-        return self.store_facade.add_store(location_id, store_name, founder_id)
+
+        store_id = self.store_facade.add_store(location_id, store_name, founder_id)
+        self.roles_facade.add_store(store_id, founder_id)
+        return store_id
 
     def close_store(self, user_id: int, store_id: int):
         """

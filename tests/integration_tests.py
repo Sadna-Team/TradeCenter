@@ -1,7 +1,22 @@
 import pytest
-from backend.business import MarketFacade
-from backend.business import UserFacade
+from backend.business import MarketFacade, UserFacade, Authentication
 from typing import List, Dict
+from flask import Flask
+from flask_jwt_extended import JWTManager
+from flask_bcrypt import Bcrypt
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'test_secret_key'  # Set a test secret key
+jwt = JWTManager(app)
+bcrypt = Bcrypt(app)
+auth = Authentication()
+auth.clean_data()
+auth.set_jwt(jwt, bcrypt)
+
+# Push application context for testing
+app_context = app.app_context()
+app_context.push()
+
 
 market_facade = MarketFacade()
 user_facade = UserFacade()
@@ -107,15 +122,18 @@ def default_set_up():
     store_ids = [store_id1, store_id2, store_id3, store_id4, store_id5]
 
     products: List[List[int]] = []
-    for j in range(5):
-        products[j] = []
-        for i in range(3):
-            products[j].append(market_facade.add_product(user_ids[i], store_ids[i],
-                                                         default_product_names[i][j],
-                                                         default_product_descriptions[i][j],
-                                                         default_product_prices[i][j],
-                                                         default_product_weights[i][j],
-                                                         default_product_tags[i][j]))
+    for i in range(5):
+        products.append([])
+        for j in range(3):
+            a = user_ids[i]
+            b = store_ids[i]
+            c = default_product_names[i][j]
+            d = default_product_descriptions[i][j]
+            e = default_product_prices[i][j]
+            f = default_product_weights[i][j]
+            g = default_product_tags[i][j]
+            h = market_facade.add_product(a, b, c, d, e, f, g)
+            products[i].append(h)
 
     for i in range(5):
         for j in range(3):
