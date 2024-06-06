@@ -150,13 +150,13 @@ class StoreService:
             logger.error('product was not added to category')
             return jsonify({'message': str(e)}), 400
 
-    def add_store_owner(self, user_id: int, store_id: int, new_owner_username):
+    def add_store_owner(self, user_id: int, store_id: int, new_owner_username: str):
         """
             Send promotion to a new owner to a store.
             User still needs to accept the promotion! 
         """
         try:
-            self.__market_facade.nominate_store_owner(user_id, store_id, new_owner_username)
+            self.__market_facade.nominate_store_owner(store_id, user_id, new_owner_username)
             logger.info('store owner was added successfully')
             return jsonify({'message': 'store owner was added successfully'}), 200
         except Exception as e:
