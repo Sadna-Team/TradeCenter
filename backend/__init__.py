@@ -39,7 +39,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(user_bp, url_prefix='/user')
     app.register_blueprint(market_bp, url_prefix='/market')
-    #app.register_blueprint(store_bp, url_prefix='/store')
+    app.register_blueprint(store_bp, url_prefix='/store')
     app.register_blueprint(third_party_bp, url_prefix='/third_party')
 
 
