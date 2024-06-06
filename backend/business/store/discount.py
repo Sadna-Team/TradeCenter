@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Optional
 
+from backend.business.DTOs import BasketInformationForDiscountDTO, CategoryDTO
 from backend.business.store.constraints import Constraint
 
 
@@ -10,7 +11,7 @@ from backend.business.store.constraints import Constraint
 # --------------- Discount interface ---------------#
 class DiscountInterface(ABC):
     @abstractmethod
-    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         pass
 
 # --------------- Discount base ---------------#
@@ -49,7 +50,7 @@ class Discount(DiscountInterface):
         return self.__predicate
 
     @abstractmethod
-    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         pass
 
     def change_discount_percentage(self, new_percentage: float) -> None:
@@ -71,107 +72,179 @@ class Discount(DiscountInterface):
 
 # --------------- Category Discount ---------------#
 class CategoryDiscount(Discount):
+    """
+    * This class is responsible for creating a discount that is applied to a specific category.
+    """
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
-                 percentage: float, predicate: Optional[Constraint], category_dto: CategoryDTO, applied_to_subcategories: bool):
+                 percentage: float, predicate: Optional[Constraint], category_id: int, applied_to_subcategories: bool):
         super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
-        self.__category = category_dto
+        self.__category_id = category_id
         self.__applied_to_subcategories = applied_to_subcategories
 
     @property
-    def category(self) -> CategoryDTO:
-        return self.__category
+    def category_id(self) -> int:
+        return self.__category_id
     
     @property
     def applied_to_subcategories(self) -> bool:
         return self.__applied_to_subcategories
     
 
-    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
-        pass
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+        """
+        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * This function is responsible for calculating the discount based on the basket information, the discount is only applied to the products that fall under the category.
+        * Returns: float of the amount the discount will deduce from the total price.
+        """
+
+        if self.__predicate is not None and not self.__predicate.is_satisfied(basket_information):
+            raise ValueError("Discount not applicable")
+        if self.starting_date > datetime.now() or self.ending_date < datetime.now():
+            raise ValueError("Discount expired!")
+        
+        discount_reduction = 0.0
+        for category in basket_information.categories:
+            if category.category_id == self.__category_id:
+                products_of_category = set(category.products)
+                if self.__applied_to_subcategories:
+                    for subcategory in category.sub_categories:
+                        products_of_category.update(set(subcategory.products))
+                    
+                for product in products_of_category:
+                    discount_reduction += product.price * self.percentage
+        return discount_reduction
+
 
 # --------------- Store Discount ---------------#
 class StoreDiscount(Discount):
-    # not implemented at this version
-    @abstractmethod
-    def calculate_discount(self, price: float) -> float:
-        pass
+    """
+    * This class is responsible for creating a discount that is applied to a specific store.
+    """
+    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+                 percentage: float, predicate: Optional[Constraint], store_id: int):
+        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
+        self.__store_id = store_id
 
-    @abstractmethod
-    def change_discount_percentage(self, new_percentage: float) -> None:
-        pass
+    @property
+    def store_id(self) -> int:
+        return self.__store_id
 
-    @abstractmethod
-    def change_discount_description(self, new_description: str) -> None:
-        pass
-
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+        """
+        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * This function is responsible for calculating the discount based on the basket information, the discount is only applied to the products that fall under the store.
+        * Returns: float of the amount the discount will deduce from the total price.
+        """
+        if self.__predicate is not None and not self.__predicate.is_satisfied(basket_information):
+            raise ValueError("Discount not applicable")
+        if self.starting_date > datetime.now() or self.ending_date < datetime.now():
+            raise ValueError("Discount expired!")
+        
+        discount_reduction = 0.0
+        if self.__store_id == basket_information.store_id:
+            for product in basket_information.products:
+                if product.store_id == self.__store_id:
+                    discount_reduction += product.price * self.percentage
+        return discount_reduction
 
 # --------------- Product Discount ---------------#
 class ProductDiscount(Discount):
+    # class responsible for returning the total price of the product discount.
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
-                 percentage: float, product_id: int):
-        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage)
-        self.product_id = product_id
+                 percentage: float, predicate: Optional[Constraint], product_id: int, store_id: int):
+        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
+        self.__product_id = product_id
+        self.__store_id = store_id
 
+    @property
+    def product_id(self) -> int:
+        return self.__product_id
     
-    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
-        pass
+    @property
+    def store_id(self) -> int:
+        return self.__store_id
+    
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+        """
+        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * This function is responsible for calculating the discount based on the basket information, the discount is only applied to the products that fall under the product.
+        * Returns: float of the amount the discount will deduce from the total price.
+        """
+        if self.__predicate is not None and not self.__predicate.is_satisfied(basket_information):
+            raise ValueError("Discount not applicable")
+        if self.starting_date > datetime.now() or self.ending_date < datetime.now():
+            raise ValueError("Discount expired!")
+        
+        if self.__store_id != basket_information.store_id:
+            raise ValueError("Discount not applicable")
+
+        discount_reduction = 0.0
+        for product in basket_information.products:
+            if product.product_id == self.__product_id and product.store_id == self.__store_id:
+                discount_reduction += product.price * self.percentage
+        return discount_reduction
 
 
 # --------------- And Discount ---------------#
 class AndDiscount(DiscountInterface):
+    """
+    * This class is responsible for creating a discount composite that is applied when both discounts are applicable.
+    """
     def __init__(self, discount1: Discount, discount2: Discount):
         self.__discount1 = discount1
         self.__discount2 = discount2
 
-    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
-        * Parameters: basket in BasketDTO, user in UserDTO
-        * This function is responsible for calculating the discount based on the basket and user.
-        * Returns: float
+        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * This function is responsible for calculating the discount based on the basket information. It is only applied when both discounts have satisfied predicates and returns the sum of the discounts
         """
-        if self.__discount1.predicate.is_satisfied(basket) and self.__discount2.predicate.is_satisfied(basket):
-            return self.__discount1.calculate_discount(basket, user) + self.__discount2.calculate_discount(basket, user)
+        if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
+            return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
         else:
             raise ValueError("Discount not applicable")
         
 
 # --------------- Or Discount ---------------#
 class OrDiscount(DiscountInterface):
-    def __init__(self, discount1: Discount, discount2: Discount):
+    """
+    * This class is responsible for creating a discount composite that is applied when at least one of the discounts is applicable.
+    """
+    def __init__(self, discount1: Discount, discount2: Discount): # add decision rule
         self.__discount1 = discount1
         self.__discount2 = discount2
 
-    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
-        * Parameters: basket in BasketDTO, user in UserDTO
-        * This function is responsible for calculating the discount based on the basket and user.
-        * Returns: float
+        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * This function is responsible for calculating the discount based on the basket information. It is only applied when at least one of the discounts have satisfied predicates and returns the sum of the discounts
+        * NOTE: for simplicity, we assume that if both discounts are applicable, we would use both, but if only one is applicable, we would use only that one.
         """
-        if self.__discount1.predicate.is_satisfied(basket) and self.__discount2.predicate.is_satisfied(basket):
-            return self.__discount1.calculate_discount(basket, user) + self.__discount2.calculate_discount(basket, user)
-        elif self.__discount1.predicate.is_satisfied(basket):
-            return self.__discount1.calculate_discount(basket, user)
-        elif self.__discount2.predicate.is_satisfied(basket):
-            return self.__discount2.calculate_discount(basket, user)
+        if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
+            return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+        elif self.__discount1.predicate.is_satisfied(basket_information):
+            return self.__discount1.calculate_discount(basket_information)
+        elif self.__discount2.predicate.is_satisfied(basket_information):
+            return self.__discount2.calculate_discount(basket_information)
         else:
             raise ValueError("Discount not applicable")
 
 # --------------- Xor Discount ---------------#
 class XorDiscount(DiscountInterface):
-    def __init__(self, discount1: Discount, discount2: Discount):
+    def __init__(self, discount1: Discount, discount2: Discount): # add decision rule
         self.__discount1 = discount1
         self.__discount2 = discount2
 
-    def calculate_discount(self, basket: SOMETHING, user: UserDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
-        * Parameters: basket in BasketDTO, user in UserDTO
-        * This function is responsible for calculating the discount based on the basket and user.
-        * Returns: float
+        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * This function is responsible for calculating the discount based on the basket information.
+        * Returns: float of the amount the discount will deduce from the total price.
         """
-        if self.__discount1.predicate.is_satisfied(basket):
-            return self.__discount1.calculate_discount(basket, user)
-        elif self.__discount2.predicate.is_satisfied(basket):
-            return self.__discount2.calculate_discount(basket, user)
+        if self.__discount1.predicate.is_satisfied(basket_information):
+            return self.__discount1.calculate_discount(basket_information)
+        elif self.__discount2.predicate.is_satisfied(basket_information):
+            return self.__discount2.calculate_discount(basket_information)
         else:
             raise ValueError("Discount not applicable")
 
@@ -182,13 +255,13 @@ class maxDiscount(DiscountInterface):
     def __init__(self, ListDiscount: list[Discount]):
         self.__ListDiscount = ListDiscount
 
-    def calculate_discount(self, basket: BasketDTO, user: UserDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
         * Parameters: basket in BasketDTO, user in UserDTO
         * This function is responsible for calculating the discount based on the basket and user.
         * Returns: float
         """
-        return max([discount.calculate_discount(basket, user) for discount in self.__ListDiscount])
+        return max([discount.calculate_discount(basket_information) for discount in self.__ListDiscount])
 
 
 # --------------- Additive Discount classes ---------------#
@@ -197,10 +270,10 @@ class additiveDiscountStrategy(Discount):
     def __init__(self, ListDiscount: list[Discount]):
         self.__ListDiscount = ListDiscount
 
-    def calculate_discount(self, basket: BasketDTO, user: UserDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
         * Parameters: basket in BasketDTO, user in UserDTO
         * This function is responsible for calculating the discount based on the basket and user.
         * Returns: float
         """
-        return sum([discount.calculate_discount(basket, user) for discount in self.__ListDiscount])
+        return sum([discount.calculate_discount(basket_information) for discount in self.__ListDiscount])
