@@ -226,7 +226,7 @@ class User:
         except ValueError:
             return PurchaseUserDTO(self.__id)
 
-    def get_user_dto(self, role: str) -> UserDTO:
+    def get_user_dto(self, role: str = None) -> UserDTO:
         if not self.is_member():
             raise ValueError("User is not registered")
         return UserDTO(self.__id, self.__member.get_email(), self.__member.get_username(),
@@ -266,9 +266,9 @@ class UserFacade:
             raise ValueError("User not found")
         return self.__users[user_id]
     
-    def get_user(self, user_id: int) -> UserDTO:
+    def get_userDTO(self, user_id: int, role: str = None) -> UserDTO:
         user = self.__get_user(user_id)
-        return user.create_dto()
+        return user.get_user_dto(role)
 
     def create_user(self, currency: str = "USD") -> int:
         with UserFacade.__create_lock:
