@@ -534,7 +534,7 @@ def calculate_remaining_time_of_auction():
     """
         Use Case:
         Calculate the remaining time of an auction
-        
+
         Data:
             user_id (int): id of the user
             purchase_id (int): id of the purchase

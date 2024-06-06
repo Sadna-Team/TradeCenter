@@ -190,9 +190,6 @@ class Tree:
 class RolesFacade:
     # singleton
     __instance = None
-    __creation_lock = Lock()
-    __stores_locks = Dict[int, Lock]  # Dict[store_id, Lock]
-    __system_managers_lock = Lock()
 
     def __new__(cls):
         if RolesFacade.__instance is None:
@@ -208,6 +205,10 @@ class RolesFacade:
             self.__system_managers: List[int] = []
             self.__system_admin: int = -1
             Nomination._Nomination__nomination_id_serializer = 0
+
+            self.__creation_lock = Lock()
+            self.__stores_locks: Dict[int, Lock] = {}  # Dict[store_id, Lock]
+            self.__system_managers_lock = Lock()
 
     def clean_data(self):
         """
@@ -278,7 +279,7 @@ class RolesFacade:
         if nominee_id in self.__stores_to_roles[store_id]:
             raise ValueError("Nominee is already a member of the store")
 
-    def accept_nomination(self, nomination_id: int, nominee_id: int) -> None:
+    def accept_nomination(self,nominee_id: int, nomination_id: int) -> None:
         if nomination_id not in self.__systems_nominations:
             raise ValueError("Nomination does not exist")
         nomination = self.__systems_nominations[nomination_id]

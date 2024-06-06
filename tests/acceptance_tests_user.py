@@ -3,13 +3,13 @@ from flask import json, jsonify
 
 app = create_app()
 client = app.test_client()
-global token
+global token1
 
 
 # class Tests:
 
 def test_start():
-    global token
+    global token1
     response = client.get('/auth/')
     assert response.status_code == 200
     data = json.loads(response.data)
@@ -19,7 +19,7 @@ def test_start():
 
 
 def test_register():
-    global token
+    global token1
 
     register_credentials = {
         'username': 'test',
@@ -42,7 +42,7 @@ def test_register():
 
 
 def test_login():
-    global token
+    global token1
     data = {
         'username': 'test',
         'password': 'test'
@@ -54,10 +54,11 @@ def test_login():
     response = client.post('/auth/login', headers=headers, json=data)
     assert response.status_code == 200
     token = json.loads(response.data)['token']
+    return token
 
 
 def test_logout():
-    global token
+    global token1
 
     response = client.post('/auth/logout', headers={
         'Authorization': f'Bearer {token}'
@@ -67,7 +68,7 @@ def test_logout():
 
 
 def test_logout_guest():
-    global token
+    global token1
     response = client.post('/auth/logout_guest', headers={
         'Authorization': f'Bearer {token}'
     })
@@ -75,7 +76,7 @@ def test_logout_guest():
 
 
 def test_show_notifications():
-    global token
+    global token1
     test_start()
     test_login()
     response = client.get('/user/notifications', headers={
@@ -86,7 +87,7 @@ def test_show_notifications():
 
 
 def test_add_product_to_basket():
-    global token
+    global token1
     response = client.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {token}'
     }, json={
@@ -98,7 +99,7 @@ def test_add_product_to_basket():
 
 
 def test_remove_product_from_basket():
-    global token
+    global token1
     response = client.post('/user/remove_from_basket', headers={
         'Authorization': f'Bearer {token}'
     }, json={
@@ -110,7 +111,7 @@ def test_remove_product_from_basket():
 
 
 def test_show_cart():
-    global token
+    global token1
 
     test_add_product_to_basket()
 

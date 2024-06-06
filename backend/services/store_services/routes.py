@@ -13,6 +13,7 @@ logger = logging.getLogger('myapp')
 store_bp = Blueprint('store', __name__)
 store_service = StoreService()
 
+'''
 
 @store_bp.route('/add_discount', methods=['POST'])
 @jwt_required()
@@ -22,7 +23,8 @@ def add_discount():
         Add a discount to a store
 
     """
-    '''logger.info('received request to add discount')
+    logger.info('received request to add discount')
+
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -35,7 +37,7 @@ def add_discount():
         return jsonify({'message': 'discount was added successfully'}), 200
     except Exception as e:
         logger.error('add_discount - ', str(e))
-        return jsonify({'message': str(e)}), 400'''
+        return jsonify({'message': str(e)}), 400
     pass
 
 
@@ -46,7 +48,8 @@ def remove_discount():
         Use Case 2.4.2
         Remove a discount from a store
     """
-    '''logger.info('received request to remove discount')
+    logger.info('received request to remove discount')
+
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -56,7 +59,8 @@ def remove_discount():
         return jsonify({'message': 'discount was removed successfully'}), 200
     except Exception as e:
         logger.error('remove_discount - ', str(e))
-        return jsonify({'message': str(e)}), 400'''
+        return jsonify({'message': str(e)}), 400
+
     pass
 
 
@@ -67,7 +71,8 @@ def edit_discount():
         Use Case 2.4.2
         Edit a discount of a store
     """
-    '''logger.info('received request to edit discount')
+    logger.info('received request to edit discount')
+
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -77,7 +82,8 @@ def edit_discount():
         return jsonify({'message': 'discount was edited successfully'}), 200
     except Exception as e:
         logger.error('edit_discount - ', str(e))
-        return jsonify({'message': str(e)}), 400'''
+        return jsonify({'message': str(e)}), 400
+
     pass
 
 
@@ -89,7 +95,8 @@ def add_purchase_policy():
         Add a purchase policy to a store
             TODO: later on the details of policy!
     """
-    '''logger.info('received request to add purchase policy')
+    logger.info('received request to add purchase policy')
+
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -99,7 +106,8 @@ def add_purchase_policy():
         return jsonify({'message': 'purchase policy was added successfully'}), 200
     except Exception as e:
         logger.error('add_purchase_policy - ', str(e))
-        return jsonify({'message': str(e)}), 400'''
+        return jsonify({'message': str(e)}), 400
+
     pass
 
 
@@ -110,7 +118,8 @@ def remove_purchase_policy():
         Use Case 2.2.4.2
         Remove a purchase policy from a store
     """
-    '''logger.info('received request to remove purchase policy')
+    logger.info('received request to remove purchase policy')
+
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -121,7 +130,8 @@ def remove_purchase_policy():
         return jsonify({'message': 'purchase policy was removed successfully'}), 200
     except Exception as e:
         logger.error('remove_purchase_policy - ', str(e))
-        return jsonify({'message': str(e)}), 400'''
+        return jsonify({'message': str(e)}), 400
+
     pass
 
 
@@ -132,7 +142,8 @@ def edit_purchase_policy():
         Use Case 2.2.4.2
         Edit a purchase policy of a store
     """
-    '''logger.info('received request to edit purchase policy')
+    logger.info('received request to edit purchase policy')
+
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
@@ -143,8 +154,9 @@ def edit_purchase_policy():
         return jsonify({'message': 'purchase policy was edited successfully'}), 200
     except Exception as e:
         logger.error('edit_purchase_policy - ', str(e))
-        return jsonify({'message': str(e)}), 400'''
-    pass
+
+        return jsonify({'message': str(e)}), 400
+    pass'''
 
 
 @store_bp.route('/store_info', methods=['GET'])
@@ -256,9 +268,8 @@ def remove_product():
 @jwt_required()
 def add_category():
     """
-        Use Case 
+        Use Case
         Add a category to a store
-
     """
     logger.info('received request to add category')
     try:
@@ -276,7 +287,7 @@ def add_category():
 @jwt_required()
 def remove_category():
     """
-        Use Case 
+        Use Case
         Remove a category from a store
     """
     logger.info('received request to remove category')
@@ -295,7 +306,7 @@ def remove_category():
 @jwt_required()
 def add_subcategory_to_category():
     """
-        Use Case 
+        Use Case
         Add a subcategory to a category
 
     """
@@ -316,9 +327,8 @@ def add_subcategory_to_category():
 @jwt_required()
 def remove_subcategory_from_category():
     """
-        Use Case 
+        Use Case
         Remove a subcategory from a category
-
     """
     logger.info('received request to remove subcategory from category')
     try:
@@ -337,7 +347,7 @@ def remove_subcategory_from_category():
 @jwt_required()
 def assign_product_to_category():
     """
-        Use Case 
+        Use Case
         Assign a product specification to a category
     """
     logger.info('received request to assign product specification to category')
@@ -394,12 +404,12 @@ def add_store_owner():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = int(data['store_id'])
-        new_owner_id = int(data['new_owner_id'])
+        username = data['username']
+
     except Exception as e:
         logger.error('add_store_owner - ', str(e))
         return jsonify({'message': str(e)}), 400
-
-    return store_service.add_store_owner(user_id, store_id, new_owner_id)
+    return store_service.add_store_owner(user_id, store_id, username)
 
 
 @store_bp.route('/add_store_manager', methods=['POST'])
