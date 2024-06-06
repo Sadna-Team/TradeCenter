@@ -141,9 +141,9 @@ class PriceCategoryConstraint(Constraint):
     def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
         for category in basket_information.categories:
             if category.category_id == self.__category_id:
-                products = category.products
+                products = set(category.products)
                 for sub_categories in category.sub_categories:
-                    products += sub_categories.products
+                    products.update(set(sub_categories.products))
                 category_total_price: float = 0.0
                 for product in products:
                     category_total_price += product.price * product.amount
