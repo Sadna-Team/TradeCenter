@@ -20,6 +20,13 @@ client2 = app.test_client()
 client3 = app.test_client()
 client4 = app.test_client()
 
+owner_token = ""
+owner2_token = ""
+guest1_token = ""
+guest2_token = ""
+guest3_token = ""
+guest4_token = ""
+
 def clean():
     yield
     clean_data()
@@ -49,6 +56,9 @@ def add_user(token):
     headers = {'Authorization': 'Bearer ' + token}
     response = client.post('/auth/register', headers=headers, json=data)
 
+"""@pytest.fixture
+def setup():
+"""
 # start guest1 for client
 guest1_token = start_guest1()
 
@@ -62,7 +72,7 @@ guest2_token = start_guest2()
 manager_creds = register_credentials.copy()
 manager_creds['username'] = 'new_manager'
 data = {
-    'register_credentials': manager_creds
+'register_credentials': manager_creds
 }
 headers = {'Authorization': 'Bearer ' + guest2_token}
 response = client2.post('/auth/register', headers=headers, json=data)
@@ -74,7 +84,7 @@ guest3_token = start_guest3()
 manager_creds = register_credentials.copy()
 manager_creds['username'] = 'new_manager2'
 data = {
-    'register_credentials': manager_creds
+'register_credentials': manager_creds
 }
 headers = {'Authorization': 'Bearer ' + guest3_token}
 response = client3.post('/auth/register', headers=headers, json=data)
@@ -86,7 +96,7 @@ guest4_token = start_guest1()
 owner2_creds = register_credentials.copy()
 owner2_creds['username'] = 'owner2'
 data = {
-    'register_credentials': owner2_creds
+'register_credentials': owner2_creds
 }
 headers = {'Authorization': 'Bearer ' + guest4_token}
 response = client.post('/auth/register', headers=headers, json=data)
@@ -117,6 +127,22 @@ response = client.post('/store/add_store_owner', headers=headers, json=data)
 data = {'promotion_id': 3, 'accept': True}
 headers = {'Authorization': 'Bearer ' + owner2_token}
 response = client.post('/store/accept_promotion', headers=headers, json=data)
+
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
+print("-------------")
 
 def test_appoint_store_manager_success():
     # appoint managers
