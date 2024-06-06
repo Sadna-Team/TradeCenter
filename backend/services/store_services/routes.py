@@ -415,12 +415,12 @@ def add_store_manager():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = int(data['store_id'])
-        new_manager_id = int(data['new_manager_id'])
+        new_manager_username = data['username']
     except Exception as e:
         logger.error('add_store_manager - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.add_store_manager(user_id, store_id, new_manager_id)
+    return store_service.add_store_manager(user_id, store_id, new_manager_username)
 
 
 @store_bp.route('/edit_manager_permissions', methods=['POST'])

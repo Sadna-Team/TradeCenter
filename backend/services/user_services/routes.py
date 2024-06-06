@@ -196,7 +196,7 @@ def accept_promotion():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        promotion_id = data['promotion_id']
+        promotion_id = int(data['promotion_id'])
         accept = data['accept']
     except Exception as e:
         logger.error('accept_promotion - ', str(e))
