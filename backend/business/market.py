@@ -13,9 +13,6 @@ import logging
 
 logger = logging.getLogger('myapp')
 
-def add_payment_method(method_name: str, payment_config: Dict):
-    PaymentHandler().add_payment_method(method_name, payment_config)
-
 
 class MarketFacade:
     # singleton
@@ -85,7 +82,7 @@ class MarketFacade:
             if not cart:
                 raise ValueError("Cart is empty")
 
-            user_dto = self.user_facade.get_user(user_id)
+            user_dto = self.user_facade.get_userDTO(user_id)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, datetime.date(user_dto.year, user_dto.month, user_dto.day))
             # calculate the total price
             self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
@@ -143,7 +140,7 @@ class MarketFacade:
             on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
             SupplyHandler().process_supply(package_details, user_id, on_arrival)
             for store_id in cart.keys():
-                Notifier().notify_new_purchase(store_id, user_id)
+                Notifier().notify_new_purchase(store_id, pur_id)
 
             return pur_id
         except Exception as e:
@@ -153,7 +150,7 @@ class MarketFacade:
                         amount = products[product_id]
                         self.store_facade.add_product_amount(store_id, product_id, amount)
             if purchase_accepted:
-                self.purchase_facade.reject_purchase(pur_id)
+                self.purchase_facade.cancel_accepted_purchase(pur_id)
             if basket_cleared:
                 self.user_facade.restore_basket(user_id, cart)
             raise e
@@ -418,9 +415,15 @@ class MarketFacade:
         * This function adds a store to the system
         * Returns None
         """
+        # TODO: add transaction
         if not self.user_facade.is_member(founder_id):
             raise ValueError("User is not a member")
-        return self.store_facade.add_store(location_id, store_name, founder_id)
+
+        store_id = self.store_facade.add_store(location_id, store_name, founder_id)
+        self.roles_facade.add_store(store_id, founder_id)
+        Notifier().sign_listener(founder_id, store_id)
+
+        return store_id
 
     def close_store(self, user_id: int, store_id: int):
         """

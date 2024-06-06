@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, Tuple, Callable
 from datetime import datetime, timedelta
 import time
+import threading
 
 
 class PaymentAdapter(ABC):
@@ -107,7 +108,8 @@ class SupplyAdapter(ABC):
     """
 
     @abstractmethod
-    def order(self, package_details: Dict, user_id: int, supply_config: Dict, on_arrival: Callable[[int], None]) -> None:
+    def order(self, package_details: Dict, user_id: int, supply_config: Dict,
+              on_arrival: Callable[[int], None]) -> None:
         """
             * order is an abstract method that should be implemented by concrete supply strategies.
             * order should wait for the supply to arrive and call the on_arrival callback.
@@ -115,16 +117,23 @@ class SupplyAdapter(ABC):
         pass
 
 
+def do_task(pur_id: int, sleep_time: int, on_arrival: Callable[[int], None]):
+    time.sleep(sleep_time)
+    on_arrival(pur_id)
+
+
 class BogoSupply(SupplyAdapter):
-    def order(self, package_details: Dict, user_id: int, supply_config: Dict, on_arrival: Callable[[int], None]) -> None:
+    def order(self, package_details: Dict, user_id: int, supply_config: Dict,
+              on_arrival: Callable[[int], None]) -> None:
         """
             * For testing purposes, BogoSupply always returns True.
         """
         arrival_time = package_details.get("arrival time")
         sleep_time = (arrival_time - datetime.now()).total_seconds()
         pur_id = package_details.get("purchase id")
-        time.sleep(sleep_time)
-        on_arrival(pur_id)
+        thread = threading.Thread(target=do_task, args=(pur_id, sleep_time, on_arrival))
+        thread.start()
+
 
 
 class SupplyHandler:
@@ -156,7 +165,7 @@ class SupplyHandler:
         if method_name not in self.supply_config:
             return False
         return True
-    
+
     def get_delivery_time(self, package_details: Dict, address: Dict) -> datetime:
         """
             * get_delivery_time is a method that returns the estimated delivery time for a package.
@@ -164,7 +173,7 @@ class SupplyHandler:
         # NOTE: << should log delivery time here >>
         if not self._validate_supply_method(package_details.get("supply method"), address):
             raise ValueError(f"supply method not supported for address: {address}")
-        return datetime.now() + timedelta(minutes=1)
+        return datetime.now() + timedelta(seconds=5)
 
     def _resolve_supply_strategy(self, package_details: Dict) -> SupplyAdapter:
         """
@@ -176,8 +185,9 @@ class SupplyHandler:
             raise ValueError("supply method not supported")
         if "arrival time" not in package_details:
             raise ValueError("Missing arrival time in package details")
-        date = package_details.get("arrival time")
-        if date < datetime.now():
+        date: datetime = package_details.get("arrival time")
+        date_now = datetime.now()
+        if date < date_now:
             raise ValueError("arrival time cannot be in the past")
         if method == "bogo":
             return BogoSupply()
