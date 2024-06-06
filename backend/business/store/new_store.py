@@ -1099,11 +1099,11 @@ class StoreFacade:
 
     def get_total_price_after_discount(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
         # TODO: implement this function
-        pass
+        return self.get_total_price_before_discount(shopping_cart)
 
     def get_total_basket_price_after_discount(self, store_id: int, shopping_cart: Dict[int, int]) -> float:
         # TODO: implement this function
-        pass
+        return self.get_total_basket_price_before_discount(store_id, shopping_cart)
 
     def get_store_product_information(self, user_id: int, store_id: int) -> List[ProductDTO]:
         """
