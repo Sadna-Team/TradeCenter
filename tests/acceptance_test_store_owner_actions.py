@@ -48,13 +48,12 @@ def add_user(token):
     }
     headers = {'Authorization': 'Bearer ' + token}
     response = client.post('/auth/register', headers=headers, json=data)
-    return response.get_json()['token'] 
 
 # start guest1 for client
 guest1_token = start_guest1()
 
 # create a user(owner)
-owner_token = add_user(guest1_token)
+add_user(guest1_token)
 
 # start guest2 for client2
 guest2_token = start_guest2()
@@ -80,13 +79,16 @@ data = {
 headers = {'Authorization': 'Bearer ' + guest3_token}
 response = client3.post('/auth/register', headers=headers, json=data)
 
+# start guest4 for client4
+guest4_token = start_guest1()
+
 # create a user(owner2)
 owner2_creds = register_credentials.copy()
 owner2_creds['username'] = 'owner2'
 data = {
     'register_credentials': owner2_creds
 }
-headers = {'Authorization': 'Bearer ' + guest1_token}
+headers = {'Authorization': 'Bearer ' + guest4_token}
 response = client.post('/auth/register', headers=headers, json=data)
 
 # login as owner
@@ -118,14 +120,14 @@ response = client.post('/store/accept_promotion', headers=headers, json=data)
 
 def test_appoint_store_manager_success():
     # appoint managers
-    data = {'username': 'new_manager'}
+    data = {'store_id': 1, 'username': 'new_manager'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('/store/add_store_manager', headers=headers, json=data)
     
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'store manager was added successfully'
 
-    data = {'username': 'new_manager2'}
+    data = {'store_id': 1, 'username': 'new_manager2'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('/store/add_store_manager', headers=headers, json=data)
 
@@ -133,16 +135,16 @@ def test_appoint_store_manager_success():
     # assert response.get_json()['message'] == 'store manager was added successfully'
 
 def test_appoint_store_manager_invalid_member_credentials():
-    data = {'username': 'invalid_user'}
+    data = {'store_id': 1, 'username': 'invalid_user'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('/store/add_store_manager', headers=headers, json=data)
     assert response.status_code == 400
     # assert response.get_json()['message'] == 'User not found'
 
-def test_appoint_store_manager_already_has_role_in_store(client, clean):
-    data = {'username': 'new_manager'}
+def test_appoint_store_manager_already_has_role_in_store():
+    data = {'store_id': 1, 'username': 'new_manager'}
     headers = {'Authorization': 'Bearer ' + owner_token}
-    response = client.post('/store/appoint_manager', headers=headers, json=data)
+    response = client.post('/store/add_store_manager', headers=headers, json=data)
     assert response.status_code == 400
     # assert response.get_json()['message'] == 'User already has a role in the store'
 
@@ -160,7 +162,7 @@ def accepting_manager_promotion_success():
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'promotion accepted successfully'
 
-def not_accepting_manager_promotion(client2, clean):   
+def not_accepting_manager_promotion():   
     # login as user(manager2)
     data = {'username': 'new_manager2', 'password': 'test'}
     headers = {'Authorization': 'Bearer ' + guest3_token}
@@ -180,7 +182,7 @@ def test_change_store_manager_permissions_success():
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'Permissions changed successfully'
 
-def test_change_store_manager_permissions_invalid_manager_id(client, clean):
+def test_change_store_manager_permissions_invalid_manager_id():
     data = {'manager_id': 999, 'permissions': ['add_manager']}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('/store/change_permissions', headers=headers, json=data)
