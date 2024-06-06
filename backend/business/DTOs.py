@@ -235,7 +235,7 @@ class CategoryDTO:
         return {"category_id": self.__category_id, "category name": self.__category_name, "parent_category_id": self.__parent_category_id}
 
 class UserDTO:
-    def __init__(self, user_id: int, email: str, username: str, year: int, month: int, day: int, phone: str, role: str):
+    def __init__(self, user_id: int, email: str, username: str, year: int, month: int, day: int, phone: str, role: str = None):
         self.__user_id: int = user_id
         self.__email: str = email
         self.__username: str = username

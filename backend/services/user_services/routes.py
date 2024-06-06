@@ -45,7 +45,7 @@ def register():
             user_id (int): id of the user
             register_credentials (?): credentials of the new user required for registration
     """
-    logger.info('recieved request to register a new user')
+    logger.info('received request to register a new user')
     try:
         data = request.get_json()
         register_credentials = data.get('register_credentials')

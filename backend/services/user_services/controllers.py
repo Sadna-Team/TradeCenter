@@ -216,9 +216,9 @@ class AuthenticationService:
                 token (str): token of the user
         """
         try:
-            user_token = self.authentication.login_user(username, password)
+            user_token, notification = self.authentication.login_user(username, password)
             logger.info('User logged in successfully')
-            return jsonify({'token': user_token}), 200
+            return jsonify({'token': user_token, 'notification': notification}), 200
 
         except Exception as e:
             logger.error('login - ' + str(e))

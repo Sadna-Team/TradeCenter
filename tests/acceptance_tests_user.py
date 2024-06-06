@@ -1,8 +1,9 @@
 import pytest
 from backend import create_app
+
 @pytest.fixture
 def app():
-    app = create_app()
+    app = create_app({'TESTING': True})
     return app
 
 @pytest.fixture
@@ -13,55 +14,71 @@ def client(app):
 def runner(app):
     return app.test_cli_runner()
 
+@pytest.fixture
+def start(client):
+    response = client.get('/auth/')
+    assert response.status_code == 200
+    return response.json['token']
+
 
 import pytest
 from flask import json
 
 
-
 @pytest.mark.usefixtures('client')
 class TestAuthEndpoints:
-    Token = None
 
+    @pytest.fixture
     def test_start(self, client):
         response = client.get('/auth/')
         assert response.status_code == 200
         data = json.loads(response.data)
         assert 'token' in data
-        self.Token = data['token']
+        return data['token']
 
-    def test_register(self, client):
+    @pytest.fixture
+    def test_register(self, client, test_start):
+
         register_credentials = {
-            'username': 'testuser',
-            'password': 'testpassword',
-            'email': 'testemail',
-            'year': 1990,
+            'username': 'test',
+            'email': 'test@gmail.com',
+            'password': 'test',
+            'location_id': 1,
+            'year': 2003,
             'month': 1,
             'day': 1,
-            'phone': '1234567890'
-        }
-        # Register new user
-        response = client.post('/auth/register', json={
+            'phone': '054-1234567'}
+        data = {
             'register_credentials': register_credentials
-        }, headers={
-            'Authorization': f'Bearer {self.Token}'
-        })
-        print(response.data)
-        assert response.status_code == 200
+        }
+        headers = {
+            'Authorization': 'Bearer ' + test_start
+        }
+        response = client.post('auth/register', headers=headers, json=data)
+        assert response.status_code == 201
+        return test_start
 
-    def test_login(self, client):
+    @pytest.fixture
+    def test_login(self, client, test_register):
         response = client.post('/auth/login', json={
             'username': 'testuser',
             'password': 'testpassword'
+        }, headers={
+            'Authorization': f'Bearer {test_register}'
         })
+
         assert response.status_code == 200
         data = json.loads(response.data)
         assert 'token' in data
+        return data['token']
 
-    def test_logout(self, client):
+    @pytest.fixture
+    def test_logout(self, client, test_login):
         login_response = client.post('/auth/login', json={
             'username': 'testuser',
             'password': 'testpassword'
+        }, headers={
+            'Authorization': f'Bearer {test_login}'
         })
         token = json.loads(login_response.data)['token']
 
@@ -71,30 +88,22 @@ class TestAuthEndpoints:
         assert response.status_code == 200
 
 
-@pytest.mark.usefixtures('client')
-class TestUserEndpoints:
+# @pytest.mark.usefixtures('client')
+# class TestUserEndpoints:
 
-    def test_show_notifications(self, client):
-        login_response = client.post('/auth/login', json={
-            'username': 'testuser',
-            'password': 'testpassword'
-        })
-        token = json.loads(login_response.data)['token']
-
+    @pytest.fixture
+    def test_show_notifications(self, client, login_user):
         response = client.get('/user/notifications', headers={
-            'Authorization': f'Bearer {token}'
+            'Authorization': f'Bearer {login_user}'
         })
         assert response.status_code == 200
+        assert json.loads(response.data)['notifications'] == []
 
-    def test_add_product_to_basket(self, client):
-        login_response = client.post('/auth/login', json={
-            'username': 'testuser',
-            'password': 'testpassword'
-        })
-        token = json.loads(login_response.data)['token']
+    @pytest.fixture
+    def test_add_product_to_basket(self, client, login_user):
 
         response = client.post('/user/add_to_basket', headers={
-            'Authorization': f'Bearer {token}'
+            'Authorization': f'Bearer {login_user}'
         }, json={
             'store_id': 1,
             'product_id': 1,
@@ -102,15 +111,11 @@ class TestUserEndpoints:
         })
         assert response.status_code == 200
 
-    def test_remove_product_from_basket(self, client):
-        login_response = client.post('/auth/login', json={
-            'username': 'testuser',
-            'password': 'testpassword'
-        })
-        token = json.loads(login_response.data)['token']
+    @pytest.fixture
+    def test_remove_product_from_basket(self, client, login_user):
 
         response = client.post('/user/remove_from_basket', headers={
-            'Authorization': f'Bearer {token}'
+            'Authorization': f'Bearer {login_user}'
         }, json={
             'store_id': 1,
             'product_id': 1,
@@ -118,17 +123,14 @@ class TestUserEndpoints:
         })
         assert response.status_code == 200
 
-    def test_show_cart(self, client):
-        login_response = client.post('/auth/login', json={
-            'username': 'testuser',
-            'password': 'testpassword'
-        })
-        token = json.loads(login_response.data)['token']
+    @pytest.fixture
+    def test_show_cart(self, client, login_user, add_product_to_basket):
 
         response = client.get('/user/show_cart', headers={
-            'Authorization': f'Bearer {token}'
+            'Authorization': f'Bearer {login_user}'
         })
         assert response.status_code == 200
+        assert json.loads(response.data)['cart'] == {1: {1: 1}}
 
     def test_accept_promotion(self, client):
         login_response = client.post('/auth/login', json={
@@ -144,4 +146,3 @@ class TestUserEndpoints:
             'accept': True
         })
         assert response.status_code == 200
-

@@ -86,8 +86,9 @@ class Authentication:
             raise ValueError("User is already logged in")
         else:
             token = self.generate_token(user_id)
+            notification = self.user_facade.get_notifications(user_id)
             self.logged_in.add(user_id)
-            return token
+            return token, notification
 
     def logout_user(self, jti, user_id):
         if user_id not in self.logged_in:
