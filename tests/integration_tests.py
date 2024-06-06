@@ -10,7 +10,6 @@ market_facade: Optional[MarketFacade] = None
 user_facade: Optional[UserFacade] = None
 purchase_facade: Optional[PurchaseFacade] = None
 
-
 default_usernames = ['user1', 'user2', 'user3', 'user4', 'user5']
 default_passwords = ['password1', 'password2', 'password3', 'password4', 'password5']
 default_emails = ['email1', 'email2', 'email3', 'email4', 'email5']
@@ -112,7 +111,6 @@ def clean():
     market_facade.clean_data()
 
 
-
 @pytest.fixture
 def default_set_up():
     user_id1 = user_facade.create_user(default_currency)
@@ -178,6 +176,25 @@ def default_user_cart(default_set_up):
     return user_ids, store_ids, products
 
 
+def test_add_product_to_basket(default_set_up):
+    user_ids, store_ids, products = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    product_id12 = products[0][1]
+    product_id13 = products[0][2]
+    market_facade.add_product_to_basket(user_id1, store_id1, product_id11, 1)
+    market_facade.add_product_to_basket(user_id1, store_id1, product_id12, 2)
+    market_facade.add_product_to_basket(user_id1, store_id1, product_id13, 3)
+
+    assert (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
+            ._ShoppingCart__shopping_baskets[store_id1]._ShoppingBasket__products[product_id11] == 1)
+    assert (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
+            ._ShoppingCart__shopping_baskets[store_id1]._ShoppingBasket__products[product_id12] == 2)
+    assert (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
+            ._ShoppingCart__shopping_baskets[store_id1]._ShoppingBasket__products[product_id13] == 3)
+
+
 def test_checkout(default_user_cart):
     user_ids, store_ids, products = default_user_cart
     user_id1 = user_ids[0]
@@ -197,7 +214,17 @@ def test_checkout(default_user_cart):
         products[0][0]].amount
     assert quantity_before > quantity_after
     assert purchase_facade._PurchaseFacade__check_if_purchase_exists(pur_id)
-    sleep(7)
+
+    # user notification part
+    assert len(market_facade.show_notifications(user_id1)) == 1
+    assert len(market_facade.show_notifications(user_id2)) == 1
+    # notifications cleared
+    assert len(market_facade.show_notifications(user_id1)) == 0
+    assert len(market_facade.show_notifications(user_id2)) == 0
+
+    sleep(7)  # wait for bogo supply method to complete the purchase
+
+    assert purchase_facade.check_if_purchase_completed(pur_id)
 
 
 def test_checkout_failed_shopping_cart_empty(default_set_up):
