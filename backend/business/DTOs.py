@@ -1,6 +1,6 @@
-from datetime import datetime
+import datetime
 # import the datetime type
-from typing import List
+from typing import List, Optional
 
 
 class AddressDTO:
@@ -209,6 +209,31 @@ class StoreDTO:
                 "store_founder_id": self.__store_founder_id, "is_active": self.__is_active, "found_date": self.__found_date,
                 "products": [product.get() for product in self.__products]}
 
+
+class TransactionException(Exception):
+    pass
+
+class CategoryDTO:
+    def __init__(self, category_id: int, category_name: str, parent_category_id: int = None):
+        self.__category_id: int = category_id
+        self.__category_name: str = category_name
+        self.__parent_category_id: int = parent_category_id
+
+    @property
+    def category_id(self) -> int:
+        return self.__category_id
+    
+    @property
+    def category_name(self) -> str:
+        return self.__category_name
+    
+    @property
+    def parent_category_id(self) -> int:
+        return self.__parent_category_id
+    
+    def get(self) -> dict:
+        return {"category_id": self.__category_id, "category name": self.__category_name, "parent_category_id": self.__parent_category_id}
+
 class UserDTO:
     def __init__(self, user_id: int, email: str, username: str, year: int, month: int, day: int, phone: str, role: str):
         self.__user_id: int = user_id
@@ -250,3 +275,20 @@ class UserDTO:
     @property
     def role(self) -> str:
         return self.__role
+
+
+class PurchaseUserDTO:
+    def __init__(self, user_id: int, birthdate: Optional[datetime]=None):
+        self.__user_id: int = user_id
+        self.__birthdate: datetime = birthdate
+
+    @property
+    def user_id(self) -> int:
+        return self.__user_id
+    
+    @property
+    def birthdate(self) -> datetime:
+        return self.__birthdate
+    
+    def get(self) -> dict:
+        return {"user_id": self.__user_id, "birthdate": self.__birthdate}

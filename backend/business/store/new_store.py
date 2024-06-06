@@ -1,11 +1,11 @@
 # ---------- Imports ------------#
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Callable
 from .DiscountStrategy import DiscountStrategy
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
-from backend.business.DTOs import ProductDTO, StoreDTO, PurchaseProductDTO
+from backend.business.DTOs import ProductDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO
+from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
 import threading
-
 # -------------logging configuration----------------
 import logging
 
@@ -346,6 +346,117 @@ class Category:
         return names
 '''
 
+
+def pred_no_alcohol_past_time(products: Dict[ProductDTO, int]) -> bool:
+    """
+        * Parameters: store_id, product_id, time
+        * This function checks if the product is an alcohol product and if the time is after the time of the purchase
+        * Returns: True if the product is an alcohol product and the time is after the time of the purchase, False otherwise
+    """
+    for product in products:
+        if 'alcohol' in product.tags and datetime.now().hour > 22:
+            return False
+    return True
+
+def pred_has_tabacco(products: Dict[ProductDTO, int]) -> bool:
+    """
+    * Parameters: products
+    * This function checks if the products contain alcohol
+    * Returns: True if the products contain alcohol, False otherwise
+    """
+    for product in products:
+        if 'alcohol' in product.tags:
+            return True
+    return False
+
+def pred_not_too_much_gun_powder(products: Dict[ProductDTO, int]) -> bool:
+    """
+    * Parameters: products
+    * This function checks if the products contain too much gun powder
+    * Returns: True if the products contain too much gun powder, False otherwise
+    """
+    for product in products:
+        if 'gunpowder' in product.tags:
+            return  product.weight * products[product] >= 100
+    return False
+
+def pred_has_tabbaco(products: Dict[ProductDTO, int]) -> bool:
+    """
+    * Parameters: products
+    * This function checks if the products contain tabbaco
+    * Returns: True if the products contain tabbaco, False otherwise
+    """
+    for product in products:
+        if 'tabbaco' in product.tags:
+            return True
+    return False
+
+def pred_older_then_18(user: PurchaseUserDTO) -> bool:
+    """
+    * Parameters: products
+    * This function checks if the products are older than 18
+    * Returns: True if the products are older than 18, False otherwise
+    """
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    current_day = datetime.now().day
+    delta = current_year - user.birthdate.year + (current_month - user.birthdate.month) / 12 + (current_day - user.birthdate.day) / 365
+    return delta >= 18
+
+def pred_funny_name(products: Dict[ProductDTO, int]) -> bool:
+    """
+    * Parameters: products
+    * This function checks if the products have a funny name
+    * Returns: True if the products have a funny name, False otherwise
+    """
+    for product in products:
+        if product.name == 'funny':
+            return True
+    return False
+
+def filter_no_alcohol_and_tabbaco_bellow_18(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+    """
+    * Parameters: products, user
+    * This function checks if the products contain alcohol and the user is older than 18
+    * Returns: True if the products contain alcohol and the user is older than 18, False otherwise
+    """
+    user_old_enough = UserFilter(user, pred_older_then_18)
+    no_alcohol = NotFilter(ProductFilter(products, pred_has_tabacco))
+    no_tabbaco = NotFilter(ProductFilter(products, pred_has_tabbaco))
+    total_filter = OrFilter([user_old_enough, AndFilter([no_alcohol, no_tabbaco])])
+    return total_filter
+
+def filter_no_alcohol_past_time(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+    """
+    * Parameters: products
+    * This function checks if the products contain alcohol and the time is after 22
+    * Returns: True if the products contain alcohol and the time is after 22, False otherwise
+    """
+    return ProductFilter(products, pred_no_alcohol_past_time)
+
+def filter_not_too_much_gun_powder(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+    """
+    * Parameters: products
+    * This function checks if the products contain too much gun powder
+    * Returns: True if the products contain too much gun powder, False otherwise
+    """
+    return NotFilter(ProductFilter(products, pred_not_too_much_gun_powder))
+
+def filter_no_funny_name(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+    """
+    * Parameters: products
+    * This function checks if the products have a funny name
+    * Returns: True if the products have a funny name, False otherwise
+    """
+    return NotFilter(ProductFilter(products, pred_funny_name))
+
+AVAILABLE_POLICIES = {
+    "no_alcohol_past_time": filter_no_alcohol_past_time,
+    "not_too_much_gun_powder": filter_not_too_much_gun_powder,
+    "no_alcohol_and_tabbaco_bellow_18": filter_no_alcohol_and_tabbaco_bellow_18, 
+    "no_funny_name": filter_no_funny_name
+}
+
 class Store:
     # id of store is storeId. It is unique for each store
     def __init__(self, store_id: int, location_id: int, store_name: str, store_founder_id: int):
@@ -357,7 +468,7 @@ class Store:
         self.__store_products: Dict[int, Product] = {}
         self.__product_id_counter = 0  # product Id
         self.__product_id_lock = threading.Lock() # lock for product id
-        self.__purchase_policies: List[PurchasePolicyStrategy] = []
+        self.__purchase_policy: Dict[str, Callable[[Dict[ProductDTO, int], PurchaseUserDTO], PurchaseComposite]] = {} # purchase policy
         self.__founded_date = datetime.now()
         self.__purchase_policy_id_counter = 0  # purchase policy Id
         self.__checkout_lock = threading.Lock() # lock for checkout
@@ -389,13 +500,12 @@ class Store:
         return list(self.__store_products.keys())
 
     @property
-    def purchase_policies(self) -> List[PurchasePolicyStrategy]:
-        return self.__purchase_policies
-
-    @property
     def founded_date(self) -> datetime:
         return self.__founded_date
 
+    @property
+    def purchase_policy(self) -> List[str]:
+        return list(self.__purchase_policy.keys())
     # ---------------------methods--------------------------------
     def close_store(self, user_id: int) -> None:
         """
@@ -417,7 +527,7 @@ class Store:
         self.__checkout_lock.release()
 
     # We assume that the marketFacade verified that the user attempting to add the product is a store Owner
-    def add_product(self, name: str, description: str, price: float, tags: List[str], weight: float, amount: int = 0) -> None:
+    def add_product(self, name: str, description: str, price: float, tags: List[str], weight: float, amount: int = 0) -> int:
         """
         * Parameters: name, description, price, tags, amount
         * This function adds a product to the store
@@ -430,6 +540,7 @@ class Store:
             self.__store_products[self.__product_id_counter] = product
             self.__product_id_counter += 1
         logger.info('[Store] successfully added product to store with id: ' + str(self.__store_id))
+        return product.product_id
 
     # We assume that the marketFacade verified that the user attempting to remove the product is a store owner/purchased
     def remove_product(self, product_id: int) -> None:
@@ -463,38 +574,35 @@ class Store:
         """
         return self.get_product_by_id(product_id).create_product_dto()
         
-    def add_purchase_policy(self) -> None:
-        # TODO: implement this function
-        pass
+    def add_purchase_policy(self, policy_name: str) -> None:
+        """
+        * Parameters: policyName
+        * This function adds a purchase policy to the store
+        * Returns: none
+        """
+        if policy_name in AVAILABLE_POLICIES:
+            self.__purchase_policy[policy_name] = AVAILABLE_POLICIES[policy_name]
+            logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__store_id))
+        else:
+            raise ValueError('Policy name is not valid')
 
-    def remove_purchase_policy(self, purchase_policy_id: int) -> None:
-        # TODO: implement this function
-        pass
+    def remove_purchase_policy(self, policy_name: str) -> None:
+        if policy_name in self.__purchase_policy:
+            self.__purchase_policy.pop(policy_name)
+            logger.info('[Store] successfully removed purchase policy from store with id: ' + str(self.__store_id))
+        else:
+            raise ValueError('Policy name is not found')
 
-    def update_purchase_policy(self, purchase_policy: PurchasePolicyStrategy) -> None:
-        # TODO: implement this function
-        pass
-
-    def get_purchase_policy_by_id(self, purchase_policy_id: int) -> Optional[PurchasePolicyStrategy]:
-        # TODO: implement this function
-        pass
-
-    def check_policies(self, basket: List[int]) -> bool:
-        # TODO: implement this function
-        pass
-
-    def aquire_products_lock(self, products: List[int]) -> None:
-        # to avoid deadlocks, we sort the products by their id
-        products.sort()
-        for product_id in products:
-            self.get_product_by_id(product_id).aquire_lock()
+    def check_purchase_policy(self, products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> None:
+        """
+        * Parameters: products, user
+        * This function checks if the purchase policy is satisfied
+        * Returns: true if the purchase policy is satisfied
+        """
+        for policy in self.__purchase_policy.values():
+            if not policy(products, user).pass_filter():
+                raise ValueError(f'Purchase policy of store: {self.__store_name} is not satisfied!')
         
-    def release_products_lock(self, products: List[int]) -> None:
-        # to avoid deadlocks, we sort the products by their id
-        products.sort()
-        for product_id in products:
-            self.__store_products[product_id].release_lock()
-
     def get_total_price_of_basket_before_discount(self, basket: Dict[int, int]) -> float:
         """
         * Parameters: basket
@@ -786,7 +894,7 @@ class StoreFacade:
         category.remove_product_from_category(store_id, product_id)
 
     def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float, weight: float,
-                             tags: List[str] = []) -> None:
+                             tags: Optional[List[str]]=[], amount: Optional[int]=0) -> int:
         """
         * Parameters: productName, weight, description, tags, manufacturer, storeIds
         * This function adds a product to the store
@@ -800,7 +908,7 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
-        store.add_product(product_name, description, price, tags, weight)
+        return store.add_product(product_name, description, price, tags, weight)
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
         """
@@ -889,7 +997,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         return store.get_tags_of_product(product_id)
 
-    def add_store(self, location_id: int, store_name: str, store_founder_id: int) -> None:
+    def add_store(self, location_id: int, store_name: str, store_founder_id: int) -> int:
         """
         * Parameters: locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate,
          ratingsOfProduct_Id
@@ -942,10 +1050,6 @@ class StoreFacade:
                 return store.add_purchase_policy()
             else:
                 raise ValueError('Store not found')'''
-
-    def remove_purchase_policy_from_store(self, store_id: int, purchase_policy_id: int) -> None:
-        # TODO: implement this function
-        pass
 
     def update_purchase_policy_of_store(self, store_id: int, purchase_policy_id: int) -> None:
         # TODO: implement this function
@@ -1216,4 +1320,32 @@ class StoreFacade:
                             products[store.store_id] = []
                         products[store.store_id].append(product)
         return products
-        
+
+    def add_purchase_policy_to_store(self, store_id: int, policy_name: str) -> None:
+        """
+        * Parameters: store_id, policy_name
+        * This function adds a purchase policy to the store
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        store.add_purchase_policy(policy_name)
+
+    def remove_purchase_policy_from_store(self, store_id: int, policy_name: str) -> None:
+        """
+        * Parameters: store_id, policy_name
+        * This function removes a purchase policy from the store
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        store.remove_purchase_policy(policy_name)
+
+    def validate_purchase_policies(self, cart: Dict[int, Dict[int, int]], user: PurchaseUserDTO) -> None:
+        """
+        * Parameters: cart, user
+        * This function validates the purchase policies of the stores
+        * Returns: True if the purchase policies are satisfied
+        """
+        for store_id, products in cart.items():
+            store = self.__get_store_by_id(store_id)
+            products = {store.get_product_dto_by_id(product_id): amount for product_id, amount in products.items()}
+            store.check_purchase_policy(products, user)
