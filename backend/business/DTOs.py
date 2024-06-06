@@ -4,7 +4,7 @@ from typing import List
 
 
 class AddressDTO:
-    def __init__(self, address_id, address, city, state, country, postal_code):
+    def __init__(self, address_id: int, address: str, city: str, state: str, country: str, postal_code: str):
         self.address_id = address_id
         self.address = address
         self.city = city
