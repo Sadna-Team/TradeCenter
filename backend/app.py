@@ -1,9 +1,10 @@
 from flask import Flask
 # from service_layer.routes import api_routes  # Import API routes from service_layer
 from __init__ import create_app
-from logging_config import setup_logging
+import logging
 
-setup_logging()
+logger = logging.getLogger('myapp')
+
 
 app = create_app()
 # Register API routes from service_layer
