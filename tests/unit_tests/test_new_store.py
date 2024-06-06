@@ -1,7 +1,8 @@
+from datetime import datetime
+from dateutil import relativedelta
 import pytest
 from backend.business.store.new_store import Store, Product, Category, StoreFacade
-from backend.business.DTOs import ProductDTO
-
+from backend.business.DTOs import ProductDTO, PurchaseUserDTO
 @pytest.fixture
 def product():
     return Product(product_id=0, product_name='product', description='very good product', price=10.0, weight=30.0, amount=10)
@@ -87,7 +88,6 @@ def test_has_tag(tagged_product):
     not_tag = 'not_tag'
     assert tagged_product.has_tag(tag)
     assert not tagged_product.has_tag(not_tag)
-
 
 def test_add_parent_category(category):
     category.add_parent_category(3)
@@ -631,3 +631,96 @@ def test_search_in_store_by_name(store_facade):
     store_facade.add_product_to_store(0, 'product', 'description', 10.0, 10.0, ['tag'])
     out = store_facade.search_by_name('product', 0)
     assert out[0][0].product_id == 0
+
+def test_add_purchase_policy(store):
+    store.add_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
+    assert len(store.purchase_policy) == 1
+    assert store.purchase_policy[0] == "no_alcohol_and_tabbaco_bellow_18"
+
+def test_add_purchase_policy_fail(store):
+    with pytest.raises(ValueError):
+        store.add_purchase_policy("hello")
+
+def test_remove_purchase_policy(store):
+    store.add_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
+    store.remove_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
+    assert len(store.purchase_policy) == 0
+
+def test_remove_purchase_policy_fail(store):
+    with pytest.raises(ValueError):
+        store.remove_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
+
+def test_check_purchase_policy(store):
+    store.add_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
+    store.add_purchase_policy("not_too_much_gun_powder")
+    user_dto = PurchaseUserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 21))
+    alcohol_product = ProductDTO(product_id=0, name='alcohol', description='description', price=10.0, tags=['alcohol'], weight=10.0, amount=10)
+    tabbaco_product = ProductDTO(product_id=1, name='tabbaco', description='description', price=10.0, tags=['tabbaco'], weight=10.0, amount=10)
+    gun_powder_product = ProductDTO(product_id=2, name='gun_powder', description='description', price=10.0, tags=['gun_powder'], weight=10.0, amount=5)
+    products = {alcohol_product: 1, tabbaco_product: 1, gun_powder_product: 8}
+    assert store.check_purchase_policy(products, user_dto) == None
+
+def test_check_purchase_policy_fail(store):
+    store.add_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
+    store.add_purchase_policy("not_too_much_gun_powder")
+    user_dto = PurchaseUserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 17))
+    alcohol_product = ProductDTO(product_id=0, name='alcohol', description='description', price=10.0, tags=['alcohol'], weight=10.0, amount=10)
+    tabbaco_product = ProductDTO(product_id=1, name='tabbaco', description='description', price=10.0, tags=['tabbaco'], weight=10.0, amount=10)
+    gun_powder_product = ProductDTO(product_id=2, name='gun_powder', description='description', price=10.0, tags=['gun_powder'], weight=10.0, amount=5)
+    products = {alcohol_product: 1, tabbaco_product: 1, gun_powder_product: 8}
+    with pytest.raises(ValueError):
+        store.check_purchase_policy(products, user_dto)
+
+def test_add_purchase_policy_to_store(store_facade):
+    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_purchase_policy_to_store(0, "no_alcohol_and_tabbaco_bellow_18")
+    assert store_facade._StoreFacade__get_store_by_id(0).purchase_policy[0] == "no_alcohol_and_tabbaco_bellow_18"
+
+def test_add_purchase_policy_to_store_fail(store_facade):
+    with pytest.raises(ValueError):
+        store_facade.add_purchase_policy_to_store(0, "hello")
+
+def test_remove_purchase_policy_from_store(store_facade):
+    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_purchase_policy_to_store(0, "no_alcohol_and_tabbaco_bellow_18")
+    store_facade.remove_purchase_policy_from_store(0, "no_alcohol_and_tabbaco_bellow_18")
+    assert len(store_facade._StoreFacade__get_store_by_id(0).purchase_policy) == 0
+
+def test_remove_purchase_policy_from_store_fail(store_facade):
+    with pytest.raises(ValueError):
+        store_facade.remove_purchase_policy_from_store(0, "no_alcohol_and_tabbaco_bellow_18")
+
+def test_validate_purchase_policies(store_facade):
+    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(location_id=0, store_name='store2', store_founder_id=0)
+    store_facade.add_purchase_policy_to_store(0, "no_alcohol_and_tabbaco_bellow_18")
+    store_facade.add_purchase_policy_to_store(0, "not_too_much_gun_powder")
+    store_facade.add_purchase_policy_to_store(1, "no_alcohol_and_tabbaco_bellow_18")
+    store_facade.add_purchase_policy_to_store(1, "not_too_much_gun_powder")
+    user_dto = PurchaseUserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 21))
+    store_facade.add_product_to_store(0, 'alcohol', 'description', 10.0, 10.0, ['alcohol'], 10)
+    store_facade.add_product_to_store(0, 'tabbaco', 'description', 10.0, 10.0, ['tabbaco'], 10)
+    store_facade.add_product_to_store(0, 'gun_powder', 'description', 10.0, 10.0, ['gun_powder'], 5)
+    store_facade.add_product_to_store(1, 'alcohol', 'description', 10.0, 10.0, ['alcohol'], 10)
+    store_facade.add_product_to_store(1, 'tabbaco', 'description', 10.0, 10.0, ['tabbaco'], 10)
+    store_facade.add_product_to_store(1, 'gun_powder', 'description', 10.0, 10.0, ['gun_powder'], 5)
+    products = {0: {0:1, 1:1, 2:4}, 1: {0:1, 1:1, 2:4}}
+    assert store_facade.validate_purchase_policies(products, user_dto) == None
+
+def test_validate_purchase_policies_fail(store_facade):
+    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(location_id=0, store_name='store2', store_founder_id=0)
+    store_facade.add_purchase_policy_to_store(0, "no_alcohol_and_tabbaco_bellow_18")
+    store_facade.add_purchase_policy_to_store(0, "not_too_much_gun_powder")
+    store_facade.add_purchase_policy_to_store(1, "no_alcohol_and_tabbaco_bellow_18")
+    store_facade.add_purchase_policy_to_store(1, "not_too_much_gun_powder")
+    user_dto = PurchaseUserDTO(user_id=0, birthdate=datetime.now().replace(year=datetime.now().year - 17))
+    store_facade.add_product_to_store(0, 'alcohol', 'description', 10.0, 10.0, ['alcohol'], 10)
+    store_facade.add_product_to_store(0, 'tabbaco', 'description', 10.0, 10.0, ['tabbaco'], 10)
+    store_facade.add_product_to_store(0, 'gun_powder', 'description', 10.0, 10.0, ['gun_powder'], 5)
+    store_facade.add_product_to_store(1, 'alcohol', 'description', 10.0, 10.0, ['alcohol'], 10)
+    store_facade.add_product_to_store(1, 'tabbaco', 'description', 10.0, 10.0, ['tabbaco'], 10)
+    store_facade.add_product_to_store(1, 'gun_powder', 'description', 10.0, 10.0, ['gun_powder'], 5)
+    products = {0: {0:1, 1:1, 2:4}, 1: {0:1, 1:1, 2:4}}
+    with pytest.raises(ValueError):
+        store_facade.validate_purchase_policies(products, user_dto)

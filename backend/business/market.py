@@ -1,18 +1,17 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO
+from .DTOs import NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO, PurchaseUserDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
 from .notifier import Notifier
 from typing import List, Dict, Tuple, Optional
-from datetime import datetime
+import datetime
 import threading
 import logging
 
 logger = logging.getLogger('myapp')
-
 
 def add_payment_method(method_name: str, payment_config: Dict):
     PaymentHandler().add_payment_method(method_name, payment_config)
@@ -58,6 +57,8 @@ class MarketFacade:
         self.user_facade.clean_data()
         self.store_facade.clean_data()
         self.roles_facade.clean_data()
+        self.purchase_facade.clean_data()
+        self.notifier.clean_data()
         PaymentHandler().reset()
         SupplyHandler().reset()
 
@@ -70,7 +71,7 @@ class MarketFacade:
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
         with MarketFacade.__lock:
             if self.store_facade.check_product_availability(store_id, product_id, amount):
-                self.user_facade.add_product_to_basket(user_id, store_id, product_id)
+                self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
 
     def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict) -> int:
         products_removed = False
@@ -79,11 +80,16 @@ class MarketFacade:
         cart: Dict[int, Dict[int, int]] = {}  # store_id -> product_id -> amount
         pur_id = -1
         try:
-            # needs a whole revamp to work with the discounts and purchase policies and location restrictions
-            # cart = self.user_facade.get_shopping_cart(user_id)
-            # TODO: call actual user facade method
+            cart = self.user_facade.get_shopping_cart(user_id)
 
+            if not cart:
+                raise ValueError("Cart is empty")
+
+            user_dto = self.user_facade.get_user(user_id)
+            user_purchase_dto = PurchaseUserDTO(user_dto.user_id, datetime.date(user_dto.year, user_dto.month, user_dto.day))
             # calculate the total price
+            self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
+
             total_price = self.store_facade.get_total_price_before_discount(cart)
             total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart)
 
@@ -106,7 +112,7 @@ class MarketFacade:
                     # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                     raise ValueError("Purchase does not meet the store's policies")"""
 
-            # TODO: attempt to find a delivery method for user
+            # find the delivery date
             package_details = {'stores': cart.keys(), "supply method": supply_method}
             delivery_date = SupplyHandler().get_delivery_time(package_details, address)
 
@@ -118,7 +124,7 @@ class MarketFacade:
             self.user_facade.clear_basket(user_id)
             basket_cleared = True
 
-            # TODO: (next version) fix discounts
+            # TODO: fix discounts
             if "payment method" not in payment_details:
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ValueError("Payment method not specified")
@@ -158,7 +164,7 @@ class MarketFacade:
         self.user_facade.notify_user(new_owner_id,
                                      NotificationDTO(-1, f"You have been nominated to be the owner of store"
                                                          f" {store_id}. nomination id: {nomination_id} ",
-                                                     datetime.now()))
+                                                     datetime.datetime.now()))
 
     def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_id: int):
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
@@ -166,7 +172,7 @@ class MarketFacade:
         self.user_facade.notify_user(new_manager_id,
                                      NotificationDTO(-1, f"You have been nominated to be the manager of store"
                                                          f" {store_id}. nomination id: {nomination_id} ",
-                                                     datetime.now()))
+                                                     datetime.datetime.now()))
 
     def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
         if accept:
@@ -218,7 +224,7 @@ class MarketFacade:
         SupplyHandler().remove_supply_method(method_name)
 
     # -------------------------------------- Store Related Methods --------------------------------------#
-    def search_by_category(self, category_id: int, store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
+    def search_by_category(self, category_id: int, store_id: Optional[int] = None) -> Dict[int, List[ProductDTO]]:
         """
         * Parameters: categoryId, storeId(optional)
         * This function gets all necessary information of the products in the category with categoryId
@@ -227,7 +233,7 @@ class MarketFacade:
         product_dtos = self.store_facade.search_by_category(category_id, store_id)
         return product_dtos
 
-    def search_by_tags(self, tags: List[str], store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
+    def search_by_tags(self, tags: List[str], store_id: Optional[int] = None) -> Dict[int, List[ProductDTO]]:
         """
         * Parameters: tags, storeId(optional)
         * This function returns all necessary information of the products with the tags
@@ -236,7 +242,7 @@ class MarketFacade:
         product_dtos = self.store_facade.search_by_tags(tags, store_id)
         return product_dtos
 
-    def search_by_names(self, name: str, store_id: Optional[int]=None) -> Dict[int, List[ProductDTO]]:
+    def search_by_name(self, name: str, store_id: Optional[int] = None) -> Dict[int, List[ProductDTO]]:
         """
         * Parameters: name, storeId(optional)
         * This function returns all necessary information of the products with the name
@@ -244,7 +250,6 @@ class MarketFacade:
         """
         product_dtos = self.store_facade.search_by_name(name, store_id)
         return product_dtos
-        
 
     '''    def search_product_in_store(self, store_id: int, name: str, sort_type: int) \
             -> Dict[int, Tuple[Tuple[int, float], float]]:
@@ -269,25 +274,24 @@ class MarketFacade:
         return product_ids_to_store
     '''
 
-    def get_store_info(self, user_id: int, store_id: int) -> StoreDTO:
-            """
+    def get_store_info(self, store_id: int) -> StoreDTO:
+        """
             * Parameters: storeId
             * This function returns the store information
             * Returns the store information
             """
-            # TODO: check if user has necessary permissions to view store information
-            return self.store_facade.get_store_info(store_id)
+        return self.store_facade.get_store_info(store_id)
 
-    def get_store_product_info(self, user_id: int, store_id: int) -> List[ProductDTO]:
+    def get_store_product_info(self, store_id: int) -> List[ProductDTO]:
         """
         * Parameters: storeId
         * This function returns the store product information
         * Returns the store product information
         """
-        return self.get_store_info(user_id, store_id).products
+        return self.get_store_info(store_id).products
 
     # -------------Discount related methods-------------------#
-    def add_discount(self, user_id: int, description: str, start_date: datetime, ending_date: datetime,
+    '''def add_discount(self, user_id: int, description: str, start_date: datetime, ending_date: datetime,
                      percentage: float):
         # later on we need to support the creation of different types of discounts using hasStoreId?: int etc, maybe
         # wildcards could be useful
@@ -296,15 +300,13 @@ class MarketFacade:
         if self.store_facade.add_discount(description, start_date, ending_date, percentage):
             logger.info(f"User {user_id} has added a discount")
         else:
-            logger.info(f"User {user_id} has failed to add a discount")
+            logger.info(f"User {user_id} has failed to add a discount")'''
 
     def change_discount(self, user_id: int, discount_id: int):
         # TODO: not implemented yet, but supported partially in purchaseFacade, see changeDiscountPercentage for example
         pass
 
     def remove_discount(self, user_id: int, discount_id: int):
-        # TODO: check if user has necessary permissions to remove a discount
-        # TODO: check if what i did instead is ok:
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         if self.store_facade.remove_discount(discount_id):
@@ -342,35 +344,33 @@ class MarketFacade:
             logger.info(f"User {user_id} has failed to rate product {product_spec_id}")'''
 
     # -------------Policies related methods-------------------#
-    def add_purchase_policy(self, user_id: int, store_id: int):
+    def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str):
+
         # for now, we dont support the creation of different types of policies
         """
-        * Parameters: userId, store_id
+        * Parameters: userId, store_id, policy_name
         * This function adds a purchase policy to the store
         * Returns None
         """
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
-            self.store_facade.add_purchase_policy_to_store(store_id)
+            self.store_facade.add_purchase_policy_to_store(store_id, policy_name)
         else:
             raise ValueError("User does not have the necessary permissions to add a policy to the store")
 
-    def remove_purchase_policy(self, user_id, store_id: int, policy_id: int):
+    def remove_purchase_policy(self, user_id, store_id: int, policy_name: str):
         """
-        * Parameters: store_id, policy_id
+        * Parameters: store_id, policy_name
         * This function removes a purchase policy from the store
         * Returns None
         """
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
-            self.store_facade.remove_purchase_policy_from_store(store_id, policy_id)
+            self.store_facade.remove_purchase_policy_from_store(store_id, policy_name)
         else:
             raise ValueError("User does not have the necessary permissions to remove a policy from the store")
 
-    def change_purchase_policy(self, user_id: int, store_id: int, policy_id: int):  # not implemented yet
-        pass
-
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
-                    weight: int, tags: List[str]):
+                    weight: float, tags: List[str]) -> int:
         """
         * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
         * This function adds a product to the store
@@ -378,7 +378,7 @@ class MarketFacade:
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add a product to the store")
-        self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags)
+        return self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags)
 
     def remove_product(self, user_id: int, store_id: int, product_id: int):
         """
@@ -412,7 +412,7 @@ class MarketFacade:
         self.store_facade.remove_product_amount(store_id, product_id, amount)
 
     # -------------Store related methods-------------------#
-    def add_store(self, founder_id: int, location_id: int, store_name: str):
+    def add_store(self, founder_id: int, location_id: int, store_name: str) -> int:
         """
         * Parameters: founderId, locationId, storeName
         * This function adds a store to the system
@@ -420,7 +420,7 @@ class MarketFacade:
         """
         if not self.user_facade.is_member(founder_id):
             raise ValueError("User is not a member")
-        self.store_facade.add_store(location_id, store_name, founder_id)
+        return self.store_facade.add_store(location_id, store_name, founder_id)
 
     def close_store(self, user_id: int, store_id: int):
         """
@@ -610,7 +610,8 @@ class MarketFacade:
         """
         if not self.auth_facade.is_logged_in(user_id):
             raise ValueError("User is not a member or is not logged in")
-        # TODO: add check if user is system manager or store owner or store manager, if not raise error
+        if not self.roles_facade.is_owner(store_id, user_id) and not self.roles_facade.is_manager(store_id, user_id):
+            raise ValueError("User is not a store owner or manager")
         return self.purchase_facade.get_purchases_of_store(store_id)
 
     '''def view_purchases_of_user_in_store(self, user_id: int, store_id: int) -> str:
@@ -914,3 +915,7 @@ class MarketFacade:
                     else:
                         #TODO: refund users who participated in the lottery
                         logger.info(f"Lottery {purchase.purchase_id()} has failed! Refunded all participants")"""'''
+
+    def get_usersDTO_by_store(self, store_id: int) -> Dict[int, UserDTO]:
+        roles = self.roles_facade.get_store_owners(store_id)
+        return self.user_facade.get_users_dto(roles)
