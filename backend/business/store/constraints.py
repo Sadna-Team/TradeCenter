@@ -203,11 +203,11 @@ class AmountProductConstraint(Constraint):
         self.__product_id = product_id
         self.__store_id = store_id
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        if basketInformation.store_id != self.__store_id:
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        if basket_information.store_id != self.__store_id:
             return False
         
-        for product in basketInformation.products:
+        for product in basket_information.products:
             if product.product_id == self.__product_id:
                 return self.__min_amount <= product.amount
         raise ValueError("Product not found in basket")
