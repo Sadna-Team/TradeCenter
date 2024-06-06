@@ -5,6 +5,11 @@ from abc import ABC, abstractmethod
 import threading
 from collections import defaultdict
 
+import logging
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("User Logger")
+
 
 # NOTE: This is a workaround to avoid circular imports
 #from .. import NotificationDTO
@@ -42,6 +47,7 @@ class ShoppingBasket:
         self.__products[product_id] -= quantity
 
 
+# Didn't do logs for this class
 class ShoppingCart:
     # id of ShoppingBasket is (user_id)
     def __init__(self, user_id: int) -> None:

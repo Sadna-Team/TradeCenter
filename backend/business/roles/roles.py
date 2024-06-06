@@ -3,6 +3,10 @@ from typing import Dict, List, Optional
 from threading import Lock
 from backend.business.notifier.notifier import Notifier
 
+import logging
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("Roles Logger")
 
 class Permissions:
     def __init__(self):
@@ -297,6 +301,8 @@ class RolesFacade:
         for n_id, nomination in self.__systems_nominations.copy().items():
             if nomination.nominee_id == nominee_id and nomination.store_id == nomination.store_id:
                 del self.__systems_nominations[n_id]
+        logger.info(f"User {nominee_id} accepted the nomination {nomination_id} in store {nomination.store_id}")
+
 
     def decline_nomination(self, nomination_id: int, nominee_id) -> None:
         if nomination_id not in self.__systems_nominations:
@@ -305,10 +311,13 @@ class RolesFacade:
         if nominee_id != nomination.nominee_id:
             raise ValueError("Nominee id does not match the nomination")
         del self.__systems_nominations[nomination_id]
+        logger.info(f"User {nominee_id} declined the nomination {nomination_id} in store {nomination.store_id}")
 
     def set_manager_permissions(self, store_id: int, actor_id: int, manager_id: int, add_product: bool,
                                 change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
                                 change_discount_types: bool, add_manager: bool, get_bid: bool) -> None:
+        '''
+        Actor_id is the owner/manager of the store and tries to change the permissions of the manager_id '''
         with self.__stores_locks[store_id]:
             if store_id not in self.__stores_to_roles:
                 raise ValueError("Store does not exist")
@@ -347,6 +356,9 @@ class RolesFacade:
             return user_id in self.__system_managers
 
     def add_system_manager(self, actor: int, user_id: int) -> None:
+        """
+        if Actor is a system manager, he adds a new system manager
+        """
         with self.__system_managers_lock:
             if not self.is_system_manager(actor):
                 raise ValueError("Actor is not a system manager")

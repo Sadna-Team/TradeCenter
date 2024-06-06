@@ -4,6 +4,10 @@ from datetime import datetime, timedelta
 import time
 import threading
 
+import logging
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("third_party_handlers logger")
 
 class PaymentAdapter(ABC):
     """
@@ -66,38 +70,41 @@ class PaymentHandler:
             * process_payment is a method that processes a payment using the PaymentHandler's PaymentAdapter object.
             * process_payment should return True if the payment was successful, and False / raise exception otherwise.
         """
-        # NOTE: << should log payment here >>
+   
+        logger.info(f"Processing payment of {amount} with details {payment_details}")
         return (self._resolve_payment_strategy(payment_details)
                 .pay(amount, self.payment_config[payment_details.get("payment method")]))
 
     def edit_payment_method(self, method_name: str, editing_data: Dict) -> None:
         """
-            * edit_payment_method is a method that edits a user's payment method.
+            * edit_payment_method is a method that edits the current methos configuration.
             * edit_payment_method should return True if the payment method was edited successfully, and False / raise
             exception otherwise.
         """
-        # NOTE: << should log payment method edit here >>
+
         if method_name not in self.payment_config:
             raise ValueError("payment method not supported")
         self.payment_config[method_name] = editing_data
+        logger.info(f"Edited payment method {method_name}") 
 
     def add_payment_method(self, method_name: str, config: Dict) -> None:
         """
             * add_payment_method is a method that marks a user's payment method as fully supported in the system.
         """
-        # NOTE: << should log payment method add here >>
         if method_name in self.payment_config:
             raise ValueError("payment method already supported")
         self.payment_config[method_name] = config
+        logger.info(f"Added payment method {method_name}")
 
     def remove_payment_method(self, method_name: str) -> None:
         """
             * remove_payment_method is a method that marks a user's payment method as unsupported in the system.
         """
-        # NOTE: << should log payment method remove here >>
+        
         if method_name not in self.payment_config:
             raise ValueError("payment method not supported")
         del self.payment_config[method_name]
+        logger.info(f"Removed payment method {method_name}")
 
 
 class SupplyAdapter(ABC):
@@ -161,7 +168,8 @@ class SupplyHandler:
             * validate_supply_method is a method that validates a user's chosen supply method for his address.
             * validate_supply_method should return True if the supply method is valid for the address, and False otherwise.
         """
-        # NOTE: << should log supply method validation here >>
+        logger.info(f"Validating supply method {method_name} for address {address}")
+
         if method_name not in self.supply_config:
             return False
         return True
@@ -170,10 +178,11 @@ class SupplyHandler:
         """
             * get_delivery_time is a method that returns the estimated delivery time for a package.
         """
-        # NOTE: << should log delivery time here >>
         if not self._validate_supply_method(package_details.get("supply method"), address):
             raise ValueError(f"supply method not supported for address: {address}")
-        return datetime.now() + timedelta(seconds=5)
+        time = datetime.now() + timedelta(minutes=1)
+        logger.info(f"Estimated delivery time: {time} - for package {package_details} to address {address}")
+        return time
 
     def _resolve_supply_strategy(self, package_details: Dict) -> SupplyAdapter:
         """
@@ -199,7 +208,6 @@ class SupplyHandler:
             * process_supply is a method that processes a supply using the SupplyHandler's SupplyAdapter object.
             * process_supply should return True if the supply was successful, and False / raise exception otherwise.
         """
-        # NOTE: << should log supply here >>
         if "supply method" not in package_details:
             raise ValueError("Missing supply method in package details")
         if "address" not in package_details:
@@ -212,32 +220,33 @@ class SupplyHandler:
             raise ValueError("Missing purchase id in package details")
         (self._resolve_supply_strategy(package_details)
          .order(package_details, user_id, self.supply_config[package_details.get("supply method")], on_arrival))
+        logger.info(f"Processed supply for package {package_details} to user {user_id}")
 
     def edit_supply_method(self, method_name: str, editing_data: Dict) -> None:
         """
-            * edit_supply_method is a method that edits a user's supply method.
+            * edit_supply_method is a method that edits a supply method.
             * edit_supply_method should return True if the supply method was edited successfully, and False / raise
             exception otherwise.
         """
-        # NOTE: << should log supply method edit here >>
         if method_name not in self.supply_config:
             raise ValueError("supply method not supported")
         self.supply_config[method_name] = editing_data
+        logger.info(f"Edited supply method {method_name}")
 
     def add_supply_method(self, method_name: str, config: Dict) -> None:
         """
             * add_supply_method is a method that marks a user's supply method as fully supported in the system.
         """
-        # NOTE: << should log supply method add here >>
         if method_name in self.supply_config:
             raise ValueError("supply method already supported")
         self.supply_config[method_name] = config
+        logger.info(f"Added supply method {method_name}")
 
     def remove_supply_method(self, method_name: str) -> None:
         """
             * remove_supply_method is a method that marks a user's supply method as unsupported in the system.
         """
-        # NOTE: << should log supply method remove here >>
         if method_name not in self.supply_config:
             raise ValueError("supply method not supported")
         del self.supply_config[method_name]
+        logger.info(f"Removed supply method {method_name}")

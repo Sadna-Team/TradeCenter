@@ -8,8 +8,9 @@ from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFi
 
 # -------------logging configuration----------------
 import logging
-
-logger = logging.getLogger('myapp')
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("New Store Logger")
 
 # ---------------------------------------------------
 
@@ -490,7 +491,7 @@ class Store:
         """
         if user_id == self.__store_founder_id:
             self.__is_active = False
-            logger.info('[Store] successfully closed store with id: ' + str(self.__store_id))
+            logger.info('Successfully closed store with id: ' + str(self.__store_id))
         else:
             raise ValueError('User is not the founder of the store')
 
@@ -518,7 +519,7 @@ class Store:
         """
         try:
             self.__store_products.pop(product_id)
-            logger.info('[Store] successfully removed product from store with id: ' + str(self.__store_id))
+            logger.info('Successfully removed product from store with id: {self.__store_id}')
         except KeyError:
             raise ValueError('Product is not found')
 
@@ -632,7 +633,7 @@ class Store:
         if self.__store_products[product_id].amount < amount:
             raise ValueError('Amount is greater than the available amount of the product')
         self.__store_products[product_id].remove_amount(amount)
-        logger.info('[Store] successfully removed product amount with id: ' + str(product_id))
+        logger.info('Successfully removed product amount with id: {product_id}')
 
     def change_description_of_product(self, product_id: int, new_description: str) -> None:
         """
@@ -643,6 +644,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.change_description(new_description)
+            logger.info('Successfully changed description of product with id: {product_id}')
         else:
             raise ValueError('Product is not found')
 
@@ -655,6 +657,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.change_price(new_price)
+            logger.info('Successfully changed price of product with id: {product_id} to {new_price}')
         else:
             raise ValueError('Product is not found')
 
@@ -667,6 +670,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.add_tag(tag)
+            logger.info('Successfully added tag: {tag} to product with id: {product_id} in store with id: {self.__store_id}')
         else:
             raise ValueError('Product is not found')
 
@@ -679,6 +683,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.remove_tag(tag)
+            logger.info('Successfully removed tag  {tag} from product with id: {product_id} in store with id: {self.__store_id}')
         else:
             raise ValueError('Product is not found')
 
@@ -781,7 +786,7 @@ class StoreFacade:
             category = Category(self.__category_id_counter, category_name)
             self.__categories[self.__category_id_counter] = category
             self.__category_id_counter += 1
-            logger.info(f'[StoreFacade] successfully added category: {category_name}')
+            logger.info(f'Successfully added category: {category_name}')
             return category.category_id
         else:
             raise ValueError('Category name is not a valid string')
@@ -807,7 +812,7 @@ class StoreFacade:
         if parent_category is not None:
             parent_category.remove_sub_category(category_to_remove)
         self.__categories.pop(category_id)
-        logger.info(f'[StoreFacade] successfully removed category with id: {category_id}')
+        logger.info(f'Successfully removed category with id: {category_id}')
 
     def assign_sub_category_to_category(self, sub_category_id: int, category_id: int) -> None:
         """
@@ -866,6 +871,7 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
+        logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
         return store.add_product(product_name, description, price, tags, weight)
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
@@ -885,6 +891,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.restock_product(product_id, amount)
+        logger.info(f'Successfully added {amount} of product with id: {product_id} to store with id: {store_id}')
 
     def remove_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
@@ -965,6 +972,7 @@ class StoreFacade:
         store = Store(self.__store_id_counter, location_id, store_name, store_founder_id)
         self.__stores[self.__store_id_counter] = store
         self.__store_id_counter += 1
+        logger.info(f'Successfully added store: {store_name}')
         return store.store_id
 
     def close_store(self, store_id: int, user_id: int) -> None:
