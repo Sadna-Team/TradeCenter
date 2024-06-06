@@ -1,6 +1,6 @@
 # ---------- Imports ------------#
 from typing import List, Dict, Tuple, Optional, Callable
-from .DiscountStrategy import DiscountStrategy
+from .discount import Discount
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
 from backend.business.DTOs import ProductDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO
@@ -729,7 +729,7 @@ class StoreFacade:
             self._initialized = True
             self.__categories: Dict[int, Category] = {}  # category_id: Category
             self.__stores: Dict[int, Store] = {}  # store_id: Store
-            self.__discounts: List[DiscountStrategy] = []  # List to store discounts
+            self.__discounts: List[Discount] = []  # List to store discounts
             self.__category_id_counter = 0  # Counter for category IDs
             self.__store_id_counter = 0  # Counter for store IDs
             self.__discount_id_counter = 0  # Counter for discount IDs
@@ -752,7 +752,7 @@ class StoreFacade:
         return list(self.__categories.keys())
 
     @property
-    def discounts(self) -> List[DiscountStrategy]:
+    def discounts(self) -> List[Discount]:
         return self.__discounts
 
     @property
@@ -1057,25 +1057,25 @@ class StoreFacade:
         # TODO: implement this function
         pass
 
-    def get_discount_by_store(self, store_id: int) -> List[DiscountStrategy]:
+    def get_discount_by_store(self, store_id: int) -> List[Discount]:
         # TODO: implement this function
-        pass
+        return []
 
-    def get_discount_by_product(self, product_id: int) -> List[DiscountStrategy]:
+    def get_discount_by_product(self, product_id: int) -> List[Discount]:
         # TODO: implement this function
-        pass
+        return []
 
-    def get_discount_by_category(self, category_id: int) -> List[DiscountStrategy]:
+    def get_discount_by_category(self, category_id: int) -> List[Discount]:
         # TODO: implement this function
-        pass
+        return []
 
-    def get_discount_by_discount_id(self, discount_id: int) -> Optional[DiscountStrategy]:
+    def get_discount_by_discount_id(self, discount_id: int) -> Optional[Discount]:
         # TODO: implement this function
-        pass
+        return None
 
     def apply_discounts(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
         # TODO: implement this function
-        pass
+        return 0.0
 
     def get_total_price_before_discount(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
         """

@@ -1,8 +1,10 @@
-import datetime
 import pytest
 from backend.business.store.constraints import *
-from backend.business.DTOs import CategoryDTO, BasketInformationForDiscountDTO, ProductForDiscountDTO, UserInformationForDiscountDTO
+from backend.business.DTOs import CategoryForDiscountDTO, BasketInformationForDiscountDTO, ProductForDiscountDTO, UserInformationForDiscountDTO
 from typing import List, Dict, Tuple
+from datetime import datetime
+from datetime import time
+
 
 
 #AgeConstraint default vars:
@@ -21,9 +23,8 @@ default_house_number: str = "house_number"
 default_location: AddressDTO = AddressDTO(default_address_id, default_city, default_country, default_street, default_zip_code, default_house_number)
 
 #timeConstraint default vars:
-default_start_time: datetime.time = datetime.time(0, 0, 0)
-default_end_time: datetime.time = datetime.time(23, 59, 59)
-
+default_start_time: time = time(0, 0, 0)
+default_end_time: time = time(23, 59, 59)
 
 
 #general default vars:
@@ -63,19 +64,15 @@ default_implies_constraint: Constraint = ImpliesConstraint(default_AgeConstraint
 #UserInformationForDiscountDTO
 default_user_id1: int = 0
 default_user_id2: int = 1
-default_birthdate1: datetime = datetime.datetime(2000, 1, 1)
-default_birthdate2: datetime = datetime.datetime(2009, 1, 1)
+default_birthdate1: datetime = datetime(1990, 1, 1)
+default_birthdate2: datetime = datetime(2009, 1, 1)
 default_user_address: AddressDTO = AddressDTO(default_address_id, default_city, default_country, default_street, default_zip_code, default_house_number)
 default_bad_user_address: AddressDTO = AddressDTO(1, "bad_city", "bad_country", default_street, default_zip_code, default_house_number)
 
 
-@pytest.fixture
-def user_information_dto1():
-    return UserInformationForDiscountDTO(default_user_id1, default_birthdate1, default_user_address)
+user_information_dto1=  UserInformationForDiscountDTO(default_user_id1, default_birthdate1, default_user_address)
 
-@pytest.fixture
-def user_information_dto2():
-    return UserInformationForDiscountDTO(default_user_id2, default_birthdate2, default_bad_user_address)
+user_information_dto2=  UserInformationForDiscountDTO(default_user_id2, default_birthdate2, default_bad_user_address)
 
 
 
@@ -83,115 +80,107 @@ def user_information_dto2():
 default_product_price: float = 10
 default_product_weight: float = 10
 default_product_amount: int = 10
-@pytest.fixture
-def productForDiscountDTO():
-    return ProductForDiscountDTO(default_product_id, default_store_id, default_product_price, default_product_weight, default_product_amount)
+
+productForDiscountDTO = ProductForDiscountDTO(default_product_id, default_store_id, default_product_price, default_product_weight, default_product_amount)
 
 #CategoryDTO
 default_category_name: str = "category_name"
 default_parent_category_id: int = 2
-default_sub_categories: List[CategoryDTO] = []
-default_products: List[ProductForDiscountDTO] = productForDiscountDTO()
+default_sub_categories: List[CategoryForDiscountDTO] = []
+default_products: List[ProductForDiscountDTO] = [productForDiscountDTO]
 
-@pytest.fixture
-def categoryDTO():
-    return CategoryDTO(default_category_id, default_category_name, default_parent_category_id, default_sub_categories, default_products)
+categoryDTO= CategoryForDiscountDTO(default_category_id, default_category_name, default_parent_category_id, default_sub_categories, default_products)
 
 #BasketInformationForDiscountDTO
 default_total_price_of_basket: float = 100  
-default_time_of_purchase: datetime = datetime.datetime(2020, 1, 1)
+default_time_of_purchase: datetime = datetime(2020, 1, 1)
 
-@pytest.fixture
-def basketInformationForDiscountDTO1():
-    return BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto1, categoryDTO)
+basketInformationForDiscountDTO1= BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto1, [categoryDTO])
 
-@pytest.fixture
-def basketInformationForDiscountDTO2():
-    return BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto2, categoryDTO)
-
+basketInformationForDiscountDTO2= BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto2, [categoryDTO])
 
 
 #AgeConstraint tests:
 
-def test_AgeConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_AgeConstraint_is_satisfied():
     assert default_AgeConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
-def test_AgeConstraint_is_not_satisfied(basketInformationForDiscountDTO2):
+def test_AgeConstraint_is_not_satisfied():
     assert default_AgeConstraint.is_satisfied(basketInformationForDiscountDTO2) == False
     
     
 #LocationConstraint tests:
-def test_LocationConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_LocationConstraint_is_satisfied():
     assert default_LocationConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
-def test_LocationConstraint_is_not_satisfied(basketInformationForDiscountDTO2):
+def test_LocationConstraint_is_not_satisfied():
     assert default_LocationConstraint.is_satisfied(basketInformationForDiscountDTO2) == False
     
 #TimeConstraint tests:
-def test_TimeConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_TimeConstraint_is_satisfied():
     assert default_TimeConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
     
 #PriceBasketConstraint tests:
-def test_PriceBasketConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_PriceBasketConstraint_is_satisfied():
     assert default_PriceBasketConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
     
 #PriceProductConstraint tests:
-def test_PriceProductConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_PriceProductConstraint_is_satisfied():
     assert default_PriceProductConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
     
 #PriceCategoryConstraint tests:
-def test_PriceCategoryConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_PriceCategoryConstraint_is_satisfied():
     assert default_PriceCategoryConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
 #AmountBasketConstraint tests:
-def test_AmountBasketConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_AmountBasketConstraint_is_satisfied():
     assert default_AmountBasketConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
     
 #AmountProductConstraint tests:
-def test_AmountProductConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_AmountProductConstraint_is_satisfied():
     assert default_AmountProductConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
 #AmountCategoryConstraint tests:
-def test_AmountCategoryConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_AmountCategoryConstraint_is_satisfied():
     assert default_AmountCategoryConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
     
 #WeightBasketConstraint tests:
-def test_WeightBasketConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_WeightBasketConstraint_is_satisfied():
     assert default_WeightBasketConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
 
 #WeightProductConstraint tests:
-def test_WeightProductConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_WeightProductConstraint_is_satisfied():
     assert default_WeightProductConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
     
 #WeightCategoryConstraint tests:
-def test_WeightCategoryConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_WeightCategoryConstraint_is_satisfied():
     assert default_WeightCategoryConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
 #AndConstraint tests:
-def test_AndConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_AndConstraint_is_satisfied():
     assert default_and_constraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
     
-def test_AndConstraint_is_not_satisfied(basketInformationForDiscountDTO2):
+def test_AndConstraint_is_not_satisfied():
     assert default_and_constraint.is_satisfied(basketInformationForDiscountDTO2) == False
 
 
 #OrConstraint tests:
-def test_OrConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_OrConstraint_is_satisfied():
     assert default_or_constraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
 #XorConstraint tests:
-def test_XorConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_XorConstraint_is_satisfied():
     assert default_xor_constraint.is_satisfied(basketInformationForDiscountDTO2) == True
     
     
 #ImpliesConstraint tests:
-def test_ImpliesConstraint_is_satisfied(basketInformationForDiscountDTO1):
+def test_ImpliesConstraint_is_satisfied():
     assert default_implies_constraint.is_satisfied(basketInformationForDiscountDTO1) == True

@@ -1,6 +1,8 @@
-import datetime
+
 # import the datetime type
 from typing import List, Optional
+from datetime import datetime
+
 
 
 class AddressDTO:
@@ -264,12 +266,12 @@ class ProductForDiscountDTO:
 
 
 
-class CategoryDTO:
-    def __init__(self, category_id: int, category_name: str, parent_category_id: int, sub_categories: List['CategoryDTO'], products: List[ProductForDiscountDTO]):
+class CategoryForDiscountDTO:
+    def __init__(self, category_id: int, category_name: str, parent_category_id: int, sub_categories: List['CategoryForDiscountDTO'], products: List[ProductForDiscountDTO]):
         self.__category_id: int = category_id
         self.__category_name: str = category_name
         self.__parent_category_id: int = parent_category_id
-        self.__sub_categories: List['CategoryDTO'] = sub_categories
+        self.__sub_categories: List['CategoryForDiscountDTO'] = sub_categories
         self.__products: List[ProductForDiscountDTO] = products
 
     @property
@@ -285,7 +287,7 @@ class CategoryDTO:
         return self.__parent_category_id
 
     @property
-    def sub_categories(self) -> List['CategoryDTO']:
+    def sub_categories(self) -> List['CategoryForDiscountDTO']:
         return self.__sub_categories
     
     @property
@@ -295,13 +297,13 @@ class CategoryDTO:
 
 
 class BasketInformationForDiscountDTO:
-    def __init__(self, store_id: int, products: List[ProductForDiscountDTO], total_price_of_basket: float, time_of_purchase: datetime, user_info: UserInformationForDiscountDTO, categories: List[CategoryDTO]):
+    def __init__(self, store_id: int, products: List[ProductForDiscountDTO], total_price_of_basket: float, time_of_purchase: datetime, user_info: UserInformationForDiscountDTO, categories: List[CategoryForDiscountDTO]):
         self.__store_id: int = store_id
         self.__products: List[ProductForDiscountDTO] = products
         self.__total_price_of_basket: float = total_price_of_basket
         self.__time_of_purchase: datetime = time_of_purchase
         self.__user_info: UserInformationForDiscountDTO = user_info
-        self.__categories: List[CategoryDTO] = categories
+        self.__categories: List[CategoryForDiscountDTO] = categories
 
     @property
     def store_id(self) -> int:
@@ -324,7 +326,7 @@ class BasketInformationForDiscountDTO:
         return self.__user_info
     
     @property
-    def categories(self) -> List[CategoryDTO]:
+    def categories(self) -> List[CategoryForDiscountDTO]:
         return self.__categories
 
     def get(self) -> dict:
@@ -336,7 +338,7 @@ class TransactionException(Exception):
     pass
 
 class CategoryDTO:
-    def __init__(self, category_id: int, category_name: str, parent_category_id: int = None):
+    def __init__(self, category_id: int, category_name: str, parent_category_id: int):
         self.__category_id: int = category_id
         self.__category_name: str = category_name
         self.__parent_category_id: int = parent_category_id
@@ -402,14 +404,14 @@ class UserDTO:
 class PurchaseUserDTO:
     def __init__(self, user_id: int, birthdate: Optional[datetime]=None):
         self.__user_id: int = user_id
-        self.__birthdate: datetime = birthdate
+        self.__birthdate: Optional[datetime] = birthdate
 
     @property
     def user_id(self) -> int:
         return self.__user_id
     
     @property
-    def birthdate(self) -> datetime:
+    def birthdate(self) -> Optional[datetime]:
         return self.__birthdate
     
     def get(self) -> dict:

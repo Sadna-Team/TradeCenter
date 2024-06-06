@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from datetime import datetime, time
 
-from backend.business.DTOs import AddressDTO, BasketInformationForDiscountDTO #maybe timezone constraints :O
+from backend.business.DTOs import AddressDTO, BasketInformationForDiscountDTO, CategoryForDiscountDTO #maybe timezone constraints :O
 
 
 # --------------- Constraint Interface ---------------#
@@ -139,7 +139,8 @@ class PriceCategoryConstraint(Constraint):
         self.__category_id = category_id 
 
     def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
-        for category in basket_information.categories:
+        categories= basket_information.categories
+        for category in categories:
             if category.category_id == self.__category_id:
                 products = set(category.products)
                 for sub_categories in category.sub_categories:
@@ -235,10 +236,11 @@ class AmountCategoryConstraint(Constraint):
         self.__category_id = category_id
 
     def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
-        for category in basket_information.categories:
-            if category.category_id == self.__category_id:
-                products = category.products
-                for sub_categories in category.sub_categories:
+        categories= basket_information.categories
+        for c in categories:
+            if c.category_id == self.__category_id:
+                products = c.products
+                for sub_categories in c.sub_categories:
                     products += sub_categories.products
                 category_total_amount: int = 0
                 for product in products:
@@ -337,10 +339,10 @@ class WeightCategoryConstraint(Constraint):
         self.__category_id = category_id
 
     def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
-        for category in basket_information.categories:
-            if category.category_id == self.__category_id:
-                products = category.products
-                for sub_categories in category.sub_categories:
+        for curr_category in basket_information.categories:
+            if curr_category.category_id == self.__category_id:
+                products = curr_category.products
+                for sub_categories in curr_category.sub_categories:
                     products += sub_categories.products
                 category_total_weight: float = 0.0
                 for product in products:
