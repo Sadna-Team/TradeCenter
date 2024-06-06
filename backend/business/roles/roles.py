@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 from threading import Lock
+from backend.business.notifier.notifier import Notifier
 
 import logging
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
@@ -194,9 +195,6 @@ class Tree:
 class RolesFacade:
     # singleton
     __instance = None
-    __creation_lock = Lock()
-    __stores_locks = Dict[int, Lock]  # Dict[store_id, Lock]
-    __system_managers_lock = Lock()
 
     def __new__(cls):
         if RolesFacade.__instance is None:
@@ -212,6 +210,10 @@ class RolesFacade:
             self.__system_managers: List[int] = []
             self.__system_admin: int = -1
             Nomination._Nomination__nomination_id_serializer = 0
+
+            self.__creation_lock = Lock()
+            self.__stores_locks: Dict[int, Lock] = {}  # Dict[store_id, Lock]
+            self.__system_managers_lock = Lock()
 
     def clean_data(self):
         """
@@ -292,6 +294,9 @@ class RolesFacade:
         self.__stores_to_role_tree[nomination.store_id].add_child_to_father(nomination.nominator_id, nominee_id)
         # add role to the store
         self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
+
+        Notifier().sign_listener(nominee_id, nomination.store_id)
+
         # delete all nominations of the nominee in the store
         for n_id, nomination in self.__systems_nominations.copy().items():
             if nomination.nominee_id == nominee_id and nomination.store_id == nomination.store_id:
@@ -340,8 +345,11 @@ class RolesFacade:
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
                 raise ValueError("Cannot remove the root owner of the store")
             removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
+
             for user_id in removed:
+                Notifier().unsign_listener(user_id, store_id)
                 del self.__stores_to_roles[store_id][user_id]
+
 
     def is_system_manager(self, user_id: int) -> bool:
         with self.__system_managers_lock:

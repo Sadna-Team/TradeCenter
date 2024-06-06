@@ -186,7 +186,7 @@ def show_cart():
 @jwt_required()
 def accept_promotion():
     """
-        Use Case 2.2.5:
+        Use Case 2.4.6:
         Accept a promotion
 
         Data:
