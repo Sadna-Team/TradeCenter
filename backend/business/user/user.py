@@ -294,8 +294,8 @@ class UserFacade:
             self.__get_user(user_id).register(email, username, password, year, month, day, phone)
             self.__usernames[username] = user_id
 
-    def get_usernames(self) -> dict[str, int]:
-        return self.__usernames
+    def get_user_id_from_username(self, username: str) -> int:
+        return self.__usernames[username]
 
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
         with UserFacade.__notification_lock:

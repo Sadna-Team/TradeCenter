@@ -146,14 +146,14 @@ print("-------------")
 
 def test_appoint_store_manager_success():
     # appoint managers
-    data = {'store_id': 1, 'username': 'new_manager'}
+    data = {'store_id': 0, 'username': 'new_manager'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/add_store_manager', headers=headers, json=data)
-    #print(response.get_json())
+    print(response.get_json())
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'store manager was added successfully'
 
-    data = {'store_id': 1, 'username': 'new_manager2'}
+    data = {'store_id': 0, 'username': 'new_manager2'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/add_store_manager', headers=headers, json=data)
 
@@ -161,18 +161,12 @@ def test_appoint_store_manager_success():
     # assert response.get_json()['message'] == 'store manager was added successfully'
 
 def test_appoint_store_manager_invalid_member_credentials():
-    data = {'store_id': 1, 'username': 'invalid_user'}
+    data = {'store_id': 0, 'username': 'invalid_user'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/add_store_manager', headers=headers, json=data)
     assert response.status_code == 400
     # assert response.get_json()['message'] == 'User not found'
 
-def test_appoint_store_manager_already_has_role_in_store():
-    data = {'store_id': 1, 'username': 'new_manager'}
-    headers = {'Authorization': 'Bearer ' + owner_token}
-    response = client.post('store/add_store_manager', headers=headers, json=data)
-    assert response.status_code == 400
-    # assert response.get_json()['message'] == 'User already has a role in the store'
 
 def test_accepting_manager_promotion_success():
     # login as user(manager1)
@@ -182,13 +176,20 @@ def test_accepting_manager_promotion_success():
     manager1_token = response.get_json()['token']
 
     # accept promotion
-    data = {'promotion_id': 0, 'accept': True}
+    data = {'promotion_id': 1, 'accept': True}
     headers = {'Authorization': 'Bearer ' + manager1_token}
     response = client2.post('user/accept_promotion', headers=headers, json=data)
-    print(response.get_json())
 
+    print(response.get_json())
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'promotion accepted successfully'
+
+def test_appoint_store_manager_already_has_role_in_store():
+    data = {'store_id': 0, 'username': 'new_manager'}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client.post('store/add_store_manager', headers=headers, json=data)
+    assert response.status_code == 400
+    # assert response.get_json()['message'] == 'User already has a role in the store'
 
 def test_not_accepting_manager_promotion():   
     # login as user(manager2)
@@ -226,7 +227,7 @@ def test_change_store_manager_permissions_not_supervisor():
     # assert response.get_json()['message'] == 'Actor is not a owner/manager of the manager'
 
 def test_view_employees_info_success():
-    data = {'store_id': 1} 
+    data = {'store_id': 0} 
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.get('store/view_employees', headers=headers, json=data)
     assert response.status_code == 200
