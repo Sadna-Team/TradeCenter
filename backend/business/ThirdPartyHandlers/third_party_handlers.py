@@ -4,11 +4,9 @@ from datetime import datetime, timedelta
 import time
 
 import logging
-
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
                      format='%(name)s - %(levelname)s - %(message)s')
-
-logger = logging.getLogger("third_party_handlers")
+logger = logging.getLogger("third_party_handlers logger")
 
 class PaymentAdapter(ABC):
     """
@@ -92,7 +90,6 @@ class PaymentHandler:
         """
             * add_payment_method is a method that marks a user's payment method as fully supported in the system.
         """
-        # NOTE: << should log payment method add here >>
         if method_name in self.payment_config:
             raise ValueError("payment method already supported")
         self.payment_config[method_name] = config

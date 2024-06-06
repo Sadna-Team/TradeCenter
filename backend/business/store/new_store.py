@@ -8,8 +8,9 @@ from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFi
 
 # -------------logging configuration----------------
 import logging
-
-logger = logging.getLogger('myapp')
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("New Store Logger")
 
 # ---------------------------------------------------
 
@@ -518,7 +519,7 @@ class Store:
         """
         try:
             self.__store_products.pop(product_id)
-            logger.info('[Store] successfully removed product from store with id: ' + str(self.__store_id))
+            logger.info('Successfully removed product from store with id: {self.__store_id}')
         except KeyError:
             raise ValueError('Product is not found')
 
@@ -632,7 +633,7 @@ class Store:
         if self.__store_products[product_id].amount < amount:
             raise ValueError('Amount is greater than the available amount of the product')
         self.__store_products[product_id].remove_amount(amount)
-        logger.info('[Store] successfully removed product amount with id: ' + str(product_id))
+        logger.info('Successfully removed product amount with id: {product_id}')
 
     def change_description_of_product(self, product_id: int, new_description: str) -> None:
         """
@@ -866,6 +867,7 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
+        logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
         return store.add_product(product_name, description, price, tags, weight)
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
@@ -885,6 +887,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.restock_product(product_id, amount)
+        logger.info(f'Successfully added {amount} of product with id: {product_id} to store with id: {store_id}')
 
     def remove_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """

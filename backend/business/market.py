@@ -9,12 +9,11 @@ from .notifier import Notifier
 from typing import List, Dict, Tuple, Optional
 import datetime
 import threading
+
 import logging
-
-logger = logging.getLogger('myapp')
-
-def add_payment_method(method_name: str, payment_config: Dict):
-    PaymentHandler().add_payment_method(method_name, payment_config)
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("Market logger")
 
 
 class MarketFacade:
@@ -49,6 +48,8 @@ class MarketFacade:
         self.user_facade.register_user(man_id, "admin@admin.com", "admin", hashed_password,
                                        2000, 1, 1, "123456789")
         self.roles_facade.add_admin(man_id)
+        logger.info(f"Admin was created")
+
 
     def clean_data(self):
         """
@@ -72,6 +73,7 @@ class MarketFacade:
         with MarketFacade.__lock:
             if self.store_facade.check_product_availability(store_id, product_id, amount):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
+                logger.info(f"User {user_id} has added {amount} of product {product_id} to the basket")
 
     def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict) -> int:
         products_removed = False
@@ -144,7 +146,8 @@ class MarketFacade:
             SupplyHandler().process_supply(package_details, user_id, on_arrival)
             for store_id in cart.keys():
                 Notifier().notify_new_purchase(store_id, user_id)
-
+            
+            logger.info(f"User {user_id} has checked out")
             return pur_id
         except Exception as e:
             if products_removed:
@@ -165,6 +168,7 @@ class MarketFacade:
                                      NotificationDTO(-1, f"You have been nominated to be the owner of store"
                                                          f" {store_id}. nomination id: {nomination_id} ",
                                                      datetime.datetime.now()))
+        logger.info(f"User {owner_id} has nominated user {new_owner_id} to be the owner of store {store_id}")
 
     def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_id: int):
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
@@ -173,6 +177,7 @@ class MarketFacade:
                                      NotificationDTO(-1, f"You have been nominated to be the manager of store"
                                                          f" {store_id}. nomination id: {nomination_id} ",
                                                      datetime.datetime.now()))
+        logger.info(f"User {owner_id} has nominated user {new_manager_id} to be the manager of store {store_id}")
 
     def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
         if accept:
@@ -186,17 +191,21 @@ class MarketFacade:
         self.roles_facade.set_manager_permissions(store_id, actor_id, manager_id, add_product, change_purchase_policy,
                                                   change_purchase_types, change_discount_policy, change_discount_types,
                                                   add_manager, get_bid)
+                                                
+        logger.info(f"User {actor_id} has changed the permissions of user {manager_id} in store {store_id}")
 
     def add_system_manager(self, actor: int, user_id: int):
         self.roles_facade.add_system_manager(actor, user_id)
+        logger.info(f"User {actor} has added user {user_id} as a system manager")
 
     def remove_system_manager(self, actor: int, user_id: int):
         self.roles_facade.remove_system_manager(actor, user_id)
+        logger.info(f"User {actor} has removed user {user_id} as a system manager")
 
     def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        PaymentHandler().add_payment_method(method_name, payment_config)
+        PaymentHandler().add_payment_method(method_name, payment_config)    
 
     def edit_payment_method(self, user_id: int, method_name: str, editing_data: Dict):
         if not self.roles_facade.is_system_manager(user_id):
@@ -354,6 +363,7 @@ class MarketFacade:
         """
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
             self.store_facade.add_purchase_policy_to_store(store_id, policy_name)
+            logger.info(f"User {user_id} has added a policy to store {store_id}")
         else:
             raise ValueError("User does not have the necessary permissions to add a policy to the store")
 
@@ -365,6 +375,7 @@ class MarketFacade:
         """
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
             self.store_facade.remove_purchase_policy_from_store(store_id, policy_name)
+            logger.info(f"User {user_id} has removed a policy from store {store_id}")
         else:
             raise ValueError("User does not have the necessary permissions to remove a policy from the store")
 
