@@ -18,7 +18,7 @@ class Config:
 
 bcrypt = Bcrypt()
 jwt = JWTManager()
-app = None
+
 
 def create_app():
     app = Flask(__name__)

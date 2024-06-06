@@ -1,6 +1,6 @@
 from datetime import timedelta
 from .. import UserFacade
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token,decode_token
 
 
 # from backend import bcrypt, jwt
@@ -41,7 +41,10 @@ class Authentication:
         return jti in self.blacklist
 
     def generate_token(self, user_id):
-        token = create_access_token(identity=user_id, expires_delta=timedelta(days=1))
+        while True:
+            token = create_access_token(identity=user_id, expires_delta=timedelta(days=1))
+            if decode_token(token)['jti'] not in self.blacklist:
+                break
         return token
 
     def hash_password(self, password):
@@ -86,8 +89,9 @@ class Authentication:
             raise ValueError("User is already logged in")
         else:
             token = self.generate_token(user_id)
+            notification = self.user_facade.get_notifications(user_id)
             self.logged_in.add(user_id)
-            return token
+            return token, notification
 
     def logout_user(self, jti, user_id):
         if user_id not in self.logged_in:
@@ -95,6 +99,7 @@ class Authentication:
         else:
             self.blacklist.add(jti)
             self.logged_in.remove(user_id)
+            return self.start_guest()
 
     def logout_guest(self, jti, user_id):
         if user_id not in self.guests:
