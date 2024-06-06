@@ -602,7 +602,29 @@ class Store:
         for policy in self.__purchase_policy.values():
             if not policy(products, user).pass_filter():
                 raise ValueError(f'Purchase policy of store: {self.__store_name} is not satisfied!')
-        
+    
+    def aquire_products_lock(self, product_ids: List[int]) -> None:
+        """
+        * Parameters: productIds
+        * This function acquires the lock of the products
+        * Returns: none
+        """
+        # sort the product ids to avoid deadlocks
+        product_ids.sort()
+        for product_id in product_ids:
+            self.get_product_by_id(product_id).aquire_lock()
+
+    def release_products_lock(self, product_ids: List[int]) -> None:
+        """
+        * Parameters: productIds
+        * This function releases the lock of the products
+        * Returns: none
+        """
+        # sort the product ids to avoid deadlocks
+        product_ids.sort()
+        for product_id in product_ids:
+            self.get_product_by_id(product_id).release_lock()
+
     def get_total_price_of_basket_before_discount(self, basket: Dict[int, int]) -> float:
         """
         * Parameters: basket
