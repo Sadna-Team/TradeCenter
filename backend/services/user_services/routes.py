@@ -7,7 +7,7 @@ logger = logging.getLogger('myapp')
 # ---------------------------------------------------
 
 from flask import Blueprint, request, jsonify
-from controllers import AuthenticationService, UserService
+from backend.services.user_services.controllers import AuthenticationService, UserService
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
 
 auth_bp = Blueprint('auth', __name__)
@@ -185,7 +185,7 @@ def show_cart():
 @jwt_required()
 def accept_promotion():
     """
-        Use Case 2.2.5:
+        Use Case 2.4.6:
         Accept a promotion
 
         Data:
