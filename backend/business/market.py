@@ -452,7 +452,7 @@ class MarketFacade:
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add a tag to a product in the store")
-        self.add_tag_to_product(user_id, store_id, product_id, tag)
+        self.store_facade.add_tag_to_product(store_id, product_id, tag)
 
     def remove_tag_from_product(self, user_id: int, store_id: int, product_id: int, tag: str):
         """
@@ -517,6 +517,7 @@ class MarketFacade:
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         self.add_sub_category_to_category(user_id, sub_category_id, parent_category_id)
+        logger.info(f"User {user_id} has added a sub category to category {parent_category_id}")
 
     def remove_sub_category_from_category(self, user_id: int, category_id: int, sub_category_id: int):
         """
@@ -527,6 +528,7 @@ class MarketFacade:
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         self.remove_sub_category_from_category(user_id, category_id, sub_category_id)
+        logger.info(f"User {user_id} has removed a sub category from category {category_id}")
 
     def assign_product_to_category(self, user_id: int, category_id: int, store_id: int, product_id: int):
         """
@@ -538,6 +540,7 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to assign a product to a category")
         self.store_facade.assign_product_to_category(category_id, store_id, product_id)
+        logger.info(f"User {user_id} has assigned a product to category {category_id}")
 
     def remove_product_from_category(self, user_id: int, category_id: int, store_id: int, product_id: int):
         """
@@ -548,6 +551,7 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to remove a product from a category")
         self.remove_product_from_category(user_id, category_id, store_id, product_id)
+        logger.info(f"User {user_id} has removed a product from category {category_id}")
 
     # -------------PurchaseFacade methods:-------------------#
 
