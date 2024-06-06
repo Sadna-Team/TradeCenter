@@ -155,7 +155,9 @@ class MarketFacade:
                 self.user_facade.restore_basket(user_id, cart)
             raise e
 
-    def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_id: int):
+    def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_username):
+        # get user_id of new_owner_username
+        new_owner_id = self.user_facade.__usernames[new_owner_username]
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
         # TODO: different implementation later
         self.user_facade.notify_user(new_owner_id,
@@ -163,7 +165,9 @@ class MarketFacade:
                                                          f" {store_id}. nomination id: {nomination_id} ",
                                                      datetime.datetime.now()))
 
-    def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_id: int):
+    def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_username):
+        # get user_id of new_manager_username
+        new_manager_id = self.user_facade.__usernames[new_manager_username]
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
         # TODO: different implementation later
         self.user_facade.notify_user(new_manager_id,
