@@ -1,15 +1,15 @@
 # --------------- imports ---------------#
 from abc import ABC, abstractmethod
 from typing import List
-from datetime import time
+from datetime import datetime, time
 
-from backend.business.address import Address #maybe timezone constraints :O
+from backend.business.DTOs import AddressDTO, BasketInformationForDiscountDTO #maybe timezone constraints :O
 
 
 # --------------- Constraint Interface ---------------#
 class Constraint(ABC):
     @abstractmethod
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
         pass
 
 # ------------------------------------ Leaf Classes of Composite: ------------------------------------ #
@@ -19,8 +19,12 @@ class AgeConstraint(Constraint):
     def __init__(self, age_limit: int):
         self.__age_limit = age_limit
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        return basketInformation.age >= self.__age_limit
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        today = datetime.today()
+        birth_date = basket_information.user_info.birthdate
+        age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+
+        return age >= self.__age_limit
     
     @property
     def age_limit(self):
@@ -29,11 +33,14 @@ class AgeConstraint(Constraint):
 
 # --------------- location constraint class ---------------#
 class LocationConstraint(Constraint):
-    def __init__(self, location: Address):
+    def __init__(self, location: AddressDTO):
         self.__location = location
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        return basketInformation.location == self.__location.country #basketInformation.location.country
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        user_location = basket_information.user_info.address
+        country = user_location.country
+        city = user_location.city
+        return self.__location.country == country and self.__location.city == city
     
     @property
     def location(self):
@@ -46,8 +53,10 @@ class TimeConstraint(Constraint):
         self.__start_time = start_time
         self.__end_time = end_time
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        return self.__start_time <= basketInformation.time <= self.__end_time
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        time_of_purchase = basket_information.time_of_purchase.time()
+
+        return self.__start_time <= time_of_purchase <= self.__end_time
     
     @property
     def start_time(self):
@@ -65,13 +74,13 @@ class PriceBasketConstraint(Constraint):
         self.__store_id = store_id
 
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        if basketInformation.store_id != self.__store_id:
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        if basket_information.store_id != self.__store_id:
             return False
         
         if self.__max_price == -1:
-            return self.__min_price <= basketInformation.basket_price
-        return self.__min_price <= basketInformation.basket_price <= self.__max_price
+            return self.__min_price <= basket_information.total_price_of_basket
+        return self.__min_price <= basket_information.total_price_of_basket <= self.__max_price
     
     @property
     def min_price(self):
@@ -94,15 +103,17 @@ class PriceProductConstraint(Constraint):
         self.__store_id = store_id
 
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        if basketInformation.store_id != self.__store_id:
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        if basket_information.store_id != self.__store_id:
             return False
         
-        #for 
-        if self.__max_price == -1:
-            return self.__min_price <= basketInformation.product_price
-        return self.__min_price <= basketInformation.product_price <= self.__max_price
-    
+        for product in basket_information.products:
+            if product.product_id == self.__product_id:
+                if self.__max_price == -1:
+                    return self.__min_price <= product.price * product.amount
+                return self.__min_price <= product.price * product.amount <= self.__max_price
+        raise ValueError("Product not found in basket")
+        
     @property
     def min_price(self):
         return self.__min_price
@@ -127,10 +138,20 @@ class PriceCategoryConstraint(Constraint):
         self.__max_price = max_price #if max_price is -1, then there is no upper limit
         self.__category_id = category_id 
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        if self.__max_price == -1:
-            return self.__min_price <= basketInformation.category_price
-        return self.__min_price <= basketInformation.category_price <= self.__max_price
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        for category in basket_information.categories:
+            if category.category_id == self.__category_id:
+                products = category.products
+                for sub_categories in category.sub_categories:
+                    products += sub_categories.products
+                category_total_price: float = 0.0
+                for product in products:
+                    category_total_price += product.price * product.amount
+
+                if self.__max_price == -1:
+                    return self.__min_price <= category_total_price
+                return self.__min_price <= category_total_price <= self.__max_price
+        raise ValueError("Category not found in basket")
     
     @property
     def min_price(self):
@@ -152,11 +173,15 @@ class AmountBasketConstraint(Constraint):
         self.__min_amount = min_amount #if min_amount is 0, then there is no lower limit
         self.__store_id = store_id
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        if basketInformation.store_id != self.__store_id:
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        amount_in_basket = 0
+        for product in basket_information.products:
+            amount_in_basket += product.amount
+        
+        if basket_information.store_id != self.__store_id:
             return False
         
-        return self.__min_amount <= basketInformation.basket_amount
+        return self.__min_amount <= amount_in_basket
     
     @property
     def min_amount(self):
@@ -182,8 +207,11 @@ class AmountProductConstraint(Constraint):
         if basketInformation.store_id != self.__store_id:
             return False
         
-        return self.__min_amount <= basketInformation.product_amount
-    
+        for product in basketInformation.products:
+            if product.product_id == self.__product_id:
+                return self.__min_amount <= product.amount
+        raise ValueError("Product not found in basket")
+        
     @property
     def min_amount(self):
         return self.__min_amount
@@ -206,8 +234,19 @@ class AmountCategoryConstraint(Constraint):
         self.__min_amount = min_amount #if min_amount is 0, then there is no lower limit
         self.__category_id = category_id
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        return self.__min_amount <= basketInformation.category_amount
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        for category in basket_information.categories:
+            if category.category_id == self.__category_id:
+                products = category.products
+                for sub_categories in category.sub_categories:
+                    products += sub_categories.products
+                category_total_amount: int = 0
+                for product in products:
+                    category_total_amount += product.amount
+
+                return self.__min_amount <= category_total_amount
+            
+        raise ValueError("Category not found in basket")
     
     @property
     def min_amount(self):
@@ -229,14 +268,18 @@ class WeightBasketConstraint(Constraint):
         self.__max_weight = max_weight #if max_weight is -1, then there is no upper limit
         self.__store_id = store_id
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        if basketInformation.store_id != self.__store_id:
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        if basket_information.store_id != self.__store_id:
             return False
         
+        weight_of_basket = 0.0
+        for product in basket_information.products:
+            weight_of_basket += product.weight
+        
         if self.__max_weight == -1:
-            return self.__min_weight <= basketInformation.basket_weight
-        return self.__min_weight <= basketInformation.basket_weight <= self.__max_weight
-    
+            return self.__min_weight <= weight_of_basket
+        return self.__min_weight <= weight_of_basket <= self.__max_weight
+
     @property
     def min_weight(self):
         return self.__min_weight
@@ -258,13 +301,16 @@ class WeightProductConstraint(Constraint):
         self.__product_id = product_id
         self.__store_id = store_id
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        if basketInformation.store_id != self.__store_id:
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        if basket_information.store_id != self.__store_id:
             return False
         
-        if self.__max_weight == -1:
-            return self.__min_weight <= basketInformation.product_weight
-        return self.__min_weight <= basketInformation.product_weight <= self.__max_weight
+        for product in basket_information.products:
+            if product.product_id == self.__product_id:
+                if self.__max_weight == -1:
+                    return self.__min_weight <= product.weight
+                return self.__min_weight <= product.weight <= self.__max_weight
+        raise ValueError("Product not found in basket")
     
     @property
     def min_weight(self):
@@ -290,11 +336,21 @@ class WeightCategoryConstraint(Constraint):
         self.__max_weight = max_weight #if max_weight is -1, then there is no upper limit
         self.__category_id = category_id
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        if self.__max_weight == -1:
-            return self.__min_weight <= basketInformation.category_weight
-        return self.__min_weight <= basketInformation.category_weight <= self.__max_weight
-    
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        for category in basket_information.categories:
+            if category.category_id == self.__category_id:
+                products = category.products
+                for sub_categories in category.sub_categories:
+                    products += sub_categories.products
+                category_total_weight: float = 0.0
+                for product in products:
+                    category_total_weight += product.weight
+
+                if self.__max_weight == -1:
+                    return self.__min_weight <= category_total_weight
+                return self.__min_weight <= category_total_weight <= self.__max_weight
+        raise ValueError("Category not found in basket")
+
     @property
     def min_weight(self):
         return self.__min_weight
@@ -317,8 +373,8 @@ class AndConstraint(Constraint):
         self.__constraint2 = constraint2
 
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        return self.__constraint1.is_satisfied(basketInformation) and self.__constraint2.is_satisfied(basketInformation)
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        return self.__constraint1.is_satisfied(basket_information) and self.__constraint2.is_satisfied(basket_information)
     
     @property
     def constraint1(self):
@@ -336,8 +392,8 @@ class OrConstraint(Constraint):
         self.__constraint2 = constraint2
 
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        return self.__constraint1.is_satisfied(basketInformation) or self.__constraint2.is_satisfied(basketInformation)
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        return self.__constraint1.is_satisfied(basket_information) or self.__constraint2.is_satisfied(basket_information)
     
     @property
     def constraint1(self):
@@ -355,8 +411,8 @@ class XorConstraint(Constraint):
         self.__constraint2 = constraint2
 
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        return self.__constraint1.is_satisfied(basketInformation) ^ self.__constraint2.is_satisfied(basketInformation)
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        return self.__constraint1.is_satisfied(basket_information) ^ self.__constraint2.is_satisfied(basket_information)
     
     @property
     def constraint1(self):
@@ -375,8 +431,8 @@ class ImpliesConstraint(Constraint):
         self.__constraint2 = constraint2
 
 
-    def is_satisfied(self, basketInformation: SOMETHING) -> bool:
-        return not self.__constraint1.is_satisfied(basketInformation) or self.__constraint2.is_satisfied(basketInformation)
+    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+        return not self.__constraint1.is_satisfied(basket_information) or self.__constraint2.is_satisfied(basket_information)
     
     @property
     def constraint1(self):

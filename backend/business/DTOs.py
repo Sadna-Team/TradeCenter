@@ -209,5 +209,126 @@ class StoreDTO:
                 "store_founder_id": self.__store_founder_id, "is_active": self.__is_active, "found_date": self.__found_date,
                 "products": [product.get() for product in self.__products]}
 
+class UserInformationForDiscountDTO:
+    def __init__(self, user_id: int, birthdate: datetime, address: AddressDTO):
+        self.__user_id: int = user_id
+        self.__birthdate: datetime = birthdate
+        self.__address: AddressDTO = address
+
+    @property
+    def user_id(self) -> int:
+        return self.__user_id
+    
+    @property
+    def birthdate(self) -> datetime:
+        return self.__birthdate
+    
+    @property
+    def address(self) -> AddressDTO:
+        return self.__address
+    
+    def get(self) -> dict:
+        return {"user_id": self.__user_id, "birthdate": self.__birthdate, "address": self.__address.to_dict()}
+
+class ProductForDiscountDTO:
+    def __init__(self, product_id: int, store_id: int, price: float, weight: float, amount: int):
+        self.__product_id: int = product_id
+        self.__store_id: int = store_id
+        self.__price: float = price
+        self.__weight: float = weight
+        self.__amount: int = amount
+
+    @property
+    def product_id(self) -> int:
+        return self.__product_id
+
+    @property
+    def store_id(self) -> int:
+        return self.__store_id
+
+    @property
+    def price(self) -> float:
+        return self.__price
+    
+    @property
+    def weight(self) -> float:
+        return self.__weight
+
+    @property
+    def amount(self) -> int:
+        return self.__amount
+    
+    def get(self) -> dict:
+        return {"product_id": self.__product_id, "store_id": self.__store_id, "price": self.__price, "weight": self.__weight, "amount": self.__amount}
+
+
+
+class CategoryDTO:
+    def __init__(self, category_id: int, category_name: str, parent_category_id: int, sub_categories: List['CategoryDTO'], products: List[ProductForDiscountDTO]):
+        self.__category_id: int = category_id
+        self.__category_name: str = category_name
+        self.__parent_category_id: int = parent_category_id
+        self.__sub_categories: List['CategoryDTO'] = sub_categories
+        self.__products: List[ProductForDiscountDTO] = products
+
+    @property
+    def category_id(self) -> int:
+        return self.__category_id
+
+    @property
+    def category_name(self) -> str:
+        return self.__category_name
+
+    @property
+    def parent_category_id(self) -> int:
+        return self.__parent_category_id
+
+    @property
+    def sub_categories(self) -> List['CategoryDTO']:
+        return self.__sub_categories
+    
+    @property
+    def products(self) -> List[ProductForDiscountDTO]:
+        return self.__products
+
+
+
+class BasketInformationForDiscountDTO:
+    def __init__(self, store_id: int, products: List[ProductForDiscountDTO], total_price_of_basket: float, time_of_purchase: datetime, user_info: UserInformationForDiscountDTO, categories: List[CategoryDTO]):
+        self.__store_id: int = store_id
+        self.__products: List[ProductForDiscountDTO] = products
+        self.__total_price_of_basket: float = total_price_of_basket
+        self.__time_of_purchase: datetime = time_of_purchase
+        self.__user_info: UserInformationForDiscountDTO = user_info
+        self.__categories: List[CategoryDTO] = categories
+
+    @property
+    def store_id(self) -> int:
+        return self.__store_id
+    
+    @property
+    def products(self) -> List[ProductForDiscountDTO]:
+        return self.__products
+    
+    @property
+    def total_price_of_basket(self) -> float:
+        return self.__total_price_of_basket
+    
+    @property
+    def time_of_purchase(self) -> datetime:
+        return self.__time_of_purchase
+    
+    @property
+    def user_info(self) -> UserInformationForDiscountDTO:
+        return self.__user_info
+    
+    @property
+    def categories(self) -> List[CategoryDTO]:
+        return self.__categories
+
+    def get(self) -> dict:
+        return {"store_id": self.__store_id, "products": [product.get() for product in self.__products], "total_price_of_basket": self.__total_price_of_basket,
+                "time_of_purchase": self.__time_of_purchase, "user_info": self.__user_info.get(), "categories": [category.__dict__ for category in self.__categories]}
+    
 class TransactionException(Exception):
     pass
