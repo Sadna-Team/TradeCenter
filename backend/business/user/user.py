@@ -23,7 +23,7 @@ class ShoppingBasket:
         self.__products[product_id] += quantity
 
     def get_dto(self) -> Dict[int, int]:
-        return self.__products
+        return dict(self.__products)
 
     def remove_product(self, product_id: int, quantity: int):
         if product_id not in self.__products:
@@ -294,7 +294,7 @@ class UserFacade:
             out = []
             for notification in notifications:
                 out.append(notification.get_notification_dto())
-            self.clear_notifications(user_id)
+        self.clear_notifications(user_id)
         return out
 
     def clear_notifications(self, user_id: int) -> None:

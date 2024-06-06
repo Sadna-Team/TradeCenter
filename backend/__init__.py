@@ -18,7 +18,7 @@ class Config:
 
 bcrypt = Bcrypt()
 jwt = JWTManager()
-app = None
+
 
 def create_app():
     app = Flask(__name__)
@@ -33,7 +33,7 @@ def create_app():
 
     from backend.services.user_services.routes import auth_bp, user_bp
     from backend.services.ecommerce_services.routes import market_bp
-    # from backend.services.store_services.routes import store_bp
+    from backend.services.store_services.routes import store_bp
     from backend.services.third_party_services.routes import third_party_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')

@@ -242,3 +242,24 @@ class AuthenticationService:
         except Exception as e:
             logger.error('logout - ' + str(e))
             return jsonify({'message': str(e)}), 400
+
+    def logout_guest(self, jti: str, user_id: int):
+        """
+            Use Case 2.1.2:
+            Logout a guest
+
+            Args:
+                jti (str): token of the user
+                user_id (int): id of the user
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            self.authentication.logout_guest(jti, user_id)
+            logger.info('Guest logged out successfully')
+            return jsonify({'message': 'Guest logged out successfully'}), 200
+
+        except Exception as e:
+            logger.error('logout_guest - ' + str(e))
+            return jsonify({'message': str(e)}), 400

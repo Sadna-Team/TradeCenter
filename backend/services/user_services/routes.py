@@ -97,6 +97,23 @@ def logout():
         return jsonify({'message': str(e)}), 400
     return authentication_service.logout(jti, user_id)
 
+
+@auth_bp.route('/logout_guest', methods=['POST'])
+@jwt_required()
+def logout_guest():
+    """
+        Use Case 2.1.2:
+        Logout a guest
+    """
+    logger.info('received request to logout a guest')
+    try:
+        jti = get_jwt()['jti']
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('logout_guest - ' + str(e))
+        return jsonify({'message': str(e)}), 400
+    return authentication_service.logout_guest(jti, user_id)
+
 # ---------------------------------------------------------------user usecase routes---------------------------------------------------------------
 
 
@@ -179,7 +196,8 @@ def show_cart():
     except Exception as e:
         logger.error('show_cart - ', str(e))
         return jsonify({'message': str(e)}), 400
-    return user_service.show_shopping_cart(user_id)
+    ans = user_service.show_shopping_cart(user_id)
+    return ans
 
 
 @user_bp.route('/accept_promotion', methods=['POST'])
