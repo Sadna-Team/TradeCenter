@@ -174,7 +174,7 @@ def test_appoint_store_manager_already_has_role_in_store():
     assert response.status_code == 400
     # assert response.get_json()['message'] == 'User already has a role in the store'
 
-def accepting_manager_promotion_success():
+def test_accepting_manager_promotion_success():
     # login as user(manager1)
     data = {'username': 'new_manager', 'password': 'test'}
     headers = {'Authorization': 'Bearer ' + guest2_token}
@@ -188,7 +188,7 @@ def accepting_manager_promotion_success():
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'promotion accepted successfully'
 
-def not_accepting_manager_promotion():   
+def test_not_accepting_manager_promotion():   
     # login as user(manager2)
     data = {'username': 'new_manager2', 'password': 'test'}
     headers = {'Authorization': 'Bearer ' + guest3_token}
