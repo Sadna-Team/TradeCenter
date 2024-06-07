@@ -1029,25 +1029,33 @@ class StoreFacade:
         * NOTE: the discount starts off with no predicate! if the user wants to add a predicate they must use the assignPredicate function
         * Returns: the integer ID of the discount
         """
+        logger.info('[StoreFacade] attempting to add discount to store')
         if category_id is not None:
             if category_id not in self.__categories:
+                logger.warn('[StoreFacade] category the discount is applied to is not found')
                 raise ValueError('Category the discount is applied to is not found')
             if applied_to_sub is None:
+                logger.warn('[StoreFacade] applied to subcategories is missing')
                 raise ValueError('Applied to subcategories is missing')
+            logger.info('[StoreFacade] successfully added category discount to store')
             new_category_discount = CategoryDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
             self.__discounts[self.__discount_id_counter] = new_category_discount
             self.__discount_id_counter += 1
         
         elif store_id is not None:
             if store_id not in self.__stores:
+                logger.warn('[StoreFacade] store the discount is applied to is not found')
                 raise ValueError('Store the discount is applied to is not found')
             if product_id is not None: 
                 if product_id not in self.__stores[store_id].store_products:
+                    logger.warn('[StoreFacade] product the discount is applied to is not found')
                     raise ValueError('Product the discount is applied to is not found')
+                logger.info('[StoreFacade] successfully added product discount to store')
                 new_product_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
                 self.__discounts[self.__discount_id_counter] = new_product_discount
                 self.__discount_id_counter += 1
             else:
+                logger.info('[StoreFacade] successfully added store discount to store')
                 new_store_discount = StoreDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, store_id)
                 self.__discounts[self.__discount_id_counter] = new_store_discount
                 self.__discount_id_counter += 1
@@ -1063,24 +1071,30 @@ class StoreFacade:
         *NOTE: type_of_connection: 1-> AND, 2-> OR, 3-> XOR
         * Returns: the integer ID of the discount
         """
+        logger.info('[StoreFacade] attempting to create logical composite discount')
         if discount_id1 not in self.__discounts or discount_id2 not in self.__discounts:
+            logger.warn('[StoreFacade] one of the discounts is not found')
             raise ValueError('One of the discounts is not found')
         
         if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_LOGICAL_DISCOUNT_TYPES:
+            logger.warn('[StoreFacade] type of connection is not valid')
             raise ValueError('Type of connection is not valid')
         
         discount1 = self.__discounts[discount_id1]
         discount2 = self.__discounts[discount_id2]
 
         if type_of_connection == 1:
+            logger.info('[StoreFacade] successfully created AND discount')
             new_and_discount = AndDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_and_discount
             self.__discount_id_counter += 1
         elif type_of_connection == 2:
+            logger.info('[StoreFacade] successfully created OR discount')
             new_or_discount = OrDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_or_discount
             self.__discount_id_counter += 1
         else:
+            logger.info('[StoreFacade] successfully created XOR discount')
             new_xor_discount = XorDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_xor_discount
             self.__discount_id_counter += 1
@@ -1096,23 +1110,29 @@ class StoreFacade:
         * NOTE: type_of_connection: 1-> Max, 2-> Additive
         * Returns: the integer ID of the discount
         """
+        logger.info('[StoreFacade] attempting to create numerical composite discount')
         if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_NUMERICAL_DISCOUNT_TYPES:
+            logger.warn('[StoreFacade] type of connection is not valid')
             raise ValueError('Type of connection is not valid')
         
         if len(discount_ids) < 2:
+            logger.warn('[StoreFacade] not enough discounts to create a composite discount')
             raise ValueError('Not enough discounts to create a composite discount')
         
         discounts = []
         for discount_id in discount_ids:
             if discount_id not in self.__discounts:
+                logger.warn('[StoreFacade] one of the discounts is not found')
                 raise ValueError('One of the discounts is not found')
             discounts.append(self.__discounts[discount_id])
             
         if type_of_connection == 1:
+            logger.info('[StoreFacade] successfully created Max discount')
             new_max_discount = MaxDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
             self.__discounts[self.__discount_id_counter] = new_max_discount
             self.__discount_id_counter += 1
         else:
+            logger.info('[StoreFacade] successfully created Additive discount')
             new_additive_discount = AdditiveDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
             self.__discounts[self.__discount_id_counter] = new_additive_discount
             self.__discount_id_counter += 1
@@ -1123,86 +1143,128 @@ class StoreFacade:
         """
         * Parameters: discountId, age, location, startingTime, endingTime, minPrice, maxPrice, minWeight, maxWeight, storeId, productId, categoryId, typeOfConnection
         * This function assigns a predicate to a discount
+        *NOTE: if the predicate is a type of category/product/store, the discount must also be of type category/product/store respectively
         * Returns: the predicate assigned to the discount
         """
         predicate: Optional[Constraint] = None
         if age is not None:
+            logger.info('[StoreFacade] created age constraint')
             predicate = AgeConstraint(age)
         elif location is not None:
+            logger.info('[StoreFacade] created location constraint')
             predicate = LocationConstraint(location)
         elif starting_time is not None and ending_time is not None:
+            logger.info('[StoreFacade] created time constraint')
             predicate = TimeConstraint(starting_time, ending_time)
         elif min_price is not None and max_price is not None:
             if min_price > max_price:
+                logger.warn('[StoreFacade] min price is greater than max price')
                 raise ValueError('Min price is greater than max price')
             if category_id is not None:
                 if not isinstance(discount, CategoryDiscount):
+                        logger.warn('[StoreFacade] discount is not a category discount')
                         raise ValueError('Discount is not a category discount')
                     
                 if category_id != discount.category_id:
+                    logger.warn('[StoreFacade] category ID does not match the category ID of the discount')
                     raise ValueError('Category ID does not match the category ID of the discount')
+                logger.info('[StoreFacade] created price category constraint')
                 predicate = PriceCategoryConstraint(min_price, max_price, category_id)
+
             elif store_id is not None:
                 if product_id is not None:
                     if not isinstance(discount, ProductDiscount):
+                        logger.warn('[StoreFacade] discount is not a product discount')
                         raise ValueError('Discount is not a product discount')
                     if store_id != discount.store_id or product_id != discount.product_id:
+                        logger.warn('[StoreFacade] store ID or product ID does not match the store ID or Product ID of the discount')
                         raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
+                    logger.info('[StoreFacade] created price product constraint')
                     predicate = PriceProductConstraint(min_price, max_price, product_id, store_id)
                 else:
                     if not isinstance(discount, StoreDiscount):
+                        logger.warn('[StoreFacade] discount is not a store discount')
                         raise ValueError('Discount is not a store discount')
                     if store_id != discount.store_id:
+                        logger.warn('[StoreFacade] store ID does not match the store ID of the discount')
                         raise ValueError('Store ID does not match the store ID of the discount')
+                    logger.info('[StoreFacade] created price basket constraint')
                     predicate = PriceBasketConstraint(min_price, max_price, store_id)
+
             elif min_weight is not None and max_weight is not None:
                 if min_weight > max_weight:
+                    logger.warn('[StoreFacade] min weight is greater than max weight')
                     raise ValueError('Min weight is greater than max weight')
 
                 if category_id is not None:
                     if not isinstance(discount, CategoryDiscount):
+                        logger.warn('[StoreFacade] discount is not a category discount')
                         raise ValueError('Discount is not a category discount')
                     if category_id != discount.category_id:
+                        logger.warn('[StoreFacade] category ID does not match the category ID of the discount')
                         raise ValueError('Category ID does not match the category ID of the discount')
+                    logger.info('[StoreFacade] created weight category constraint')
                     predicate = WeightCategoryConstraint(min_weight, max_weight, category_id)
+
                 elif store_id is not None:
                     if product_id is not None:
                         if not isinstance(discount, ProductDiscount):
+                            logger.warn('[StoreFacade] discount is not a product discount')
                             raise ValueError('Discount is not a product discount')
                         if store_id != discount.store_id or product_id != discount.product_id:
+                            logger.warn('[StoreFacade] store ID or product ID does not match the store ID or Product ID of the discount')
                             raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
+                        logger.info('[StoreFacade] created weight product constraint')
                         predicate = WeightProductConstraint(min_weight, max_weight, product_id, store_id)
+                    
                     else:
                         if not isinstance(discount, StoreDiscount):
+                            logger.warn('[StoreFacade] discount is not a store discount')
                             raise ValueError('Discount is not a store discount')
                         if store_id != discount.store_id:
+                            logger.warn('[StoreFacade] store ID does not match the store ID of the discount')
                             raise ValueError('Store ID does not match the store ID of the discount')
+                        logger.info('[StoreFacade] created weight basket constraint')
                         predicate = WeightBasketConstraint(min_weight, max_weight, store_id)
+
             elif min_amount is not None:
                 if category_id is not None:
                     if not isinstance(discount, CategoryDiscount):
+                        logger.warn('[StoreFacade] discount is not a category discount')
                         raise ValueError('Discount is not a category discount')
                     if category_id != discount.category_id:
+                        logger.warn('[StoreFacade] category ID does not match the category ID of the discount')
                         raise ValueError('Category ID does not match the category ID of the discount')
+                    logger.info('[StoreFacade] created amount category constraint')
                     predicate = AmountCategoryConstraint(min_amount, category_id)
+
                 elif store_id is not None:
                     if product_id is not None:
                         if not isinstance(discount, ProductDiscount):
+                            logger.warn('[StoreFacade] discount is not a product discount')
                             raise ValueError('Discount is not a product discount')
                         if store_id != discount.store_id or product_id != discount.product_id:
+                            logger.warn('[StoreFacade] store ID or product ID does not match the store ID or Product ID of the discount')
                             raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
+                        logger.info('[StoreFacade] created amount product constraint')
                         predicate = AmountProductConstraint(min_amount, product_id, store_id)
                     else:
                         if not isinstance(discount, StoreDiscount):
+                            logger.warn('[StoreFacade] discount is not a store discount')
                             raise ValueError('Discount is not a store discount')
                         if store_id != discount.store_id:
+                            logger.warn('[StoreFacade] store ID does not match the store ID of the discount')
                             raise ValueError('Store ID does not match the store ID of the discount')
+                        logger.info('[StoreFacade] created amount basket constraint')
                         predicate = AmountBasketConstraint(min_amount, store_id)
             else:
+                logger.error('[StoreFacade] no valid predicate found')
                 raise ValueError('No valid predicate found')
             
         if predicate is None:
+            logger.error('[StoreFacade] no valid predicate found')
             raise ValueError('No valid predicate found')
+
         return predicate
            
 
@@ -1222,19 +1284,23 @@ class StoreFacade:
         * Returns: none
         """
         if discount_id not in self.__discounts:
+            logger.error('[StoreFacade] discount is not found')
             raise ValueError('Discount is not found')
         
         length = len(ages)
         if length != len(locations) or length != len(starting_times) or length != len(ending_times) or length != len(min_prices) or length != len(max_prices) or length != len(min_weights) or length != len(max_weights) or length != len(store_ids) or length != len(product_ids) or length != len(category_ids) or length != len(type_of_connection):
+            logger.error('[StoreFacade] lengths of predicate lists are not equal')
             raise ValueError('Lengths of predicate lists are not equal')
 
 
         discount = self.__discounts[discount_id]
         if len(type_of_connection) == 1 and type_of_connection[0] is None:
             predicate = self.assign_predicate_helper(discount, ages[0], locations[0], starting_times[0], ending_times[0], min_prices[0], max_prices[0], min_weights[0], max_weights[0], min_amounts[0], store_ids[0], product_ids[0], category_ids[0])
+            logger.info('[StoreFacade] successfully assigned simple predicate')
             discount.change_predicate(predicate)
         else:
             if len(type_of_connection) != length - 1:
+                logger.error('[StoreFacade] length of type of connection list is not valid')
                 raise ValueError('Length of type of connection list is not valid')
             
             predicate2 = None
@@ -1245,17 +1311,24 @@ class StoreFacade:
                 else:
                     if type_of_connection[i] == 1:
                         predicate2 = AndConstraint(predicate1, predicate2)
+                        logger.info('[StoreFacade] successfully assigned AND predicate')
                     elif type_of_connection[i] == 2:
                         predicate2 = OrConstraint(predicate1, predicate2)
+                        logger.info('[StoreFacade] successfully assigned OR predicate')
                     elif type_of_connection[i] == 3:
                         predicate2 = XorConstraint(predicate1, predicate2)
+                        logger.info('[StoreFacade] successfully assigned XOR predicate')
                     elif type_of_connection[i] == 4:
                         predicate2 = ImpliesConstraint(predicate1, predicate2)
+                        logger.info('[StoreFacade] successfully assigned IMPLIES predicate')
                     else:
+                        logger.error('[StoreFacade] type of connection is not valid')
                         raise ValueError('Type of connection is not valid')
             if predicate2 is not None:
+                logger.info('[StoreFacade] successfully assigned composite predicate')
                 discount.change_predicate(predicate2)
             else:
+                logger.error('[StoreFacade] no valid predicate found')
                 raise ValueError('No valid predicate found')
         
 
@@ -1267,8 +1340,10 @@ class StoreFacade:
         * Returns: none
         """
         if discount_id in self.__discounts:
+            logger.info('[StoreFacade] successfully removed discount')
             self.__discounts.pop(discount_id)
         else:
+            logger.error('[StoreFacade] discount is not found')
             raise ValueError('Discount is not found')
 
     def change_discount_percentage(self, discount_id: int, new_percentage: float) -> None:
@@ -1278,7 +1353,9 @@ class StoreFacade:
         * Returns: none
         """
         if discount_id not in self.__discounts:
+            logger.error('[StoreFacade] discount is not found')
             raise ValueError('Discount is not found')
+        logger.info('[StoreFacade] successfully changed discount percentage')
         discount = self.__discounts[discount_id]
         discount.change_discount_percentage(new_percentage)
 
@@ -1289,7 +1366,9 @@ class StoreFacade:
         * Returns: none
         """
         if discount_id not in self.__discounts:
+            logger.error('[StoreFacade] discount is not found')
             raise ValueError('Discount is not found')
+        logger.info('[StoreFacade] successfully changed discount description')
         discount = self.__discounts[discount_id]
         discount.change_discount_description(new_description)
 
@@ -1322,8 +1401,10 @@ class StoreFacade:
         for store_id, product_id  in category.category_products:
             if product_id in shopping_basket:
                 if store_id not in self.__stores:
+                    logger.warn('[StoreFacade] store is not found')
                     raise ValueError('Store is not found')
                 if product_id not in self.__stores[store_id].store_products:
+                    logger.warn('[StoreFacade] product is not found in the store')
                     raise ValueError('Product is not found in the store')
                 
                 product = self.__stores[store_id].get_product_by_id(product_id)
@@ -1336,6 +1417,7 @@ class StoreFacade:
             sub_category_dto = self.get_category_as_dto_for_discount(sub_category, shopping_basket)
             sub_categories_dto.append(sub_category_dto)
         
+        logger.info('[StoreFacade] successfully created category DTO from category ' + category.category_name + ' for discounts')
         return CategoryForDiscountDTO(category.category_id, category.category_name, category.parent_category_id, sub_categories_dto, products_dto)
 
         
@@ -1346,10 +1428,12 @@ class StoreFacade:
         * Returns: the amount of money saved by the discount
         """
         if discount_id not in self.__discounts:
+            logger.error('[StoreFacade] discount is not found')
             raise ValueError('Discount is not found')
         discount = self.__discounts[discount_id]
 
         if store_id not in self.__stores:
+            logger.error('[StoreFacade] store is not found')
             raise ValueError('Store is not found')
         
         categories: List[CategoryForDiscountDTO] = []
@@ -1372,6 +1456,7 @@ class StoreFacade:
 
         basket_info: BasketInformationForDiscountDTO = BasketInformationForDiscountDTO(store_id, products, total_price_of_basket, time_of_purchase, user_info, categories)
 
+        logger.info('[StoreFacade] successfully applied discount')
         return discount.calculate_discount(basket_info)
     
     def get_total_price_before_discount(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
@@ -1401,10 +1486,12 @@ class StoreFacade:
         * This function calculates the total price of the shopping cart after applying the discount
         * Returns: the total price of the shopping cart after applying the discount
         """
+        logger.info('[StoreFacade] attempting to get total price after discount')
         total_price = 0.0
         for store_id, products in shopping_cart.items():
             price_before_discount = self.get_total_basket_price_before_discount(store_id, products)
             total_price += price_before_discount - self.apply_discount(discount_id, store_id, price_before_discount, products, user_info)
+        logger.info('[StoreFacade] successfully calculated total price after discount to be ' + str(total_price))
         return total_price
         
 
