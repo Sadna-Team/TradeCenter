@@ -502,3 +502,41 @@ def view_employees_info():
         logger.error('view_employees_info - ', str(e))
         return jsonify({'message': str(e)}), 400
 
+@store_bp.route('/add_purchase_policy', methods=['POST'])
+@jwt_required()
+def add_purchase_policy():
+    """
+        Use Case ____(idk I need to check)
+        Add a purchase policy to a store
+    """
+    logger.info('received request to add purchase policy')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        policy_name = data['policy_name']
+    except Exception as e:
+        logger.error('add_purchase_policy - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.add_purchase_policy(user_id, store_id, policy_name)
+
+
+@store_bp.route('/remove_purchase_policy', methods=['POST'])
+@jwt_required()
+def remove_purchase_policy():
+    """
+        Use Case ____(idk I need to check)
+        Remove a purchase policy from a store
+    """
+    logger.info('received request to remove purchase policy')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        policy_name = int(data['policy_name'])
+    except Exception as e:
+        logger.error('remove_purchase_policy - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.remove_purchase_policy(user_id, store_id, policy_name)
