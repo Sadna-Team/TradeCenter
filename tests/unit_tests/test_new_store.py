@@ -724,3 +724,5 @@ def test_validate_purchase_policies_fail(store_facade):
     products = {0: {0:1, 1:1, 2:4}, 1: {0:1, 1:1, 2:4}}
     with pytest.raises(ValueError):
         store_facade.validate_purchase_policies(products, user_dto)
+
+
