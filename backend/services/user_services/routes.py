@@ -7,7 +7,7 @@ logger = logging.getLogger('myapp')
 # ---------------------------------------------------
 
 from flask import Blueprint, request, jsonify
-from controllers import AuthenticationService, UserService
+from backend.services.user_services.controllers import AuthenticationService, UserService
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, unset_jwt_cookies
 
 auth_bp = Blueprint('auth', __name__)
@@ -45,10 +45,11 @@ def register():
             user_id (int): id of the user
             register_credentials (?): credentials of the new user required for registration
     """
-    logger.info('recieved request to register a new user')
+    logger.info('received request to register a new user')
     try:
         data = request.get_json()
         register_credentials = data.get('register_credentials')
+        logger.info('register credentials: ' + str(register_credentials))
         userid = get_jwt_identity()
 
     except Exception as e:
@@ -95,6 +96,23 @@ def logout():
         logger.error('logout - ' + str(e))
         return jsonify({'message': str(e)}), 400
     return authentication_service.logout(jti, user_id)
+
+
+@auth_bp.route('/logout_guest', methods=['POST'])
+@jwt_required()
+def logout_guest():
+    """
+        Use Case 2.1.2:
+        Logout a guest
+    """
+    logger.info('received request to logout a guest')
+    try:
+        jti = get_jwt()['jti']
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('logout_guest - ' + str(e))
+        return jsonify({'message': str(e)}), 400
+    return authentication_service.logout_guest(jti, user_id)
 
 # ---------------------------------------------------------------user usecase routes---------------------------------------------------------------
 
@@ -178,14 +196,15 @@ def show_cart():
     except Exception as e:
         logger.error('show_cart - ', str(e))
         return jsonify({'message': str(e)}), 400
-    return user_service.show_shopping_cart(user_id)
+    ans = user_service.show_shopping_cart(user_id)
+    return ans
 
 
 @user_bp.route('/accept_promotion', methods=['POST'])
 @jwt_required()
 def accept_promotion():
     """
-        Use Case 2.2.5:
+        Use Case 2.4.6:
         Accept a promotion
 
         Data:
@@ -195,7 +214,7 @@ def accept_promotion():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        promotion_id = data['promotion_id']
+        promotion_id = int(data['promotion_id'])
         accept = data['accept']
     except Exception as e:
         logger.error('accept_promotion - ', str(e))

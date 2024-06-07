@@ -1,7 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 from threading import Lock
+from backend.business.notifier.notifier import Notifier
 
+import logging
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("Roles Logger")
 
 class Permissions:
     def __init__(self):
@@ -190,9 +195,6 @@ class Tree:
 class RolesFacade:
     # singleton
     __instance = None
-    __creation_lock = Lock()
-    __stores_locks = Dict[int, Lock]  # Dict[store_id, Lock]
-    __system_managers_lock = Lock()
 
     def __new__(cls):
         if RolesFacade.__instance is None:
@@ -208,6 +210,10 @@ class RolesFacade:
             self.__system_managers: List[int] = []
             self.__system_admin: int = -1
             Nomination._Nomination__nomination_id_serializer = 0
+
+            self.__creation_lock = Lock()
+            self.__stores_locks: Dict[int, Lock] = {}  # Dict[store_id, Lock]
+            self.__system_managers_lock = Lock()
 
     def clean_data(self):
         """
@@ -265,6 +271,9 @@ class RolesFacade:
             self.__systems_nominations[nomination.nomination_id] = nomination
             return nomination.nomination_id
 
+    def get_nominations_data_structure(self) -> list[int]:
+        return list(self.__systems_nominations.keys())
+
     def __authorized_to_add_manager(self, store_id: int, nominator_id: int) -> bool:
         return isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner) or \
             (isinstance(self.__stores_to_roles[store_id][nominator_id], StoreManager) and
@@ -279,8 +288,8 @@ class RolesFacade:
             raise ValueError("Nominee is already a member of the store")
 
     def accept_nomination(self, nomination_id: int, nominee_id: int) -> None:
-        if nomination_id not in self.__systems_nominations:
-            raise ValueError("Nomination does not exist")
+        if nomination_id not in self.__systems_nominations.keys():
+            raise ValueError(f"Nomination does not exist - given id - {nomination_id}, {type(nomination_id)}")
         nomination = self.__systems_nominations[nomination_id]
         if nominee_id != nomination.nominee_id:
             raise ValueError("Nominee id does not match the nomination")
@@ -288,10 +297,15 @@ class RolesFacade:
         self.__stores_to_role_tree[nomination.store_id].add_child_to_father(nomination.nominator_id, nominee_id)
         # add role to the store
         self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
+
+        Notifier().sign_listener(nominee_id, nomination.store_id)
+
         # delete all nominations of the nominee in the store
         for n_id, nomination in self.__systems_nominations.copy().items():
             if nomination.nominee_id == nominee_id and nomination.store_id == nomination.store_id:
                 del self.__systems_nominations[n_id]
+        logger.info(f"User {nominee_id} accepted the nomination {nomination_id} in store {nomination.store_id}")
+
 
     def decline_nomination(self, nomination_id: int, nominee_id) -> None:
         if nomination_id not in self.__systems_nominations:
@@ -300,10 +314,13 @@ class RolesFacade:
         if nominee_id != nomination.nominee_id:
             raise ValueError("Nominee id does not match the nomination")
         del self.__systems_nominations[nomination_id]
+        logger.info(f"User {nominee_id} declined the nomination {nomination_id} in store {nomination.store_id}")
 
     def set_manager_permissions(self, store_id: int, actor_id: int, manager_id: int, add_product: bool,
                                 change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
                                 change_discount_types: bool, add_manager: bool, get_bid: bool) -> None:
+        '''
+        Actor_id is the owner/manager of the store and tries to change the permissions of the manager_id '''
         with self.__stores_locks[store_id]:
             if store_id not in self.__stores_to_roles:
                 raise ValueError("Store does not exist")
@@ -331,14 +348,20 @@ class RolesFacade:
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
                 raise ValueError("Cannot remove the root owner of the store")
             removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
+
             for user_id in removed:
+                Notifier().unsign_listener(user_id, store_id)
                 del self.__stores_to_roles[store_id][user_id]
+
 
     def is_system_manager(self, user_id: int) -> bool:
         with self.__system_managers_lock:
             return user_id in self.__system_managers
 
     def add_system_manager(self, actor: int, user_id: int) -> None:
+        """
+        if Actor is a system manager, he adds a new system manager
+        """
         with self.__system_managers_lock:
             if not self.is_system_manager(actor):
                 raise ValueError("Actor is not a system manager")

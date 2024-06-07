@@ -20,11 +20,23 @@ class StoreService:
     def edit_discount(self):
         pass
 
-    def add_purchase_policy(self):
-        pass
+    def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str) -> dict:
+        try:
+            self.__market_facade.add_purchase_policy(user_id, store_id, policy_name)
+            logger.info('purchase policy was added successfully')
+            return jsonify({'message': 'purchase policy was added successfully'}), 200
+        except Exception as e:
+            logger.error('purchase policy was not added')
+            return jsonify({'message': str(e)}), 400
 
-    def remove_purchase_policy(self):
-        pass
+    def remove_purchase_policy(self, user_id: int, store_id: int, policy_name: str) -> dict:
+        try:
+            self.__market_facade.remove_purchase_policy(user_id, store_id, policy_name)
+            logger.info('purchase policy was removed successfully')
+            return jsonify({'message': 'purchase policy was removed successfully'}), 200
+        except Exception as e:
+            logger.error('purchase policy was not removed')
+            return jsonify({'message': str(e)}), 400
 
     def edit_purchase_policy(self):
         pass
@@ -150,31 +162,33 @@ class StoreService:
             logger.error('product was not added to category')
             return jsonify({'message': str(e)}), 400
 
-    def add_store_owner(self, user_id: int, store_id: int, new_owner_id: int):
+    def add_store_owner(self, user_id: int, store_id: int, new_owner_username):
         """
             Send promotion to a new owner to a store.
             User still needs to accept the promotion! 
         """
         try:
-            self.__market_facade.nominate_store_owner(user_id, store_id, new_owner_id)
+            self.__market_facade.nominate_store_owner(user_id, store_id, new_owner_username)
             logger.info('store owner was added successfully')
             return jsonify({'message': 'store owner was added successfully'}), 200
         except Exception as e:
             logger.error('store owner was not added')
             return jsonify({'message': str(e)}), 400
 
-    def add_store_manager(self, user_id: int, store_id: int, manager_id: int):
+    def add_store_manager(self, user_id: int, store_id: int, manager_username):
         """
             Add a store manager
         """
         try:
-            self.__market_facade.nominate_store_manager(store_id, user_id, manager_id)
+            self.__market_facade.nominate_store_manager(store_id, user_id, manager_username)
             logger.info('store manager was added successfully')
             return jsonify({'message': 'store manager was added successfully'}), 200
         except Exception as e:
             logger.error('store manager was not added')
             return jsonify({'message': str(e)}), 400
 
+    def get_nominations_data_structure(self):
+        return self.__market_facade.get_nominations_data_structure()
 
     def edit_manager_permissions(self, user_id: int, store_id: int, manager_id: int, add_product: bool,
                            change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,

@@ -4,6 +4,9 @@ from flask_jwt_extended import JWTManager
 import secrets
 from backend.business.market import MarketFacade
 from backend.business.authentication.authentication import Authentication
+import os
+from logging.handlers import RotatingFileHandler
+import logging
 
 
 
@@ -26,7 +29,7 @@ def create_app():
     authentication = Authentication()
     authentication.set_jwt(jwt, bcrypt)
 
-    market_facade = MarketFacade()
+    MarketFacade()
 
     from backend.services.user_services.routes import auth_bp, user_bp
     from backend.services.ecommerce_services.routes import market_bp
@@ -44,8 +47,8 @@ def create_app():
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blacklist(jwt_header, jwt_payload):
         return authentication.check_if_token_in_blacklist(jwt_header, jwt_payload)
-
     return app
+
 
 def clean_data():
     MarketFacade().clean_data()

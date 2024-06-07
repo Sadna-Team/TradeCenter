@@ -807,6 +807,19 @@ class PurchaseFacade:
             raise ValueError("Purchase already accepted or completed")
         del self._purchases[purchase_id]
 
+    def cancel_accepted_purchase(self, purchase_id: int) -> None:
+        """
+        * Parameters: purchaseId
+        * This function is responsible for canceling the accepted purchase
+        * It removes the accepted purchase
+        * Returns: none
+        """
+        logger.info('[PurchaseFacade] attempting to cancel accepted purchase with purchase id: %s', purchase_id)
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if purchase.status != PurchaseStatus.accepted:
+            raise ValueError("Purchase is not accepted")
+        del self._purchases[purchase_id]
+
     def complete_purchase(self, purchase_id: int):
         """
         * Parameters: purchaseId
@@ -816,6 +829,16 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] attempting to complete purchase with purchase id: %s', purchase_id)
         purchase = self.__get_purchase_by_id(purchase_id)
         purchase.complete()
+
+    def check_if_purchase_completed(self, purchase_id: int) -> bool:
+        """
+        * Parameters: purchaseId
+        * This function is responsible for checking if the purchase is completed
+        * Returns: bool
+        """
+        logger.info('[PurchaseFacade] attempting to check if purchase with purchase id: %s is completed', purchase_id)
+        purchase = self.__get_purchase_by_id(purchase_id)
+        return purchase.status == PurchaseStatus.completed
 
     def __get_purchase_by_id(self, purchase_id: int) -> Purchase:
         if self.__check_if_purchase_exists(purchase_id):
