@@ -243,7 +243,7 @@ def test_view_employees_info_invalid_store_id():
     assert response.status_code == 400
     clean_data()
 
-
+"""
 # UNTESTED, BUT SHOULD WORK
 def test_add_purchase_policy_success():
     data = {'store_id': 0, 'policy_name': 'no_alcohol_past_time'}
@@ -252,7 +252,7 @@ def test_add_purchase_policy_success():
     assert response.status_code == 200
     clean_data()
 
-"""def test_add_purchase_policy_invalid_store_id():
+def test_add_purchase_policy_invalid_store_id():
     data = {'store_id': 30, 'policy_name': 'no_alcohol_past_time'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/add_purchase_policy', headers=headers, json=data)

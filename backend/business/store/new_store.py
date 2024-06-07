@@ -1040,8 +1040,10 @@ class StoreFacade:
         with self.__store_id_lock:
             store = Store(self.__store_id_counter, location_id, store_name, store_founder_id)
             self.__stores[self.__store_id_counter] = store
+            print(self.__stores)
             self.__store_id_counter += 1
         logger.info(f'Successfully added store: {store_name}')
+        return store.store_id
 
     def close_store(self, store_id: int, user_id: int) -> None:
         """
