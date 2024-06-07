@@ -180,7 +180,7 @@ class SupplyHandler:
         """
         if not self._validate_supply_method(package_details.get("supply method"), address):
             raise ValueError(f"supply method not supported for address: {address}")
-        time = datetime.now() + timedelta(minutes=1)
+        time = datetime.now() + timedelta(seconds=5)
         logger.info(f"Estimated delivery time: {time} - for package {package_details} to address {address}")
         return time
 

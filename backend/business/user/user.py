@@ -10,9 +10,8 @@ logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
                      format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("User Logger")
 
-
 # NOTE: This is a workaround to avoid circular imports
-#from .. import NotificationDTO
+# from .. import NotificationDTO
 
 # NOTE: Solution:
 from backend.business.DTOs import NotificationDTO, UserDTO, PurchaseUserDTO
@@ -29,7 +28,7 @@ class ShoppingBasket:
         self.__products[product_id] += quantity
 
     def get_dto(self) -> Dict[int, int]:
-        return self.__products
+        return dict(self.__products)
 
     def remove_product(self, product_id: int, quantity: int):
         if product_id not in self.__products:
@@ -180,6 +179,7 @@ class Member(State):
     def get_phone(self):
         return self.__phone
 
+
 class User:
     def __init__(self, user_id: int, currency: str = 'USD') -> None:
         if currency not in c.currencies:
@@ -225,7 +225,7 @@ class User:
 
     def is_member(self):
         return isinstance(self.__member, Member)
-    
+
     def create_purchase_user_dto(self) -> PurchaseUserDTO:
         try:
             return PurchaseUserDTO(self.__id, self.__member.get_birthdate())
@@ -271,7 +271,7 @@ class UserFacade:
         if user_id not in self.__users:
             raise ValueError("User not found")
         return self.__users[user_id]
-    
+
     def get_userDTO(self, user_id: int, role: str = None) -> UserDTO:
         user = self.__get_user(user_id)
         return user.get_user_dto(role)
@@ -303,7 +303,7 @@ class UserFacade:
             out = []
             for notification in notifications:
                 out.append(notification.get_notification_dto())
-            self.clear_notifications(user_id)
+        self.clear_notifications(user_id)
         return out
 
     def clear_notifications(self, user_id: int) -> None:
@@ -355,7 +355,7 @@ class UserFacade:
         for user_id, role in roles.items():
             out[user_id] = self.__get_user(user_id).get_user_dto(role)
         return out
-      
+
     def restore_basket(self, user_id: int, cart: Dict[int, Dict[int, int]]):
         self.__get_user(user_id).clear_basket()
         for store_id, products in cart.items():

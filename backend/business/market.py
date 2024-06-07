@@ -451,8 +451,6 @@ class MarketFacade:
         * This function closes a store
         * Returns None
         """
-        if not self.auth_facade.is_logged_in(user_id):
-            raise ValueError("User is not logged in")
         self.store_facade.close_store(user_id, store_id)
 
     # -------------Tags related methods-------------------#
@@ -562,7 +560,7 @@ class MarketFacade:
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to remove a product from a category")
-        self.remove_product_from_category(user_id, category_id, store_id, product_id)
+        self.store_facade.remove_product_from_category(category_id, store_id, product_id)
         logger.info(f"User {user_id} has removed a product from category {category_id}")
 
     # -------------PurchaseFacade methods:-------------------#
@@ -625,8 +623,6 @@ class MarketFacade:
         * This function returns the purchases of a user
         * Returns a string
         """
-        if not self.auth_facade.is_logged_in(user_id):
-            raise ValueError("User is not logged in")
         return self.purchase_facade.get_purchases_of_user(user_id)
 
     def view_purchases_of_store(self, user_id: int, store_id: int) -> List[PurchaseDTO]:
@@ -635,8 +631,6 @@ class MarketFacade:
         * This function returns the purchases of a store
         * Returns a string
         """
-        if not self.auth_facade.is_logged_in(user_id):
-            raise ValueError("User is not a member or is not logged in")
         if not self.roles_facade.is_owner(store_id, user_id) and not self.roles_facade.is_manager(store_id, user_id):
             raise ValueError("User is not a store owner or manager")
         return self.purchase_facade.get_purchases_of_store(store_id)

@@ -20,11 +20,23 @@ class StoreService:
     def edit_discount(self):
         pass
 
-    def add_purchase_policy(self):
-        pass
+    def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str) -> dict:
+        try:
+            self.__market_facade.add_purchase_policy(user_id, store_id, policy_name)
+            logger.info('purchase policy was added successfully')
+            return jsonify({'message': 'purchase policy was added successfully'}), 200
+        except Exception as e:
+            logger.error('purchase policy was not added')
+            return jsonify({'message': str(e)}), 400
 
-    def remove_purchase_policy(self):
-        pass
+    def remove_purchase_policy(self, user_id: int, store_id: int, policy_name: str) -> dict:
+        try:
+            self.__market_facade.remove_purchase_policy(user_id, store_id, policy_name)
+            logger.info('purchase policy was removed successfully')
+            return jsonify({'message': 'purchase policy was removed successfully'}), 200
+        except Exception as e:
+            logger.error('purchase policy was not removed')
+            return jsonify({'message': str(e)}), 400
 
     def edit_purchase_policy(self):
         pass

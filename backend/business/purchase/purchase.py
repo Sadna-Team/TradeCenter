@@ -824,6 +824,16 @@ class PurchaseFacade:
         purchase = self.__get_purchase_by_id(purchase_id)
         purchase.complete()
 
+    def check_if_purchase_completed(self, purchase_id: int) -> bool:
+        """
+        * Parameters: purchaseId
+        * This function is responsible for checking if the purchase is completed
+        * Returns: bool
+        """
+        logger.info('[PurchaseFacade] attempting to check if purchase with purchase id: %s is completed', purchase_id)
+        purchase = self.__get_purchase_by_id(purchase_id)
+        return purchase.status == PurchaseStatus.completed
+
     def __get_purchase_by_id(self, purchase_id: int) -> Purchase:
         if self.__check_if_purchase_exists(purchase_id):
             return self._purchases[purchase_id]
