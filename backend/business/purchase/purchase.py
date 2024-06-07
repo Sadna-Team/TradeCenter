@@ -208,9 +208,10 @@ class ImmediatePurchase(Purchase):
         return self._immediate_sub_purchases
 
     def __get_new_sub_purchase_id(self) -> int:
-        new_id = self.__sub_purchase_id_serializer
-        self.__sub_purchase_id_serializer += 1
-        return new_id
+        with self.__sub_purchase_id_serializer_lock:
+            new_id = self.__sub_purchase_id_serializer
+            self.__sub_purchase_id_serializer += 1
+            return new_id
 
     def accept(self):
         if self._status != PurchaseStatus.onGoing:
