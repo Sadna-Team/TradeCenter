@@ -14,14 +14,9 @@ logger = logging.getLogger('myapp')
 
 # ---------------------------------------------------
 
-# --------------- Discount interface ---------------#
-class DiscountInterface(ABC):
-    @abstractmethod
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
-        pass
 
 # --------------- Discount base ---------------#
-class Discount(DiscountInterface):
+class Discount(ABC):
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint]):
         self.__discount_id = discount_id
@@ -78,6 +73,8 @@ class Discount(DiscountInterface):
     
     def change_predicate(self, new_predicate: Constraint) -> None:
         self.__predicate = new_predicate
+
+
 
 # --------------- Category Discount ---------------#
 class CategoryDiscount(Discount):
@@ -208,11 +205,13 @@ class ProductDiscount(Discount):
 
 
 # --------------- And Discount ---------------#
-class AndDiscount(DiscountInterface):
+class AndDiscount(Discount):
     """
     * This class is responsible for creating a discount composite that is applied when both discounts are applicable.
     """
-    def __init__(self, discount1: Discount, discount2: Discount):
+    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+                 percentage: float, discount1: Discount, discount2: Discount):
+        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
         self.__discount1 = discount1
         self.__discount2 = discount2
         logger.info("[AndDiscount] And discount created successfully!")
@@ -252,11 +251,13 @@ class AndDiscount(DiscountInterface):
         
 
 # --------------- Or Discount ---------------#
-class OrDiscount(DiscountInterface):
+class OrDiscount(Discount):
     """
     * This class is responsible for creating a discount composite that is applied when at least one of the discounts is applicable.
     """
-    def __init__(self, discount1: Discount, discount2: Discount): # add decision rule
+    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+                 percentage: float, discount1: Discount, discount2: Discount): # add decision rule
+        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
         self.__discount1 = discount1
         self.__discount2 = discount2
 
@@ -298,8 +299,10 @@ class OrDiscount(DiscountInterface):
                 raise ValueError("Discount not applicable")
 
 # --------------- Xor Discount ---------------#
-class XorDiscount(DiscountInterface):
-    def __init__(self, discount1: Discount, discount2: Discount): # add decision rule
+class XorDiscount(Discount):
+    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+                 percentage: float, discount1: Discount, discount2: Discount): # add decision rule
+        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
         self.__discount1 = discount1
         self.__discount2 = discount2
         logger.info("[XorDiscount] Xor discount created successfully!")
@@ -333,9 +336,11 @@ class XorDiscount(DiscountInterface):
 
 
 # --------------- Max Discount classes ---------------#
-class maxDiscount(DiscountInterface):
+class MaxDiscount(Discount):
     # class responsible for returning the total price of the maximum discount.
-    def __init__(self, ListDiscount: list[Discount]):
+    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+                 percentage: float, ListDiscount: list[Discount]):
+        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
         self.__ListDiscount = ListDiscount
         logger.info("[maxDiscount] Max discount created successfully!")
 
@@ -350,11 +355,13 @@ class maxDiscount(DiscountInterface):
 
 
 # --------------- Additive Discount classes ---------------#
-class additiveDiscountStrategy(Discount):
+class AdditiveDiscount(Discount):
     # class responsible for returning the total price of the maximum discount.
-    def __init__(self, ListDiscount: list[Discount]):
+    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+                 percentage: float, ListDiscount: list[Discount]):
+        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
         self.__ListDiscount = ListDiscount
-        logger.info("[additiveDiscountStrategy] Additive discount created successfully!")
+        logger.info("[additiveDiscount] Additive discount created successfully!")
 
     def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
@@ -362,5 +369,8 @@ class additiveDiscountStrategy(Discount):
         * This function is responsible for calculating the discount based on the basket and user.
         * Returns: float
         """
-        logger.info("[additiveDiscountStrategy] Calculating additive discount")
+        logger.info("[additiveDiscount] Calculating additive discount")
         return sum([discount.calculate_discount(basket_information) for discount in self.__ListDiscount])
+    
+
+

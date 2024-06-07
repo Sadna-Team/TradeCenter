@@ -40,7 +40,7 @@ class AgeConstraint(Constraint):
         return self.__min_age
 
 
-# --------------- location constraint class ---------------#
+# --------------- location constraint class ---------------# 
 class LocationConstraint(Constraint):
     def __init__(self, location: AddressDTO):
         self.__location = location

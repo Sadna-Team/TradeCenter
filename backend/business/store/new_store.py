@@ -1,6 +1,8 @@
 # ---------- Imports ------------#
 from typing import List, Dict, Tuple, Optional, Callable
-from .discount import Discount
+
+from .constraints import *
+from .discount import *
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
 from backend.business.DTOs import ProductDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO
@@ -12,6 +14,9 @@ import logging
 logger = logging.getLogger('myapp')
 
 # ---------------------------------------------------
+NUMBER_OF_AVAILABLE_LOGICAL_DISCOUNT_TYPES = 3
+NUMBER_OF_AVAILABLE_NUMERICAL_DISCOUNT_TYPES = 2
+NUMBER_OF_AVAILALBE_PREDICATES = 4
 
 # ---------------------product class---------------------#
 class Product:
@@ -729,7 +734,7 @@ class StoreFacade:
             self._initialized = True
             self.__categories: Dict[int, Category] = {}  # category_id: Category
             self.__stores: Dict[int, Store] = {}  # store_id: Store
-            self.__discounts: List[Discount] = []  # List to store discounts
+            self.__discounts: Dict[int, Discount] = []  # List to store discounts
             self.__category_id_counter = 0  # Counter for category IDs
             self.__store_id_counter = 0  # Counter for store IDs
             self.__discount_id_counter = 0  # Counter for discount IDs
@@ -1013,36 +1018,216 @@ class StoreFacade:
         # TODO: implement this function
         pass
 
+
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
-    '''def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float) -> None:
+    def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int],
+                     store_id: Optional[int], product_id: Optional[int], applied_to_sub: Optional[bool]) -> int:
         """
-        * Parameters: description, startDate, endingDate, percentage
+        * Parameters: description, startDate, endDate, percentage, categoryId, storeId, productId, appliedToSub
         * This function adds a discount to the store
-        * Returns: None
+        * NOTE: the discount starts off with no predicate! if the user wants to add a predicate they must use the assignPredicate function
+        * Returns: the integer ID of the discount
         """
-        logger.info('[StoreFacade] attempting to add discount')
-        if description is not None:
-            if start_date is not None:
-                if ending_date is not None:
-                    if ending_date > start_date:
-                        if percentage is not None:
-                            if 0.0 <= percentage <= 1.0:
-                                discount = DiscountStrategy(self.__discount_id_counter, description, start_date,
-                                                            ending_date, percentage)
-                                self.__discounts.append(discount)
-                                self.__discount_id_counter += 1
-                            else:
-                                raise ValueError('Percentage is not between 0 and 1')
-                        else:
-                            raise ValueError('Percentage is not a valid float value')
-                    else:
-                        raise ValueError('Ending date is before start date')
-                else:
-                    raise ValueError('Ending date is not a valid datetime value')
+        if category_id is not None:
+            if category_id not in self.__categories:
+                raise ValueError('Category the discount is applied to is not found')
+            if applied_to_sub is None:
+                raise ValueError('Applied to subcategories is missing')
+            new_discount = CategoryDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
+            self.__discounts[self.__discount_id_counter] = new_discount
+            self.__discount_id_counter += 1
+        
+        if store_id is not None:
+            if store_id not in self.__stores:
+                raise ValueError('Store the discount is applied to is not found')
+            if product_id is not None: 
+                if product_id not in self.__stores[store_id].store_products:
+                    raise ValueError('Product the discount is applied to is not found')
+                new_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
+                self.__discounts[self.__discount_id_counter] = new_discount
+                self.__discount_id_counter += 1
             else:
-                raise ValueError('Start date is not a valid datetime value')
+                new_discount = StoreDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, store_id)
+                self.__discounts[self.__discount_id_counter] = new_discount
+                self.__discount_id_counter += 1
+
+        return self.__discount_id_counter - 1
+    
+
+    def create_logical_composite_discount(self,description: str, start_date: datetime, ending_date: datetime, percentage: float,
+                                           discount_id1: int, discount_id2: int, type_of_connection: int) -> int:
+        """
+        * Parameters: description, startDate, endDate, percentage, discountId1, discountId2, typeOfConnection
+        * This function creates a logical composite discount
+        *NOTE: type_of_connection: 1-> AND, 2-> OR, 3-> XOR
+        * Returns: the integer ID of the discount
+        """
+        if discount_id1 not in self.__discounts or discount_id2 not in self.__discounts:
+            raise ValueError('One of the discounts is not found')
+        
+        if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_LOGICAL_DISCOUNT_TYPES:
+            raise ValueError('Type of connection is not valid')
+        
+        discount1 = self.__discounts[discount_id1]
+        discount2 = self.__discounts[discount_id2]
+
+        if type_of_connection == 1:
+            new_discount = AndDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            self.__discounts[self.__discount_id_counter] = new_discount
+            self.__discount_id_counter += 1
+        elif type_of_connection == 2:
+            new_discount = OrDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            self.__discounts[self.__discount_id_counter] = new_discount
+            self.__discount_id_counter += 1
         else:
-            raise ValueError('Description is not a valid string')'''
+            new_discount = XorDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            self.__discounts[self.__discount_id_counter] = new_discount
+            self.__discount_id_counter += 1
+        
+        return self.__discount_id_counter - 1
+
+    
+    def create_numerical_composite_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float,
+                                            discount_ids: List[int], type_of_connection: int) -> None:
+        """
+        * Parameters: description, startDate, endDate, percentage, discountIds, typeOfConnection
+        * This function creates a numerical composite discount
+        * NOTE: type_of_connection: 1-> Max, 2-> Additive
+        * Returns: the integer ID of the discount
+        """
+        if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_NUMERICAL_DISCOUNT_TYPES:
+            raise ValueError('Type of connection is not valid')
+        
+        if len(discount_ids) < 2:
+            raise ValueError('Not enough discounts to create a composite discount')
+        
+        discounts = []
+        for discount_id in discount_ids:
+            if discount_id not in self.__discounts:
+                raise ValueError('One of the discounts is not found')
+            discounts.append(self.__discounts[discount_id])
+            
+        if type_of_connection == 1:
+            new_discount = MaxDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
+            self.__discounts[self.__discount_id_counter] = new_discount
+            self.__discount_id_counter += 1
+        else:
+            new_discount = AdditiveDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
+            self.__discounts[self.__discount_id_counter] = new_discount
+            self.__discount_id_counter += 1
+    
+
+    def assign_predicate_to_discount(self, discount_id: int, ages: List[Optional[int]], locations: List[Optional[AddressDTO]],
+                                     starting_times: List[Optional[datetime.time]], ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]], 
+                                     max_prices: List[Optional[float]], min_weights: List[Optional[float]], max_weights: List[Optional[float]], min_amounts: List[Optional[int]],
+                                     store_ids: List[Optional[int]], product_ids: List[Optional[int]], category_ids: List[Optional[int]], 
+                                        type_of_connection: List[Optional[int]]) -> None:
+        """
+        * Parameters: discountId, ages, locations, startingTimes, endingTimes, minPrices, maxPrices, minWeights, maxWeights, storeIds, productIds, categoryIds, typeOfConnection
+        * This function assigns a predicate to a discount
+        * NOTE: if type_of_connection is an empty list, then it is a simple predicate
+        * NOTE: the composite predicate is assign from the last to the start where the last predicate and second to last are combined and then their combination is combined to the previous all the way to the first
+        * In other words [and, or, xor] -> pred1 and (pred2 or(pred3 xor pred4))
+        * NOTE: type_of_connection: 1-> And, 2-> Or, 3-> Xor, 4-> Implies
+        * NOTE: the lists of the optionals should of same size, and [0] is for the first, [1] is for the second, and so on, if the value is None then the first predicate is of different type
+        * Returns: none
+        """
+        if discount_id not in self.__discounts:
+            raise ValueError('Discount is not found')
+        
+        length = len(ages)
+        if length != len(locations) or length != len(starting_times) or length != len(ending_times) or length != len(min_prices) or length != len(max_prices) or length != len(min_weights) or length != len(max_weights) or length != len(store_ids) or length != len(product_ids) or length != len(category_ids) or length != len(type_of_connection):
+            raise ValueError('Lengths of predicate lists are not equal')
+
+
+        discount = self.__discounts[discount_id]
+        #simple predicate
+        if len(type_of_connection) == 1 and type_of_connection[0] is None:
+            predicate = None
+            if ages[0] is not None:
+                predicate = AgeConstraint(ages[0])
+            elif locations[0] is not None:
+                predicate = LocationConstraint(locations[0])
+            elif starting_times[0] is not None and ending_times[0] is not None:
+                predicate = TimeConstraint(starting_times[0], ending_times[0])
+            elif min_prices[0] is not None and max_prices[0] is not None:
+                if min_prices[0] > max_prices[0]:
+                    raise ValueError('Min price is greater than max price')
+                if category_ids[0] is not None:
+                    if not isinstance(discount, CategoryDiscount):
+                        raise ValueError('Discount is not a category discount')
+                    
+                    if category_ids[0] != discount.category_id:
+                        raise ValueError('Category ID does not match the category ID of the discount')
+                    predicate = PriceCategoryConstraint(min_prices[0], max_prices[0], category_ids[0])
+                elif store_ids[0] is not None:
+                    if product_ids[0] is not None:
+                        if not isinstance(discount, ProductDiscount):
+                            raise ValueError('Discount is not a product discount')
+                        if store_ids[0] != discount.store_id or product_ids[0] != discount.product_id:
+                            raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
+                        predicate = PriceProductConstraint(min_prices[0], max_prices[0], product_ids[0], store_ids[0])
+                    else:
+                        if not isinstance(discount, StoreDiscount):
+                            raise ValueError('Discount is not a store discount')
+                        if store_ids[0] != discount.store_id:
+                            raise ValueError('Store ID does not match the store ID of the discount')
+                        predicate = PriceBasketConstraint(min_prices[0], max_prices[0], store_ids[0])
+                elif min_weights[0] is not None and max_weights[0] is not None:
+                    if min_weights[0] > max_weights[0]:
+                        raise ValueError('Min weight is greater than max weight')
+
+                    if category_ids[0] is not None:
+                        if not isinstance(discount, CategoryDiscount):
+                            raise ValueError('Discount is not a category discount')
+                        if category_ids[0] != discount.category_id:
+                            raise ValueError('Category ID does not match the category ID of the discount')
+                        predicate = WeightCategoryConstraint(min_weights[0], max_weights[0], category_ids[0])
+                    elif store_ids[0] is not None:
+                        if product_ids[0] is not None:
+                            if not isinstance(discount, ProductDiscount):
+                                raise ValueError('Discount is not a product discount')
+                            if store_ids[0] != discount.store_id or product_ids[0] != discount.product_id:
+                                raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
+                            predicate = WeightProductConstraint(min_weights[0], max_weights[0], product_ids[0], store_ids[0])
+                        else:
+                            if not isinstance(discount, StoreDiscount):
+                                raise ValueError('Discount is not a store discount')
+                            if store_ids[0] != discount.store_id:
+                                raise ValueError('Store ID does not match the store ID of the discount')
+                            predicate = WeightBasketConstraint(min_weights[0], max_weights[0], store_ids[0])
+                elif min_amounts[0] is not None:
+                    if category_ids[0] is not None:
+                        if not isinstance(discount, CategoryDiscount):
+                            raise ValueError('Discount is not a category discount')
+                        if category_ids[0] != discount.category_id:
+                            raise ValueError('Category ID does not match the category ID of the discount')
+                        predicate = AmountCategoryConstraint(min_amounts[0], category_ids[0])
+                    elif store_ids[0] is not None:
+                        if product_ids[0] is not None:
+                            if not isinstance(discount, ProductDiscount):
+                                raise ValueError('Discount is not a product discount')
+                            if store_ids[0] != discount.store_id or product_ids[0] != discount.product_id:
+                                raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
+                            predicate = AmountProductConstraint(min_amounts[0], product_ids[0], store_ids[0])
+                        else:
+                            if not isinstance(discount, StoreDiscount):
+                                raise ValueError('Discount is not a store discount')
+                            if store_ids[0] != discount.store_id:
+                                raise ValueError('Store ID does not match the store ID of the discount')
+                            predicate = AmountBasketConstraint(min_amounts[0], store_ids[0])
+                else:
+                    raise ValueError('No valid predicate found')
+            discount.assign_predicate(predicate)
+            
+                    
+
+        else:
+
+
+
+        type of connections = And, Or, Xor, Implies
+
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
     def remove_discount(self, discount_id: int) -> None:
