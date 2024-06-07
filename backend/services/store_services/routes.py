@@ -86,7 +86,7 @@ def edit_discount():
 
     pass
 
-
+"""
 @store_bp.route('/add_purchase_policy', methods=['POST'])
 @jwt_required
 def add_purchase_policy():
@@ -109,8 +109,8 @@ def add_purchase_policy():
         return jsonify({'message': str(e)}), 400
 
     pass
-
-
+"""
+"""
 @store_bp.route('/remove_purchase_policy', methods=['POST'])
 @jwt_required
 def remove_purchase_policy():
@@ -133,7 +133,7 @@ def remove_purchase_policy():
         return jsonify({'message': str(e)}), 400
 
     pass
-
+"""
 
 @store_bp.route('/change_purchase_policy', methods=['POST'])
 @jwt_required
@@ -364,15 +364,6 @@ def assign_product_to_category():
 
     return store_service.assign_product_to_category(user_id, category_id, store_id, product_id)
 
-@store_bp.route('/tests/get_nominations', methods=['GET'])
-@jwt_required()
-def get_nominations():
-    """
-        get nomination ids for market
-    """
-
-    return jsonify(store_service.get_nominations_data_structure()), 200
-
 '''@store_bp.route('/remove_product_specification_from_category', methods=['POST'])
 @jwt_required()
 def remove_product_specification_from_category():
@@ -456,20 +447,13 @@ def edit_manager_permissions():
         data = request.get_json()
         store_id = int(data['store_id'])
         manager_id = int(data['manager_id'])
-        add_product = bool(data['add_product'])
-        change_purchase_policy = bool(data['change_purchase_policy'])
-        change_purchase_types = bool(data['change_purchase_types'])
-        change_discount_policy = bool(data['change_discount_policy'])
-        change_discount_types = bool(data['change_discount_types'])
-        add_manager = bool(data['add_manager'])
-        get_bid = bool(data['get_bid'])
+        permissions = list(data['permissions'])
+
     except Exception as e:
         logger.error('edit_manager_permissions - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.edit_manager_permissions(user_id, store_id, manager_id, add_product, change_purchase_policy,
-                                                  change_purchase_types, change_discount_policy, change_discount_types,
-                                                  add_manager, get_bid)
+    return store_service.edit_manager_permissions(user_id, store_id, manager_id, permissions)
 
 
 @store_bp.route('/closing_store', methods=['POST'])
@@ -501,14 +485,14 @@ def view_employees_info():
     logger.info('received request to view employees info')
     try:
         user_id = int(get_jwt_identity())
-        data = request.args
+        data = request.get_json()
         store_id = int(data['store_id'])
         info = store_service.view_employees_info(user_id, store_id)
-        logger.info('employees info was sent successfully')
-        return jsonify({'message': info}), 200
     except Exception as e:
         logger.error('view_employees_info - ', str(e))
         return jsonify({'message': str(e)}), 400
+    
+    return info
 
 @store_bp.route('/add_purchase_policy', methods=['POST'])
 @jwt_required()

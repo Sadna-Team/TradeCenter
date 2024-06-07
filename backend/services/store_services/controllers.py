@@ -187,15 +187,18 @@ class StoreService:
             logger.error('store manager was not added')
             return jsonify({'message': str(e)}), 400
 
-    def get_nominations_data_structure(self):
-        return self.__market_facade.get_nominations_data_structure()
-
-    def edit_manager_permissions(self, user_id: int, store_id: int, manager_id: int, add_product: bool,
-                           change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
-                           change_discount_types: bool, add_manager: bool, get_bid: bool):
+    def edit_manager_permissions(self, user_id: int, store_id: int, manager_id: int, permissions: list[str]):
         """
             Edit the permissions of a store manager
         """
+        add_product = 'add_product' in permissions
+        change_purchase_policy = 'change_purchase_policy' in permissions
+        change_purchase_types = 'change_purchase_types' in permissions
+        change_discount_policy = 'change_discount_policy' in permissions
+        change_discount_types = 'change_discount_types' in permissions
+        add_manager = 'add_manager' in permissions
+        get_bid = 'get_bid' in permissions
+
         try:
             self.__market_facade.change_permissions(user_id, store_id, manager_id, add_product, change_purchase_policy,
                                                     change_purchase_types, change_discount_policy,
@@ -222,11 +225,12 @@ class StoreService:
         """
             View information about the employees of a store
         """
-        '''try:
+        try:
             info = self.__market_facade.get_employees_info(user_id, store_id)
+            print(info)
+            info = jsonify({'message': info}), 200
             logger.info('employees info was sent successfully')
-            return jsonify({'message': info}), 200
+            return info
         except Exception as e:
             logger.error('employees info was not sent')
-            return jsonify({'message': str(e)}), 400'''
-        pass
+            return jsonify({'message': str(e)}), 400

@@ -137,11 +137,11 @@ class UserService:
         """
         try:
             if accept:
-                self.roles_facade.accept_nomination(user_id, nomination_id)
+                self.roles_facade.accept_nomination(nomination_id, user_id)
                 logger.info('promotion accepted successfully')
                 return jsonify({'message': 'promotion accepted successfully'}), 200
             else:
-                self.roles_facade.decline_nomination(user_id, nomination_id)
+                self.roles_facade.decline_nomination(nomination_id, user_id)
                 logger.info('promotion declined successfully')
                 return jsonify({'message': 'promotion declined successfully'}), 200
 
@@ -217,6 +217,7 @@ class AuthenticationService:
             user_token, notification = self.authentication.login_user(username, password)
             logger.info('User logged in successfully')
             return jsonify({'token': user_token, 'notification': notification}), 200
+
 
         except Exception as e:
             logger.error('login - ' + str(e))
