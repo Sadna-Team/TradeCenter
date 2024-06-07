@@ -107,10 +107,10 @@ headers = {'Authorization': 'Bearer ' + guest1_token}
 response = client.post('auth/login', headers=headers, json=data)
 owner_token = response.get_json()['token']
 
-# create a store
-data = {'store_name': 'test_store', 'location_id': 1}
-headers = {'Authorization': 'Bearer ' + owner_token}
-response = client.post('store/add_store', headers=headers, json=data)
+# # create a store
+# data = {'store_name': 'test_store', 'location_id': 1}
+# headers = {'Authorization': 'Bearer ' + owner_token}
+# response = client.post('store/add_store', headers=headers, json=data)
 
 # login as owner2
 data = {'username': 'owner2', 'password': 'test'}
@@ -145,6 +145,12 @@ print("-------------")
 print("-------------")
 
 def test_appoint_store_manager_success():
+
+    # create a store
+    data = {'store_name': 'test_store', 'location_id': 1}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client.post('store/add_store', headers=headers, json=data)
+    
     # appoint managers
     data = {'store_id': 0, 'username': 'new_manager'}
     headers = {'Authorization': 'Bearer ' + owner_token}

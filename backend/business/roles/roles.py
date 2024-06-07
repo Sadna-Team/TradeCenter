@@ -234,6 +234,7 @@ class RolesFacade:
         if store_id in self.__stores_to_roles:
             raise ValueError("Store already exists")
         self.__stores_to_roles[store_id] = {owner_id: StoreOwner()}
+        print(store_id)
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
         self.__stores_locks[store_id] = Lock()
 
@@ -262,6 +263,8 @@ class RolesFacade:
             return nomination.nomination_id
 
     def nominate_manager(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
+        print(self.__stores_locks)
+        print(f"{store_id}, huhhhhh\n\n\n\n\n\n\n\n\n\n")
         with self.__stores_locks[store_id]:
             self.__check_nomination_validation(store_id, nominator_id, nominee_id)
             # check that nominator is an owner or that he is a manager with permissions to add a manager
