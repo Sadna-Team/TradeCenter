@@ -162,7 +162,7 @@ class MarketFacade:
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_username):
         # get user_id of new_owner_username
-        new_owner_id = self.user_facade.get_usernames()[new_owner_username]
+        new_owner_id = self.user_facade.get_user_id_from_username(new_owner_username)
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
         # TODO: different implementation later
         self.user_facade.notify_user(new_owner_id,
