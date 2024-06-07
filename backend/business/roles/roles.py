@@ -4,9 +4,11 @@ from threading import Lock
 from backend.business.notifier.notifier import Notifier
 
 import logging
+
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
-                     format='%(name)s - %(levelname)s - %(message)s')
+                    format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Roles Logger")
+
 
 class Permissions:
     def __init__(self):
@@ -284,7 +286,7 @@ class RolesFacade:
         if nominee_id in self.__stores_to_roles[store_id]:
             raise ValueError("Nominee is already a member of the store")
 
-    def accept_nomination(self,nominee_id: int, nomination_id: int) -> None:
+    def accept_nomination(self, nominee_id: int, nomination_id: int) -> None:
         if nomination_id not in self.__systems_nominations:
             raise ValueError("Nomination does not exist")
         nomination = self.__systems_nominations[nomination_id]
@@ -303,8 +305,7 @@ class RolesFacade:
                 del self.__systems_nominations[n_id]
         logger.info(f"User {nominee_id} accepted the nomination {nomination_id} in store {nomination.store_id}")
 
-
-    def decline_nomination(self, nomination_id: int, nominee_id) -> None:
+    def decline_nomination(self, nominee_id: int, nomination_id:int) -> None:
         if nomination_id not in self.__systems_nominations:
             raise ValueError("Nomination does not exist")
         nomination = self.__systems_nominations[nomination_id]
@@ -349,7 +350,6 @@ class RolesFacade:
             for user_id in removed:
                 Notifier().unsign_listener(user_id, store_id)
                 del self.__stores_to_roles[store_id][user_id]
-
 
     def is_system_manager(self, user_id: int) -> bool:
         with self.__system_managers_lock:
