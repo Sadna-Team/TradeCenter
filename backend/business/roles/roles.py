@@ -271,6 +271,9 @@ class RolesFacade:
             self.__systems_nominations[nomination.nomination_id] = nomination
             return nomination.nomination_id
 
+    def get_nominations_data_structure(self) -> list[int]:
+        return list(self.__systems_nominations.keys())
+
     def __authorized_to_add_manager(self, store_id: int, nominator_id: int) -> bool:
         return isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner) or \
             (isinstance(self.__stores_to_roles[store_id][nominator_id], StoreManager) and
@@ -285,8 +288,8 @@ class RolesFacade:
             raise ValueError("Nominee is already a member of the store")
 
     def accept_nomination(self, nomination_id: int, nominee_id: int) -> None:
-        if nomination_id not in self.__systems_nominations:
-            raise ValueError("Nomination does not exist")
+        if nomination_id not in self.__systems_nominations.keys():
+            raise ValueError(f"Nomination does not exist - given id - {nomination_id}, {type(nomination_id)}")
         nomination = self.__systems_nominations[nomination_id]
         if nominee_id != nomination.nominee_id:
             raise ValueError("Nominee id does not match the nomination")

@@ -182,11 +182,14 @@ class MarketFacade:
                                                      datetime.datetime.now()))
         logger.info(f"User {owner_id} has nominated user {new_manager_id} to be the manager of store {store_id}")
 
-    # def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
-    #     if accept:
-    #         self.roles_facade.accept_nomination(nomination_id, user_id)
-    #     else:
-    #         self.roles_facade.decline_nomination(nomination_id, user_id)
+    def get_nominations_data_structure(self):
+        return self.roles_facade.get_nominations_data_structure()
+
+    def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
+        if accept:
+            self.roles_facade.accept_nomination(nomination_id, user_id)
+        else:
+            self.roles_facade.decline_nomination(nomination_id, user_id)
 
     def change_permissions(self, actor_id: int, store_id: int, manager_id: int, add_product: bool,
                            change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,

@@ -187,6 +187,8 @@ class StoreService:
             logger.error('store manager was not added')
             return jsonify({'message': str(e)}), 400
 
+    def get_nominations_data_structure(self):
+        return self.__market_facade.get_nominations_data_structure()
 
     def edit_manager_permissions(self, user_id: int, store_id: int, manager_id: int, add_product: bool,
                            change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
