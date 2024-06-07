@@ -302,7 +302,7 @@ class UserFacade:
             notifications = self.__get_user(user_id).get_notifications()
             out = []
             for notification in notifications:
-                out.append(notification.get_notification_dto())
+                out.append(notification.get_notification_dto().to_json())
         self.clear_notifications(user_id)
         return out
 

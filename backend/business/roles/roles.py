@@ -271,9 +271,6 @@ class RolesFacade:
             self.__systems_nominations[nomination.nomination_id] = nomination
             return nomination.nomination_id
 
-    def get_nominations_data_structure(self) -> list[int]:
-        return list(self.__systems_nominations.keys())
-
     def __authorized_to_add_manager(self, store_id: int, nominator_id: int) -> bool:
         return isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner) or \
             (isinstance(self.__stores_to_roles[store_id][nominator_id], StoreManager) and
@@ -321,6 +318,7 @@ class RolesFacade:
                                 change_discount_types: bool, add_manager: bool, get_bid: bool) -> None:
         '''
         Actor_id is the owner/manager of the store and tries to change the permissions of the manager_id '''
+
         with self.__stores_locks[store_id]:
             if store_id not in self.__stores_to_roles:
                 raise ValueError("Store does not exist")
@@ -353,6 +351,17 @@ class RolesFacade:
                 Notifier().unsign_listener(user_id, store_id)
                 del self.__stores_to_roles[store_id][user_id]
 
+    def get_employees_info(self, store_id: int, actor_id: int) -> Dict[int, str]:  # Dict[user_id, role]
+        with self.__stores_locks[store_id]:
+            if store_id not in self.__stores_to_roles:
+                raise ValueError("Store does not exist")
+            if actor_id not in self.__stores_to_roles[store_id]:
+                raise ValueError("Actor is not a member of the store")
+            employees = {}
+            for user_id, role in self.__stores_to_roles[store_id].items():
+                employees[user_id] = role.__str__()
+
+            return employees
 
     def is_system_manager(self, user_id: int) -> bool:
         with self.__system_managers_lock:
