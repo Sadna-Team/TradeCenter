@@ -7,6 +7,12 @@ from backend.business.DTOs import BasketInformationForDiscountDTO, CategoryDTO
 from backend.business.store.constraints import Constraint
 
 
+# -------------logging configuration----------------
+import logging
+
+logger = logging.getLogger('myapp')
+
+# ---------------------------------------------------
 
 # --------------- Discount interface ---------------#
 class DiscountInterface(ABC):
@@ -24,6 +30,7 @@ class Discount(DiscountInterface):
         self.__ending_date = ending_date
         self.__percentage = percentage
         self.__predicate = predicate
+        logger.info("[Discount] Discount with id: " + str(discount_id) + " created successfully!")
 
     @property
     def discount_id(self):
@@ -55,7 +62,9 @@ class Discount(DiscountInterface):
 
     def change_discount_percentage(self, new_percentage: float) -> None:
         if new_percentage < 0 or new_percentage > 1:
+            logger.error("[Discount] Invalid percentage")
             raise ValueError("Invalid percentage")
+        logger.info("[Discount] Discount percentage changed to: " + str(new_percentage))
         self.__percentage = new_percentage        
 
 
@@ -80,6 +89,7 @@ class CategoryDiscount(Discount):
         super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
         self.__category_id = category_id
         self.__applied_to_subcategories = applied_to_subcategories
+        logger.info("[CategoryDiscount] Category discount with id: " + str(discount_id) + " created successfully!")
 
     @property
     def category_id(self) -> int:
@@ -96,10 +106,11 @@ class CategoryDiscount(Discount):
         * This function is responsible for calculating the discount based on the basket information, the discount is only applied to the products that fall under the category.
         * Returns: float of the amount the discount will deduce from the total price.
         """
-
         if self.predicate is not None and not self.predicate.is_satisfied(basket_information):
+            logger.warn("[CategoryDiscount] Predicate not satisfied")
             return 0.0
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
+            logger.error("[CategoryDiscount] Discount expired!")
             raise ValueError("Discount expired!")
         
         discount_reduction = 0.0
@@ -112,6 +123,7 @@ class CategoryDiscount(Discount):
                     
                 for product in products_of_category:
                     discount_reduction += product.price * product.amount * self.percentage
+        logger.info("[CategoryDiscount] Discount calculated to be: " + str(discount_reduction))
         return discount_reduction
 
 
@@ -124,6 +136,7 @@ class StoreDiscount(Discount):
                  percentage: float, predicate: Optional[Constraint], store_id: int):
         super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
         self.__store_id = store_id
+        logger.info("[StoreDiscount] Store discount with id: " + str(discount_id) + " created successfully!")
 
     @property
     def store_id(self) -> int:
@@ -136,8 +149,11 @@ class StoreDiscount(Discount):
         * Returns: float of the amount the discount will deduce from the total price.
         """
         if self.predicate is not None and not self.predicate.is_satisfied(basket_information):
+            logger.warn("[StoreDiscount] Predicate not satisfied")
             return 0.0
+        
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
+            logger.error("[StoreDiscount] Discount expired!")
             raise ValueError("Discount expired!")
         
         discount_reduction = 0.0
@@ -145,6 +161,7 @@ class StoreDiscount(Discount):
             for product in basket_information.products:
                 if product.store_id == self.__store_id:
                     discount_reduction += product.price * product.amount * self.percentage
+        logger.info("[StoreDiscount] Discount calculated to be: " + str(discount_reduction))
         return discount_reduction
 
 # --------------- Product Discount ---------------#
@@ -155,6 +172,7 @@ class ProductDiscount(Discount):
         super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
         self.__product_id = product_id
         self.__store_id = store_id
+        logger.info("[ProductDiscount] Product discount with id: " + str(discount_id) + " created successfully!")
 
     @property
     def product_id(self) -> int:
@@ -171,17 +189,21 @@ class ProductDiscount(Discount):
         * Returns: float of the amount the discount will deduce from the total price.
         """
         if self.predicate is not None and not self.predicate.is_satisfied(basket_information):
+            logger.warn("[ProductDiscount] Predicate not satisfied")
             return 0.0
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
+            logger.error("[ProductDiscount] Discount expired!")
             raise ValueError("Discount expired!")
         
         if self.__store_id != basket_information.store_id:
+            logger.error("[ProductDiscount] Discount not applicable due to store mismatch")
             raise ValueError("Discount not applicable")
 
         discount_reduction = 0.0
         for product in basket_information.products:
             if product.product_id == self.__product_id and product.store_id == self.__store_id:
                 discount_reduction += product.price * product.amount * self.percentage
+        logger.info("[ProductDiscount] Discount calculated to be: " + str(discount_reduction))
         return discount_reduction
 
 
@@ -193,6 +215,7 @@ class AndDiscount(DiscountInterface):
     def __init__(self, discount1: Discount, discount2: Discount):
         self.__discount1 = discount1
         self.__discount2 = discount2
+        logger.info("[AndDiscount] And discount created successfully!")
 
     def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
@@ -201,21 +224,28 @@ class AndDiscount(DiscountInterface):
         """
         if self.__discount1.predicate is not None and self.__discount2.predicate is not None:
             if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
+                logger.info("[AndDiscount] Both predicates satisfied, applying discounts")
                 return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
             else:
+                logger.error("[AndDiscount] Discount not applicable")
                 raise ValueError("Discount not applicable")
         else:
             if self.__discount1.predicate is not None and self.__discount2.predicate is None:
                 if self.__discount1.predicate.is_satisfied(basket_information):
+                    logger.info("[AndDiscount] Discount predicates satisfied, applying discounts")
                     return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
                 else:
+                    logger.error("[AndDiscount] Discount not applicable")
                     raise ValueError("Discount not applicable")
             elif self.__discount1.predicate is None and self.__discount2.predicate is not None:
                 if self.__discount2.predicate.is_satisfied(basket_information):
+                    logger.info("[AndDiscount] Discount predicates satisfied, applying discounts")
                     return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
                 else:
+                    logger.error("[AndDiscount] Discount not applicable")
                     raise ValueError("Discount not applicable")
             else:
+                logger.info("[AndDiscount] Both discounts applicable, applying discounts")
                 return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
     
 
@@ -237,25 +267,34 @@ class OrDiscount(DiscountInterface):
         * NOTE: for simplicity, we assume that if both discounts are applicable, we would use both, but if only one is applicable, we would use only that one.
         """
         if self.__discount1.predicate is None and self.__discount2.predicate is None:
+            logger.info("[OrDiscount] Both discounts applicable, applying discounts")
             return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
         elif self.__discount1.predicate is None and self.__discount2.predicate is not None:
             if self.__discount2.predicate.is_satisfied(basket_information):
+                logger.info("[OrDiscount] Both discounts applicable, applying discounts")
                 return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
             else:
+                logger.info("[OrDiscount] Discount 1 applicable, applying discount 1")
                 return self.__discount1.calculate_discount(basket_information)
         elif self.__discount1.predicate is not None and self.__discount2.predicate is None:
             if self.__discount1.predicate.is_satisfied(basket_information):
+                logger.info("[OrDiscount] Both discounts applicable, applying discounts")
                 return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
             else:
+                logger.info("[OrDiscount] Discount 2 applicable, applying discount 2")
                 return self.__discount2.calculate_discount(basket_information)
         else:
             if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
+                logger.info("[OrDiscount] Both discounts applicable, applying discounts")
                 return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
             elif self.__discount1.predicate.is_satisfied(basket_information):
+                logger.info("[OrDiscount] Discount 1 applicable, applying discount 1")
                 return self.__discount1.calculate_discount(basket_information)
             elif self.__discount2.predicate.is_satisfied(basket_information):
+                logger.info("[OrDiscount] Discount 2 applicable, applying discount 2")
                 return self.__discount2.calculate_discount(basket_information)
             else:
+                logger.error("[OrDiscount] Discount not applicable")
                 raise ValueError("Discount not applicable")
 
 # --------------- Xor Discount ---------------#
@@ -263,6 +302,7 @@ class XorDiscount(DiscountInterface):
     def __init__(self, discount1: Discount, discount2: Discount): # add decision rule
         self.__discount1 = discount1
         self.__discount2 = discount2
+        logger.info("[XorDiscount] Xor discount created successfully!")
 
     def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
@@ -272,17 +312,23 @@ class XorDiscount(DiscountInterface):
         """
         if self.__discount1.predicate is not None and self.__discount2.predicate is not None:    
             if self.__discount1.predicate.is_satisfied(basket_information):
+                logger.info("[XorDiscount] Discount 1 applicable, applying discount 1")
                 return self.__discount1.calculate_discount(basket_information)
             elif self.__discount2.predicate.is_satisfied(basket_information):
+                logger.info("[XorDiscount] Discount 2 applicable, applying discount 2")
                 return self.__discount2.calculate_discount(basket_information)
             else:
+                logger.error("[XorDiscount] Discounts not applicable")
                 raise ValueError("Discount not applicable")
         elif self.__discount1.predicate is not None and self.__discount2.predicate is None:
             if self.__discount1.predicate.is_satisfied(basket_information):
+                logger.info("[XorDiscount] Discount 1 applicable, applying discount 1")
                 return self.__discount1.calculate_discount(basket_information)
             else:
+                logger.info("[XorDiscount] discount 2 applicable, applying discount 2")
                 return self.__discount2.calculate_discount(basket_information)
         else:
+            logger.info("[XorDiscount] Both discounts applicable, applying discount 1")
             return self.__discount1.calculate_discount(basket_information) 
 
 
@@ -291,6 +337,7 @@ class maxDiscount(DiscountInterface):
     # class responsible for returning the total price of the maximum discount.
     def __init__(self, ListDiscount: list[Discount]):
         self.__ListDiscount = ListDiscount
+        logger.info("[maxDiscount] Max discount created successfully!")
 
     def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
@@ -298,6 +345,7 @@ class maxDiscount(DiscountInterface):
         * This function is responsible for calculating the discount based on the basket and user.
         * Returns: float
         """
+        logger.info("[maxDiscount] Calculating max discount")
         return max([discount.calculate_discount(basket_information) for discount in self.__ListDiscount])
 
 
@@ -306,6 +354,7 @@ class additiveDiscountStrategy(Discount):
     # class responsible for returning the total price of the maximum discount.
     def __init__(self, ListDiscount: list[Discount]):
         self.__ListDiscount = ListDiscount
+        logger.info("[additiveDiscountStrategy] Additive discount created successfully!")
 
     def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
         """
@@ -313,4 +362,5 @@ class additiveDiscountStrategy(Discount):
         * This function is responsible for calculating the discount based on the basket and user.
         * Returns: float
         """
+        logger.info("[additiveDiscountStrategy] Calculating additive discount")
         return sum([discount.calculate_discount(basket_information) for discount in self.__ListDiscount])
