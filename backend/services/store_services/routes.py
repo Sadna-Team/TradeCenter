@@ -353,6 +353,14 @@ def assign_product_to_category():
 
     return store_service.assign_product_to_category(user_id, category_id, store_id, product_id)
 
+@store_bp.route('/tests/get_nominations', methods=['GET'])
+@jwt_required()
+def get_nominations():
+    """
+        get nomination ids for market
+    """
+
+    return jsonify(store_service.get_nominations_data_structure()), 200
 
 '''@store_bp.route('/remove_product_specification_from_category', methods=['POST'])
 @jwt_required()

@@ -149,7 +149,6 @@ def test_appoint_store_manager_success():
     data = {'store_id': 0, 'username': 'new_manager'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/add_store_manager', headers=headers, json=data)
-    print(response.get_json())
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'store manager was added successfully'
 
@@ -176,11 +175,13 @@ def test_accepting_manager_promotion_success():
     manager1_token = response.get_json()['token']
 
     # accept promotion
-    data = {'promotion_id': 1, 'accept': True}
+    data = {'promotion_id': 0, 'accept': True}
     headers = {'Authorization': 'Bearer ' + manager1_token}
     response = client2.post('user/accept_promotion', headers=headers, json=data)
-
+    response2 = client2.get('store/tests/get_nominations', headers=headers)
     print(response.get_json())
+    print(response2.get_json())
+    assert 1 == 0
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'promotion accepted successfully'
 
