@@ -97,8 +97,8 @@ class CategoryDiscount(Discount):
         * Returns: float of the amount the discount will deduce from the total price.
         """
 
-        if self.__predicate is not None and not self.__predicate.is_satisfied(basket_information):
-            raise ValueError("Discount not applicable")
+        if self.predicate is not None and not self.predicate.is_satisfied(basket_information):
+            return 0.0
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
             raise ValueError("Discount expired!")
         
@@ -111,7 +111,7 @@ class CategoryDiscount(Discount):
                         products_of_category.update(set(subcategory.products))
                     
                 for product in products_of_category:
-                    discount_reduction += product.price * self.percentage
+                    discount_reduction += product.price * product.amount * self.percentage
         return discount_reduction
 
 
@@ -135,8 +135,8 @@ class StoreDiscount(Discount):
         * This function is responsible for calculating the discount based on the basket information, the discount is only applied to the products that fall under the store.
         * Returns: float of the amount the discount will deduce from the total price.
         """
-        if self.__predicate is not None and not self.__predicate.is_satisfied(basket_information):
-            raise ValueError("Discount not applicable")
+        if self.predicate is not None and not self.predicate.is_satisfied(basket_information):
+            return 0.0
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
             raise ValueError("Discount expired!")
         
@@ -144,7 +144,7 @@ class StoreDiscount(Discount):
         if self.__store_id == basket_information.store_id:
             for product in basket_information.products:
                 if product.store_id == self.__store_id:
-                    discount_reduction += product.price * self.percentage
+                    discount_reduction += product.price * product.amount * self.percentage
         return discount_reduction
 
 # --------------- Product Discount ---------------#
@@ -170,8 +170,8 @@ class ProductDiscount(Discount):
         * This function is responsible for calculating the discount based on the basket information, the discount is only applied to the products that fall under the product.
         * Returns: float of the amount the discount will deduce from the total price.
         """
-        if self.__predicate is not None and not self.__predicate.is_satisfied(basket_information):
-            raise ValueError("Discount not applicable")
+        if self.predicate is not None and not self.predicate.is_satisfied(basket_information):
+            return 0.0
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
             raise ValueError("Discount expired!")
         
@@ -181,7 +181,7 @@ class ProductDiscount(Discount):
         discount_reduction = 0.0
         for product in basket_information.products:
             if product.product_id == self.__product_id and product.store_id == self.__store_id:
-                discount_reduction += product.price * self.percentage
+                discount_reduction += product.price * product.amount * self.percentage
         return discount_reduction
 
 
@@ -199,10 +199,26 @@ class AndDiscount(DiscountInterface):
         * Parameters: basket_information in BasketInformationForDiscountDTO
         * This function is responsible for calculating the discount based on the basket information. It is only applied when both discounts have satisfied predicates and returns the sum of the discounts
         """
-        if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
-            return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+        if self.__discount1.predicate is not None and self.__discount2.predicate is not None:
+            if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
+                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+            else:
+                raise ValueError("Discount not applicable")
         else:
-            raise ValueError("Discount not applicable")
+            if self.__discount1.predicate is not None and self.__discount2.predicate is None:
+                if self.__discount1.predicate.is_satisfied(basket_information):
+                    return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+                else:
+                    raise ValueError("Discount not applicable")
+            elif self.__discount1.predicate is None and self.__discount2.predicate is not None:
+                if self.__discount2.predicate.is_satisfied(basket_information):
+                    return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+                else:
+                    raise ValueError("Discount not applicable")
+            else:
+                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+    
+
         
 
 # --------------- Or Discount ---------------#
@@ -220,14 +236,27 @@ class OrDiscount(DiscountInterface):
         * This function is responsible for calculating the discount based on the basket information. It is only applied when at least one of the discounts have satisfied predicates and returns the sum of the discounts
         * NOTE: for simplicity, we assume that if both discounts are applicable, we would use both, but if only one is applicable, we would use only that one.
         """
-        if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
+        if self.__discount1.predicate is None and self.__discount2.predicate is None:
             return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
-        elif self.__discount1.predicate.is_satisfied(basket_information):
-            return self.__discount1.calculate_discount(basket_information)
-        elif self.__discount2.predicate.is_satisfied(basket_information):
-            return self.__discount2.calculate_discount(basket_information)
+        elif self.__discount1.predicate is None and self.__discount2.predicate is not None:
+            if self.__discount2.predicate.is_satisfied(basket_information):
+                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+            else:
+                return self.__discount1.calculate_discount(basket_information)
+        elif self.__discount1.predicate is not None and self.__discount2.predicate is None:
+            if self.__discount1.predicate.is_satisfied(basket_information):
+                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+            else:
+                return self.__discount2.calculate_discount(basket_information)
         else:
-            raise ValueError("Discount not applicable")
+            if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
+                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+            elif self.__discount1.predicate.is_satisfied(basket_information):
+                return self.__discount1.calculate_discount(basket_information)
+            elif self.__discount2.predicate.is_satisfied(basket_information):
+                return self.__discount2.calculate_discount(basket_information)
+            else:
+                raise ValueError("Discount not applicable")
 
 # --------------- Xor Discount ---------------#
 class XorDiscount(DiscountInterface):
@@ -241,12 +270,20 @@ class XorDiscount(DiscountInterface):
         * This function is responsible for calculating the discount based on the basket information.
         * Returns: float of the amount the discount will deduce from the total price.
         """
-        if self.__discount1.predicate.is_satisfied(basket_information):
-            return self.__discount1.calculate_discount(basket_information)
-        elif self.__discount2.predicate.is_satisfied(basket_information):
-            return self.__discount2.calculate_discount(basket_information)
+        if self.__discount1.predicate is not None and self.__discount2.predicate is not None:    
+            if self.__discount1.predicate.is_satisfied(basket_information):
+                return self.__discount1.calculate_discount(basket_information)
+            elif self.__discount2.predicate.is_satisfied(basket_information):
+                return self.__discount2.calculate_discount(basket_information)
+            else:
+                raise ValueError("Discount not applicable")
+        elif self.__discount1.predicate is not None and self.__discount2.predicate is None:
+            if self.__discount1.predicate.is_satisfied(basket_information):
+                return self.__discount1.calculate_discount(basket_information)
+            else:
+                return self.__discount2.calculate_discount(basket_information)
         else:
-            raise ValueError("Discount not applicable")
+            return self.__discount1.calculate_discount(basket_information) 
 
 
 # --------------- Max Discount classes ---------------#
