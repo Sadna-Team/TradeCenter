@@ -5,7 +5,7 @@ from .constraints import *
 from .discount import *
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
-from backend.business.DTOs import ProductDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO
+from backend.business.DTOs import ProductDTO, ProductForDiscountDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForDiscountDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
 
 # -------------logging configuration----------------
@@ -590,10 +590,6 @@ class Store:
                 raise ValueError('Product is not found')
         return total_price
 
-    def get_total_price_of_basket_after_discount(self, basket: Dict[int, int]) -> float:
-        # TODO: implement this function
-        pass
-
     def create_store_dto(self) -> StoreDTO:
         """
         * Parameters: none
@@ -757,7 +753,7 @@ class StoreFacade:
         return list(self.__categories.keys())
 
     @property
-    def discounts(self) -> List[Discount]:
+    def discounts(self) -> Dict[int, Discount]:
         return self.__discounts
 
     @property
@@ -871,6 +867,10 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
+        if tags is None:
+            tags = []
+        if weight < 0:
+            raise ValueError('Weight is a negative value')
         return store.add_product(product_name, description, price, tags, weight)
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
@@ -1010,13 +1010,14 @@ class StoreFacade:
             else:
                 raise ValueError('Store not found')'''
 
-    def update_purchase_policy_of_store(self, store_id: int, purchase_policy_id: int) -> None:
+    '''def update_purchase_policy_of_store(self, store_id: int, purchase_policy_id: int) -> None:
         # TODO: implement this function
         pass
-
-    def check_policies_of_store(self, store_id: int, basket: List[int]) -> bool:
+    '''
+    '''def check_policies_of_store(self, store_id: int, basket: List[int]) -> bool:
         # TODO: implement this function
         pass
+    '''
 
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
@@ -1033,22 +1034,22 @@ class StoreFacade:
                 raise ValueError('Category the discount is applied to is not found')
             if applied_to_sub is None:
                 raise ValueError('Applied to subcategories is missing')
-            new_discount = CategoryDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
-            self.__discounts[self.__discount_id_counter] = new_discount
+            new_category_discount = CategoryDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
+            self.__discounts[self.__discount_id_counter] = new_category_discount
             self.__discount_id_counter += 1
         
-        if store_id is not None:
+        elif store_id is not None:
             if store_id not in self.__stores:
                 raise ValueError('Store the discount is applied to is not found')
             if product_id is not None: 
                 if product_id not in self.__stores[store_id].store_products:
                     raise ValueError('Product the discount is applied to is not found')
-                new_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
-                self.__discounts[self.__discount_id_counter] = new_discount
+                new_product_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
+                self.__discounts[self.__discount_id_counter] = new_product_discount
                 self.__discount_id_counter += 1
             else:
-                new_discount = StoreDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, store_id)
-                self.__discounts[self.__discount_id_counter] = new_discount
+                new_store_discount = StoreDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, store_id)
+                self.__discounts[self.__discount_id_counter] = new_store_discount
                 self.__discount_id_counter += 1
 
         return self.__discount_id_counter - 1
@@ -1072,16 +1073,16 @@ class StoreFacade:
         discount2 = self.__discounts[discount_id2]
 
         if type_of_connection == 1:
-            new_discount = AndDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
-            self.__discounts[self.__discount_id_counter] = new_discount
+            new_and_discount = AndDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            self.__discounts[self.__discount_id_counter] = new_and_discount
             self.__discount_id_counter += 1
         elif type_of_connection == 2:
-            new_discount = OrDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
-            self.__discounts[self.__discount_id_counter] = new_discount
+            new_or_discount = OrDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            self.__discounts[self.__discount_id_counter] = new_or_discount
             self.__discount_id_counter += 1
         else:
-            new_discount = XorDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
-            self.__discounts[self.__discount_id_counter] = new_discount
+            new_xor_discount = XorDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            self.__discounts[self.__discount_id_counter] = new_xor_discount
             self.__discount_id_counter += 1
         
         return self.__discount_id_counter - 1
@@ -1108,14 +1109,102 @@ class StoreFacade:
             discounts.append(self.__discounts[discount_id])
             
         if type_of_connection == 1:
-            new_discount = MaxDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
-            self.__discounts[self.__discount_id_counter] = new_discount
+            new_max_discount = MaxDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
+            self.__discounts[self.__discount_id_counter] = new_max_discount
             self.__discount_id_counter += 1
         else:
-            new_discount = AdditiveDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
-            self.__discounts[self.__discount_id_counter] = new_discount
+            new_additive_discount = AdditiveDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
+            self.__discounts[self.__discount_id_counter] = new_additive_discount
             self.__discount_id_counter += 1
     
+    def assign_predicate_helper(self, discount: Discount, age: Optional[int], location: Optional[AddressDTO], starting_time: Optional[datetime.time], ending_time: Optional[datetime.time],
+                                min_price: Optional[float], max_price: Optional[float], min_weight: Optional[float], max_weight: Optional[float], min_amount: Optional[int],
+                                store_id: Optional[int], product_id: Optional[int], category_id: Optional[int]) -> Constraint:
+        """
+        * Parameters: discountId, age, location, startingTime, endingTime, minPrice, maxPrice, minWeight, maxWeight, storeId, productId, categoryId, typeOfConnection
+        * This function assigns a predicate to a discount
+        * Returns: the predicate assigned to the discount
+        """
+        predicate: Optional[Constraint] = None
+        if age is not None:
+            predicate = AgeConstraint(age)
+        elif location is not None:
+            predicate = LocationConstraint(location)
+        elif starting_time is not None and ending_time is not None:
+            predicate = TimeConstraint(starting_time, ending_time)
+        elif min_price is not None and max_price is not None:
+            if min_price > max_price:
+                raise ValueError('Min price is greater than max price')
+            if category_id is not None:
+                if not isinstance(discount, CategoryDiscount):
+                        raise ValueError('Discount is not a category discount')
+                    
+                if category_id != discount.category_id:
+                    raise ValueError('Category ID does not match the category ID of the discount')
+                predicate = PriceCategoryConstraint(min_price, max_price, category_id)
+            elif store_id is not None:
+                if product_id is not None:
+                    if not isinstance(discount, ProductDiscount):
+                        raise ValueError('Discount is not a product discount')
+                    if store_id != discount.store_id or product_id != discount.product_id:
+                        raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
+                    predicate = PriceProductConstraint(min_price, max_price, product_id, store_id)
+                else:
+                    if not isinstance(discount, StoreDiscount):
+                        raise ValueError('Discount is not a store discount')
+                    if store_id != discount.store_id:
+                        raise ValueError('Store ID does not match the store ID of the discount')
+                    predicate = PriceBasketConstraint(min_price, max_price, store_id)
+            elif min_weight is not None and max_weight is not None:
+                if min_weight > max_weight:
+                    raise ValueError('Min weight is greater than max weight')
+
+                if category_id is not None:
+                    if not isinstance(discount, CategoryDiscount):
+                        raise ValueError('Discount is not a category discount')
+                    if category_id != discount.category_id:
+                        raise ValueError('Category ID does not match the category ID of the discount')
+                    predicate = WeightCategoryConstraint(min_weight, max_weight, category_id)
+                elif store_id is not None:
+                    if product_id is not None:
+                        if not isinstance(discount, ProductDiscount):
+                            raise ValueError('Discount is not a product discount')
+                        if store_id != discount.store_id or product_id != discount.product_id:
+                            raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
+                        predicate = WeightProductConstraint(min_weight, max_weight, product_id, store_id)
+                    else:
+                        if not isinstance(discount, StoreDiscount):
+                            raise ValueError('Discount is not a store discount')
+                        if store_id != discount.store_id:
+                            raise ValueError('Store ID does not match the store ID of the discount')
+                        predicate = WeightBasketConstraint(min_weight, max_weight, store_id)
+            elif min_amount is not None:
+                if category_id is not None:
+                    if not isinstance(discount, CategoryDiscount):
+                        raise ValueError('Discount is not a category discount')
+                    if category_id != discount.category_id:
+                        raise ValueError('Category ID does not match the category ID of the discount')
+                    predicate = AmountCategoryConstraint(min_amount, category_id)
+                elif store_id is not None:
+                    if product_id is not None:
+                        if not isinstance(discount, ProductDiscount):
+                            raise ValueError('Discount is not a product discount')
+                        if store_id != discount.store_id or product_id != discount.product_id:
+                            raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
+                        predicate = AmountProductConstraint(min_amount, product_id, store_id)
+                    else:
+                        if not isinstance(discount, StoreDiscount):
+                            raise ValueError('Discount is not a store discount')
+                        if store_id != discount.store_id:
+                            raise ValueError('Store ID does not match the store ID of the discount')
+                        predicate = AmountBasketConstraint(min_amount, store_id)
+            else:
+                raise ValueError('No valid predicate found')
+            
+        if predicate is None:
+            raise ValueError('No valid predicate found')
+        return predicate
+           
 
     def assign_predicate_to_discount(self, discount_id: int, ages: List[Optional[int]], locations: List[Optional[AddressDTO]],
                                      starting_times: List[Optional[datetime.time]], ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]], 
@@ -1141,108 +1230,71 @@ class StoreFacade:
 
 
         discount = self.__discounts[discount_id]
-        #simple predicate
         if len(type_of_connection) == 1 and type_of_connection[0] is None:
-            predicate = None
-            if ages[0] is not None:
-                predicate = AgeConstraint(ages[0])
-            elif locations[0] is not None:
-                predicate = LocationConstraint(locations[0])
-            elif starting_times[0] is not None and ending_times[0] is not None:
-                predicate = TimeConstraint(starting_times[0], ending_times[0])
-            elif min_prices[0] is not None and max_prices[0] is not None:
-                if min_prices[0] > max_prices[0]:
-                    raise ValueError('Min price is greater than max price')
-                if category_ids[0] is not None:
-                    if not isinstance(discount, CategoryDiscount):
-                        raise ValueError('Discount is not a category discount')
-                    
-                    if category_ids[0] != discount.category_id:
-                        raise ValueError('Category ID does not match the category ID of the discount')
-                    predicate = PriceCategoryConstraint(min_prices[0], max_prices[0], category_ids[0])
-                elif store_ids[0] is not None:
-                    if product_ids[0] is not None:
-                        if not isinstance(discount, ProductDiscount):
-                            raise ValueError('Discount is not a product discount')
-                        if store_ids[0] != discount.store_id or product_ids[0] != discount.product_id:
-                            raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
-                        predicate = PriceProductConstraint(min_prices[0], max_prices[0], product_ids[0], store_ids[0])
-                    else:
-                        if not isinstance(discount, StoreDiscount):
-                            raise ValueError('Discount is not a store discount')
-                        if store_ids[0] != discount.store_id:
-                            raise ValueError('Store ID does not match the store ID of the discount')
-                        predicate = PriceBasketConstraint(min_prices[0], max_prices[0], store_ids[0])
-                elif min_weights[0] is not None and max_weights[0] is not None:
-                    if min_weights[0] > max_weights[0]:
-                        raise ValueError('Min weight is greater than max weight')
-
-                    if category_ids[0] is not None:
-                        if not isinstance(discount, CategoryDiscount):
-                            raise ValueError('Discount is not a category discount')
-                        if category_ids[0] != discount.category_id:
-                            raise ValueError('Category ID does not match the category ID of the discount')
-                        predicate = WeightCategoryConstraint(min_weights[0], max_weights[0], category_ids[0])
-                    elif store_ids[0] is not None:
-                        if product_ids[0] is not None:
-                            if not isinstance(discount, ProductDiscount):
-                                raise ValueError('Discount is not a product discount')
-                            if store_ids[0] != discount.store_id or product_ids[0] != discount.product_id:
-                                raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
-                            predicate = WeightProductConstraint(min_weights[0], max_weights[0], product_ids[0], store_ids[0])
-                        else:
-                            if not isinstance(discount, StoreDiscount):
-                                raise ValueError('Discount is not a store discount')
-                            if store_ids[0] != discount.store_id:
-                                raise ValueError('Store ID does not match the store ID of the discount')
-                            predicate = WeightBasketConstraint(min_weights[0], max_weights[0], store_ids[0])
-                elif min_amounts[0] is not None:
-                    if category_ids[0] is not None:
-                        if not isinstance(discount, CategoryDiscount):
-                            raise ValueError('Discount is not a category discount')
-                        if category_ids[0] != discount.category_id:
-                            raise ValueError('Category ID does not match the category ID of the discount')
-                        predicate = AmountCategoryConstraint(min_amounts[0], category_ids[0])
-                    elif store_ids[0] is not None:
-                        if product_ids[0] is not None:
-                            if not isinstance(discount, ProductDiscount):
-                                raise ValueError('Discount is not a product discount')
-                            if store_ids[0] != discount.store_id or product_ids[0] != discount.product_id:
-                                raise ValueError('Store ID or Product ID does not match the store ID or Product ID of the discount')
-                            predicate = AmountProductConstraint(min_amounts[0], product_ids[0], store_ids[0])
-                        else:
-                            if not isinstance(discount, StoreDiscount):
-                                raise ValueError('Discount is not a store discount')
-                            if store_ids[0] != discount.store_id:
-                                raise ValueError('Store ID does not match the store ID of the discount')
-                            predicate = AmountBasketConstraint(min_amounts[0], store_ids[0])
-                else:
-                    raise ValueError('No valid predicate found')
-            discount.assign_predicate(predicate)
-            
-                    
-
+            predicate = self.assign_predicate_helper(discount, ages[0], locations[0], starting_times[0], ending_times[0], min_prices[0], max_prices[0], min_weights[0], max_weights[0], min_amounts[0], store_ids[0], product_ids[0], category_ids[0])
+            discount.change_predicate(predicate)
         else:
-
-
-
-        type of connections = And, Or, Xor, Implies
-
+            if len(type_of_connection) != length - 1:
+                raise ValueError('Length of type of connection list is not valid')
+            
+            predicate2 = None
+            for i in range(length - 1, -1, -1):
+                predicate1 = self.assign_predicate_helper(discount, ages[i], locations[i], starting_times[i], ending_times[i], min_prices[i], max_prices[i], min_weights[i], max_weights[i], min_amounts[i], store_ids[i], product_ids[i], category_ids[i])
+                if predicate2 is None:
+                    predicate2 = predicate1
+                else:
+                    if type_of_connection[i] == 1:
+                        predicate2 = AndConstraint(predicate1, predicate2)
+                    elif type_of_connection[i] == 2:
+                        predicate2 = OrConstraint(predicate1, predicate2)
+                    elif type_of_connection[i] == 3:
+                        predicate2 = XorConstraint(predicate1, predicate2)
+                    elif type_of_connection[i] == 4:
+                        predicate2 = ImpliesConstraint(predicate1, predicate2)
+                    else:
+                        raise ValueError('Type of connection is not valid')
+            if predicate2 is not None:
+                discount.change_predicate(predicate2)
+            else:
+                raise ValueError('No valid predicate found')
+        
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
     def remove_discount(self, discount_id: int) -> None:
-        # TODO: implement this function
-        pass
+        """
+        * Parameters: discountId
+        * This function removes a discount from the store
+        * Returns: none
+        """
+        if discount_id in self.__discounts:
+            self.__discounts.pop(discount_id)
+        else:
+            raise ValueError('Discount is not found')
 
     def change_discount_percentage(self, discount_id: int, new_percentage: float) -> None:
-        # TODO: implement this function
-        pass
+        """
+        * Parameters: discountId, newPercentage
+        * This function changes the percentage of the discount
+        * Returns: none
+        """
+        if discount_id not in self.__discounts:
+            raise ValueError('Discount is not found')
+        discount = self.__discounts[discount_id]
+        discount.change_discount_percentage(new_percentage)
 
     def change_discount_description(self, discount_id: int, new_description: str) -> None:
-        # TODO: implement this function
-        pass
+        """
+        * Parameters: discountId, newDescription
+        * This function changes the description of the discount
+        * Returns: none
+        """
+        if discount_id not in self.__discounts:
+            raise ValueError('Discount is not found')
+        discount = self.__discounts[discount_id]
+        discount.change_discount_description(new_description)
 
-    def get_discount_by_store(self, store_id: int) -> List[Discount]:
+
+    ''' def get_discount_by_store(self, store_id: int) -> List[Discount]:
         # TODO: implement this function
         return []
 
@@ -1257,11 +1309,71 @@ class StoreFacade:
     def get_discount_by_discount_id(self, discount_id: int) -> Optional[Discount]:
         # TODO: implement this function
         return None
+    '''
 
-    def apply_discounts(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
-        # TODO: implement this function
-        return 0.0
 
+    def get_category_as_dto_for_discount(self, category: Category, shopping_basket: Dict[int,int]) -> CategoryForDiscountDTO:
+        """
+        * Parameters: category
+        * This function creates a category DTO for discounts
+        * Returns: the category DTO
+        """
+        products_dto: List[ProductForDiscountDTO] = []
+        for store_id, product_id  in category.category_products:
+            if product_id in shopping_basket:
+                if store_id not in self.__stores:
+                    raise ValueError('Store is not found')
+                if product_id not in self.__stores[store_id].store_products:
+                    raise ValueError('Product is not found in the store')
+                
+                product = self.__stores[store_id].get_product_by_id(product_id)
+                
+                productDTO = ProductForDiscountDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
+                products_dto.append(productDTO)
+        
+        sub_categories_dto: List[CategoryForDiscountDTO] = []
+        for sub_category in category.sub_categories:
+            sub_category_dto = self.get_category_as_dto_for_discount(sub_category, shopping_basket)
+            sub_categories_dto.append(sub_category_dto)
+        
+        return CategoryForDiscountDTO(category.category_id, category.category_name, category.parent_category_id, sub_categories_dto, products_dto)
+
+        
+    def apply_discount(self, discount_id: int, store_id: int , total_price_of_basket: float, shopping_basket: Dict[int, int], user_info: UserInformationForDiscountDTO) -> float:
+        """
+        * Parameters: discountId, shoppingCart
+        * This function applies the discount to the shopping basket
+        * Returns: the amount of money saved by the discount
+        """
+        if discount_id not in self.__discounts:
+            raise ValueError('Discount is not found')
+        discount = self.__discounts[discount_id]
+
+        if store_id not in self.__stores:
+            raise ValueError('Store is not found')
+        
+        categories: List[CategoryForDiscountDTO] = []
+        for category_id in self.__categories:
+            curr_category = self.__categories[category_id]
+            curr_category_dto = self.get_category_as_dto_for_discount(curr_category, shopping_basket)
+            categories.append(curr_category_dto)
+            
+        
+        products: List[ProductForDiscountDTO] = []
+        for product_id in shopping_basket:
+            if product_id not in self.__stores[store_id].store_products:
+                raise ValueError('Product is not found in the store')
+            
+            product = self.__stores[store_id].get_product_by_id(product_id)
+            productDTO = ProductForDiscountDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
+            products.append(productDTO)
+        
+        time_of_purchase = datetime.now()
+
+        basket_info: BasketInformationForDiscountDTO = BasketInformationForDiscountDTO(store_id, products, total_price_of_basket, time_of_purchase, user_info, categories)
+
+        return discount.calculate_discount(basket_info)
+    
     def get_total_price_before_discount(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
         """
         * Parameters: shoppingCart
@@ -1282,13 +1394,19 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         return store.get_total_price_of_basket_before_discount(shopping_cart)
 
-    def get_total_price_after_discount(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
-        # TODO: implement this function
-        pass
 
-    def get_total_basket_price_after_discount(self, store_id: int, shopping_cart: Dict[int, int]) -> float:
-        # TODO: implement this function
-        pass
+    def get_total_price_after_discount(self, discount_id: int, shopping_cart: Dict[int, Dict[int, int]], user_info: UserInformationForDiscountDTO) -> float:
+        """
+        * Parameters: discountId, shoppingCart
+        * This function calculates the total price of the shopping cart after applying the discount
+        * Returns: the total price of the shopping cart after applying the discount
+        """
+        total_price = 0.0
+        for store_id, products in shopping_cart.items():
+            price_before_discount = self.get_total_basket_price_before_discount(store_id, products)
+            total_price += price_before_discount - self.apply_discount(discount_id, store_id, price_before_discount, products, user_info)
+        return total_price
+        
 
     def get_store_product_information(self, user_id: int, store_id: int) -> List[ProductDTO]:
         """
@@ -1333,7 +1451,7 @@ class StoreFacade:
                 purchase_products.append(PurchaseProductDTO(product_id, name, description, price, amount))
 
             basket_price_before_discount = store.get_total_price_of_basket_before_discount(products)
-            basket_price_after_discount = store.get_total_price_of_basket_after_discount(products)
+            basket_price_after_discount = self.apply_discount(products)
             purchase_shopping_cart[store_id] = (purchase_products,
                                                 basket_price_before_discount,
                                                 basket_price_after_discount)
