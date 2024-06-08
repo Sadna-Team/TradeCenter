@@ -814,19 +814,6 @@ class StoreFacade:
         self.__store_id_counter = 0
         self.__discount_id_counter = 0
 
-    # ---------------------getters and setters---------------------
-    @property
-    def categories(self) -> List[int]:
-        return list(self.__categories.keys())
-
-    @property
-    def discounts(self) -> List[DiscountStrategy]:
-        return self.__discounts
-
-    @property
-    def stores(self) -> List[int]:
-        return list(self.__stores.keys())
-
     # ---------------------methods--------------------------------
     def get_category_by_id(self, category_id: int) -> Category:
         """
@@ -921,7 +908,7 @@ class StoreFacade:
         category.remove_product_from_category(store_id, product_id)
 
     def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float, weight: float,
-                             tags: Optional[List[str]]=[], amount: Optional[int]=0) -> int:
+                             tags: Optional[List[str]]=[]) -> int:
         """
         * Parameters: productName, weight, description, tags, manufacturer, storeIds
         * This function adds a product to the store
@@ -1222,10 +1209,11 @@ class StoreFacade:
         * This function checks if the store has the given amount of the products in the shopping cart and removes them
         * Returns: none
         """
-        # TODO: get lock here
         self.__aquire_store_locks(list(shopping_cart.keys()))
         for store_id, products in shopping_cart.items():
             store = self.__get_store_by_id(store_id)
+            if not store.is_active:
+                raise ValueError('Store is not active')
             for product_id, amount in products.items():
                 if not store.has_amount_of_product(product_id, amount):
                     self.__release_store_locks(list(shopping_cart.keys()))

@@ -197,6 +197,10 @@ class MarketFacade:
                                                 
         logger.info(f"User {actor_id} has changed the permissions of user {manager_id} in store {store_id}")
 
+    def remove_store_role(self, actor_id: int, store_id: int, user_id: int):
+        self.roles_facade.remove_role(actor_id, store_id, user_id)
+        logger.info(f"User {actor_id} has removed user {user_id} from store {store_id}")
+
     def add_system_manager(self, actor: int, user_id: int):
         self.roles_facade.add_system_manager(actor, user_id)
         logger.info(f"User {actor} has added user {user_id} as a system manager")
@@ -413,17 +417,6 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add an amount of a product to the store")
         self.store_facade.add_product_amount(store_id, product_id, amount)
-
-    def remove_product_amount(self, user_id: int, store_id: int, product_id: int, amount: int):
-        """
-        * Parameters: userId, store_id, product_id, amount
-        * This function removes an amount of a product from the store
-        * Returns None
-        """
-        if not self.roles_facade.has_add_product_permission(store_id, user_id):
-            raise ValueError(
-                "User does not have the necessary permissions to remove an amount of a product from the store")
-        self.store_facade.remove_product_amount(store_id, product_id, amount)
 
     # -------------Store related methods-------------------#
     def add_store(self, founder_id: int, location_id: int, store_name: str) -> int:

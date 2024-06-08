@@ -22,13 +22,13 @@ class TestRolesFacade(unittest.TestCase):
 
     def test_close_store(self):
         self.facade.add_store(1, 2)
-        self.facade.close_store(1, 2)
+        self.facade.remove_store(1, 2)
         self.assertNotIn(1, self.facade._RolesFacade__stores_to_roles)
         self.assertNotIn(1, self.facade._RolesFacade__stores_to_role_tree)
 
     def test_close_store_nonexistent(self):
         with self.assertRaises(ValueError):
-            self.facade.close_store(1, 1)
+            self.facade.remove_store(1, 1)
 
     def test_nominate_owner(self):
         self.facade.add_store(1, 2)
