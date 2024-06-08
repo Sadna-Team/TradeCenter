@@ -369,6 +369,27 @@ class StoreService:
             logger.error('store manager was not added')
             return jsonify({'message': str(e)}), 400
 
+    def remove_store_role(self, user_id: int, store_id: int, removed_id: int):
+        """
+            Remove a store role (owner/manager)
+        """
+        try:
+            self.__market_facade.remove_store_role(user_id, store_id, removed_id)
+            logger.info('store role was removed successfully')
+            return jsonify({'message': 'store role was removed successfully'}), 200
+        except Exception as e:
+            logger.error('store role was not removed')
+            return jsonify({'message': str(e)}), 400
+
+    def give_up_role(self, user_id: int, store_id: int):
+        try:
+            self.__market_facade.remove_store_role(user_id, store_id, user_id)
+            logger.info('role was given up successfully')
+            return jsonify({'message': 'role was given up successfully'}), 200
+        except Exception as e:
+            logger.error('role was not given up')
+            return jsonify({'message': str(e)}), 400
+
     def edit_manager_permissions(self, user_id: int, store_id: int, manager_id: int, permissions: list[str]):
         """
             Edit the permissions of a store manager

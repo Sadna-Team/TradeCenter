@@ -238,7 +238,7 @@ class RolesFacade:
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
         self.__stores_locks[store_id] = Lock()
 
-    def close_store(self, store_id: int, actor_id: int) -> None:
+    def remove_store(self, store_id: int, actor_id: int) -> None:
         if store_id not in self.__stores_to_roles:
             raise ValueError("Store does not exist")
         if actor_id not in self.__stores_to_roles[store_id]:
@@ -252,6 +252,8 @@ class RolesFacade:
             if nomination.store_id == store_id:
                 del self.__systems_nominations[nomination_id]
 
+
+
     def nominate_owner(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
         with self.__stores_locks[store_id]:
             self.__check_nomination_validation(store_id, nominator_id, nominee_id)
@@ -263,8 +265,6 @@ class RolesFacade:
             return nomination.nomination_id
 
     def nominate_manager(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
-        print(self.__stores_locks)
-        print(f"{store_id}, huhhhhh\n\n\n\n\n\n\n\n\n\n")
         with self.__stores_locks[store_id]:
             self.__check_nomination_validation(store_id, nominator_id, nominee_id)
             # check that nominator is an owner or that he is a manager with permissions to add a manager
@@ -343,8 +343,7 @@ class RolesFacade:
                 raise ValueError("Removed user is not a member of the store")
             if not self.__authorized_to_add_manager(store_id, actor_id):
                 raise ValueError("Actor is not authorized to remove a role")
-            if not actor_id != removed_id and not self.__stores_to_role_tree[store_id].is_descendant(actor_id,
-                                                                                                     removed_id):
+            if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, removed_id):
                 raise ValueError("Actor is not an ancestor of the removed user")
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
                 raise ValueError("Cannot remove the root owner of the store")

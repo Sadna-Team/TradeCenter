@@ -287,9 +287,6 @@ def test_remove_product():
 def test_add_product_amount():
     pass
 
-def test_remove_product_amount():
-    pass
-
 def test_add_store():
     pass
 
