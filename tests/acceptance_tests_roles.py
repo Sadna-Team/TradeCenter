@@ -75,4 +75,9 @@ def test_nominate_owner_dec():
     assert response.status_code == 200
 
 
-def test_
+def test_cancel_ownership():
+    response = client.post('/store/remove_store_owner',
+                           headers={'Authorization': 'Bearer ' + token1},
+                           json={'store_id': 0, 'username': 'test2'})
+
+    assert response.status_code == 200
