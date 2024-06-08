@@ -324,41 +324,41 @@ class MarketFacade:
 
     # -------------Discount related methods-------------------#
     def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float, 
-                        store_id: Optional[int] = None, product_id: Optional[int] = None, category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
+                        store_id: Optional[int] = None, product_id: Optional[int] = None, category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> None:
         """
         * Parameters: userId, description, startDate, endDate, percentage, storeId(optional), productId(optional), categoryId(optional), appliedToSub(optional)
         * This function adds a simple discount to the system
         *NOTE: the discount is initialized with no predicate!
-        * Returns the discount_id of the discount
+        * Returns none
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id, product_id, applied_to_sub) 
+        self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id, product_id, applied_to_sub) 
     
     
-    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_id1: int, discount_id2: int, type_of_composite: int) -> int:
+    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_id1: int, discount_id2: int, type_of_composite: int) -> None:
         """
         * Parameters: userId, description, startDate, endDate, discountId1, discountId2, typeOfComposite
         * This function creates a composite discount
         * NOTE: the percentage of a composite discount is initialized to 0.0 since it is not used
         * NOTE: type_of_connection: 1 is AND, 2 OR, 3 XOR
-        * Returns the discount_id of the composite discount
+        * Returns none
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1, discount_id2, type_of_composite)
+        self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1, discount_id2, type_of_composite)
 
-    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_ids: List[int], type_of_composite: int) -> int:
+    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_ids: List[int], type_of_composite: int) -> None:
         """
         * Parameters: userId, description, startDate, endDate, discountIds, typeOfComposite
         * This function creates a composite discount
         * NOTE: the percentage of a composite discount is initialized to 0.0 since it is not used
         * NOTE: type_of_connection: 1 is MAX, 2 is ADDITIVE
-        * Returns the discount_id of the composite discount
+        * Returns none
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
+        self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
 
     def assign_predicate_to_discount(self, user_id: int, discount_id: int, ages: List[Optional[int]], locations: List[Optional[Dict]],
                                      starting_times: List[Optional[datetime.time]], ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]], 

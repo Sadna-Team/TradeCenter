@@ -1127,7 +1127,7 @@ class StoreFacade:
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
     def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
-                     store_id: Optional[int] = None, product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
+                     store_id: Optional[int] = None, product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> None:
         """
         * Parameters: description, startDate, endDate, percentage, categoryId, storeId, productId, appliedToSub
         * This function adds a discount to the store
@@ -1165,11 +1165,10 @@ class StoreFacade:
                 self.__discounts[self.__discount_id_counter] = new_store_discount
                 self.__discount_id_counter += 1
 
-        return self.__discount_id_counter - 1
     
 
     def create_logical_composite_discount(self,description: str, start_date: datetime, ending_date: datetime, percentage: float,
-                                           discount_id1: int, discount_id2: int, type_of_connection: int) -> int:
+                                           discount_id1: int, discount_id2: int, type_of_connection: int) -> None:
         """
         * Parameters: description, startDate, endDate, percentage, discountId1, discountId2, typeOfConnection
         * This function creates a logical composite discount
@@ -1203,8 +1202,6 @@ class StoreFacade:
             new_xor_discount = XorDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_xor_discount
             self.__discount_id_counter += 1
-        
-        return self.__discount_id_counter - 1
 
     
     def create_numerical_composite_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float,
