@@ -1,6 +1,6 @@
 # communication with business logic
 from backend.business.authentication.authentication import Authentication
-from backend.business.user.user import UserFacade
+from backend.business.user import UserFacade
 from backend.business.roles.roles import RolesFacade
 import logging
 from flask import jsonify
@@ -15,11 +15,9 @@ class UserService:
     def __new__(cls):
         if cls.instance is None:
             cls.instance = super(UserService, cls).__new__(cls)
-            cls.instance.authentication_service = AuthenticationService()
         return cls.instance
 
     def __init__(self):
-        self.authentication_service = AuthenticationService()
         self.user_facade = UserFacade()
         self.roles_facade = RolesFacade()
 
@@ -139,11 +137,11 @@ class UserService:
         """
         try:
             if accept:
-                self.roles_facade.accept_nomination(user_id, nomination_id)
+                self.roles_facade.accept_nomination(nomination_id, user_id)
                 logger.info('promotion accepted successfully')
                 return jsonify({'message': 'promotion accepted successfully'}), 200
             else:
-                self.roles_facade.decline_nomination(user_id, nomination_id)
+                self.roles_facade.decline_nomination(nomination_id, user_id)
                 logger.info('promotion declined successfully')
                 return jsonify({'message': 'promotion declined successfully'}), 200
 
@@ -216,9 +214,10 @@ class AuthenticationService:
                 token (str): token of the user
         """
         try:
-            user_token = self.authentication.login_user(username, password)
+            user_token, notification = self.authentication.login_user(username, password)
             logger.info('User logged in successfully')
-            return jsonify({'token': user_token}), 200
+            return jsonify({'token': user_token, 'notification': notification}), 200
+
 
         except Exception as e:
             logger.error('login - ' + str(e))
@@ -237,10 +236,31 @@ class AuthenticationService:
                 response (str): response of the operation
         """
         try:
-            self.authentication.logout_user(jti, user_id)
+            token = self.authentication.logout_user(jti, user_id)
             logger.info('User logged out successfully')
-            return jsonify({'message': 'User logged out successfully'}), 200
+            return jsonify({'message': 'User logged out successfully', 'token': token}), 200
 
         except Exception as e:
             logger.error('logout - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def logout_guest(self, jti: str, user_id: int):
+        """
+            Use Case 2.1.2:
+            Logout a guest
+
+            Args:
+                jti (str): token of the user
+                user_id (int): id of the user
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            self.authentication.logout_guest(jti, user_id)
+            logger.info('Guest logged out successfully')
+            return jsonify({'message': 'Guest logged out successfully'}), 200
+
+        except Exception as e:
+            logger.error('logout_guest - ' + str(e))
             return jsonify({'message': str(e)}), 400

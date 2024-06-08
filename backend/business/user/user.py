@@ -5,9 +5,13 @@ from abc import ABC, abstractmethod
 import threading
 from collections import defaultdict
 
+import logging
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("User Logger")
 
 # NOTE: This is a workaround to avoid circular imports
-#from .. import NotificationDTO
+# from .. import NotificationDTO
 
 # NOTE: Solution:
 from backend.business.DTOs import NotificationDTO, UserDTO, PurchaseUserDTO
@@ -24,7 +28,7 @@ class ShoppingBasket:
         self.__products[product_id] += quantity
 
     def get_dto(self) -> Dict[int, int]:
-        return self.__products
+        return dict(self.__products)
 
     def remove_product(self, product_id: int, quantity: int):
         if product_id not in self.__products:
@@ -42,6 +46,7 @@ class ShoppingBasket:
         self.__products[product_id] -= quantity
 
 
+# Didn't do logs for this class
 class ShoppingCart:
     # id of ShoppingBasket is (user_id)
     def __init__(self, user_id: int) -> None:
@@ -146,7 +151,7 @@ class Member(State):
         self.__email: str = email
         self.__username: str = username
         self.__password: str = password
-        self.__birthdate: datetime = datetime.date(year, month, day)
+        self.__birthdate: datetime.datetime = datetime.datetime(year, month, day)
         self.__phone: str = phone
         self.__notifications: List[Notification] = []
 
@@ -173,6 +178,7 @@ class Member(State):
 
     def get_phone(self):
         return self.__phone
+
 
 class User:
     def __init__(self, user_id: int, currency: str = 'USD') -> None:
@@ -219,7 +225,7 @@ class User:
 
     def is_member(self):
         return isinstance(self.__member, Member)
-    
+
     def create_purchase_user_dto(self) -> PurchaseUserDTO:
         try:
             return PurchaseUserDTO(self.__id, self.__member.get_birthdate())
@@ -265,7 +271,7 @@ class UserFacade:
         if user_id not in self.__users:
             raise ValueError("User not found")
         return self.__users[user_id]
-    
+
     def get_userDTO(self, user_id: int, role: str = None) -> UserDTO:
         user = self.__get_user(user_id)
         return user.get_user_dto(role)
@@ -288,13 +294,18 @@ class UserFacade:
             self.__get_user(user_id).register(email, username, password, year, month, day, phone)
             self.__usernames[username] = user_id
 
+    def get_user_id_from_username(self, username: str) -> int:
+        if username in self.__usernames.keys():
+            return self.__usernames[username]
+        raise ValueError("Username not found")
+
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
         with UserFacade.__notification_lock:
             notifications = self.__get_user(user_id).get_notifications()
             out = []
             for notification in notifications:
-                out.append(notification.get_notification_dto())
-            self.clear_notifications(user_id)
+                out.append(notification.get_notification_dto().to_json())
+        self.clear_notifications(user_id)
         return out
 
     def clear_notifications(self, user_id: int) -> None:
@@ -346,7 +357,7 @@ class UserFacade:
         for user_id, role in roles.items():
             out[user_id] = self.__get_user(user_id).get_user_dto(role)
         return out
-      
+
     def restore_basket(self, user_id: int, cart: Dict[int, Dict[int, int]]):
         self.__get_user(user_id).clear_basket()
         for store_id, products in cart.items():

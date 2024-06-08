@@ -7,11 +7,12 @@ from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
 from backend.business.DTOs import ProductDTO, ProductForDiscountDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForDiscountDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
-
+import threading
 # -------------logging configuration----------------
 import logging
-
-logger = logging.getLogger('myapp')
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("New Store Logger")
 
 # ---------------------------------------------------
 NUMBER_OF_AVAILABLE_LOGICAL_DISCOUNT_TYPES = 3
@@ -29,6 +30,7 @@ class Product:
         self.__price: float = price  # price is in dollars
         self.__weight: float = weight  # weight is in kg
         self.__amount: int = amount  # amount of the product in the store
+        self.__product_lock = threading.Lock() # lock for product
         logger.info('[Product] successfully created product with id: ' + str(product_id))
 
     # ---------------------getters and setters---------------------
@@ -69,17 +71,23 @@ class Product:
         """
         return ProductDTO(self.__product_id, self.__product_name, self.__description, self.__price, self.__tags, weight=self.__weight, amount=self.__amount)
 
+    def aquire_lock(self):
+        self.__product_lock.acquire()
+
+    def release_lock(self):
+        self.__product_lock.release()
+
     def change_price(self, new_price: float) -> None:
         """
         * Parameters: newPrice
         * This function changes the price of the product
         * Returns: True if the price is changed successfully
         """
-        if new_price >= 0:
-            self.__price = new_price
-            logger.info('[Product] successfully changed price of product with id: ' + str(self.__product_id))
-        else:
+        if new_price < 0:
             raise ValueError('New price is a negative value')
+        with self.__product_lock:
+            self.__price = new_price
+        logger.info('[Product] successfully changed price of product with id: ' + str(self.__product_id))
 
     def change_description(self, new_description: str) -> None:
         """
@@ -87,12 +95,13 @@ class Product:
         * This function changes the description of the product 
         * Returns: none
         """
-        if new_description is not None:
-            self.__description = new_description
-            logger.info(
-                '[Product] successfully changed description of product with id: ' + str(self.__product_id))
-        else:
+        if new_description is None:
             raise ValueError('New description is not a valid string')
+        with self.__product_lock:
+            self.__description = new_description
+        logger.info(
+            '[Product] successfully changed description of product with id: ' + str(self.__product_id))
+
 
     def add_tag(self, tag: str) -> None:
         """
@@ -100,14 +109,14 @@ class Product:
         * This function adds a tag to the product 
         * Returns: true if successfully added tag
         """
-        if tag is not None:
-            if tag not in self.__tags:
-                self.__tags.append(tag)
-                logger.info('[Product] successfully added tag to product with id: ' + str(self.__product_id))
-            else:
-                raise ValueError('Tag is already in the list of tags')
-        else:
+        if tag is None:
             raise ValueError('Tag is not a valid string')
+        if tag in self.__tags:
+            raise ValueError('Tag is already in the list of tags')
+        with self.__product_lock:
+            self.__tags.append(tag)
+        logger.info('[Product] successfully added tag to product with id: ' + str(self.__product_id))
+
 
     def remove_tag(self, tag: str) -> None:
         """
@@ -115,15 +124,16 @@ class Product:
         * This function removes a tag from the product 
         * Returns: none
         """
-        if tag is not None:
-            if tag in self.__tags:
-                self.__tags.remove(tag)
-                logger.info(
-                    '[Product] successfully removed tag from product with id: ' + str(self.__product_id))
-            else:
-                raise ValueError('Tag is not in the list of tags')
-        else:
+        if tag is None:
             raise ValueError('Tag is not a valid string')
+        if tag not in self.__tags:
+            raise ValueError('Tag is not in the list of tags')
+        with self.__product_lock:
+            self.__tags.remove(tag)
+        logger.info(
+            '[Product] successfully removed tag from product with id: ' + str(self.__product_id))
+
+
 
     def has_tag(self, tag: str) -> bool:
         """
@@ -131,7 +141,8 @@ class Product:
         * This function checks if the product has a given tag
         * Returns: true if the product has the given tag
         """
-        return tag in self.__tags
+        with self.__product_lock:
+            return tag in self.__tags
 
     def change_weight(self, new_weight: float) -> None:
         """
@@ -139,19 +150,24 @@ class Product:
         * This function changes the weight of the product
         * Returns: none
         """
-        if new_weight >= 0:
-            self.__weight = new_weight
-            logger.info('[Product] successfully changed weight of product with id: ' + str(self.__product_id))
-        else:
+        if new_weight < 0:
             raise ValueError('New weight is a negative value')
+        with self.__product_lock:
+            self.__weight = new_weight
+        logger.info('[Product] successfully changed weight of product with id: ' + str(self.__product_id))
+
 
     def restock(self, amount) -> None:
-        self.__amount += amount
+        if amount < 0:
+            raise ValueError('Amount is a negative value')
+        with self.__product_lock:
+            self.__amount += amount
 
     def remove_amount(self, amount) -> None:
         if self.__amount < amount:
             raise ValueError('Amount is greater than the available amount of the product')
-        self.__amount -= amount
+        with self.__product_lock:
+            self.__amount -= amount
 
 # ---------------------category class---------------------#
 class Category:
@@ -166,6 +182,7 @@ class Category:
         self.__parent_category_id: int = -1  # -1 means that the category does not have a parent category for now
         self.__category_products: List[Tuple[int, int]] = []
         self.__sub_categories: List['Category'] = []
+        self.__category_lock = threading.Lock() # lock for category
         logger.info('[Category] successfully created category with id: ' + str(category_id))
 
     # ---------------------getters and setters---------------------
@@ -190,17 +207,23 @@ class Category:
         return self.__category_name
 
     # ---------------------methods--------------------------------
+    def aquire_lock(self):
+        self.__category_lock.acquire()
+
+    def release_lock(self):
+        self.__category_lock.release()
+
     def add_parent_category(self, parent_category_id: int) -> None:
         """
         * Parameters: parentCategoryId
         * This function adds a parent category to the category
         * Returns: none
         """
-        if self.__parent_category_id == -1:
-            self.__parent_category_id = parent_category_id
-            logger.info('[Category] successfully added parent category to category with id: ' + str(self.__category_id))
-        else:
+        if self.__parent_category_id != -1:
             raise ValueError('Category already has a parent category')
+        self.__parent_category_id = parent_category_id
+        logger.info('[Category] successfully added parent category to category with id: ' + str(self.__category_id))
+
 
     def remove_parent_category(self) -> None:
         """
@@ -208,12 +231,12 @@ class Category:
         * This function removes the parent category of the category
         * Returns: none
         """
-        if self.__parent_category_id != -1:
-            self.__parent_category_id = -1
-            logger.info(
-                '[Category] successfully removed parent category from category with id: ' + str(self.__category_id))
-        else:
-            raise ValueError('Category does not have a parent category')
+        if self.__parent_category_id == -1:
+            raise ValueError('Category does not have a parent category')    
+        self.__parent_category_id = -1
+        logger.info(
+            '[Category] successfully removed parent category from category with id: ' + str(self.__category_id))
+
 
     def add_sub_category(self, sub_category: 'Category') -> None:
         """
@@ -222,7 +245,6 @@ class Category:
         sub category
         * Returns: None
         """
-
         if sub_category is None:
             raise ValueError('Sub category is not a valid category')
         elif self.is_sub_category(sub_category):
@@ -286,9 +308,10 @@ class Category:
         * Note: the product can only be added to the category if the product is not already in the list of products of the category, or the sub categories, or their subcategories etc.
         * Returns: None
         """
-        if (store_id, product_id) in self.get_all_products_recursively():
-            raise ValueError('Product is already in the list of products')
-        self.__category_products.append((store_id, product_id))
+        with self.__category_lock:
+            if (store_id, product_id) in self.get_all_products_recursively():
+                raise ValueError('Product is already in the list of products')
+            self.__category_products.append((store_id, product_id))
         logger.info('[Category] successfully added product to category with id: ' + str(self.__category_id))
 
     def remove_product_from_category(self, store_id: int, product_id: int) -> None:
@@ -297,9 +320,10 @@ class Category:
         * This function removes a product from the category
         * Returns: None
         """
-        if (store_id, product_id) not in self.__category_products:
-            raise ValueError('Product is not in the list of products')
-        self.__category_products.remove((store_id, product_id))
+        with self.__category_lock:
+            if (store_id, product_id) not in self.__category_products:
+                raise ValueError('Product is not in the list of products')
+            self.__category_products.remove((store_id, product_id))
         logger.info('[Category] successfully removed product from category with id: ' + str(self.__category_id))
 
     def get_all_products_recursively(self) -> List[Tuple[int, int]]:
@@ -449,9 +473,11 @@ class Store:
         self.__is_active = True
         self.__store_products: Dict[int, Product] = {}
         self.__product_id_counter = 0  # product Id
+        self.__product_id_lock = threading.Lock() # lock for product id
         self.__purchase_policy: Dict[str, Callable[[Dict[ProductDTO, int], PurchaseUserDTO], PurchaseComposite]] = {} # purchase policy
         self.__founded_date = datetime.now()
         self.__purchase_policy_id_counter = 0  # purchase policy Id
+        self.__checkout_lock = threading.Lock() # lock for checkout
         logger.info('[Store] successfully created store with id: ' + str(store_id))
 
     # ---------------------getters and setters---------------------#
@@ -494,10 +520,17 @@ class Store:
         * Returns: none
         """
         if user_id == self.__store_founder_id:
-            self.__is_active = False
-            logger.info('[Store] successfully closed store with id: ' + str(self.__store_id))
+            with self.__checkout_lock:
+                self.__is_active = False
+                logger.info('[Store] successfully closed store with id: ' + str(self.__store_id))
         else:
             raise ValueError('User is not the founder of the store')
+        
+    def aquire_lock(self):
+        self.__checkout_lock.acquire()
+
+    def release_lock(self):
+        self.__checkout_lock.release()
 
     # We assume that the marketFacade verified that the user attempting to add the product is a store Owner
     def add_product(self, name: str, description: str, price: float, tags: List[str], weight: float, amount: int = 0) -> int:
@@ -506,11 +539,12 @@ class Store:
         * This function adds a product to the store
         * Returns: none
         """
-        product = Product(self.__product_id_counter, name, description, price, weight, amount)
-        for tag in tags:
-            product.add_tag(tag)
-        self.__store_products[self.__product_id_counter] = product
-        self.__product_id_counter += 1
+        with self.__product_id_lock:
+            product = Product(self.__product_id_counter, name, description, price, weight, amount)
+            for tag in tags:
+                product.add_tag(tag)
+            self.__store_products[self.__product_id_counter] = product
+            self.__product_id_counter += 1
         logger.info('[Store] successfully added product to store with id: ' + str(self.__store_id))
         return product.product_id
 
@@ -523,7 +557,7 @@ class Store:
         """
         try:
             self.__store_products.pop(product_id)
-            logger.info('[Store] successfully removed product from store with id: ' + str(self.__store_id))
+            logger.info('Successfully removed product from store with id: {self.__store_id}')
         except KeyError:
             raise ValueError('Product is not found')
 
@@ -574,7 +608,29 @@ class Store:
         for policy in self.__purchase_policy.values():
             if not policy(products, user).pass_filter():
                 raise ValueError(f'Purchase policy of store: {self.__store_name} is not satisfied!')
-        
+    
+    def aquire_products_lock(self, product_ids: List[int]) -> None:
+        """
+        * Parameters: productIds
+        * This function acquires the lock of the products
+        * Returns: none
+        """
+        # sort the product ids to avoid deadlocks
+        product_ids.sort()
+        for product_id in product_ids:
+            self.get_product_by_id(product_id).aquire_lock()
+
+    def release_products_lock(self, product_ids: List[int]) -> None:
+        """
+        * Parameters: productIds
+        * This function releases the lock of the products
+        * Returns: none
+        """
+        # sort the product ids to avoid deadlocks
+        product_ids.sort()
+        for product_id in product_ids:
+            self.get_product_by_id(product_id).release_lock()
+
     def get_total_price_of_basket_before_discount(self, basket: Dict[int, int]) -> float:
         """
         * Parameters: basket
@@ -582,12 +638,15 @@ class Store:
         * Returns: the total price of the basket
         """
         total_price = 0.0
+        self.aquire_products_lock(list(basket.keys()))
         for product_id, amount in basket.items():
             product = self.get_product_by_id(product_id)
             if product is not None:
                 total_price += product.price * amount
             else:
+                self.release_products_lock(list(basket.keys()))
                 raise ValueError('Product is not found')
+        self.release_products_lock(list(basket.keys()))
         return total_price
 
     def create_store_dto(self) -> StoreDTO:
@@ -633,7 +692,7 @@ class Store:
         if self.__store_products[product_id].amount < amount:
             raise ValueError('Amount is greater than the available amount of the product')
         self.__store_products[product_id].remove_amount(amount)
-        logger.info('[Store] successfully removed product amount with id: ' + str(product_id))
+        logger.info('Successfully removed product amount with id: {product_id}')
 
     def change_description_of_product(self, product_id: int, new_description: str) -> None:
         """
@@ -644,6 +703,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.change_description(new_description)
+            logger.info('Successfully changed description of product with id: {product_id}')
         else:
             raise ValueError('Product is not found')
 
@@ -656,6 +716,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.change_price(new_price)
+            logger.info('Successfully changed price of product with id: {product_id} to {new_price}')
         else:
             raise ValueError('Product is not found')
 
@@ -668,6 +729,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.add_tag(tag)
+            logger.info('Successfully added tag: {tag} to product with id: {product_id} in store with id: {self.__store_id}')
         else:
             raise ValueError('Product is not found')
 
@@ -680,6 +742,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.remove_tag(tag)
+            logger.info('Successfully removed tag  {tag} from product with id: {product_id} in store with id: {self.__store_id}')
         else:
             raise ValueError('Product is not found')
 
@@ -702,7 +765,10 @@ class Store:
         * Returns: true if the store has the given amount of the product
         """
         if product_id in self.__store_products:
-            return self.__store_products[product_id].amount >= amount
+            self.__store_products[product_id].aquire_lock()
+            ans =  self.__store_products[product_id].amount >= amount
+            self.__store_products[product_id].release_lock()
+            return ans
         return False
 
     def change_weight_of_product(self, product_id: int, new_weight: float) -> None:
@@ -732,7 +798,9 @@ class StoreFacade:
             self.__stores: Dict[int, Store] = {}  # store_id: Store
             self.__discounts: Dict[int, Discount] = []  # List to store discounts
             self.__category_id_counter = 0  # Counter for category IDs
+            self.__category_id_lock = threading.Lock() # lock for category id
             self.__store_id_counter = 0  # Counter for store IDs
+            self.__store_id_lock = threading.Lock() # lock for store id
             self.__discount_id_counter = 0  # Counter for discount IDs
             logger.info('successfully created storeFacade')
 
@@ -779,9 +847,10 @@ class StoreFacade:
         * Returns: none
         """
         if category_name is not None:
-            category = Category(self.__category_id_counter, category_name)
-            self.__categories[self.__category_id_counter] = category
-            self.__category_id_counter += 1
+            with self.__category_id_lock:
+                category = Category(self.__category_id_counter, category_name)
+                self.__categories[self.__category_id_counter] = category
+                self.__category_id_counter += 1
             logger.info(f'[StoreFacade] successfully added category: {category_name}')
             return category.category_id
         else:
@@ -808,7 +877,7 @@ class StoreFacade:
         if parent_category is not None:
             parent_category.remove_sub_category(category_to_remove)
         self.__categories.pop(category_id)
-        logger.info(f'[StoreFacade] successfully removed category with id: {category_id}')
+        logger.info(f'Successfully removed category with id: {category_id}')
 
     def assign_sub_category_to_category(self, sub_category_id: int, category_id: int) -> None:
         """
@@ -867,10 +936,12 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
+        
         if tags is None:
             tags = []
         if weight < 0:
             raise ValueError('Weight is a negative value')
+        logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
         return store.add_product(product_name, description, price, tags, weight)
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
@@ -880,7 +951,9 @@ class StoreFacade:
         * Returns: none
         """
         store = self.__get_store_by_id(store_id)
+        store.aquire_lock()
         store.remove_product(product_id)
+        store.release_lock()
 
     def add_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
@@ -889,7 +962,10 @@ class StoreFacade:
         * Returns: none
         """
         store = self.__get_store_by_id(store_id)
+        store.aquire_lock()
         store.restock_product(product_id, amount)
+        store.release_lock()
+        logger.info(f'Successfully added {amount} of product with id: {product_id} to store with id: {store_id}')
 
     def remove_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
@@ -967,9 +1043,12 @@ class StoreFacade:
             raise ValueError('Store name is missing')
         if store_name == "":
             raise ValueError('Store name is an empty string')
-        store = Store(self.__store_id_counter, location_id, store_name, store_founder_id)
-        self.__stores[self.__store_id_counter] = store
-        self.__store_id_counter += 1
+        with self.__store_id_lock:
+            store = Store(self.__store_id_counter, location_id, store_name, store_founder_id)
+            self.__stores[self.__store_id_counter] = store
+            print(self.__stores)
+            self.__store_id_counter += 1
+        logger.info(f'Successfully added store: {store_name}')
         return store.store_id
 
     def close_store(self, store_id: int, user_id: int) -> None:
@@ -1504,6 +1583,30 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         return store.create_store_dto().products
 
+    def __aquire_store_locks(self, store_ids: List[int]) -> None:
+        """
+        * Parameters: storeIds
+        * This function acquires locks for the given stores
+        * Returns: none
+        """
+        # sort the store ids to avoid deadlock
+        store_ids.sort()
+        for store_id in store_ids:
+            store = self.__get_store_by_id(store_id)
+            store.aquire_lock()
+
+    def __release_store_locks(self, store_ids: List[int]) -> None:
+        """
+        * Parameters: storeIds
+        * This function releases locks for the given stores
+        * Returns: none
+        """
+        # sort the store ids to avoid deadlock
+        store_ids.sort()
+        for store_id in store_ids:
+            store = self.__get_store_by_id(store_id)
+            store.release_lock()
+
     def check_and_remove_shopping_cart(self, shopping_cart: Dict[int, Dict[int, int]]) -> None:
         """
         * Parameters: shoppingCart
@@ -1511,11 +1614,14 @@ class StoreFacade:
         * Returns: none
         """
         # TODO: get lock here
+        self.__aquire_store_locks(list(shopping_cart.keys()))
         for store_id, products in shopping_cart.items():
             store = self.__get_store_by_id(store_id)
             for product_id, amount in products.items():
                 if not store.has_amount_of_product(product_id, amount):
+                    self.__release_store_locks(list(shopping_cart.keys()))
                     raise ValueError('Store does not have the given amount of the product')
+        self.__release_store_locks(list(shopping_cart.keys()))
 
         for store_id, products in shopping_cart.items():
             for product_id, amount in products.items():
