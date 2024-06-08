@@ -34,6 +34,7 @@ class UserService:
         """
         try:
             notifications = self.user_facade.get_notifications(user_id)
+            notifications = [notification.get() for notification in notifications]
             logger.info('notifications retrieved successfully')
             return jsonify({'notifications': notifications}), 200
 
