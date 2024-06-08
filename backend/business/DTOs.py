@@ -40,6 +40,13 @@ class NotificationDTO:
 
     def get(self) -> dict:
         return {"notification_id": self.__notification_id, "message": self.__message, "date": self.__date}
+    
+    def to_json(self):
+        return {
+            'notification_id': self.__notification_id,
+            'message': self.__message,
+            'date': self.__date
+        }
 
 
 class PurchaseProductDTO:

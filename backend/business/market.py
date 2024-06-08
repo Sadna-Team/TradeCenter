@@ -162,7 +162,7 @@ class MarketFacade:
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_username):
         # get user_id of new_owner_username
-        new_owner_id = self.user_facade.get_usernames()[new_owner_username]
+        new_owner_id = self.user_facade.get_user_id_from_username(new_owner_username)
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
         # TODO: different implementation later
         self.user_facade.notify_user(new_owner_id,
@@ -181,9 +181,6 @@ class MarketFacade:
                                                          f" {store_id}. nomination id: {nomination_id} ",
                                                      datetime.datetime.now()))
         logger.info(f"User {owner_id} has nominated user {new_manager_id} to be the manager of store {store_id}")
-
-    def get_nominations_data_structure(self):
-        return self.roles_facade.get_nominations_data_structure()
 
     def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
         if accept:
@@ -452,6 +449,16 @@ class MarketFacade:
         * Returns None
         """
         self.store_facade.close_store(user_id, store_id)
+
+    def get_employees_info(self, user_id: int, store_id: int) -> Dict[int, str]:
+        """
+        * Parameters: userId, storeId
+        * This function returns the employees of a store
+        * Returns a dict of employees (user_id: role)
+        """
+        if not self.roles_facade.is_manager(store_id, user_id) and not self.roles_facade.is_owner(store_id, user_id):
+            raise ValueError("User does not have the necessary permissions to get the employees of the store")
+        return self.roles_facade.get_employees_info(store_id, user_id)
 
     # -------------Tags related methods-------------------#
     def add_tag_to_product(self, user_id: int, store_id: int, product_id: int, tag: str):

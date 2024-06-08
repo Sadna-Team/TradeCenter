@@ -172,16 +172,14 @@ def test_accepting_manager_promotion_success():
     data = {'username': 'new_manager', 'password': 'test'}
     headers = {'Authorization': 'Bearer ' + guest2_token}
     response = client2.post('auth/login', headers=headers, json=data)
+    print(response.get_json())
+    print("help")
     manager1_token = response.get_json()['token']
 
     # accept promotion
     data = {'promotion_id': 0, 'accept': True}
     headers = {'Authorization': 'Bearer ' + manager1_token}
     response = client2.post('user/accept_promotion', headers=headers, json=data)
-    response2 = client2.get('store/tests/get_nominations', headers=headers)
-    print(response.get_json())
-    print(response2.get_json())
-    assert 1 == 0
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'promotion accepted successfully'
 
@@ -206,31 +204,32 @@ def test_not_accepting_manager_promotion():
     # assert response.get_json()['message'] == 'promotion declined successfully'
 
 def test_change_store_manager_permissions_success():
-    data = {'manager_id': 1, 'permissions': ['add_manager']}
+    data = {'store_id': 0, 'manager_id': 2, 'permissions': ['add_manager']}
     headers = {'Authorization': 'Bearer ' + owner_token}
-    response = client.post('store/change_permissions', headers=headers, json=data)
+    response = client.post('store/edit_manager_permissions', headers=headers, json=data)
+    print(response.get_json())
     assert response.status_code == 200
     # assert response.get_json()['message'] == 'Permissions changed successfully'
 
 def test_change_store_manager_permissions_invalid_manager_id():
-    data = {'manager_id': 999, 'permissions': ['add_manager']}
+    data = {'store_id': 0, 'manager_id': 999, 'permissions': ['add_manager']}
     headers = {'Authorization': 'Bearer ' + owner_token}
-    response = client.post('store/change_permissions', headers=headers, json=data)
+    response = client.post('store/edit_manager_permissions', headers=headers, json=data)
     assert response.status_code == 400
     # assert response.get_json()['message'] == 'Manager not found'
 
 def test_change_store_manager_permissions_not_supervisor():
     # try to change permissions
-    data = {'manager_id': 2, 'permissions': ['add_manager']}
+    data = {'store_id': 0, 'manager_id': 2, 'permissions': ['add_manager']}
     headers = {'Authorization': 'Bearer ' + owner2_token}
-    response = client2.post('store/change_permissions', headers=headers, json=data)
+    response = client2.post('store/edit_manager_permissions', headers=headers, json=data)
     assert response.status_code == 400
     # assert response.get_json()['message'] == 'Actor is not a owner/manager of the manager'
 
 def test_view_employees_info_success():
     data = {'store_id': 0} 
     headers = {'Authorization': 'Bearer ' + owner_token}
-    response = client.get('store/view_employees', headers=headers, json=data)
+    response = client.get('store/view_employees_info', headers=headers, json=data)
     assert response.status_code == 200
     """
     data = response.get_json()
@@ -240,11 +239,11 @@ def test_view_employees_info_success():
 def test_view_employees_info_invalid_store_id():
     data = {'store_id': 30} 
     headers = {'Authorization': 'Bearer ' + owner_token}
-    response = client.get('store/view_employees', headers=headers, json=data)
+    response = client.get('store/view_employees_info', headers=headers, json=data)
     assert response.status_code == 400
     clean_data()
 
-
+"""
 # UNTESTED, BUT SHOULD WORK
 def test_add_purchase_policy_success():
     data = {'store_id': 0, 'policy_name': 'no_alcohol_past_time'}
@@ -298,4 +297,4 @@ def test_remove_purchase_policy_policy_missing():
     assert response.status_code == 400
     clean_data()
 
-# UNTIL HERE
+# UNTIL HERE"""

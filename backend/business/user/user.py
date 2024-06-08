@@ -295,14 +295,16 @@ class UserFacade:
             self.__usernames[username] = user_id
 
     def get_user_id_from_username(self, username: str) -> int:
-        return self.__usernames[username]
+        if username in self.__usernames.keys():
+            return self.__usernames[username]
+        raise ValueError("Username not found")
 
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
         with UserFacade.__notification_lock:
             notifications = self.__get_user(user_id).get_notifications()
             out = []
             for notification in notifications:
-                out.append(notification.get_notification_dto())
+                out.append(notification.get_notification_dto().to_json())
         self.clear_notifications(user_id)
         return out
 
