@@ -101,18 +101,13 @@ class MarketFacade:
             self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
 
             total_price = self.store_facade.get_total_price_before_discount(cart)
-            
-            discount_ids: List[int] = self.store_facade.get_appropriate_discounts_of_shopping_cart(cart) 
-            discount_id = -1
-            if len(discount_ids) > 0:
-                discount_id = discount_ids[0] #TODO: change this to a better method
                 
             
-            total_price_after_discounts = self.store_facade.get_total_price_after_discount(discount_id, cart, user_info_for_discount_dto)
+            total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart, user_info_for_discount_dto)
 
             # purchase facade immediate
             purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = (
-                self.store_facade.get_purchase_shopping_cart(discount_id,user_info_for_discount_dto ,cart))
+                self.store_facade.get_purchase_shopping_cart(user_info_for_discount_dto ,cart))
             pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
                                                                     purchase_shopping_cart)
 
