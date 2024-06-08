@@ -361,7 +361,7 @@ class MarketFacade:
         
         
 
-    def change_discount_percentage(self, user_id: int, discount_id: int, new_percentage: float):
+    def change_discount_percentage(self, user_id: int, discount_id: int, new_percentage: float) -> None:
         """
         * Parameters: userId, discountId, newPercentage
         * This function changes the percentage of a discount
@@ -372,7 +372,7 @@ class MarketFacade:
             raise ValueError("User is not a system manager")
         self.store_facade.change_discount_percentage(discount_id, new_percentage)
         
-    def change_discount_description(self, user_id: int, discount_id: int, new_description: str):
+    def change_discount_description(self, user_id: int, discount_id: int, new_description: str) -> None:
         """
         * Parameters: userId, discountId, newDescription
         * This function changes the description of a discount
@@ -383,7 +383,7 @@ class MarketFacade:
             raise ValueError("User is not a system manager")
         self.store_facade.change_discount_description(discount_id, new_description)
 
-    def remove_discount(self, user_id: int, discount_id: int):
+    def remove_discount(self, user_id: int, discount_id: int) -> None:
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         if self.store_facade.remove_discount(discount_id):

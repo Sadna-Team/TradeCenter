@@ -23,7 +23,7 @@ default_ending_date: datetime = datetime(2025, 1, 1)
 default_percentage: float = 0.1
 default_percentage2: float = 0.2
 default_percentage3: float = 0.3
-default_predicate: Constraint = None
+default_predicate: Optional[Constraint] = None
 
 #-----------------------------------
     
