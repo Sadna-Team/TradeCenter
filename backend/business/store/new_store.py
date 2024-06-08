@@ -71,7 +71,7 @@ class Product:
         """
         return ProductDTO(self.__product_id, self.__product_name, self.__description, self.__price, self.__tags, weight=self.__weight, amount=self.__amount)
 
-    def aquire_lock(self):
+    def acquire_lock(self):
         self.__product_lock.acquire()
 
     def release_lock(self):
@@ -207,7 +207,7 @@ class Category:
         return self.__category_name
 
     # ---------------------methods--------------------------------
-    def aquire_lock(self):
+    def acquire_lock(self):
         self.__category_lock.acquire()
 
     def release_lock(self):
@@ -536,7 +536,7 @@ class Store:
         else:
             raise ValueError('User is not the founder of the store')
         
-    def aquire_lock(self):
+    def acquire_lock(self):
         self.__checkout_lock.acquire()
 
     def release_lock(self):
@@ -619,7 +619,7 @@ class Store:
             if not policy(products, user).pass_filter():
                 raise ValueError(f'Purchase policy of store: {self.__store_name} is not satisfied!')
     
-    def aquire_products_lock(self, product_ids: List[int]) -> None:
+    def acquire_products_lock(self, product_ids: List[int]) -> None:
         """
         * Parameters: productIds
         * This function acquires the lock of the products
@@ -628,7 +628,7 @@ class Store:
         # sort the product ids to avoid deadlocks
         product_ids.sort()
         for product_id in product_ids:
-            self.get_product_by_id(product_id).aquire_lock()
+            self.get_product_by_id(product_id).acquire_lock()
 
     def release_products_lock(self, product_ids: List[int]) -> None:
         """
@@ -648,15 +648,19 @@ class Store:
         * Returns: the total price of the basket
         """
         total_price = 0.0
-        self.aquire_products_lock(list(basket.keys()))
-        for product_id, amount in basket.items():
-            product = self.get_product_by_id(product_id)
-            if product is not None:
-                total_price += product.price * amount
-            else:
-                self.release_products_lock(list(basket.keys()))
-                raise ValueError('Product is not found')
-        self.release_products_lock(list(basket.keys()))
+        self.acquire_products_lock(list(basket.keys()))
+        try:
+            for product_id, amount in basket.items():
+                product = self.get_product_by_id(product_id)
+                if product is not None:
+                    total_price += product.price * amount
+                else:
+                    self.release_products_lock(list(basket.keys()))
+                    raise ValueError('Product is not found')
+            self.release_products_lock(list(basket.keys()))
+        except Exception as e:
+            self.release_products_lock(list(basket.keys()))
+            raise e
         return total_price
 
     def create_store_dto(self) -> StoreDTO:
@@ -775,9 +779,13 @@ class Store:
         * Returns: true if the store has the given amount of the product
         """
         if product_id in self.__store_products:
-            self.__store_products[product_id].aquire_lock()
-            ans =  self.__store_products[product_id].amount >= amount
-            self.__store_products[product_id].release_lock()
+            self.__store_products[product_id].acquire_lock()
+            try:
+                ans = self.__store_products[product_id].amount >= amount
+                self.__store_products[product_id].release_lock()
+            except Exception as e:
+                self.__store_products[product_id].release_lock()
+                raise e
             return ans
         return False
 
@@ -961,9 +969,13 @@ class StoreFacade:
         * Returns: none
         """
         store = self.__get_store_by_id(store_id)
-        store.aquire_lock()
-        store.remove_product(product_id)
-        store.release_lock()
+        store.acquire_lock()
+        try:
+            store.remove_product(product_id)
+            store.release_lock()
+        except Exception as e:
+            store.release_lock()
+            raise e
 
     def add_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
@@ -972,9 +984,13 @@ class StoreFacade:
         * Returns: none
         """
         store = self.__get_store_by_id(store_id)
-        store.aquire_lock()
-        store.restock_product(product_id, amount)
-        store.release_lock()
+        store.acquire_lock()
+        try:
+            store.restock_product(product_id, amount)
+            store.release_lock()
+        except Exception as e:
+            store.release_lock()
+            raise e
         logger.info(f'Successfully added {amount} of product with id: {product_id} to store with id: {store_id}')
 
     def remove_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
@@ -1624,7 +1640,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         return store.create_store_dto().products
 
-    def __aquire_store_locks(self, store_ids: List[int]) -> None:
+    def __acquire_store_locks(self, store_ids: List[int]) -> None:
         """
         * Parameters: storeIds
         * This function acquires locks for the given stores
@@ -1632,9 +1648,15 @@ class StoreFacade:
         """
         # sort the store ids to avoid deadlock
         store_ids.sort()
-        for store_id in store_ids:
-            store = self.__get_store_by_id(store_id)
-            store.aquire_lock()
+        acquired = []
+        try:
+            for store_id in store_ids:
+                store = self.__get_store_by_id(store_id)
+                store.acquire_lock()
+                acquired.append(store_id)
+        except Exception as e:
+            self.__release_store_locks(acquired)
+            raise e
 
     def __release_store_locks(self, store_ids: List[int]) -> None:
         """
@@ -1654,20 +1676,24 @@ class StoreFacade:
         * This function checks if the store has the given amount of the products in the shopping cart and removes them
         * Returns: none
         """
-        self.__aquire_store_locks(list(shopping_cart.keys()))
-        for store_id, products in shopping_cart.items():
-            store = self.__get_store_by_id(store_id)
-            if not store.is_active:
-                raise ValueError('Store is not active')
-            for product_id, amount in products.items():
-                if not store.has_amount_of_product(product_id, amount):
-                    self.__release_store_locks(list(shopping_cart.keys()))
-                    raise ValueError('Store does not have the given amount of the product')
-        self.__release_store_locks(list(shopping_cart.keys()))
+        self.__acquire_store_locks(list(shopping_cart.keys()))
+        try:
+            for store_id, products in shopping_cart.items():
+                store = self.__get_store_by_id(store_id)
+                if not store.is_active:
+                    raise ValueError('Store is not active')
+                for product_id, amount in products.items():
+                    if not store.has_amount_of_product(product_id, amount):
+                        self.__release_store_locks(list(shopping_cart.keys()))
+                        raise ValueError('Store does not have the given amount of the product')
 
-        for store_id, products in shopping_cart.items():
-            for product_id, amount in products.items():
-                self.remove_product_amount(store_id, product_id, amount)
+            for store_id, products in shopping_cart.items():
+                for product_id, amount in products.items():
+                    self.remove_product_amount(store_id, product_id, amount)
+            self.__release_store_locks(list(shopping_cart.keys()))
+        except Exception as e:
+            self.__release_store_locks(list(shopping_cart.keys()))
+            raise e
 
     def get_purchase_shopping_cart(self, discount_id: int, user_info: UserInformationForDiscountDTO, shopping_cart: Dict[int, Dict[int, int]]) \
             -> Dict[int, Tuple[List[PurchaseProductDTO], float, float]]:
