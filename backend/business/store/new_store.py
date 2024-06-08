@@ -1401,13 +1401,15 @@ class StoreFacade:
                 raise ValueError('Length of type of connection list is not valid')
             
             predicate2 = None
+            
             for i in range(length - 1, -1, -1):
                 address = None
-                if locations[i] is not None:
-                    if 'address_id' not in locations[i] or 'address' not in locations[i] or 'city' not in locations[i] or 'state' not in locations[i] or 'country' not in locations[i] or 'postal_code' not in locations[i]:
+                location=locations[i]
+                if location is not None:
+                    if 'address_id' not in location or 'address' not in location or 'city' not in location or 'state' not in location or 'country' not in location or 'postal_code' not in location:
                         logger.error('[StoreFacade] location is not valid')
                         raise ValueError('Location is not valid')
-                    address = AddressDTO(locations[i]['address_id'], locations[i]['address'], locations[i]['city'],locations[i]['state'], locations[i]['country'], locations[i]['postal_code'])
+                    address = AddressDTO(location['address_id'], location['address'], location['city'],location['state'], location['country'], location['postal_code'])
             
                 predicate1 = self.assign_predicate_helper(discount, ages[i], address, starting_times[i], ending_times[i], min_prices[i], max_prices[i], min_weights[i], max_weights[i], min_amounts[i], store_ids[i], product_ids[i], category_ids[i])
                 if predicate2 is None:
