@@ -1529,8 +1529,11 @@ class StoreFacade:
         """
         * Parameters: discountId, shoppingCart
         * This function applies the discount to the shopping basket
+        * NOTE: if the discount_id = -1, then no discount is applied
         * Returns: the amount of money saved by the discount
         """
+        if discount_id == -1:
+            return 0.0
         if discount_id not in self.__discounts:
             logger.error('[StoreFacade] discount is not found')
             raise ValueError('Discount is not found')
@@ -1597,6 +1600,17 @@ class StoreFacade:
             total_price += price_before_discount - self.apply_discount(discount_id, store_id, price_before_discount, products, user_info)
         logger.info('[StoreFacade] successfully calculated total price after discount to be ' + str(total_price))
         return total_price
+    
+    
+    #TODO: fix
+    def get_appropriate_discounts_of_shopping_cart(self, shopping_cart: Dict[int, Dict[int, int]]) -> List[int]:
+        """
+        * Parameters: shoppingCart
+        * This function gets the appropriate discounts of the shopping cart
+        * NOTE: FOR NOW THIS SIMPLY RETURNS THE ids of ALL DISCOUNTS, SHOULD BE CHANGED TO IMPLEMENT SOME LOGIC, MAYBE ADD FOR DISCOUNT, IS APPLICABLE METHOD
+        * Returns: a list of discount_ids that can be applied on the shopping cart
+        """
+        return list(self.__discounts.keys())
         
 
     def get_store_product_information(self, user_id: int, store_id: int) -> List[ProductDTO]:
@@ -1669,7 +1683,7 @@ class StoreFacade:
                 purchase_products.append(PurchaseProductDTO(product_id, name, description, price, amount))
 
             basket_price_before_discount = store.get_total_price_of_basket_before_discount(products)
-            basket_price_after_discount = self.apply_discount(discount_id, store_id, basket_price_before_discount, products, user_info)
+            basket_price_after_discount = basket_price_before_discount - self.apply_discount(discount_id, store_id, basket_price_before_discount, products, user_info)
             purchase_shopping_cart[store_id] = (purchase_products,
                                                 basket_price_before_discount,
                                                 basket_price_after_discount)

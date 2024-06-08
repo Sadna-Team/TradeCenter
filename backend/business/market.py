@@ -74,7 +74,7 @@ class MarketFacade:
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
                 logger.info(f"User {user_id} has added {amount} of product {product_id} to the basket")
 
-    def checkout(self, user_id: int, discount_id: int, payment_details: Dict, supply_method: str, address: Dict, user_info: Dict) -> int:
+    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict, user_info: Dict) -> int:
         products_removed = False
         purchase_accepted = False
         basket_cleared = False
@@ -101,6 +101,13 @@ class MarketFacade:
             self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
 
             total_price = self.store_facade.get_total_price_before_discount(cart)
+            
+            discount_ids: List[int] = self.store_facade.get_appropriate_discounts_of_shopping_cart(cart) 
+            discount_id = -1
+            if len(discount_ids) > 0:
+                discount_id = discount_ids[0] #TODO: change this to a better method
+                
+            
             total_price_after_discounts = self.store_facade.get_total_price_after_discount(discount_id, cart, user_info_for_discount_dto)
 
             # purchase facade immediate
