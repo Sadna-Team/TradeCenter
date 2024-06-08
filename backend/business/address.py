@@ -1,6 +1,6 @@
 class Address:
     # id of product is productId. It is unique for each physical product
-    def __init__(self, address_id, city, country, street, zip_code, house_number):
+    def __init__(self, address_id: int, city: str, country: str, street: str, zip_code: str, house_number: str):
         self.__address_id = address_id
         self.__city = city
         self.__country = country

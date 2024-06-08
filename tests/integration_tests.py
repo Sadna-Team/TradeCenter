@@ -74,6 +74,7 @@ default_payment_method = {'payment method': 'bogo'}
 default_supply_method = "bogo"
 
 default_address_checkout = {'street': 'street', 'city': 'city', 'country': 'country', 'zip': 'zip'}
+default_user_info_for_checkout = {'address_id': 0, 'address': 'randomstreet 34th', 'city': 'arkham', 'country': 'Wakanda', 'state': 'Utopia', 'postal_code': '12345'}
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -203,7 +204,7 @@ def test_checkout(default_user_cart):
     store_id2 = store_ids[1]
     quantity_before = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
         products[0][0]].amount
-    pur_id = market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout)
+    pur_id = market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout, default_user_info_for_checkout)
 
     assert not (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
                 ._ShoppingCart__shopping_baskets)
@@ -231,7 +232,7 @@ def test_checkout_failed_shopping_cart_empty(default_set_up):
     user_ids, store_ids, products = default_set_up
     user_id1 = user_ids[0]
     with pytest.raises(ValueError):
-        market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout)
+        market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout, default_user_info_for_checkout)
 
 
 def test_checkout_failed_payment_method(default_user_cart):
@@ -241,7 +242,7 @@ def test_checkout_failed_payment_method(default_user_cart):
     quantity_before = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
         products[0][0]].amount
     with pytest.raises(ValueError):
-        market_facade.checkout(user_id1, {}, default_supply_method, default_address_checkout)
+        market_facade.checkout(user_id1, {}, default_supply_method, default_address_checkout, default_user_info_for_checkout)
 
     assert (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
             ._ShoppingCart__shopping_baskets)
@@ -259,7 +260,7 @@ def test_checkout_failed_no_products(default_user_cart):
     market_facade.add_product_to_basket(user_id1, store_id5, products[4][0], 1)
     market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products = {}
     with pytest.raises(ValueError):
-        market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout)
+        market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout, default_user_info_for_checkout)
 
     assert (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
             ._ShoppingCart__shopping_baskets)
@@ -284,9 +285,6 @@ def test_remove_product():
     pass
 
 def test_add_product_amount():
-    pass
-
-def test_remove_product_amount():
     pass
 
 def test_add_store():

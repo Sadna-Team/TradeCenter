@@ -1,7 +1,7 @@
 # ---------- Imports ------------#
 from enum import Enum
 from typing import List, Dict, Tuple, Optional
-from .DiscountStrategy import DiscountStrategy
+from .discount import Discount
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
 from backend.business.DTOs import ProductDTO
@@ -636,7 +636,7 @@ class StoreFacade:
             self._initialized = True
             self.__categories: List[Category] = []  # List to store categories
             self.__stores: List[Store] = []  # List to store stores
-            self.__discounts: List[DiscountStrategy] = []  # List to store discounts
+            self.__discounts: List[Discount] = []  # List to store discounts
             self.__category_id_counter = 0  # Counter for category IDs
             self.__store_id_counter = 0  # Counter for store IDs
             self.__discount_id_counter = 0  # Counter for discount IDs
@@ -661,7 +661,7 @@ class StoreFacade:
         return self.__categories
     
     @property
-    def discounts(self) -> List[DiscountStrategy]:
+    def discounts(self) -> List[Discount]:
         return self.__discounts
     
     
@@ -1072,8 +1072,10 @@ class StoreFacade:
         for store in self.__stores:
             product = store.get_product_by_id(product_id)
             if product is not None:
-                return ProductDTO(product.product_id, product.store_id, product.product_name, product.weight,
+               """ return ProductDTO(product.product_id, product.store_id, product.product_name, product.weight,
                                    product.description, product.price, product.amount, product.tags)
+               """
+                                   
         return None
 
     def add_store(self, location_id: int, store_name: str, store_founder_id: int) -> None:
@@ -1310,22 +1312,22 @@ class StoreFacade:
         else:
             raise ValueError('Discount id is not a valid integer value')
 
-    def get_discount_by_store(self, store_id: int) -> List[DiscountStrategy]:
+    def get_discount_by_store(self, store_id: int) -> List[Discount]:
         return []
         # not implemented yet
         
 
-    def get_discount_by_product(self, product_id: int) -> List[DiscountStrategy]:
+    def get_discount_by_product(self, product_id: int) -> List[Discount]:
         return []
         # not implemented yet
         pass
 
-    def get_discount_by_category(self, category_id: int) -> List[DiscountStrategy]:
+    def get_discount_by_category(self, category_id: int) -> List[Discount]:
         return []
         # not implemented yet
         pass
 
-    def get_discount_by_discount_id(self, discount_id: int) -> Optional[DiscountStrategy]:
+    def get_discount_by_discount_id(self, discount_id: int) -> Optional[Discount]:
         """
         * Parameters: discountId
         * This function gets a discount by its ID
