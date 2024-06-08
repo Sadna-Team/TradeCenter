@@ -1625,7 +1625,10 @@ class StoreFacade:
         * NOTE: FOR NOW THIS SIMPLY RETURNS THE ids of ALL DISCOUNTS, SHOULD BE CHANGED TO IMPLEMENT SOME LOGIC, MAYBE ADD FOR DISCOUNT, IS APPLICABLE METHOD
         * Returns: a list of discount_ids that can be applied on the shopping cart
         """
-        return list(self.__discounts.keys())
+        discount_ids: List[int] = []
+        for discount_id in self.__discounts:
+            discount_ids.append(discount_id)
+        return discount_ids
         
 
     def get_store_product_information(self, user_id: int, store_id: int) -> List[ProductDTO]:
