@@ -2,7 +2,7 @@ import pytest
 from backend.business.store.constraints import *
 from backend.business.DTOs import CategoryForDiscountDTO, BasketInformationForDiscountDTO, ProductForDiscountDTO, UserInformationForDiscountDTO
 from typing import List, Dict, Tuple
-from datetime import datetime
+from datetime import date, datetime
 from datetime import time
 
 
@@ -64,8 +64,8 @@ default_implies_constraint: Constraint = ImpliesConstraint(default_AgeConstraint
 #UserInformationForDiscountDTO
 default_user_id1: int = 0
 default_user_id2: int = 1
-default_birthdate1: datetime = datetime(1990, 1, 1)
-default_birthdate2: datetime = datetime(2009, 1, 1)
+default_birthdate1: date = date(1990, 1, 1)
+default_birthdate2: date = date(2009, 1, 1)
 default_user_address: AddressDTO = AddressDTO(default_address_id, default_city, default_country, default_street, default_zip_code, default_house_number)
 default_bad_user_address: AddressDTO = AddressDTO(1, "bad_city", "bad_country", default_street, default_zip_code, default_house_number)
 

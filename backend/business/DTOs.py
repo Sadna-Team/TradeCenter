@@ -1,7 +1,7 @@
 
 # import the datetime type
 from typing import List, Optional
-from datetime import datetime
+from datetime import date, datetime
 
 
 
@@ -224,9 +224,9 @@ class StoreDTO:
 
 
 class UserInformationForDiscountDTO:
-    def __init__(self, user_id: int, birthdate: datetime, address: AddressDTO):
+    def __init__(self, user_id: int, birthdate: date, address: AddressDTO):
         self.__user_id: int = user_id
-        self.__birthdate: datetime = birthdate
+        self.__birthdate: date = birthdate
         self.__address: AddressDTO = address
 
     @property
@@ -234,7 +234,7 @@ class UserInformationForDiscountDTO:
         return self.__user_id
     
     @property
-    def birthdate(self) -> datetime:
+    def birthdate(self) -> date:
         return self.__birthdate
     
     @property
@@ -374,7 +374,7 @@ class CategoryDTO:
 
 class UserDTO:
     def __init__(self, user_id: int, email: str, username: str, year: int, month: int, day: int, phone: str,
-                 role: str = None):
+                 role: Optional[str] = None):
         self.__user_id: int = user_id
         self.__email: str = email
         self.__username: str = username
@@ -382,6 +382,8 @@ class UserDTO:
         self.__month: int = month
         self.__day: int = day
         self.__phone: str = phone
+        if role is None:
+            role = ""
         self.__role: str = role
 
     @property
@@ -418,16 +420,16 @@ class UserDTO:
 
 
 class PurchaseUserDTO:
-    def __init__(self, user_id: int, birthdate: Optional[datetime] = None):
+    def __init__(self, user_id: int, birthdate: Optional[date] = None):
         self.__user_id: int = user_id
-        self.__birthdate: Optional[datetime] = birthdate
+        self.__birthdate: Optional[date] = birthdate
 
     @property
     def user_id(self) -> int:
         return self.__user_id
 
     @property
-    def birthdate(self) -> Optional[datetime]:
+    def birthdate(self) -> Optional[date]:
         return self.__birthdate
 
     def get(self) -> dict:

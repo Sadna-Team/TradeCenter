@@ -104,7 +104,7 @@ class CategoryDiscount(Discount):
         * Returns: float of the amount the discount will deduce from the total price.
         """
         if self.predicate is not None and not self.predicate.is_satisfied(basket_information):
-            logger.warn("[CategoryDiscount] Predicate not satisfied")
+            logger.info("[CategoryDiscount] Predicate not satisfied")
             return 0.0
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
             logger.error("[CategoryDiscount] Discount expired!")
@@ -146,7 +146,7 @@ class StoreDiscount(Discount):
         * Returns: float of the amount the discount will deduce from the total price.
         """
         if self.predicate is not None and not self.predicate.is_satisfied(basket_information):
-            logger.warn("[StoreDiscount] Predicate not satisfied")
+            logger.info("[StoreDiscount] Predicate not satisfied")
             return 0.0
         
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
@@ -186,7 +186,7 @@ class ProductDiscount(Discount):
         * Returns: float of the amount the discount will deduce from the total price.
         """
         if self.predicate is not None and not self.predicate.is_satisfied(basket_information):
-            logger.warn("[ProductDiscount] Predicate not satisfied")
+            logger.info("[ProductDiscount] Predicate not satisfied")
             return 0.0
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
             logger.error("[ProductDiscount] Discount expired!")

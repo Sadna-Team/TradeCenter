@@ -1110,8 +1110,8 @@ class StoreFacade:
 
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
-    def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int],
-                     store_id: Optional[int], product_id: Optional[int], applied_to_sub: Optional[bool]) -> int:
+    def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
+                     store_id: Optional[int] = None, product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
         """
         * Parameters: description, startDate, endDate, percentage, categoryId, storeId, productId, appliedToSub
         * This function adds a discount to the store
@@ -1226,9 +1226,9 @@ class StoreFacade:
             self.__discounts[self.__discount_id_counter] = new_additive_discount
             self.__discount_id_counter += 1
     
-    def assign_predicate_helper(self, discount: Discount, age: Optional[int], location: Optional[AddressDTO], starting_time: Optional[datetime.time], ending_time: Optional[datetime.time],
-                                min_price: Optional[float], max_price: Optional[float], min_weight: Optional[float], max_weight: Optional[float], min_amount: Optional[int],
-                                store_id: Optional[int], product_id: Optional[int], category_id: Optional[int]) -> Constraint:
+    def assign_predicate_helper(self, discount: Discount, age: Optional[int] = None, location: Optional[AddressDTO] = None, starting_time: Optional[datetime.time] = None, ending_time: Optional[datetime.time] = None,
+                                min_price: Optional[float] = None, max_price: Optional[float] = None, min_weight: Optional[float] = None, max_weight: Optional[float] = None, min_amount: Optional[int] = None,
+                                store_id: Optional[int] = None, product_id: Optional[int] = None, category_id: Optional[int] = None) -> Constraint:
         """
         * Parameters: discountId, age, location, startingTime, endingTime, minPrice, maxPrice, minWeight, maxWeight, storeId, productId, categoryId, typeOfConnection
         * This function assigns a predicate to a discount
@@ -1357,7 +1357,7 @@ class StoreFacade:
         return predicate
            
 
-    def assign_predicate_to_discount(self, discount_id: int, ages: List[Optional[int]], locations: List[Optional[AddressDTO]],
+    def assign_predicate_to_discount(self, discount_id: int, ages: List[Optional[int]], locations: List[Optional[Dict]],
                                      starting_times: List[Optional[datetime.time]], ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]], 
                                      max_prices: List[Optional[float]], min_weights: List[Optional[float]], max_weights: List[Optional[float]], min_amounts: List[Optional[int]],
                                      store_ids: List[Optional[int]], product_ids: List[Optional[int]], category_ids: List[Optional[int]], 
@@ -1384,7 +1384,15 @@ class StoreFacade:
 
         discount = self.__discounts[discount_id]
         if len(type_of_connection) == 1 and type_of_connection[0] is None:
-            predicate = self.assign_predicate_helper(discount, ages[0], locations[0], starting_times[0], ending_times[0], min_prices[0], max_prices[0], min_weights[0], max_weights[0], min_amounts[0], store_ids[0], product_ids[0], category_ids[0])
+            #creating the location addressDTO
+            address = None
+            if locations[0] is not None:
+                if 'address_id' not in locations[0] or 'address' not in locations[0] or 'city' not in locations[0] or 'state' not in locations[0] or 'country' not in locations[0] or 'postal_code' not in locations[0]:
+                    logger.error('[StoreFacade] location is not valid')
+                    raise ValueError('Location is not valid')
+                address = AddressDTO(locations[0]['address_id'], locations[0]['address'], locations[0]['city'],locations[0]['state'], locations[0]['country'], locations[0]['postal_code'])
+                
+            predicate = self.assign_predicate_helper(discount, ages[0], address, starting_times[0], ending_times[0], min_prices[0], max_prices[0], min_weights[0], max_weights[0], min_amounts[0], store_ids[0], product_ids[0], category_ids[0])
             logger.info('[StoreFacade] successfully assigned simple predicate')
             discount.change_predicate(predicate)
         else:
@@ -1394,7 +1402,14 @@ class StoreFacade:
             
             predicate2 = None
             for i in range(length - 1, -1, -1):
-                predicate1 = self.assign_predicate_helper(discount, ages[i], locations[i], starting_times[i], ending_times[i], min_prices[i], max_prices[i], min_weights[i], max_weights[i], min_amounts[i], store_ids[i], product_ids[i], category_ids[i])
+                address = None
+                if locations[i] is not None:
+                    if 'address_id' not in locations[i] or 'address' not in locations[i] or 'city' not in locations[i] or 'state' not in locations[i] or 'country' not in locations[i] or 'postal_code' not in locations[i]:
+                        logger.error('[StoreFacade] location is not valid')
+                        raise ValueError('Location is not valid')
+                    address = AddressDTO(locations[i]['address_id'], locations[i]['address'], locations[i]['city'],locations[i]['state'], locations[i]['country'], locations[i]['postal_code'])
+            
+                predicate1 = self.assign_predicate_helper(discount, ages[i], address, starting_times[i], ending_times[i], min_prices[i], max_prices[i], min_weights[i], max_weights[i], min_amounts[i], store_ids[i], product_ids[i], category_ids[i])
                 if predicate2 is None:
                     predicate2 = predicate1
                 else:

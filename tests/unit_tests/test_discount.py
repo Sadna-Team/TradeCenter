@@ -3,7 +3,7 @@ from backend.business.store.discount import *
 from backend.business.store.constraints import *
 from backend.business.DTOs import CategoryForDiscountDTO, BasketInformationForDiscountDTO, ProductForDiscountDTO, UserInformationForDiscountDTO, AddressDTO
 from typing import List, Dict, Tuple
-from datetime import datetime
+from datetime import date, datetime
 from datetime import time
 
 
@@ -49,25 +49,41 @@ default_store_discount1: StoreDiscount = StoreDiscount(default_discount_id, defa
 #ProductDiscount default vars:
 default_product_discount1: ProductDiscount = ProductDiscount(default_discount_id, default_discount_description, default_starting_date, default_ending_date, default_percentage3, default_predicate, default_product_id, default_store_id)
 
+#and discount default args:
+default_discount_id2: int = 2
+default_discount_id3: int = 3
+default_discount_id4: int = 4
+default_discount_id5: int = 5
+default_discount_id6: int = 6
+default_discount_id7: int = 7
+default_discount_id8: int = 8
+default_discount_id9: int = 9
+default_discount_id10: int = 10
+default_discount_id11: int = 11
+default_discount_description2: str = "description"
+default_starting_date2: datetime = datetime.now()
+default_ending_date2: datetime = datetime(2025, 1, 1)
+default_percentage6: float = 0.0
+
 #AndDiscount default vars:
-default_and_discount1: AndDiscount = AndDiscount(default_category_discount1, default_category_discount2) #good
-default_and_discount2: AndDiscount = AndDiscount(default_category_discount1, default_category_discount3) #bad
-default_and_discount3: AndDiscount = AndDiscount(default_store_discount1, default_product_discount1) #good
+default_and_discount1: AndDiscount = AndDiscount(default_discount_id2, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount2) #good
+default_and_discount2: AndDiscount = AndDiscount(default_discount_id3, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount3) #bad
+default_and_discount3: AndDiscount = AndDiscount(default_discount_id4, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6,default_store_discount1, default_product_discount1) #good
 
 #OrDiscount default vars:
-default_or_discount1: OrDiscount = OrDiscount(default_category_discount1, default_category_discount2) #good
-default_or_discount2: OrDiscount = OrDiscount(default_category_discount1, default_category_discount3) #good
-default_or_discount3: OrDiscount = OrDiscount(default_store_discount1, default_product_discount1) #good
+default_or_discount1: OrDiscount = OrDiscount(default_discount_id5, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount2) #good
+default_or_discount2: OrDiscount = OrDiscount(default_discount_id6, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount3) #good
+default_or_discount3: OrDiscount = OrDiscount(default_discount_id7, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_store_discount1, default_product_discount1) #good
 
 #XorDiscount default vars:
-default_xor_discount1: XorDiscount = XorDiscount(default_category_discount1, default_category_discount2) #bad
-default_xor_discount2: XorDiscount = XorDiscount(default_category_discount1, default_category_discount3) #good
+default_xor_discount1: XorDiscount = XorDiscount(default_discount_id8, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount2) #bad
+default_xor_discount2: XorDiscount = XorDiscount(default_discount_id9, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount3) #good
 
 #maxDiscount default vars:
-default_max_discount1: maxDiscount = maxDiscount([default_product_discount1, default_store_discount1])
+default_max_discount1: MaxDiscount = MaxDiscount(default_discount_id10, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, [default_product_discount1, default_store_discount1])
 
 #additiveDiscount default vars:
-default_additive_discount1: additiveDiscountStrategy = additiveDiscountStrategy([default_product_discount1, default_store_discount1])
+default_additive_discount1: AdditiveDiscount = AdditiveDiscount(default_discount_id11, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6,[default_product_discount1, default_store_discount1])
 
 
 
@@ -76,8 +92,8 @@ default_additive_discount1: additiveDiscountStrategy = additiveDiscountStrategy(
 #UserInformationForDiscountDTO
 default_user_id1: int = 0
 default_user_id2: int = 1
-default_birthdate1: datetime = datetime(1990, 1, 1)
-default_birthdate2: datetime = datetime(2009, 1, 1)
+default_birthdate1: date = date(1990, 1, 1)
+default_birthdate2: date = date(2009, 1, 1)
 
 default_user_address: AddressDTO = AddressDTO(default_address_id, default_city, default_country, default_street, default_zip_code, default_house_number)
 default_bad_user_address: AddressDTO = AddressDTO(1, "bad_city", "bad_country", default_street, default_zip_code, default_house_number)
