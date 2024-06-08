@@ -596,11 +596,13 @@ class Store:
         * This function adds a purchase policy to the store
         * Returns: none
         """
-        if policy_name in AVAILABLE_POLICIES:
-            self.__purchase_policy[policy_name] = AVAILABLE_POLICIES[policy_name]
-            logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__store_id))
-        else:
+        if policy_name not in AVAILABLE_POLICIES:
             raise ValueError('Policy name is not valid')
+        if policy_name in self.__purchase_policy:
+            raise ValueError('Policy name is already in the list of purchase policies')
+        self.__purchase_policy[policy_name] = AVAILABLE_POLICIES[policy_name]
+        logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__store_id))
+
 
     def remove_purchase_policy(self, policy_name: str) -> None:
         if policy_name in self.__purchase_policy:
