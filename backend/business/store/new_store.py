@@ -361,6 +361,7 @@ def pred_no_alcohol_past_time(products: Dict[ProductDTO, int]) -> bool:
     """
     for product in products:
         if 'alcohol' in product.tags and datetime.now().hour > 22:
+            logger.info('Alcohol product is not allowed after 22')
             return False
     return True
 
@@ -372,7 +373,9 @@ def pred_has_tabacco(products: Dict[ProductDTO, int]) -> bool:
     """
     for product in products:
         if 'alcohol' in product.tags:
+            logger.info('Alcohol product in the basket')
             return True
+    logger.info('No alcohol product in the basket')
     return False
 
 def pred_not_too_much_gun_powder(products: Dict[ProductDTO, int]) -> bool:
@@ -383,7 +386,9 @@ def pred_not_too_much_gun_powder(products: Dict[ProductDTO, int]) -> bool:
     """
     for product in products:
         if 'gunpowder' in product.tags:
+            logger.info('Amount of gunpowder product in the basket exceeds the limit of 100')
             return  product.weight * products[product] >= 100
+    logger.info('Not too much gunpowder found in basket')
     return False
 
 def pred_has_tabbaco(products: Dict[ProductDTO, int]) -> bool:
@@ -394,7 +399,9 @@ def pred_has_tabbaco(products: Dict[ProductDTO, int]) -> bool:
     """
     for product in products:
         if 'tabbaco' in product.tags:
+            logger.info('Tabbaco product in the basket')
             return True
+    logger.info('No tabbaco product in the basket')
     return False
 
 def pred_older_then_18(user: PurchaseUserDTO) -> bool:
@@ -406,6 +413,9 @@ def pred_older_then_18(user: PurchaseUserDTO) -> bool:
     current_year = datetime.now().year
     current_month = datetime.now().month
     current_day = datetime.now().day
+    if user.birthdate is None:
+        logger.warn('User does not have a birthdate')
+        return False
     delta = current_year - user.birthdate.year + (current_month - user.birthdate.month) / 12 + (current_day - user.birthdate.day) / 365
     return delta >= 18
 
@@ -1627,7 +1637,7 @@ class StoreFacade:
             for product_id, amount in products.items():
                 self.remove_product_amount(store_id, product_id, amount)
 
-    def get_purchase_shopping_cart(self, shopping_cart: Dict[int, Dict[int, int]]) \
+    def get_purchase_shopping_cart(self, discount_id: int, user_info: UserInformationForDiscountDTO, shopping_cart: Dict[int, Dict[int, int]]) \
             -> Dict[int, Tuple[List[PurchaseProductDTO], float, float]]:
         purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = {}
 
@@ -1644,7 +1654,7 @@ class StoreFacade:
                 purchase_products.append(PurchaseProductDTO(product_id, name, description, price, amount))
 
             basket_price_before_discount = store.get_total_price_of_basket_before_discount(products)
-            basket_price_after_discount = self.apply_discount(products)
+            basket_price_after_discount = self.apply_discount(discount_id, store_id, basket_price_before_discount, products, user_info)
             purchase_shopping_cart[store_id] = (purchase_products,
                                                 basket_price_before_discount,
                                                 basket_price_after_discount)
@@ -1770,5 +1780,5 @@ class StoreFacade:
         """
         for store_id, products in cart.items():
             store = self.__get_store_by_id(store_id)
-            products = {store.get_product_dto_by_id(product_id): amount for product_id, amount in products.items()}
-            store.check_purchase_policy(products, user)
+            product_dtos: Dict[ProductDTO, int] = {store.get_product_dto_by_id(product_id): amount for product_id, amount in products.items()}
+            store.check_purchase_policy(product_dtos, user)
