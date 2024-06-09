@@ -168,7 +168,7 @@ def show_store_info():
     """
     logger.info('received request to send store info')
     try:
-        data = request.args
+        data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
         logger.error('show_store_info - ', str(e))
@@ -186,7 +186,7 @@ def show_store_products():
     """
     logger.info('received request to send store products')
     try:
-        data = request.args
+        data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
         logger.error('show_store_products - ', str(e))
