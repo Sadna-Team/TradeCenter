@@ -127,14 +127,6 @@ class MarketFacade:
 
             products_removed = True
 
-            # calculate the policies of the purchase using storeFacade + user location constraints
-            for store_id in cart:
-                products: Dict[int, int] = cart[store_id]
-                # TODO: add check of policy
-                """if not self.store_facade.check_policies_of_store(basket[0], basket[1]):
-                    # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
-                    raise ValueError("Purchase does not meet the store's policies")"""
-
             # find the delivery date
             package_details = {'stores': cart.keys(), "supply method": supply_method}
             delivery_date = SupplyHandler().get_delivery_time(package_details, address)
@@ -475,7 +467,7 @@ class MarketFacade:
 
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
-                    weight: float, tags: List[str]) -> int:
+                    weight: float, tags: List[str], amount: Optional[int]=0) -> int:
         """
         * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
         * This function adds a product to the store

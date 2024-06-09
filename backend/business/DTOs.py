@@ -374,49 +374,48 @@ class CategoryDTO:
 
 
 class UserDTO:
-    def __init__(self, user_id: int, email: str, username: str, year: int, month: int, day: int, phone: str,
+    def __init__(self, user_id: int, email: Optional[str]=None, username: Optional[str]=None, year: 
+                 Optional[int]=None, month: Optional[int]=None, day: Optional[int]=None, phone: Optional[str]=None,
                  role: Optional[str] = None):
         self.__user_id: int = user_id
-        self.__email: str = email
-        self.__username: str = username
-        self.__year: int = year
-        self.__month: int = month
-        self.__day: int = day
-        self.__phone: str = phone
-        if role is None:
-            role = ""
-        self.__role: str = role
+        self.__email: Optional[str] = email
+        self.__username: Optional[str] = username
+        self.__year: Optional[int] = year
+        self.__month: Optional[int] = month
+        self.__day: Optional[int] = day
+        self.__phone: Optional[str] = phone
+        self.__role: Optional[str] = role
 
     @property
     def user_id(self) -> int:
         return self.__user_id
 
     @property
-    def email(self) -> str:
+    def email(self):
         return self.__email
 
     @property
-    def username(self) -> str:
+    def username(self):
         return self.__username
 
     @property
-    def year(self) -> int:
+    def year(self):
         return self.__year
 
     @property
-    def month(self) -> int:
+    def month(self):
         return self.__month
 
     @property
-    def day(self) -> int:
+    def day(self):
         return self.__day
 
     @property
-    def phone(self) -> str:
+    def phone(self):
         return self.__phone
 
     @property
-    def role(self) -> str:
+    def role(self):
         return self.__role
 
 

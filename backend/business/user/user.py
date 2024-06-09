@@ -35,8 +35,9 @@ class ShoppingBasket:
             raise ValueError("Product not found")
         if self.__products[product_id] < quantity:
             raise ValueError("Not enough quantity")
-
-        del self.__products[product_id]
+        self.__products[product_id] -= quantity
+        if self.__products[product_id] == 0:
+            del self.__products[product_id]
 
     def subtract_product(self, product_id: int, quantity: int):
         if product_id not in self.__products:
@@ -234,7 +235,7 @@ class User:
 
     def get_user_dto(self, role: str = None) -> UserDTO:
         if not self.is_member():
-            raise ValueError("User is not registered")
+            return UserDTO(self.__id)
         return UserDTO(self.__id, self.__member.get_email(), self.__member.get_username(),
                        self.__member.get_birthdate().year, self.__member.get_birthdate().month,
                        self.__member.get_birthdate().day, self.__member.get_phone(), role)
