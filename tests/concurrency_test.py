@@ -2,7 +2,7 @@ import pytest
 from backend import create_app, clean_data
 
 register_credentials = { 
-    'username': username,
+    'username': '',
     'email': 'test@gmail.com',
     'password': 'test',
     'location_id': 1,
@@ -35,7 +35,9 @@ def client(app):
 def create_user(client, username):
     guest_token = client.get('auth/').get_json()['token']
     headers = {'Authorization': f'Bearer {guest_token}'}
-    json = {'register_credentials': register_credentials}
+    data = register_credentials.copy()
+    data['username'] = username
+    json = {'register_credentials': data}
     client.post('auth/register', headers=headers, json=json)
 
 def login(client, username, password):
