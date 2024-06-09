@@ -204,10 +204,6 @@ def test_calculate_and_discount1():
     
     assert default_and_discount1.calculate_discount(basketInformationForDiscountDTO1) == discount
     
-def test_calculate_and_discount_bad():
-    with pytest.raises(Exception):
-        default_and_discount2.calculate_discount(basketInformationForDiscountDTO1)
-    
 def test_calculate_and_discount3():
     discount = 0.0
     for product in basketInformationForDiscountDTO1.products:

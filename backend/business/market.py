@@ -107,17 +107,12 @@ class MarketFacade:
 
             total_price = self.store_facade.get_total_price_before_discount(cart)
 
-            discount_ids: List[int] = self.store_facade.get_appropriate_discounts_of_shopping_cart(cart)
-            discount_id = -1
-            if len(discount_ids) > 0:
-                discount_id = discount_ids[0]  #TODO: change this to a better method
-
-            total_price_after_discounts = self.store_facade.get_total_price_after_discount(discount_id, cart,
+            total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart,
                                                                                            user_info_for_discount_dto)
 
             # purchase facade immediate
             purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = (
-                self.store_facade.get_purchase_shopping_cart(discount_id, user_info_for_discount_dto, cart))
+                self.store_facade.get_purchase_shopping_cart(user_info_for_discount_dto, cart))
             pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
                                                                     purchase_shopping_cart)
 
@@ -335,7 +330,7 @@ class MarketFacade:
         * Parameters: userId, description, startDate, endDate, percentage, storeId(optional), productId(optional), categoryId(optional), appliedToSub(optional)
         * This function adds a simple discount to the system
         *NOTE: the discount is initialized with no predicate!
-        * Returns the discount_id of the discount
+        * Returns none
         """
         if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
             raise ValueError("User is not a system manager")
@@ -350,7 +345,7 @@ class MarketFacade:
         * This function creates a composite discount
         * NOTE: the percentage of a composite discount is initialized to 0.0 since it is not used
         * NOTE: type_of_connection: 1 is AND, 2 OR, 3 XOR
-        * Returns the discount_id of the composite discount
+        * Returns none
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
@@ -364,7 +359,7 @@ class MarketFacade:
         * This function creates a composite discount
         * NOTE: the percentage of a composite discount is initialized to 0.0 since it is not used
         * NOTE: type_of_connection: 1 is MAX, 2 is ADDITIVE
-        * Returns the discount_id of the composite discount
+        * Returns none
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
