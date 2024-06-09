@@ -724,6 +724,8 @@ class MarketFacade:
         * This function returns the purchases of a user
         * Returns a string
         """
+        if not self.user_facade.is_member(user_id) or not self.auth_facade.is_logged_in(user_id):
+            raise ValueError("User is not a member or is not logged in")
         return self.purchase_facade.get_purchases_of_user(user_id)
 
     def view_purchases_of_store(self, user_id: int, store_id: int) -> List[PurchaseDTO]:
@@ -732,7 +734,7 @@ class MarketFacade:
         * This function returns the purchases of a store
         * Returns a string
         """
-        if not self.roles_facade.is_owner(store_id, user_id) and not self.roles_facade.is_manager(store_id, user_id):
+        if not self.roles_facade.is_owner(store_id, user_id) and not self.roles_facade.is_manager(store_id, user_id) and not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a store owner or manager")
         return self.purchase_facade.get_purchases_of_store(store_id)
 

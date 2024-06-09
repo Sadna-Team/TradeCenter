@@ -53,7 +53,7 @@ def show_store_purchase_history():
     logger.info('recieved request to show the purchase history of a store')
     try:
         user_id = get_jwt_identity()
-        data = request.args
+        data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
         logger.error('show_store_purchase_history - ', str(e))
