@@ -96,16 +96,17 @@ class MarketFacade:
                 raise ValueError("Cart is empty")
 
             user_dto = self.user_facade.get_userDTO(user_id)
-            user_purchase_dto = PurchaseUserDTO(user_dto.user_id, date(user_dto.year, user_dto.month, user_dto.day))
+            date = None
+            if user_dto.day is not None and user_dto.month is not None and user_dto.year is not None:
+                date = datetime(year=user_dto.year, month=user_dto.month, day=user_dto.day)
+            
+            user_purchase_dto = PurchaseUserDTO(user_dto.user_id, date)
 
             if 'address_id' not in user_info or 'address' not in user_info or 'city' not in user_info or 'state' not in user_info or 'country' not in user_info or 'postal_code' not in user_info:
                 raise ValueError("Address information is missing")
             address_of_user_for_discount: AddressDTO = AddressDTO(user_info['address_id'], user_info['address'],
                                                                   user_info['city'], user_info['state'],
                                                                   user_info['country'], user_info['postal_code'])
-
-            if user_purchase_dto.birthdate is None:
-                raise ValueError("User birthdate is missing")
 
             user_info_for_discount_dto = UserInformationForDiscountDTO(user_id, user_purchase_dto.birthdate,
                                                                        address_of_user_for_discount)

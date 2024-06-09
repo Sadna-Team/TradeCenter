@@ -338,4 +338,9 @@ def test_remove_purchase_policy_policy_missing():
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/remove_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400
-    clean_data()
+    
+def test_close_store_success():
+    data = {'store_id': 0}
+    headers
+
+

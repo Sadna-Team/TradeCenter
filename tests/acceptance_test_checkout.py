@@ -22,6 +22,11 @@ def app():
     return app
 
 @pytest.fixture
+def clean(app):
+    yield
+    clean_data()
+
+@pytest.fixture
 def client1(app):
     return app.test_client()
 
@@ -97,4 +102,5 @@ def init_store(client1, owner_token):
         "amount": 10}
 
     response = client1.post('store/add_product', headers=headers, json=data)
+
 
