@@ -379,12 +379,35 @@ def test_information_about_stores():
 
 
 def test_information_about_stores_failed_store_not_exists():
-    global token
+    global guest_token
 
     init_guest_token()
     response = client.get('/store/store_info', headers={
-        'Authorization': f'Bearer {token}'
+        'Authorization': f'Bearer {guest_token}'
     }, json={
         'store_id': 100
+    })
+    assert response.status_code == 400
+
+
+def test_add_store():
+    global token
+    create_and_login_user('tests4', 'tests4', 'tests4@gmail.com', '054-1111111', 2003, 1, 1)
+    response = client.post('/store/add_store', headers={
+        'Authorization': f'Bearer {token}'
+    }, json={
+        'store_name': 'test_store',
+        'location_id': 1
+    })
+    assert response.status_code == 200
+
+def test_add_store_failed_user_not_a_member():
+    global guest_token
+    init_guest_token()
+    response = client.post('/store/add_store', headers={
+        'Authorization': f'Bearer {guest_token}'
+    }, json={
+        'store_name': 'test_store',
+        'location_id': 1,
     })
     assert response.status_code == 400
