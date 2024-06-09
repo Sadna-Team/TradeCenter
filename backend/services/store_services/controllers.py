@@ -130,7 +130,7 @@ class StoreService:
             Show information about the stores in the system
         """
         try:
-            info = self.__market_facade.get_store_info(store_id)
+            info = self.__market_facade.get_store_info(store_id).get()
             logger.info('store info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:
@@ -142,7 +142,7 @@ class StoreService:
             Show products of a store
         """
         try:
-            info = self.__market_facade.get_store_product_info(store_id)
+            info = [p.get() for p in self.__market_facade.get_store_product_info(store_id)]
             logger.info('store products info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:
