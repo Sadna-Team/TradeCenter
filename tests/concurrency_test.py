@@ -11,10 +11,21 @@ def app():
 def client(app):
     return app.test_client()
 
-def create_user(client, username, password):
+def create_user(client, username):
     guest_token = client.get('auth/').get_json()['token']
+    
+    register_credentials = { 
+        'username': username,
+        'email': 'test@gmail.com',
+        'password': 'test',
+        'location_id': 1,
+        'year': 2003,
+        'month': 1,
+        'day': 1,
+        'phone': '054-1234567' }
+   
     headers = {'Authorization': f'Bearer {guest_token}'}
-    json = {'username': username, 'password': password}
+    json = {'register_credentials': register_credentials}
     client.post('auth/register', headers=headers, json=json)
 
 def login(client, username, password):
@@ -31,18 +42,18 @@ def admin_token(client):
     return client.post('auth/login', headers=headers, json=json).get_json()['token']
 
 def test_two_users_purchase_last_item_concurrently(client, admin_token):
-    create_user(client, 'user1', 'password')
-    create_user(client, 'user2', 'password')
+    create_user(client, 'user1')
+    create_user(client, 'user2')
 
     # User 1 logs in
-    user1_token = login(client, 'user1', 'password')
+    user1_token = login(client, 'user1', 'test')
 
     # User 2 logs in
-    user2_token = login(client, 'user2', 'password')
+    user2_token = login(client, 'user2', 'test')
 
     # admin adds a store
     headers = {'Authorization': f'Bearer {admin_token}'}
-    json = {'name': 'store1', 'location_id': 1}
+    json = {'store_name': 'store1', 'location_id': 1}
     client.post('store/add_store', headers=headers, json=json).get_json()
 
     # admin adds an item
