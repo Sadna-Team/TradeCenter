@@ -72,11 +72,15 @@ def show_user_purchase_history():
     logger.info('recieved request to show the purchase history of a user in a store')
     try:
         user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = None
+        if 'store_id' in data:
+            store_id = int(data['store_id'])
     except Exception as e:
         logger.error('show_user_purchase_history_in_store - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.show_purchase_history_of_user(user_id)
+    return purchase_service.show_purchase_history_of_user(user_id, store_id)
 
 
 @market_bp.route('/search_products_by_category', methods=['GET'])
