@@ -626,7 +626,7 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        self.add_sub_category_to_category(user_id, sub_category_id, parent_category_id)
+        self.store_facade.assign_sub_category_to_category(sub_category_id, parent_category_id)
         logger.info(f"User {user_id} has added a sub category to category {parent_category_id}")
 
     def remove_sub_category_from_category(self, user_id: int, category_id: int, sub_category_id: int):
@@ -637,7 +637,7 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        self.remove_sub_category_from_category(user_id, category_id, sub_category_id)
+        self.store_facade.delete_sub_category_from_category(category_id, sub_category_id)
         logger.info(f"User {user_id} has removed a sub category from category {category_id}")
 
     def assign_product_to_category(self, user_id: int, category_id: int, store_id: int, product_id: int):
