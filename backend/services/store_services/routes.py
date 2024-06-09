@@ -444,12 +444,13 @@ def remove_store_role():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = int(data['store_id'])
-        removed_id = int(data['removed_id'])
+        username = str(data['username'])
     except Exception as e:
         logger.error('remove_store_role - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.remove_store_role(user_id, store_id, removed_id)
+    return store_service.remove_store_role(user_id, store_id, username)
+
 
 @store_bp.route('/give_up_role', methods=['POST'])
 @jwt_required()

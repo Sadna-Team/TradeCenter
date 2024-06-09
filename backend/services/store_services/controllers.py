@@ -344,13 +344,13 @@ class StoreService:
             logger.error('product was not removed from category')
             return jsonify({'message': str(e)}), 400
 
-    def add_store_owner(self, user_id: int, store_id: int, new_owner_username):
+    def add_store_owner(self, user_id: int, store_id: int, new_owner_username: str):
         """
             Send promotion to a new owner to a store.
             User still needs to accept the promotion! 
         """
         try:
-            self.__market_facade.nominate_store_owner(user_id, store_id, new_owner_username)
+            self.__market_facade.nominate_store_owner(store_id, user_id, new_owner_username)
             logger.info('store owner was added successfully')
             return jsonify({'message': 'store owner was added successfully'}), 200
         except Exception as e:
@@ -369,12 +369,12 @@ class StoreService:
             logger.error('store manager was not added')
             return jsonify({'message': str(e)}), 400
 
-    def remove_store_role(self, user_id: int, store_id: int, removed_id: int):
+    def remove_store_role(self, user_id: int, store_id: int, username: str):
         """
             Remove a store role (owner/manager)
         """
         try:
-            self.__market_facade.remove_store_role(user_id, store_id, removed_id)
+            self.__market_facade.remove_store_role(user_id, store_id, username)
             logger.info('store role was removed successfully')
             return jsonify({'message': 'store role was removed successfully'}), 200
         except Exception as e:
@@ -383,7 +383,7 @@ class StoreService:
 
     def give_up_role(self, user_id: int, store_id: int):
         try:
-            self.__market_facade.remove_store_role(user_id, store_id, user_id)
+            self.__market_facade.give_up_role(user_id, store_id)
             logger.info('role was given up successfully')
             return jsonify({'message': 'role was given up successfully'}), 200
         except Exception as e:

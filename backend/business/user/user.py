@@ -308,6 +308,11 @@ class UserFacade:
         self.clear_notifications(user_id)
         return out
 
+    def get_userid(self, username: str) -> int:
+        if username not in self.__usernames:
+            raise ValueError("User not found")
+        return self.__usernames[username]
+
     def clear_notifications(self, user_id: int) -> None:
         with UserFacade.__notification_lock:
             self.__get_user(user_id).clear_notifications()
