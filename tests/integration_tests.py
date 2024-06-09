@@ -8,6 +8,8 @@ from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from time import sleep
 
+from backend.business.store.constraints import AgeConstraint
+
 market_facade: Optional[MarketFacade] = None
 user_facade: Optional[UserFacade] = None
 purchase_facade: Optional[PurchaseFacade] = None
@@ -334,28 +336,137 @@ def test_remove_purchase_policy():
 
 #-----------------------------------------------------------
 
-def test_add_discount():
-    pass
 
-def test_remove_discount():
-    pass
+# more thorough tests in the unit tests of new_store.py !!!
 
-def test_create_logical_composite_discount():
-    pass
+def test_add_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    discount_id1 = market_facade.add_discount(user_id1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31), 0.3, store_id1, None, None, None)
+    assert market_facade.store_facade.discounts.get(discount_id1).discount_description == 'best you can find'
+    assert market_facade.store_facade.discounts.get(discount_id1).starting_date == datetime(2023, 10, 31)
+    assert market_facade.store_facade.discounts.get(discount_id1).ending_date == datetime(2050,10,31)
+    assert market_facade.store_facade.discounts.get(discount_id1).percentage == 0.3
+    
+    
+def test_add_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.add_discount(user_id1+1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31), 0.3, store_id1, None, None, None)
+        
 
-def test_create_numerical_composite_discount():
-    pass
 
-def test_assign_predicate_to_discount():
+def test_remove_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    market_facade.remove_discount(user_id1, discount_id1)
+    assert discount_id1 not in market_facade.store_facade.discounts
+    
+def test_remove_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.remove_discount(user_id1+1, discount_id1)
+        
 
-    pass
+def test_create_logical_composite_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    discount_id2 = discount_ids[1]
+    composite = market_facade.create_logical_composite_discount(user_id1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
+    assert composite in market_facade.store_facade.discounts
+    assert market_facade.store_facade.discounts.get(composite).discount_description == 'max of the two'
+    assert market_facade.store_facade.discounts.get(composite).starting_date == datetime(2024, 10, 31)
+    assert market_facade.store_facade.discounts.get(composite).ending_date == datetime(2050,10,31)
+    assert market_facade.store_facade.discounts.get(composite).discount_id == composite
+    assert market_facade.store_facade.discounts.get(composite).is_simple_discount()==True
+    
+def test_create_logical_composite_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    discount_id2 = discount_ids[1]
+    with pytest.raises(ValueError):
+        market_facade.create_logical_composite_discount(user_id1+1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
+        
 
-def test_change_discount_percentage():
+def test_create_numerical_composite_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    discount_id2 = discount_ids[1]
+    composite = market_facade.create_numerical_composite_discount(user_id1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [discount_id1, discount_id2], 1)
+    assert composite in market_facade.store_facade.discounts
+    assert market_facade.store_facade.discounts.get(composite).discount_description == 'max of the two'
+    assert market_facade.store_facade.discounts.get(composite).starting_date == datetime(2024, 10, 31)
+    assert market_facade.store_facade.discounts.get(composite).ending_date == datetime(2050,10,31)
+    assert market_facade.store_facade.discounts.get(composite).discount_id == composite
+    assert market_facade.store_facade.discounts.get(composite).is_simple_discount()==True
+    
+    
+def test_create_numerical_composite_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    discount_id2 = discount_ids[1]
+    with pytest.raises(ValueError):
+        market_facade.create_numerical_composite_discount(user_id1+1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [discount_id1, discount_id2], 1)
+        
 
-    pass
+def test_assign_predicate_to_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    market_facade.assign_predicate_to_discount(user_id1, discount_id1,[21],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None])
+    assert isinstance(market_facade.store_facade.discounts.get(discount_id1).predicate, AgeConstraint)
+    
+    
+def test_assign_predicate_to_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id2 = user_ids[1]
+    discount_id1 = discount_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.assign_predicate_to_discount(user_id2, discount_id1,[21],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None])
+    assert market_facade.store_facade.discounts.get(discount_id1).predicate == None
 
-def test_change_discount_description():
-    pass
+
+def test_change_discount_percentage(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    market_facade.change_discount_percentage(user_id1, discount_id1, 0.5)
+    assert market_facade.store_facade.discounts.get(discount_id1).percentage == 0.5
+    
+def test_change_discount_percentage_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.change_discount_percentage(user_id1+1, discount_id1, 0.5)
+    assert market_facade.store_facade.discounts.get(discount_id1).percentage != 0.5
+
+def test_change_discount_description(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    market_facade.change_discount_description(user_id1, discount_id1, 'new description')
+    assert market_facade.store_facade.discounts.get(discount_id1).discount_description == 'new description'
+    
+def test_change_discount_description_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.change_discount_description(user_id1+1, discount_id1, 'new description')
+    assert market_facade.store_facade.discounts.get(discount_id1).discount_description != 'new description'
+    
+
 
 #-----------------------------------------------------------
 
