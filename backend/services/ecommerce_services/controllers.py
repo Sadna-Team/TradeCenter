@@ -37,12 +37,12 @@ class PurchaseService:
             logger.error('show_purchase_history_in_store was not successful')
             return jsonify({'message': str(e)}), 400
 
-    def show_purchase_history_of_user(self, user_id: int):
+    def show_purchase_history_of_user(self, user_id: int, store_id: Optional[int] = None):
         """
             Show the purchase history of a member
         """
         try:
-            info = self.__market_facade.view_purchases_of_user(user_id)
+            info = self.__market_facade.view_purchases_of_user(user_id, store_id)
             logger.info('show_purchase_history_of_user was successful')
             return jsonify({'message': info}), 200
         except Exception as e:
@@ -55,6 +55,8 @@ class PurchaseService:
         """
         try:
             info = self.__market_facade.search_by_category(category_id, store_id)
+            for store_id in info:
+                info[store_id] = [x.get() for x in info[store_id]]
             logger.info('search_products_by_category was successful')
             return jsonify({'message': info}), 200
         except Exception as e:
@@ -67,6 +69,8 @@ class PurchaseService:
         """
         try:
             info = self.__market_facade.search_by_tags(tags, store_id)
+            for store_id in info:
+                info[store_id] = [x.get() for x in info[store_id]]
             logger.info('search_products_by_tags was successful')
             return jsonify({'message': info}), 200
         except Exception as e:
@@ -79,6 +83,8 @@ class PurchaseService:
         """
         try:
             info = self.__market_facade.search_by_name(name, store_id)
+            for store_id in info:
+                info[store_id] = [x.get() for x in info[store_id]]
             logger.info('search_products_by_name was successful')
             return jsonify({'message': info}), 200
         except Exception as e:

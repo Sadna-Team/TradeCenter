@@ -77,6 +77,30 @@ def test_start(first=True):
                                      })
         assert response.status_code == 200
 
+        response = client.post('/store/add_product', headers={'Authorization': 'Bearer ' + user2},
+                               json={'store_id': 0,
+                                     'product_name': 'test_product2',
+                                     'description': 'test_description',
+                                     'price': 10,
+                                     'weight': 1,
+                                     'tags': ['test_tag2']
+                                     })
+
+        guest_token = client.get('/auth/').json['token']
+        admin_token = client.post('/auth/login', 
+                                  headers={'Authorization': 'Bearer ' + guest_token}, 
+                                  json={'username': 'admin', 'password': 'admin'}).json['token']
+
+        response = client.post('/store/add_category', headers={'Authorization': 'Bearer ' + admin_token},
+                               json={'store_id': 0, 'category_name': 'test_category'})
+        
+        assert response.status_code == 200
+
+        response = client.post('store/assign_product_to_category', headers={'Authorization': 'Bearer ' + user2},
+                               json={'store_id': 0, 'product_id': 0, 'category_id': 0})
+        
+        assert response.status_code == 200
+
         response = client.post('/store/restock_product', headers={'Authorization': 'Bearer ' + user2},
                                json={'store_id': 0,
                                      'product_id': 0,
@@ -364,6 +388,61 @@ def test_show_cart():
     assert response.status_code == 200
     assert response.json['shopping_cart'] == {'0': {'0': 1}}
 
+
+def test_search_by_category():
+    global token
+    data = {"store_id": 0, "category_id": 0}
+    response = client.get('/market/search_products_by_category', headers={
+        'Authorization': f'Bearer {token}'
+    }, json=data)
+    assert response.status_code == 200
+
+def test_search_by_category_failed_store_not_exists():
+    global token
+    data = {"store_id": 100, "category_id": 0}
+    response = client.get('/market/search_products_by_category', headers={
+        'Authorization': f'Bearer {token}'
+    }, json=data)
+    assert response.status_code == 400
+
+def test_search_by_category_failed_category_not_exists():
+    global token
+    data = {"store_id": 0, "category_id": 100}
+    response = client.get('/market/search_products_by_category', headers={
+        'Authorization': f'Bearer {token}'} , json=data)
+    assert response.status_code == 400
+
+def test_search_by_tags():
+    global token
+    data = {"store_id": 0, "tags": ["test_tag"]}
+    response = client.get('/market/search_products_by_tags', headers={
+        'Authorization': f'Bearer {token}'
+    }, json=data)
+    assert response.status_code == 200
+
+def test_search_by_tags_failed_store_not_exists():
+    global token
+    data = {"store_id": 100, "tags": ["test_tag"]}
+    response = client.get('/market/search_products_by_tags', headers={
+        'Authorization': f'Bearer {token}'
+    }, json=data)
+    assert response.status_code == 400
+
+def test_search_by_name():
+    global token
+    data = {"store_id": 0, "name": "test_product"}
+    response = client.get('/market/search_products_by_name', headers={
+        'Authorization': f'Bearer {token}'
+    }, json=data)
+    assert response.status_code == 200
+
+def test_search_by_name_failed_store_not_exists():
+    global token
+    data = {"store_id": 100, "name": "test_product"}
+    response = client.get('/market/search_products_by_name', headers={
+        'Authorization': f'Bearer {token}'
+    }, json=data)
+    assert response.status_code == 400
 
 def test_information_about_stores():
     global token

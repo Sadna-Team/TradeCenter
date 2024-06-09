@@ -72,11 +72,15 @@ def show_user_purchase_history():
     logger.info('recieved request to show the purchase history of a user in a store')
     try:
         user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = None
+        if 'store_id' in data:
+            store_id = int(data['store_id'])
     except Exception as e:
         logger.error('show_user_purchase_history_in_store - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.show_purchase_history_of_user(user_id)
+    return purchase_service.show_purchase_history_of_user(user_id, store_id)
 
 
 @market_bp.route('/search_products_by_category', methods=['GET'])
@@ -88,13 +92,12 @@ def search_products_by_category():
     """
     logger.info('recieved request to search for products')
     try:
-        data = request.args
+        data = request.get_json()
         category_id = int(data['category_id'])
         # check if store_id is provided
+        store_id = None
         if 'store_id' in data:
             store_id = int(data['store_id'])
-        else:
-            store_id = None
     except Exception as e:
         logger.error('search_products - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -111,7 +114,7 @@ def search_products_by_tags():
     """
     logger.info('recieved request to search for products')
     try:
-        data = request.args
+        data = request.get_json()
         tags_helper = data['tags']
         if not isinstance(tags_helper, list):
             raise Exception('tags must be a list')
@@ -137,7 +140,7 @@ def search_products_by_name():
     """
     logger.info('recieved request to search for products')
     try:
-        data = request.args
+        data = request.get_json()
         name = str(data['name'])
         # check if store_id is provided
         if 'store_id' in data:

@@ -726,13 +726,13 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to create a lottery purchase")'''
 
-    def view_purchases_of_user(self, user_id: int) -> List[PurchaseDTO]:
+    def view_purchases_of_user(self, user_id: int, store_id: Optional[int]=None) -> List[PurchaseDTO]:
         """
         * Parameters: user_id
         * This function returns the purchases of a user
         * Returns a string
         """
-        return self.purchase_facade.get_purchases_of_user(user_id)
+        return self.purchase_facade.get_purchases_of_user(user_id, store_id)
 
     def view_purchases_of_store(self, user_id: int, store_id: int) -> List[PurchaseDTO]:
         """
