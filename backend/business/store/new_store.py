@@ -942,7 +942,7 @@ class StoreFacade:
         category.remove_product_from_category(store_id, product_id)
 
     def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float, weight: float,
-                             tags: Optional[List[str]]=[]) -> int:
+                             tags: Optional[List[str]]=[], amount: Optional[int] = 0) -> int:
         """
         * Parameters: productName, weight, description, tags, manufacturer, storeIds
         * This function adds a product to the store
@@ -962,7 +962,7 @@ class StoreFacade:
         if weight < 0:
             raise ValueError('Weight is a negative value')
         logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
-        return store.add_product(product_name, description, price, tags, weight)
+        return store.add_product(product_name, description, price, tags, weight, amount)
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
         """

@@ -166,7 +166,6 @@ def test_appoint_store_manager_invalid_member_credentials():
     assert response.status_code == 400
     # assert response.get_json()['message'] == 'User not found'
 
-
 def test_accepting_manager_promotion_success():
     # login as user(manager1)
     data = {'username': 'new_manager', 'password': 'test'}
@@ -242,7 +241,6 @@ def test_view_employees_info_invalid_store_id():
     response = client.get('store/view_employees_info', headers=headers, json=data)
     assert response.status_code == 400
 
-# UNTESTED, BUT SHOULD WORK
 def test_add_purchase_policy_success():
     data = {'store_id': 0, 'policy_name': 'no_alcohol_past_time'}
     headers = {'Authorization': 'Bearer ' + owner_token}
