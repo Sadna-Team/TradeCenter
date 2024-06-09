@@ -212,7 +212,8 @@ def add_store():
         logger.error('add_store - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.add_new_store(user_id, location_id, store_name)
+    ret = store_service.add_new_store(user_id, location_id, store_name)
+    return ret
 
 
 @store_bp.route('/add_product', methods=['POST'])
