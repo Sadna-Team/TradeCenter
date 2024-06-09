@@ -80,12 +80,12 @@ def test_two_users_purchase_last_item_concurrently(client, admin_token, add_stor
     # user1 adds the item to cart
     headers = {'Authorization': f'Bearer {user1_token}'}
     json = {'store_id': 0, 'product_id': 0, 'quantity': 1}
-    client.post('store/add_to_basket', headers=headers, json=json)
+    client.post('user/add_to_basket', headers=headers, json=json)
 
     # user2 adds the item to cart
     headers = {'Authorization': f'Bearer {user2_token}'}
     json = {'store_id': 0, 'product_id': 0, 'quantity': 1}
-    client.post('store/add_to_basket', headers=headers, json=json)
+    client.post('user/add_to_basket', headers=headers, json=json)
 
     # user1 and user2 try to purchase the item at the same time (using threads)
     import threading
@@ -108,9 +108,18 @@ def test_two_users_purchase_last_item_concurrently(client, admin_token, add_stor
     thread1.join()
     thread2.join()
 
+    res = [0, 0]
     # check the results
-    assert results.get() == 200
-    assert results.get() == 400
+    for _ in range(2):
+        if results.get() == 200:
+            res[0] += 1
+        else:
+            res[1] += 1
+    assert res == [1, 1]
+
+    # concurrency issues
+    # assert results.get() == 200
+    # assert results.get() == 400
 
     clean_data()
 
@@ -123,7 +132,7 @@ def test_user_purchases_item_while_admin_removes_item_from_store(client, admin_t
     # user1 adds the item to cart
     headers = {'Authorization': f'Bearer {user1_token}'}
     json = {'store_id': 0, 'product_id': 0, 'quantity': 1}
-    client.post('store/add_to_basket', headers=headers, json=json)
+    client.post('user/add_to_basket', headers=headers, json=json)
 
     # user1 checkout with item while admin removes the item from the store (using threads)
     import threading
