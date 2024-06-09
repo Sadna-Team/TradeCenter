@@ -4,11 +4,9 @@ from threading import Lock
 from backend.business.notifier.notifier import Notifier
 
 import logging
-
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
-                    format='%(name)s - %(levelname)s - %(message)s')
+                     format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Roles Logger")
-
 
 class Permissions:
     def __init__(self):
@@ -236,10 +234,11 @@ class RolesFacade:
         if store_id in self.__stores_to_roles:
             raise ValueError("Store already exists")
         self.__stores_to_roles[store_id] = {owner_id: StoreOwner()}
+        print(store_id)
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
         self.__stores_locks[store_id] = Lock()
 
-    def close_store(self, store_id: int, actor_id: int) -> None:
+    def remove_store(self, store_id: int, actor_id: int) -> None:
         if store_id not in self.__stores_to_roles:
             raise ValueError("Store does not exist")
         if actor_id not in self.__stores_to_roles[store_id]:
@@ -252,6 +251,8 @@ class RolesFacade:
         for nomination_id, nomination in self.__systems_nominations.items():
             if nomination.store_id == store_id:
                 del self.__systems_nominations[nomination_id]
+
+
 
     def nominate_owner(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
         with self.__stores_locks[store_id]:
@@ -286,9 +287,9 @@ class RolesFacade:
         if nominee_id in self.__stores_to_roles[store_id]:
             raise ValueError("Nominee is already a member of the store")
 
-    def accept_nomination(self, nominee_id: int, nomination_id: int) -> None:
-        if nomination_id not in self.__systems_nominations:
-            raise ValueError("Nomination does not exist")
+    def accept_nomination(self, nomination_id: int, nominee_id: int) -> None:
+        if nomination_id not in self.__systems_nominations.keys():
+            raise ValueError(f"Nomination does not exist - given id - {nomination_id}, {type(nomination_id)}")
         nomination = self.__systems_nominations[nomination_id]
         if nominee_id != nomination.nominee_id:
             raise ValueError("Nominee id does not match the nomination")
@@ -305,7 +306,8 @@ class RolesFacade:
                 del self.__systems_nominations[n_id]
         logger.info(f"User {nominee_id} accepted the nomination {nomination_id} in store {nomination.store_id}")
 
-    def decline_nomination(self, nominee_id: int, nomination_id:int) -> None:
+
+    def decline_nomination(self, nomination_id: int, nominee_id) -> None:
         if nomination_id not in self.__systems_nominations:
             raise ValueError("Nomination does not exist")
         nomination = self.__systems_nominations[nomination_id]
@@ -319,6 +321,7 @@ class RolesFacade:
                                 change_discount_types: bool, add_manager: bool, get_bid: bool) -> None:
         '''
         Actor_id is the owner/manager of the store and tries to change the permissions of the manager_id '''
+
         with self.__stores_locks[store_id]:
             if store_id not in self.__stores_to_roles:
                 raise ValueError("Store does not exist")
@@ -340,8 +343,6 @@ class RolesFacade:
                 raise ValueError("Removed user is not a member of the store")
             if not self.__authorized_to_add_manager(store_id, actor_id):
                 raise ValueError("Actor is not authorized to remove a role")
-            # if not actor_id != removed_id and not self.__stores_to_role_tree[store_id].is_descendant(actor_id,
-            #                                                                                          removed_id):
             if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, removed_id):
                 raise ValueError("Actor is not an ancestor of the removed user")
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
@@ -351,6 +352,18 @@ class RolesFacade:
             for user_id in removed:
                 Notifier().unsign_listener(user_id, store_id)
                 del self.__stores_to_roles[store_id][user_id]
+
+    def get_employees_info(self, store_id: int, actor_id: int) -> Dict[int, str]:  # Dict[user_id, role]
+        with self.__stores_locks[store_id]:
+            if store_id not in self.__stores_to_roles:
+                raise ValueError("Store does not exist")
+            if actor_id not in self.__stores_to_roles[store_id]:
+                raise ValueError("Actor is not a member of the store")
+            employees = {}
+            for user_id, role in self.__stores_to_roles[store_id].items():
+                employees[user_id] = role.__str__()
+
+            return employees
 
     def is_system_manager(self, user_id: int) -> bool:
         with self.__system_managers_lock:

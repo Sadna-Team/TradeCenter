@@ -11,7 +11,7 @@ logger = logging.getLogger('myapp')
 
 class ThirdPartyService(ABC):
     def __init__(self):
-        self.__market_facade = MarketFacade()
+        self._market_facade = MarketFacade()
 
     @abstractmethod
     def add_third_party_service(self, user_id: int, method_name: str, config: Dict):
@@ -36,12 +36,15 @@ class ThirdPartyService(ABC):
 
 
 class PaymentService(ThirdPartyService):
+    def __init__(self):
+        super().__init__()
+
     def add_third_party_service(self, user_id: int, method_name: str, config: Dict):
         """
             Add a third party service to be supported by the platform
         """
         try:
-            self.__market_facade.add_payment_method(user_id, method_name, config)
+            self._market_facade.add_payment_method(user_id, method_name, config)
             logger.info('Third party payment service added successfully')
             return jsonify({'message': 'Third party payment service added successfully'}), 200
         except Exception as e:
@@ -53,7 +56,7 @@ class PaymentService(ThirdPartyService):
             Edit a third party service supported by the platform
         """
         try:
-            self.__market_facade.edit_payment_method(user_id, method_name, editing_data)
+            self._market_facade.edit_payment_method(user_id, method_name, editing_data)
             logger.info('Third party payment service edited successfully')
             return jsonify({'message': 'Third party payment service edited successfully'}), 200
         except Exception as e:
@@ -65,7 +68,7 @@ class PaymentService(ThirdPartyService):
             Delete a third party service supported by the platform
         """
         try:
-            self.__market_facade.remove_payment_method(user_id, method_name)
+            self._market_facade.remove_payment_method(user_id, method_name)
             logger.info('Third party payment service deleted successfully')
             return jsonify({'message': 'Third party payment service deleted successfully'}), 200
         except Exception as e:
@@ -74,12 +77,15 @@ class PaymentService(ThirdPartyService):
 
 
 class SupplyService(ThirdPartyService):
+    def __init__(self):
+        super().__init__()
+
     def add_third_party_service(self, user_id: int, method_name: str, config: Dict):
         """
             Add a third party service to be supported by the platform
         """
         try:
-            self.__market_facade.add_supply_method(user_id, method_name, config)
+            self._market_facade.add_supply_method(user_id, method_name, config)
             logger.info('Third party supply service added successfully')
             return jsonify({'message': 'Third party supply service added successfully'}), 200
         except Exception as e:
@@ -91,7 +97,7 @@ class SupplyService(ThirdPartyService):
             Edit a third party service supported by the platform
         """
         try:
-            self.__market_facade.edit_supply_method(user_id, method_name, editing_data)
+            self._market_facade.edit_supply_method(user_id, method_name, editing_data)
             logger.info('Third party supply service edited successfully')
             return jsonify({'message': 'Third party supply service edited successfully'}), 200
         except Exception as e:
@@ -103,7 +109,7 @@ class SupplyService(ThirdPartyService):
             Delete a third party service supported by the platform
         """
         try:
-            self.__market_facade.remove_supply_method(user_id, method_name)
+            self._market_facade.remove_supply_method(user_id, method_name)
             logger.info('Third party supply service deleted successfully')
             return jsonify({'message': 'Third party supply service deleted successfully'}), 200
         except Exception as e:

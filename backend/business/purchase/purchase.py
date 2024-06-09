@@ -4,6 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Tuple, Optional, Dict
 from backend.business.DTOs import PurchaseProductDTO, PurchaseDTO
+import threading
 
 # -------------logging configuration----------------
 import logging
@@ -142,18 +143,21 @@ class ImmediateSubPurchase(Purchase):
         super().__init__(purchase_id, user_id, date_of_purchase, total_price, total_price_after_discounts, status)
         self._store_id: int = store_id
         self._products: List[PurchaseProductDTO] = products
+        self._status_lock = threading.Lock()
         logger.info('[ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: %s',
                     purchase_id)
 
     def accept(self):
-        if self._status != PurchaseStatus.onGoing:
-            raise ValueError("Purchase is not on going")
-        self._status = PurchaseStatus.accepted
+        with self._status_lock:
+            if self._status != PurchaseStatus.onGoing:
+                raise ValueError("Purchase is not on going")
+            self._status = PurchaseStatus.accepted
 
     def complete(self):
-        if self._status != PurchaseStatus.accepted:
-            raise ValueError("Purchase is not accepted")
-        self._status = PurchaseStatus.completed
+        with self._status_lock:
+            if self._status != PurchaseStatus.accepted:
+                raise ValueError("Purchase is not accepted")
+            self._status = PurchaseStatus.completed
 
     # ---------------------------------Getters and Setters---------------------------------#
     @property
@@ -179,6 +183,7 @@ class ImmediatePurchase(Purchase):
         self._delivery_date: Optional[datetime] = None  # for now, it will be updated once a purchase was accepted
         self._immediate_sub_purchases: List[ImmediateSubPurchase] = []
         self.__sub_purchase_id_serializer: int = 0
+        self.__sub_purchase_id_serializer_lock = threading.Lock()
         for store_id in shopping_cart:
             products = shopping_cart[store_id][0]
             price = shopping_cart[store_id][1]
@@ -203,9 +208,10 @@ class ImmediatePurchase(Purchase):
         return self._immediate_sub_purchases
 
     def __get_new_sub_purchase_id(self) -> int:
-        new_id = self.__sub_purchase_id_serializer
-        self.__sub_purchase_id_serializer += 1
-        return new_id
+        with self.__sub_purchase_id_serializer_lock:
+            new_id = self.__sub_purchase_id_serializer
+            self.__sub_purchase_id_serializer += 1
+            return new_id
 
     def accept(self):
         if self._status != PurchaseStatus.onGoing:
@@ -714,6 +720,7 @@ class PurchaseFacade:
             self._purchases: Dict[int, Purchase] = {}
             # self._ratings = []
             self._purchases_id_counter = 0
+            self._purchases_id_counter_lock = threading.Lock()
             # self._rating_id_counter = 0
             logger.info('[PurchaseFacade] successfully created purchase facade object')
 
@@ -728,13 +735,13 @@ class PurchaseFacade:
         """
         if total_price < 0 or total_price_after_discounts < 0:
             raise ValueError("Total price must be a positive float")
+        with self._purchases_id_counter_lock:
+            pur = ImmediatePurchase(self.__get_new_purchase_id(), user_id, total_price, shopping_cart,
+                                    total_price_after_discounts)
 
-        pur = ImmediatePurchase(self.__get_new_purchase_id(), user_id, total_price, shopping_cart,
-                                total_price_after_discounts)
+            self._purchases[pur.purchase_id] = pur
 
-        self._purchases[pur.purchase_id] = pur
-
-        return pur.purchase_id
+            return pur.purchase_id
 
     def __get_new_purchase_id(self) -> int:
         new_id = self._purchases_id_counter
@@ -823,6 +830,16 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] attempting to complete purchase with purchase id: %s', purchase_id)
         purchase = self.__get_purchase_by_id(purchase_id)
         purchase.complete()
+
+    def check_if_purchase_completed(self, purchase_id: int) -> bool:
+        """
+        * Parameters: purchaseId
+        * This function is responsible for checking if the purchase is completed
+        * Returns: bool
+        """
+        logger.info('[PurchaseFacade] attempting to check if purchase with purchase id: %s is completed', purchase_id)
+        purchase = self.__get_purchase_by_id(purchase_id)
+        return purchase.status == PurchaseStatus.completed
 
     def __get_purchase_by_id(self, purchase_id: int) -> Purchase:
         if self.__check_if_purchase_exists(purchase_id):

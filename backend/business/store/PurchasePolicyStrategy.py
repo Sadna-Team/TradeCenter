@@ -1,12 +1,21 @@
 from abc import ABC, abstractmethod
 
 
+# -------------logging configuration----------------
+import logging
+
+logger = logging.getLogger('myapp')
+
+# ---------------------------------------------------
+
 # --------------- PurchasePolicyStrategy class ---------------#
 class PurchasePolicyStrategy(ABC):
     # interface responsible for representing discounts in general. discountId unique verifier.
     def __init__(self, purchase_policy_id: int, store_id: int):
         self._purchase_policy_id = purchase_policy_id
         self._store_id = store_id
+        logger.info("[PurchasePolicy] Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
+
 
     @property
     def purchase_policy_id(self):
