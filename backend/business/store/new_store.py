@@ -963,7 +963,7 @@ class StoreFacade:
         if weight < 0 :
             raise ValueError('Weight is a negative value')
         logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
-        return store.add_product(product_name, description, price, tags, weight,0)
+        return store.add_product(product_name, description, price, tags, weight, amount)
 
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:

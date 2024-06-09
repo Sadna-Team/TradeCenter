@@ -120,6 +120,7 @@ def test_user_checkout_success(client2, user_token, init_store, clean):
     data = {"store_id": 0, "product_id": 0, "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
+    assert response.status_code == 200
     
     data = {"payment_details": default_payment_method, 
             "supply_method": default_supply_method, 
@@ -131,6 +132,7 @@ def test_guest_checkout_success(client3, guest_token, init_store, clean):
     data = {"store_id": 0, "product_id": 0, "quantity": 1}
     headers = {'Authorization': 'Bearer ' + guest_token}
     response = client3.post('user/add_to_basket', headers=headers, json=data)
+    assert response.status_code == 200
 
     data = {"payment_details": default_payment_method,
             "supply_method": default_supply_method,
