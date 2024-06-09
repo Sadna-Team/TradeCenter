@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 from flask import Blueprint, request, jsonify
 from .controllers import StoreService
@@ -171,11 +172,10 @@ def add_discount():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        user_id = int(data['user_id'])
-        description = str(data['description'])
-        start_date = data['start_date']
-        end_date = data['end_date']
-        percentage = float(data['percentage'])
+        description: str = str(data['description'])
+        start_date: datetime = data['start_date']
+        end_date: datetime = data['end_date']
+        percentage: float = float(data['percentage'])
         store_id: Optional[int] = data['store_id']
         product_id: Optional[int] = data['product_id']
         category_id: Optional[int] = data['category_id']
@@ -218,7 +218,6 @@ def create_logical_composite():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        user_id = int(data['user_id'])
         description = str(data['description'])
         start_date = data['start_date']
         end_date = data['end_date']
@@ -242,7 +241,6 @@ def create_numerical_composite():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        user_id = int(data['user_id'])
         description = str(data['description'])
         start_date = data['start_date']
         end_date = data['end_date']

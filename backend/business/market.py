@@ -335,7 +335,7 @@ class MarketFacade:
         *NOTE: the discount is initialized with no predicate!
         * Returns none
         """
-        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
+        if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         return self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id, product_id, applied_to_sub) 
     

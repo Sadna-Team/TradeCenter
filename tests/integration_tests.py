@@ -434,7 +434,7 @@ def test_assign_predicate_to_discount_no_permission(default_set_up):
         market_facade.assign_predicate_to_discount(user_id2, discount_id1,[21],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None])
     assert market_facade.store_facade.discounts.get(discount_id1).predicate == None
 
-def test_assign_predicate_to_discount_bad_age(default_set_up):
+
     
 
 def test_change_discount_percentage(default_set_up):
