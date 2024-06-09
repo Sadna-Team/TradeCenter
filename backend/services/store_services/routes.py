@@ -236,11 +236,14 @@ def add_product_to_store():
         if not isinstance(tags_helper, list):
             raise ValueError("Tags must be a list")
         tags = [str(tag) for tag in tags_helper]
+        amount=0
+        if 'amount' in data:
+            amount = int(data['amount'])
     except Exception as e:
         logger.error('add_product - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.add_product_to_store(user_id, store_id, product_name, description, price, weight, tags)
+    return store_service.add_product_to_store(user_id, store_id, product_name, description, price, weight, tags, amount)
 
 
 @store_bp.route('/remove_product', methods=['POST'])

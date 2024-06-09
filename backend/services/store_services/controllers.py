@@ -162,12 +162,12 @@ class StoreService:
             return jsonify({'message': str(e)}), 400
 
     def add_product_to_store(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
-                             weight: float, tags: list[str]):
+                             weight: float, tags: list[str], amount: Optional[int]=0):
         """
             Add a product to a store
         """
         try:
-            self.__market_facade.add_product(user_id, store_id, product_name, description, price, weight, tags)
+            self.__market_facade.add_product(user_id, store_id, product_name, description, price, weight, tags, amount)
             logger.info('product was added successfully')
             return jsonify({'message': 'product was added successfully'}), 200
         except Exception as e:
