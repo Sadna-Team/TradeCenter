@@ -19,6 +19,10 @@ logger = logging.getLogger('myapp')
 class Discount(ABC):
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint]):
+        if isinstance(starting_date,str):
+            starting_date = datetime.strptime(starting_date, '%a, %d %b %Y %H:%M:%S %Z')
+        if isinstance(ending_date,str):
+            ending_date = datetime.strptime(ending_date, '%a, %d %b %Y %H:%M:%S %Z')
         self.__discount_id = discount_id
         self.__discount_description = discount_description
         self.__starting_date = starting_date

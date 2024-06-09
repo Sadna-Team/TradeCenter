@@ -44,6 +44,7 @@ class PurchaseService:
         try:
             info = self.__market_facade.view_purchases_of_user(user_id)
             logger.info('show_purchase_history_of_user was successful')
+            info = [x.get() for x in info]
             return jsonify({'message': info}), 200
         except Exception as e:
             logger.error('show_purchase_history_of_user was not successful')

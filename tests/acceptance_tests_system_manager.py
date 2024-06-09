@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 import pytest
 from backend import create_app, clean_data
 import json
@@ -161,7 +161,8 @@ def test_getting_info_about_purchase_history_of_a_member(client, admin_token, cl
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
     assert response.status_code == 200
-    
+
+        
     data = {"payment_details": default_payment_method, 
             "supply_method": default_supply_method, 
             "address": default_address}
@@ -172,6 +173,7 @@ def test_getting_info_about_purchase_history_of_a_member(client, admin_token, cl
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.get('market/user_purchase_history', headers=headers)
     assert response.status_code == 200
+
     
     
     
