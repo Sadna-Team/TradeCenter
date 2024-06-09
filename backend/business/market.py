@@ -534,6 +534,14 @@ class MarketFacade:
         """
         self.store_facade.close_store(store_id, user_id)
 
+    def open_store(self, user_id: int, store_id: int):
+        """
+        * Parameters: userId, store_id
+        * This function opens a store
+        * Returns None
+        """
+        self.store_facade.open_store(store_id, user_id)
+
     def get_employees_info(self, user_id: int, store_id: int) -> Dict[int, str]:
         """
         * Parameters: userId, storeId
