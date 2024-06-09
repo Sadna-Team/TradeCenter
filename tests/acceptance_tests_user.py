@@ -1,4 +1,4 @@
-from backend import create_app
+from backend import create_app, clean_data
 from flask import json, jsonify
 
 app = create_app()

@@ -35,8 +35,9 @@ class ShoppingBasket:
             raise ValueError("Product not found")
         if self.__products[product_id] < quantity:
             raise ValueError("Not enough quantity")
-
-        del self.__products[product_id]
+        self.__products[product_id] -= quantity
+        if self.__products[product_id] == 0:
+            del self.__products[product_id]
 
     def subtract_product(self, product_id: int, quantity: int):
         if product_id not in self.__products:

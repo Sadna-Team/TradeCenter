@@ -20,6 +20,10 @@ bcrypt = Bcrypt()
 jwt = JWTManager()
 
 
+def clean_data():
+    MarketFacade().clean_data()
+    Authentication().clean_data()
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -47,9 +51,6 @@ def create_app():
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blacklist(jwt_header, jwt_payload):
         return authentication.check_if_token_in_blacklist(jwt_header, jwt_payload)
+    
+    clean_data()
     return app
-
-
-def clean_data():
-    MarketFacade().clean_data()
-    Authentication().clean_data()
