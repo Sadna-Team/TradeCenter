@@ -13,12 +13,12 @@ class PurchaseService:
     def __init__(self):
         self.__market_facade = MarketFacade()
 
-    def checkout(self, user_id: int, payment_details: dict, supply_method: str, address: dict):
+    def checkout(self, user_id: int, payment_details: dict, supply_method: str, address: dict, user_info: dict):
         """
             Checkout the shopping cart
         """
         try:
-            info = self.__market_facade.checkout(user_id, payment_details, supply_method, address)
+            info = self.__market_facade.checkout(user_id, payment_details, supply_method, address, user_info)
             logger.info('checkout was successful')
             return jsonify({'message': info}), 200
         except Exception as e:
@@ -84,3 +84,4 @@ class PurchaseService:
         except Exception as e:
             logger.error('search_products_by_name was not successful')
             return jsonify({'message': str(e)}), 400
+

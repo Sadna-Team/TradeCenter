@@ -1,10 +1,13 @@
-import datetime
+from datetime import datetime
+
 # import the datetime type
 from typing import List, Optional
+from datetime import date, datetime
+
 
 
 class AddressDTO:
-    def __init__(self, address_id, address, city, state, country, postal_code):
+    def __init__(self, address_id: int, address: str, city: str, state: str, country: str, postal_code: str):
         self.address_id = address_id
         self.address = address
         self.city = city
@@ -221,12 +224,134 @@ class StoreDTO:
                 "products": [product.get() for product in self.__products]}
 
 
+class UserInformationForDiscountDTO:
+    def __init__(self, user_id: int, birthdate: date, address: AddressDTO):
+        self.__user_id: int = user_id
+        self.__birthdate: date = birthdate
+        self.__address: AddressDTO = address
+
+    @property
+    def user_id(self) -> int:
+        return self.__user_id
+    
+    @property
+    def birthdate(self) -> date:
+        return self.__birthdate
+    
+    @property
+    def address(self) -> AddressDTO:
+        return self.__address
+    
+    def get(self) -> dict:
+        return {"user_id": self.__user_id, "birthdate": self.__birthdate, "address": self.__address.to_dict()}
+
+class ProductForDiscountDTO:
+    def __init__(self, product_id: int, store_id: int, price: float, weight: float, amount: int):
+        self.__product_id: int = product_id
+        self.__store_id: int = store_id
+        self.__price: float = price
+        self.__weight: float = weight
+        self.__amount: int = amount
+
+    @property
+    def product_id(self) -> int:
+        return self.__product_id
+
+    @property
+    def store_id(self) -> int:
+        return self.__store_id
+
+    @property
+    def price(self) -> float:
+        return self.__price
+    
+    @property
+    def weight(self) -> float:
+        return self.__weight
+
+    @property
+    def amount(self) -> int:
+        return self.__amount
+    
+    def get(self) -> dict:
+        return {"product_id": self.__product_id, "store_id": self.__store_id, "price": self.__price, "weight": self.__weight, "amount": self.__amount}
+
+
+
+class CategoryForDiscountDTO:
+    def __init__(self, category_id: int, category_name: str, parent_category_id: int, sub_categories: List['CategoryForDiscountDTO'], products: List[ProductForDiscountDTO]):
+        self.__category_id: int = category_id
+        self.__category_name: str = category_name
+        self.__parent_category_id: int = parent_category_id
+        self.__sub_categories: List['CategoryForDiscountDTO'] = sub_categories
+        self.__products: List[ProductForDiscountDTO] = products
+
+    @property
+    def category_id(self) -> int:
+        return self.__category_id
+
+    @property
+    def category_name(self) -> str:
+        return self.__category_name
+
+    @property
+    def parent_category_id(self) -> int:
+        return self.__parent_category_id
+
+    @property
+    def sub_categories(self) -> List['CategoryForDiscountDTO']:
+        return self.__sub_categories
+    
+    @property
+    def products(self) -> List[ProductForDiscountDTO]:
+        return self.__products
+
+
+
+class BasketInformationForDiscountDTO:
+    def __init__(self, store_id: int, products: List[ProductForDiscountDTO], total_price_of_basket: float, time_of_purchase: datetime, user_info: UserInformationForDiscountDTO, categories: List[CategoryForDiscountDTO]):
+        self.__store_id: int = store_id
+        self.__products: List[ProductForDiscountDTO] = products
+        self.__total_price_of_basket: float = total_price_of_basket
+        self.__time_of_purchase: datetime = time_of_purchase
+        self.__user_info: UserInformationForDiscountDTO = user_info
+        self.__categories: List[CategoryForDiscountDTO] = categories
+
+    @property
+    def store_id(self) -> int:
+        return self.__store_id
+    
+    @property
+    def products(self) -> List[ProductForDiscountDTO]:
+        return self.__products
+    
+    @property
+    def total_price_of_basket(self) -> float:
+        return self.__total_price_of_basket
+    
+    @property
+    def time_of_purchase(self) -> datetime:
+        return self.__time_of_purchase
+    
+    @property
+    def user_info(self) -> UserInformationForDiscountDTO:
+        return self.__user_info
+    
+    @property
+    def categories(self) -> List[CategoryForDiscountDTO]:
+        return self.__categories
+
+    def get(self) -> dict:
+        return {"store_id": self.__store_id, "products": [product.get() for product in self.__products], "total_price_of_basket": self.__total_price_of_basket,
+                "time_of_purchase": self.__time_of_purchase, "user_info": self.__user_info.get(), "categories": [category.__dict__ for category in self.__categories]}
+    
+
 class TransactionException(Exception):
     pass
 
 
 class CategoryDTO:
-    def __init__(self, category_id: int, category_name: str, parent_category_id: int = None):
+    def __init__(self, category_id: int, category_name: str, parent_category_id: int):
         self.__category_id: int = category_id
         self.__category_name: str = category_name
         self.__parent_category_id: int = parent_category_id
@@ -250,7 +375,7 @@ class CategoryDTO:
 
 class UserDTO:
     def __init__(self, user_id: int, email: str, username: str, year: int, month: int, day: int, phone: str,
-                 role: str = None):
+                 role: Optional[str] = None):
         self.__user_id: int = user_id
         self.__email: str = email
         self.__username: str = username
@@ -258,6 +383,8 @@ class UserDTO:
         self.__month: int = month
         self.__day: int = day
         self.__phone: str = phone
+        if role is None:
+            role = ""
         self.__role: str = role
 
     @property
@@ -294,16 +421,16 @@ class UserDTO:
 
 
 class PurchaseUserDTO:
-    def __init__(self, user_id: int, birthdate: Optional[datetime] = None):
+    def __init__(self, user_id: int, birthdate: Optional[date] = None):
         self.__user_id: int = user_id
-        self.__birthdate: datetime = birthdate
+        self.__birthdate: Optional[date] = birthdate
 
     @property
     def user_id(self) -> int:
         return self.__user_id
 
     @property
-    def birthdate(self) -> datetime:
+    def birthdate(self) -> Optional[date]:
         return self.__birthdate
 
     def get(self) -> dict:

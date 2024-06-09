@@ -2,6 +2,7 @@
 from backend.business.authentication.authentication import Authentication
 from backend.business.user import UserFacade
 from backend.business.roles.roles import RolesFacade
+from backend.business.market import MarketFacade
 import logging
 from flask import jsonify
 
@@ -20,6 +21,7 @@ class UserService:
     def __init__(self):
         self.user_facade = UserFacade()
         self.roles_facade = RolesFacade()
+        self.market_facade = MarketFacade()
 
     def show_notifications(self, user_id: int):
         """
@@ -34,6 +36,7 @@ class UserService:
         """
         try:
             notifications = self.user_facade.get_notifications(user_id)
+            notifications = [notification.get() for notification in notifications]
             logger.info('notifications retrieved successfully')
             return jsonify({'notifications': notifications}), 200
 
@@ -56,7 +59,7 @@ class UserService:
                 response (str): response of the operation
         """
         try:
-            self.user_facade.add_product_to_basket(user_id, store_id, product_id, quantity)
+            self.market_facade.add_product_to_basket(user_id, store_id, product_id, quantity)
             logger.info('product added to the basket successfully')
             return jsonify({'message': 'product added to the basket successfully'}), 200
 
@@ -98,7 +101,7 @@ class UserService:
                 response (str): response of the operation
         """
         try:
-            self.user_facade.remove_product_from_cart(user_id, store_id, product_id, quantity)
+            self.market_facade.remove_product_from_basket(user_id, store_id, product_id, quantity)
             logger.info('product removed from the basket successfully')
             return jsonify({'message': 'product removed from the basket successfully'}), 200
 

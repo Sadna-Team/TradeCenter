@@ -159,7 +159,6 @@ def edit_purchase_policy():
     pass'''
 
 
-
 @store_bp.route('/store_info', methods=['GET'])
 @jwt_required()
 def show_store_info():
@@ -265,6 +264,27 @@ def remove_product():
     return store_service.remove_product_from_store(user_id, store_id, product_id)
 
 
+@store_bp.route('/restock_product', methods=['POST'])
+@jwt_required()
+def restock_product():
+    """
+        Use Case
+        Restock a product in a store
+    """
+    logger.info('received request to restock product')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        quantity = int(data['quantity'])
+    except Exception as e:
+        logger.error('restock_product - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.restock(user_id, store_id, product_id, quantity)
+
+
 @store_bp.route('/add_category', methods=['POST'])
 @jwt_required()
 def add_category():
@@ -364,6 +384,7 @@ def assign_product_to_category():
 
     return store_service.assign_product_to_category(user_id, category_id, store_id, product_id)
 
+
 '''@store_bp.route('/remove_product_specification_from_category', methods=['POST'])
 @jwt_required()
 def remove_product_specification_from_category():
@@ -412,7 +433,6 @@ def add_store_owner():
     return store_service.add_store_owner(user_id, store_id, username)
 
 
-
 @store_bp.route('/add_store_manager', methods=['POST'])
 @jwt_required()
 def add_store_manager():
@@ -432,6 +452,43 @@ def add_store_manager():
         return jsonify({'message': str(e)}), 400
 
     return store_service.add_store_manager(user_id, store_id, new_manager_username)
+
+
+@store_bp.route('/remove_store_role', methods=['POST'])
+@jwt_required()
+def remove_store_role():
+    """
+        Remove a role from a store
+    """
+    logger.info('received request to remove store role')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        username = str(data['username'])
+    except Exception as e:
+        logger.error('remove_store_role - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.remove_store_role(user_id, store_id, username)
+
+
+@store_bp.route('/give_up_role', methods=['POST'])
+@jwt_required()
+def give_up_role():
+    """
+        Give up a role in a store
+    """
+    logger.info('received request to give up role')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('give_up_role - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.give_up_role(user_id, store_id)
 
 
 @store_bp.route('/edit_manager_permissions', methods=['POST'])
@@ -491,8 +548,9 @@ def view_employees_info():
     except Exception as e:
         logger.error('view_employees_info - ', str(e))
         return jsonify({'message': str(e)}), 400
-    
+
     return info
+
 
 @store_bp.route('/add_purchase_policy', methods=['POST'])
 @jwt_required()
@@ -526,7 +584,7 @@ def remove_purchase_policy():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = int(data['store_id'])
-        policy_name = int(data['policy_name'])
+        policy_name = str(data['policy_name'])
     except Exception as e:
         logger.error('remove_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
