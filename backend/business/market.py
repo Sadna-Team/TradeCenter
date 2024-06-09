@@ -113,18 +113,14 @@ class MarketFacade:
             self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
 
             total_price = self.store_facade.get_total_price_before_discount(cart)
-
-            discount_ids: List[int] = self.store_facade.get_appropriate_discounts_of_shopping_cart(cart)
-            discount_id = -1
-            if len(discount_ids) > 0:
-                discount_id = discount_ids[0]  #TODO: change this to a better method
-
-            total_price_after_discounts = self.store_facade.get_total_price_after_discount(discount_id, cart,
-                                                                                           user_info_for_discount_dto)
+                
+            
+            total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart, user_info_for_discount_dto)
 
             # purchase facade immediate
             purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = (
-                self.store_facade.get_purchase_shopping_cart(discount_id, user_info_for_discount_dto, cart))
+                self.store_facade.get_purchase_shopping_cart(user_info_for_discount_dto ,cart))
+              
             pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
                                                                     purchase_shopping_cart)
 
@@ -340,47 +336,42 @@ class MarketFacade:
         return self.get_store_info(store_id).products
 
     # -------------Discount related methods-------------------#
-    def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float,
-                     store_id: Optional[int] = None, product_id: Optional[int] = None,
-                     category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
+    def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float, 
+                        store_id: Optional[int] = None, product_id: Optional[int] = None, category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> None:
         """
         * Parameters: userId, description, startDate, endDate, percentage, storeId(optional), productId(optional), categoryId(optional), appliedToSub(optional)
         * This function adds a simple discount to the system
         *NOTE: the discount is initialized with no predicate!
-        * Returns the discount_id of the discount
+        * Returns none
         """
         if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id,
-                                              product_id, applied_to_sub)
-
-    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime,
-                                          end_date: datetime, discount_id1: int, discount_id2: int,
-                                          type_of_composite: int) -> int:
+        self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id, product_id, applied_to_sub) 
+    
+    
+    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_id1: int, discount_id2: int, type_of_composite: int) -> None:
         """
         * Parameters: userId, description, startDate, endDate, discountId1, discountId2, typeOfComposite
         * This function creates a composite discount
         * NOTE: the percentage of a composite discount is initialized to 0.0 since it is not used
         * NOTE: type_of_connection: 1 is AND, 2 OR, 3 XOR
-        * Returns the discount_id of the composite discount
+        * Returns none
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1,
-                                                                   discount_id2, type_of_composite)
+        self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1, discount_id2, type_of_composite)
 
-    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime,
-                                            end_date: datetime, discount_ids: List[int], type_of_composite: int) -> int:
+    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_ids: List[int], type_of_composite: int) -> None:
         """
         * Parameters: userId, description, startDate, endDate, discountIds, typeOfComposite
         * This function creates a composite discount
         * NOTE: the percentage of a composite discount is initialized to 0.0 since it is not used
         * NOTE: type_of_connection: 1 is MAX, 2 is ADDITIVE
-        * Returns the discount_id of the composite discount
+        * Returns none
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
+        self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
 
     def assign_predicate_to_discount(self, user_id: int, discount_id: int, ages: List[Optional[int]],
                                      locations: List[Optional[Dict]],

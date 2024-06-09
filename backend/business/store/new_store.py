@@ -1131,7 +1131,7 @@ class StoreFacade:
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
     def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
-                     store_id: Optional[int] = None, product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
+                     store_id: Optional[int] = None, product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> None:
         """
         * Parameters: description, startDate, endDate, percentage, categoryId, storeId, productId, appliedToSub
         * This function adds a discount to the store
@@ -1169,11 +1169,10 @@ class StoreFacade:
                 self.__discounts[self.__discount_id_counter] = new_store_discount
                 self.__discount_id_counter += 1
 
-        return self.__discount_id_counter - 1
     
 
     def create_logical_composite_discount(self,description: str, start_date: datetime, ending_date: datetime, percentage: float,
-                                           discount_id1: int, discount_id2: int, type_of_connection: int) -> int:
+                                           discount_id1: int, discount_id2: int, type_of_connection: int) -> None:
         """
         * Parameters: description, startDate, endDate, percentage, discountId1, discountId2, typeOfConnection
         * This function creates a logical composite discount
@@ -1197,18 +1196,25 @@ class StoreFacade:
             new_and_discount = AndDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_and_discount
             self.__discount_id_counter += 1
+            #removing the sub discounts
+            self.__discounts.pop(discount_id1)
+            self.__discounts.pop(discount_id2)
         elif type_of_connection == 2:
             logger.info('[StoreFacade] successfully created OR discount')
             new_or_discount = OrDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_or_discount
             self.__discount_id_counter += 1
+            #removing the sub discounts
+            self.__discounts.pop(discount_id1)
+            self.__discounts.pop(discount_id2)
         else:
             logger.info('[StoreFacade] successfully created XOR discount')
             new_xor_discount = XorDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_xor_discount
             self.__discount_id_counter += 1
-        
-        return self.__discount_id_counter - 1
+            #removing the sub discounts
+            self.__discounts.pop(discount_id1)
+            self.__discounts.pop(discount_id2)
 
     
     def create_numerical_composite_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float,
@@ -1240,11 +1246,17 @@ class StoreFacade:
             new_max_discount = MaxDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
             self.__discounts[self.__discount_id_counter] = new_max_discount
             self.__discount_id_counter += 1
+            #removing the sub discounts
+            for discount_id in discount_ids:
+                self.__discounts.pop(discount_id)
         else:
             logger.info('[StoreFacade] successfully created Additive discount')
             new_additive_discount = AdditiveDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
             self.__discounts[self.__discount_id_counter] = new_additive_discount
             self.__discount_id_counter += 1
+            #removing the sub discounts
+            for discount_id in discount_ids:
+                self.__discounts.pop(discount_id)
     
     def assign_predicate_helper(self, discount: Discount, age: Optional[int] = None, location: Optional[AddressDTO] = None, starting_time: Optional[datetime.time] = None, ending_time: Optional[datetime.time] = None,
                                 min_price: Optional[float] = None, max_price: Optional[float] = None, min_weight: Optional[float] = None, max_weight: Optional[float] = None, min_amount: Optional[int] = None,
@@ -1253,6 +1265,7 @@ class StoreFacade:
         * Parameters: discountId, age, location, startingTime, endingTime, minPrice, maxPrice, minWeight, maxWeight, storeId, productId, categoryId, typeOfConnection
         * This function assigns a predicate to a discount
         *NOTE: if the predicate is a type of category/product/store, the discount must also be of type category/product/store respectively
+        * NOTE: for now subdiscounts are inaccessible to be changed
         * Returns: the predicate assigned to the discount
         """
         predicate: Optional[Constraint] = None
@@ -1390,6 +1403,7 @@ class StoreFacade:
         * In other words [and, or, xor] -> pred1 and (pred2 or(pred3 xor pred4))
         * NOTE: type_of_connection: 1-> And, 2-> Or, 3-> Xor, 4-> Implies
         * NOTE: the lists of the optionals should of same size, and [0] is for the first, [1] is for the second, and so on, if the value is None then the first predicate is of different type
+        * NOTE: for now subdiscounts are inaccessible to be changed
         * Returns: none
         """
         if discount_id not in self.__discounts:
@@ -1463,6 +1477,7 @@ class StoreFacade:
         """
         * Parameters: discountId
         * This function removes a discount from the store
+        * NOTE: for now subdiscounts are inaccessible to be changed
         * Returns: none
         """
         if discount_id in self.__discounts:
@@ -1476,6 +1491,7 @@ class StoreFacade:
         """
         * Parameters: discountId, newPercentage
         * This function changes the percentage of the discount
+        * NOTE: for now subdiscounts are inaccessible to be changed
         * Returns: none
         """
         if discount_id not in self.__discounts:
@@ -1489,6 +1505,7 @@ class StoreFacade:
         """
         * Parameters: discountId, newDescription
         * This function changes the description of the discount
+        * NOTE: for now subdiscounts are inaccessible to be changed
         * Returns: none
         """
         if discount_id not in self.__discounts:
@@ -1609,7 +1626,7 @@ class StoreFacade:
         return store.get_total_price_of_basket_before_discount(shopping_cart)
 
 
-    def get_total_price_after_discount(self, discount_id: int, shopping_cart: Dict[int, Dict[int, int]], user_info: UserInformationForDiscountDTO) -> float:
+    def get_total_price_after_discount(self, shopping_cart: Dict[int, Dict[int, int]], user_info: UserInformationForDiscountDTO) -> float:
         """
         * Parameters: discountId, shoppingCart
         * This function calculates the total price of the shopping cart after applying the discount
@@ -1619,20 +1636,11 @@ class StoreFacade:
         total_price = 0.0
         for store_id, products in shopping_cart.items():
             price_before_discount = self.get_total_basket_price_before_discount(store_id, products)
-            total_price += price_before_discount - self.apply_discount(discount_id, store_id, price_before_discount, products, user_info)
+            for discount_id in self.__discounts:
+                 price_before_discount = price_before_discount - self.apply_discount(discount_id, store_id, price_before_discount, products, user_info)
+            total_price += price_before_discount
         logger.info('[StoreFacade] successfully calculated total price after discount to be ' + str(total_price))
         return total_price
-    
-    
-    #TODO: fix
-    def get_appropriate_discounts_of_shopping_cart(self, shopping_cart: Dict[int, Dict[int, int]]) -> List[int]:
-        """
-        * Parameters: shoppingCart
-        * This function gets the appropriate discounts of the shopping cart
-        * NOTE: FOR NOW THIS SIMPLY RETURNS THE ids of ALL DISCOUNTS, SHOULD BE CHANGED TO IMPLEMENT SOME LOGIC, MAYBE ADD FOR DISCOUNT, IS APPLICABLE METHOD
-        * Returns: a list of discount_ids that can be applied on the shopping cart
-        """
-        return list(self.__discounts.keys())
         
 
     def get_store_product_information(self, user_id: int, store_id: int) -> List[ProductDTO]:
@@ -1699,7 +1707,7 @@ class StoreFacade:
             self.__release_store_locks(list(shopping_cart.keys()))
             raise e
 
-    def get_purchase_shopping_cart(self, discount_id: int, user_info: UserInformationForDiscountDTO, shopping_cart: Dict[int, Dict[int, int]]) \
+    def get_purchase_shopping_cart(self, user_info: UserInformationForDiscountDTO, shopping_cart: Dict[int, Dict[int, int]]) \
             -> Dict[int, Tuple[List[PurchaseProductDTO], float, float]]:
         purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = {}
 
@@ -1716,7 +1724,10 @@ class StoreFacade:
                 purchase_products.append(PurchaseProductDTO(product_id, name, description, price, amount))
 
             basket_price_before_discount = store.get_total_price_of_basket_before_discount(products)
-            basket_price_after_discount = basket_price_before_discount - self.apply_discount(discount_id, store_id, basket_price_before_discount, products, user_info)
+            temp_price = basket_price_before_discount
+            for discount_id in self.__discounts:
+                temp_price = temp_price - self.apply_discount(discount_id, store_id, temp_price, products, user_info)
+            basket_price_after_discount = temp_price
             purchase_shopping_cart[store_id] = (purchase_products,
                                                 basket_price_before_discount,
                                                 basket_price_after_discount)
