@@ -1079,7 +1079,6 @@ class StoreFacade:
             print(self.__stores)
             self.__store_id_counter += 1
         
-        return store.store_id
         logger.info(f'Successfully added store: {store_name}')
         return store.store_id
 
