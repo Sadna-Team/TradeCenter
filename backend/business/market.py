@@ -75,6 +75,13 @@ class MarketFacade:
             if self.store_facade.check_product_availability(store_id, product_id, amount):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
                 logger.info(f"User {user_id} has added {amount} of product {product_id} to the basket")
+            else:
+                raise ValueError("Product is not available")
+
+    def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
+        with MarketFacade.__lock:
+            self.user_facade.remove_product_from_basket(user_id, store_id, product_id, amount)
+            logger.info(f"User {user_id} has removed {amount} of product {product_id} from the basket")
 
     def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict, user_info: Dict) -> int:
         products_removed = False
@@ -218,9 +225,14 @@ class MarketFacade:
 
         logger.info(f"User {actor_id} has changed the permissions of user {manager_id} in store {store_id}")
 
-    def remove_store_role(self, actor_id: int, store_id: int, user_id: int):
-        self.roles_facade.remove_role(actor_id, store_id, user_id)
+    def remove_store_role(self, actor_id: int, store_id: int, username: str):
+        user_id = self.user_facade.get_user_id_from_username(username)
+        self.roles_facade.remove_role(store_id, actor_id, user_id)
         logger.info(f"User {actor_id} has removed user {user_id} from store {store_id}")
+
+    def give_up_role(self, actor_id: int, store_id: int):
+        self.roles_facade.remove_role(store_id, actor_id, actor_id)
+        logger.info(f"User {actor_id} has given up his role in store {store_id}")
 
     def add_system_manager(self, actor: int, user_id: int):
         self.roles_facade.add_system_manager(actor, user_id)

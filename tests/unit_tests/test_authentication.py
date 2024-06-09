@@ -79,6 +79,7 @@ class TestAuthentication(unittest.TestCase):
         jti = 'test_jti'
         self.auth.user_facade.create_user.return_value = 5
         self.auth.logged_in.add(3)
+        self.auth.user_facade.create_user.return_value = 3
         self.auth.logout_user(jti, 3)
         self.assertIn(jti, self.auth.blacklist)
         self.assertNotIn(3, self.auth.logged_in)

@@ -99,7 +99,7 @@ class TestUser(unittest.TestCase):
     def test_subtract_product_from_cart(self):
         user = User(user_id=1, currency='USD')
         user.add_product_to_basket(store_id=1, product_id=100, quantity=2)
-        user.subtract_product_from_cart(store_id=1, product_id=100, quantity=1)
+        user.remove_product_from_basket(store_id=1, product_id=100, quantity=1)
         self.assertEqual(user.get_shopping_cart(), {1: {100: 1}})
 
     def test_get_shopping_cart(self):
@@ -211,7 +211,7 @@ class TestUserFacade(unittest.TestCase):
         facade = UserFacade()
         user_id = facade.create_user(currency='USD')
         facade.add_product_to_basket(user_id, store_id=1, product_id=100, quantity=2)
-        facade.subtract_product_from_cart(user_id, store_id=1, product_id=100, quantity=1)
+        facade.remove_product_from_basket(user_id, store_id=1, product_id=100, quantity=1)
         mock_subtract_product_from_cart.assert_called_once_with(1, 100, 1)
 
     @patch.object(User, 'get_password')

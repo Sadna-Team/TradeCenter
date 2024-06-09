@@ -151,7 +151,7 @@ class Tree:
 
     def is_descendant(self, ancestor_id: int, descendant_id: int) -> bool:
         if ancestor_id == descendant_id:
-            return False
+            return True
         ancestor = self.__find_node(self.__root, ancestor_id)
         if ancestor is None:
             return False
