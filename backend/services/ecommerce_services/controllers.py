@@ -84,3 +84,4 @@ class PurchaseService:
         except Exception as e:
             logger.error('search_products_by_name was not successful')
             return jsonify({'message': str(e)}), 400
+

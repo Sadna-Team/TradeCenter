@@ -19,6 +19,7 @@ client = app.test_client()
 client2 = app.test_client()
 client3 = app.test_client()
 client4 = app.test_client()
+client5 = app.test_client()
 
 owner_token = ""
 owner2_token = ""
@@ -26,6 +27,7 @@ guest1_token = ""
 guest2_token = ""
 guest3_token = ""
 guest4_token = ""
+guest5_token = ""
 
 def clean():
     yield
@@ -118,15 +120,33 @@ headers = {'Authorization': 'Bearer ' + guest1_token}
 response = client.post('auth/login', headers=headers, json=data)
 owner2_token = response.get_json()['token']
 
-# appoint owner2 to owner
-data = {'username': 'owner2'}
-headers = {'Authorization': 'Bearer ' + owner_token}
-response = client.post('store/add_store_owner', headers=headers, json=data)
+# start guest5 for client
+guest5_token = start_guest1()
 
-# accept promotion
-data = {'promotion_id': 3, 'accept': True}
-headers = {'Authorization': 'Bearer ' + owner2_token}
-response = client.post('store/accept_promotion', headers=headers, json=data)
+# create a user(owner3)
+owner3_creds = register_credentials.copy()
+owner3_creds['username'] = 'owner3'
+data = {
+'register_credentials': owner3_creds
+}
+headers = {'Authorization': 'Bearer ' + guest5_token}
+response = client.post('auth/register', headers=headers, json=data)
+
+# login as owner3
+data = {'username': 'owner3', 'password': 'test'}
+headers = {'Authorization': 'Bearer ' + guest4_token}
+response = client.post('auth/login', headers=headers, json=data)
+owner3_token = response.get_json()['token']
+
+# # appoint owner2 to owner
+# data = {'username': 'owner2'}
+# headers = {'Authorization': 'Bearer ' + owner_token}
+# response = client.post('store/add_store_owner', headers=headers, json=data)
+
+# # accept promotion
+# data = {'promotion_id': 3, 'accept': True}
+# headers = {'Authorization': 'Bearer ' + owner2_token}
+# response = client.post('store/accept_promotion', headers=headers, json=data)
 
 print("-------------")
 print("-------------")
@@ -165,7 +185,6 @@ def test_appoint_store_manager_invalid_member_credentials():
     response = client.post('store/add_store_manager', headers=headers, json=data)
     assert response.status_code == 400
     # assert response.get_json()['message'] == 'User not found'
-
 
 def test_accepting_manager_promotion_success():
     # login as user(manager1)
@@ -241,48 +260,72 @@ def test_view_employees_info_invalid_store_id():
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.get('store/view_employees_info', headers=headers, json=data)
     assert response.status_code == 400
-    clean_data()
 
-"""
-# UNTESTED, BUT SHOULD WORK
+def test_appoint_store_owner_success():
+    data = {'store_id': 0, 'username': 'owner2'}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client.post('store/add_store_owner', headers=headers, json=data)
+    assert response.status_code == 200
+
+def test_appoint_store_owner_invalid_member_credentials():
+    data = {'store_id': 0, 'username': 'invalid_user'}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client.post('store/add_store_owner', headers=headers, json=data)
+    assert response.status_code == 400 
+
+def test_accepting_owner_promotion_success():
+    data = {'promotion_id': 2, 'accept': True}
+    headers = {'Authorization': 'Bearer ' + owner2_token}
+    response = client.post('user/accept_promotion', headers=headers, json=data)
+    assert response.status_code == 200
+
+def test_appoint_store_owner_already_a_store_owner():
+    data = {'store_id': 0, 'username': 'owner2'}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client.post('store/add_store_owner', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_not_accepting_owner_promotion():
+    # appoint owner3 to owner
+    data = {'store_id': 0, 'username': 'owner3'}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client.post('store/add_store_owner', headers=headers, json=data)
+    
+    # reject promotion
+    data = {'promotion_id': 3, 'accept': False}
+    headers = {'Authorization': 'Bearer ' + owner3_token}
+    response = client.post('user/accept_promotion', headers=headers, json=data)
+    assert response.status_code == 200
+
 def test_add_purchase_policy_success():
     data = {'store_id': 0, 'policy_name': 'no_alcohol_past_time'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/add_purchase_policy', headers=headers, json=data)
     assert response.status_code == 200
-    clean_data()
 
 def test_add_purchase_policy_invalid_store_id():
     data = {'store_id': 30, 'policy_name': 'no_alcohol_past_time'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/add_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400
-    clean_data()
 
 def test_add_purchase_policy_already_exists():
     data = {'store_id': 0, 'policy_name': 'no_alcohol_past_time'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/add_purchase_policy', headers=headers, json=data)
-    assert response.status_code == 200
-    response = client.post('store/add_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400
-    clean_data()
 
 def test_add_purchase_policy_invalid_policy_name():
     data = {'store_id': 0, 'policy_name': 'invalid_policy'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client.post('store/add_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400
-    clean_data()
 
 def test_remove_purchase_policy_success():
     data = {'store_id': 0, 'policy_name': 'no_alcohol_past_time'}
     headers = {'Authorization': 'Bearer ' + owner_token}
-    response = client.post('store/add_purchase_policy', headers=headers, json=data)
-    assert response.status_code == 200
     response = client.post('store/remove_purchase_policy', headers=headers, json=data)
     assert response.status_code == 200
-    clean_data()
 
 def test_remove_purchase_policy_invalid_store_id():
     data = {'store_id': 30, 'policy_name': 'no_alcohol_past_time'}
@@ -296,5 +339,3 @@ def test_remove_purchase_policy_policy_missing():
     response = client.post('store/remove_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400
     clean_data()
-
-# UNTIL HERE"""

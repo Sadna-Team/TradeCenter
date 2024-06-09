@@ -1,7 +1,8 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import AddressDTO, NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO, PurchaseUserDTO, UserInformationForDiscountDTO
+from .DTOs import AddressDTO, NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO, \
+    PurchaseUserDTO, UserInformationForDiscountDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
@@ -11,9 +12,11 @@ from datetime import date, datetime
 import threading
 
 import logging
+
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
-                     format='%(name)s - %(levelname)s - %(message)s')
+                    format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Market logger")
+
 
 class MarketFacade:
     # singleton
@@ -49,7 +52,6 @@ class MarketFacade:
         self.roles_facade.add_admin(man_id)
         logger.info(f"Admin was created")
 
-
     def clean_data(self):
         """
         For testing purposes only
@@ -73,6 +75,13 @@ class MarketFacade:
             if self.store_facade.check_product_availability(store_id, product_id, amount):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
                 logger.info(f"User {user_id} has added {amount} of product {product_id} to the basket")
+            else:
+                raise ValueError("Product is not available")
+
+    def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
+        with MarketFacade.__lock:
+            self.user_facade.remove_product_from_basket(user_id, store_id, product_id, amount)
+            logger.info(f"User {user_id} has removed {amount} of product {product_id} from the basket")
 
     def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict, user_info: Dict) -> int:
         products_removed = False
@@ -88,15 +97,18 @@ class MarketFacade:
 
             user_dto = self.user_facade.get_userDTO(user_id)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, date(user_dto.year, user_dto.month, user_dto.day))
-            
+
             if 'address_id' not in user_info or 'address' not in user_info or 'city' not in user_info or 'state' not in user_info or 'country' not in user_info or 'postal_code' not in user_info:
                 raise ValueError("Address information is missing")
-            address_of_user_for_discount: AddressDTO = AddressDTO(user_info['address_id'], user_info['address'], user_info['city'], user_info['state'], user_info['country'],user_info['postal_code'])
-            
+            address_of_user_for_discount: AddressDTO = AddressDTO(user_info['address_id'], user_info['address'],
+                                                                  user_info['city'], user_info['state'],
+                                                                  user_info['country'], user_info['postal_code'])
+
             if user_purchase_dto.birthdate is None:
                 raise ValueError("User birthdate is missing")
-            
-            user_info_for_discount_dto = UserInformationForDiscountDTO(user_id, user_purchase_dto.birthdate, address_of_user_for_discount)
+
+            user_info_for_discount_dto = UserInformationForDiscountDTO(user_id, user_purchase_dto.birthdate,
+                                                                       address_of_user_for_discount)
             # calculate the total price
             self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
 
@@ -108,6 +120,7 @@ class MarketFacade:
             # purchase facade immediate
             purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = (
                 self.store_facade.get_purchase_shopping_cart(user_info_for_discount_dto ,cart))
+              
             pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
                                                                     purchase_shopping_cart)
 
@@ -156,7 +169,7 @@ class MarketFacade:
             SupplyHandler().process_supply(package_details, user_id, on_arrival)
             for store_id in cart.keys():
                 Notifier().notify_new_purchase(store_id, user_id)
-            
+
             logger.info(f"User {user_id} has checked out")
             return pur_id
         except Exception as e:
@@ -205,12 +218,17 @@ class MarketFacade:
         self.roles_facade.set_manager_permissions(store_id, actor_id, manager_id, add_product, change_purchase_policy,
                                                   change_purchase_types, change_discount_policy, change_discount_types,
                                                   add_manager, get_bid)
-                                                
+
         logger.info(f"User {actor_id} has changed the permissions of user {manager_id} in store {store_id}")
 
-    def remove_store_role(self, actor_id: int, store_id: int, user_id: int):
-        self.roles_facade.remove_role(actor_id, store_id, user_id)
+    def remove_store_role(self, actor_id: int, store_id: int, username: str):
+        user_id = self.user_facade.get_user_id_from_username(username)
+        self.roles_facade.remove_role(store_id, actor_id, user_id)
         logger.info(f"User {actor_id} has removed user {user_id} from store {store_id}")
+
+    def give_up_role(self, actor_id: int, store_id: int):
+        self.roles_facade.remove_role(store_id, actor_id, actor_id)
+        logger.info(f"User {actor_id} has given up his role in store {store_id}")
 
     def add_system_manager(self, actor: int, user_id: int):
         self.roles_facade.add_system_manager(actor, user_id)
@@ -223,7 +241,7 @@ class MarketFacade:
     def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        PaymentHandler().add_payment_method(method_name, payment_config)    
+        PaymentHandler().add_payment_method(method_name, payment_config)
 
     def edit_payment_method(self, user_id: int, method_name: str, editing_data: Dict):
         if not self.roles_facade.is_system_manager(user_id):
@@ -326,7 +344,7 @@ class MarketFacade:
         *NOTE: the discount is initialized with no predicate!
         * Returns none
         """
-        if not self.roles_facade.is_system_manager(user_id):
+        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
             raise ValueError("User is not a system manager")
         self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id, product_id, applied_to_sub) 
     
@@ -355,17 +373,21 @@ class MarketFacade:
             raise ValueError("User is not a system manager")
         self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
 
-    def assign_predicate_to_discount(self, user_id: int, discount_id: int, ages: List[Optional[int]], locations: List[Optional[Dict]],
-                                     starting_times: List[Optional[datetime.time]], ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]], 
-                                     max_prices: List[Optional[float]], min_weights: List[Optional[float]], max_weights: List[Optional[float]], min_amounts: List[Optional[int]],
-                                     store_ids: List[Optional[int]], product_ids: List[Optional[int]], category_ids: List[Optional[int]], 
-                                        type_of_connection: List[Optional[int]]) -> None:
+    def assign_predicate_to_discount(self, user_id: int, discount_id: int, ages: List[Optional[int]],
+                                     locations: List[Optional[Dict]],
+                                     starting_times: List[Optional[datetime.time]],
+                                     ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]],
+                                     max_prices: List[Optional[float]], min_weights: List[Optional[float]],
+                                     max_weights: List[Optional[float]], min_amounts: List[Optional[int]],
+                                     store_ids: List[Optional[int]], product_ids: List[Optional[int]],
+                                     category_ids: List[Optional[int]],
+                                     type_of_connection: List[Optional[int]]) -> None:
         if not self.roles_facade.is_system_manager(user_id):
-            logger.warn(f"User {user_id} does not have permissions to assign a predicate to a discount")
+            logger.warning(f"User {user_id} does not have permissions to assign a predicate to a discount")
             raise ValueError("User is not a system manager")
-        self.store_facade.assign_predicate_to_discount(discount_id, ages, locations, starting_times, ending_times, min_prices, max_prices, min_weights, max_weights, min_amounts, store_ids, product_ids, category_ids, type_of_connection)
-        
-        
+        self.store_facade.assign_predicate_to_discount(discount_id, ages, locations, starting_times, ending_times,
+                                                       min_prices, max_prices, min_weights, max_weights, min_amounts,
+                                                       store_ids, product_ids, category_ids, type_of_connection)
 
     def change_discount_percentage(self, user_id: int, discount_id: int, new_percentage: float) -> None:
         """
@@ -374,10 +396,10 @@ class MarketFacade:
         * Returns None
         """
         if not self.roles_facade.is_system_manager(user_id):
-            logger.warn(f"User {user_id} does not have permissions to change the percentage of a discount")
+            logger.warning(f"User {user_id} does not have permissions to change the percentage of a discount")
             raise ValueError("User is not a system manager")
         self.store_facade.change_discount_percentage(discount_id, new_percentage)
-        
+
     def change_discount_description(self, user_id: int, discount_id: int, new_description: str) -> None:
         """
         * Parameters: userId, discountId, newDescription
@@ -385,7 +407,7 @@ class MarketFacade:
         * Returns None
         """
         if not self.roles_facade.is_system_manager(user_id):
-            logger.warn(f"User {user_id} does not have permissions to change the description of a discount")
+            logger.warning(f"User {user_id} does not have permissions to change the description of a discount")
             raise ValueError("User is not a system manager")
         self.store_facade.change_discount_description(discount_id, new_description)
 
@@ -559,20 +581,20 @@ class MarketFacade:
         * This function changes the description of a product
         * Returns None
         """
-        if not self.roles_facade.is_system_manager(user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User is not a system manager")
         self.store_facade.change_description_of_product(store_id, product_id, description)
-        
+
     def change_product_weight(self, user_id: int, store_id: int, product_id: int, weight: float):
         """
         * Parameters: user_id, store_id, product_id, weight
         * This function changes the weight of a product
         * Returns None
         """
-        if not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User is not an owner of the store")
         self.store_facade.change_weight_of_product(store_id, product_id, weight)
-        
+
     # -------------Category related methods-------------------#
     def add_category(self, user_id: int, category_name: str) -> int:
         """

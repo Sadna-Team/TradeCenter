@@ -596,11 +596,13 @@ class Store:
         * This function adds a purchase policy to the store
         * Returns: none
         """
-        if policy_name in AVAILABLE_POLICIES:
-            self.__purchase_policy[policy_name] = AVAILABLE_POLICIES[policy_name]
-            logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__store_id))
-        else:
+        if policy_name not in AVAILABLE_POLICIES:
             raise ValueError('Policy name is not valid')
+        if policy_name in self.__purchase_policy:
+            raise ValueError('Policy name is already in the list of purchase policies')
+        self.__purchase_policy[policy_name] = AVAILABLE_POLICIES[policy_name]
+        logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__store_id))
+
 
     def remove_purchase_policy(self, policy_name: str) -> None:
         if policy_name in self.__purchase_policy:
@@ -940,7 +942,7 @@ class StoreFacade:
         category.remove_product_from_category(store_id, product_id)
 
     def add_product_to_store(self, store_id: int, product_name: str, description: str, price: float, weight: float,
-                             tags: Optional[List[str]]=[]) -> int:
+                             tags: Optional[List[str]]=[], amount: Optional[int] = 0) -> int:
         """
         * Parameters: productName, weight, description, tags, manufacturer, storeIds
         * This function adds a product to the store
@@ -960,7 +962,7 @@ class StoreFacade:
         if weight < 0:
             raise ValueError('Weight is a negative value')
         logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
-        return store.add_product(product_name, description, price, tags, weight)
+        return store.add_product(product_name, description, price, tags, weight, amount)
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
         """
@@ -1074,6 +1076,8 @@ class StoreFacade:
             self.__stores[self.__store_id_counter] = store
             print(self.__stores)
             self.__store_id_counter += 1
+        
+        return store.store_id
         logger.info(f'Successfully added store: {store_name}')
         return store.store_id
 
