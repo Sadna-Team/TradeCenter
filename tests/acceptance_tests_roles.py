@@ -51,6 +51,7 @@ def test_start():
 
 
 def test_nominate_owner_acc():
+    global token1, token2
     response = client.post('/store/add_store_owner', headers={'Authorization': 'Bearer ' + token1},
                            json={'store_id': 0, 'username': 'test2'})
     assert response.status_code == 200
@@ -76,8 +77,30 @@ def test_nominate_owner_dec():
 
 
 def test_cancel_ownership():
-    response = client.post('/store/remove_store_owner',
+    global token1, token2
+    response = client.post('/store/remove_store_role',
                            headers={'Authorization': 'Bearer ' + token1},
                            json={'store_id': 0, 'username': 'test2'})
+
+    assert response.status_code == 200
+
+
+def test_give_up_ownership():
+    global token1, token2
+    response = client.post('/store/add_store_owner',
+                           headers={'Authorization': 'Bearer ' + token1},
+                           json={'store_id': 0, 'username': 'test2'})
+
+    assert response.status_code == 200
+
+    response = client.post('/user/accept_promotion',
+                           headers={'Authorization': 'Bearer ' + token2},
+                           json={'promotion_id': 2, 'accept': True})
+
+    assert response.status_code == 200
+
+    response = client.post('/store/give_up_role',
+                           headers={'Authorization': 'Bearer ' + token2},
+                           json={'store_id': 0})
 
     assert response.status_code == 200
