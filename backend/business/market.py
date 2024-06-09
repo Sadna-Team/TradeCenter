@@ -71,17 +71,15 @@ class MarketFacade:
         return self.user_facade.get_notifications(user_id)
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
-        with MarketFacade.__lock:
-            if self.store_facade.check_product_availability(store_id, product_id, amount):
-                self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
-                logger.info(f"User {user_id} has added {amount} of product {product_id} to the basket")
-            else:
-                raise ValueError("Product is not available")
+        if self.store_facade.check_product_availability(store_id, product_id, amount):
+            self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
+            logger.info(f"User {user_id} has added {amount} of product {product_id} to the basket")
+        else:
+            raise ValueError("Product is not available")
 
     def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
-        with MarketFacade.__lock:
-            self.user_facade.remove_product_from_basket(user_id, store_id, product_id, amount)
-            logger.info(f"User {user_id} has removed {amount} of product {product_id} from the basket")
+        self.user_facade.remove_product_from_basket(user_id, store_id, product_id, amount)
+        logger.info(f"User {user_id} has removed {amount} of product {product_id} from the basket")
 
     def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict) -> int:
         products_removed = False
@@ -96,7 +94,10 @@ class MarketFacade:
                 raise ValueError("Cart is empty")
 
             user_dto = self.user_facade.get_userDTO(user_id)
-            user_purchase_dto = PurchaseUserDTO(user_dto.user_id, date(user_dto.year, user_dto.month, user_dto.day))
+            birthdate = None
+            if user_dto.day is not None and user_dto.month is not None and user_dto.year is not None:
+                birthdate = date(user_dto.year, user_dto.month, user_dto.day)
+            user_purchase_dto = PurchaseUserDTO(user_dto.user_id, birthdate)
 
             if 'address_id' not in address or 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'postal_code' not in address:
                 raise ValueError("Address information is missing")
@@ -475,7 +476,7 @@ class MarketFacade:
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add a product to the store")
-        return self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags)
+        return self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags, amount)
 
     def remove_product(self, user_id: int, store_id: int, product_id: int):
         """
