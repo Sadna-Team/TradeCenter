@@ -226,23 +226,20 @@ class AndDiscount(Discount):
                 logger.info("[AndDiscount] Both predicates satisfied, applying discounts")
                 return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
             else:
-                logger.error("[AndDiscount] Discount not applicable")
-                raise ValueError("Discount not applicable")
+                return 0.0
         else:
             if self.__discount1.predicate is not None and self.__discount2.predicate is None:
                 if self.__discount1.predicate.is_satisfied(basket_information):
                     logger.info("[AndDiscount] Discount predicates satisfied, applying discounts")
                     return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
                 else:
-                    logger.error("[AndDiscount] Discount not applicable")
-                    raise ValueError("Discount not applicable")
+                    return 0.0
             elif self.__discount1.predicate is None and self.__discount2.predicate is not None:
                 if self.__discount2.predicate.is_satisfied(basket_information):
                     logger.info("[AndDiscount] Discount predicates satisfied, applying discounts")
                     return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
                 else:
-                    logger.error("[AndDiscount] Discount not applicable")
-                    raise ValueError("Discount not applicable")
+                    return 0.0
             else:
                 logger.info("[AndDiscount] Both discounts applicable, applying discounts")
                 return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
@@ -295,8 +292,7 @@ class OrDiscount(Discount):
                 logger.info("[OrDiscount] Discount 2 applicable, applying discount 2")
                 return self.__discount2.calculate_discount(basket_information)
             else:
-                logger.error("[OrDiscount] Discount not applicable")
-                raise ValueError("Discount not applicable")
+                return 0.0
 
 # --------------- Xor Discount ---------------#
 class XorDiscount(Discount):
@@ -321,8 +317,7 @@ class XorDiscount(Discount):
                 logger.info("[XorDiscount] Discount 2 applicable, applying discount 2")
                 return self.__discount2.calculate_discount(basket_information)
             else:
-                logger.error("[XorDiscount] Discounts not applicable")
-                raise ValueError("Discount not applicable")
+                return 0.0
         elif self.__discount1.predicate is not None and self.__discount2.predicate is None:
             if self.__discount1.predicate.is_satisfied(basket_information):
                 logger.info("[XorDiscount] Discount 1 applicable, applying discount 1")

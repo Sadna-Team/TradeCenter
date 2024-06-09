@@ -83,7 +83,7 @@ class MarketFacade:
             self.user_facade.remove_product_from_basket(user_id, store_id, product_id, amount)
             logger.info(f"User {user_id} has removed {amount} of product {product_id} from the basket")
 
-    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict, user_info: Dict) -> int:
+    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict) -> int:
         products_removed = False
         purchase_accepted = False
         basket_cleared = False
@@ -98,14 +98,12 @@ class MarketFacade:
             user_dto = self.user_facade.get_userDTO(user_id)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, date(user_dto.year, user_dto.month, user_dto.day))
 
-            if 'address_id' not in user_info or 'address' not in user_info or 'city' not in user_info or 'state' not in user_info or 'country' not in user_info or 'postal_code' not in user_info:
+            if 'address_id' not in address or 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'postal_code' not in address:
                 raise ValueError("Address information is missing")
-            address_of_user_for_discount: AddressDTO = AddressDTO(user_info['address_id'], user_info['address'],
-                                                                  user_info['city'], user_info['state'],
-                                                                  user_info['country'], user_info['postal_code'])
+            address_of_user_for_discount: AddressDTO = AddressDTO(address['address_id'], address['address'],
+                                                                  address['city'], address['state'],
+                                                                  address['country'], address['postal_code'])
 
-            if user_purchase_dto.birthdate is None:
-                raise ValueError("User birthdate is missing")
 
             user_info_for_discount_dto = UserInformationForDiscountDTO(user_id, user_purchase_dto.birthdate,
                                                                        address_of_user_for_discount)
@@ -113,14 +111,14 @@ class MarketFacade:
             self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
 
             total_price = self.store_facade.get_total_price_before_discount(cart)
-                
-            
-            total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart, user_info_for_discount_dto)
+
+            total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart,
+                                                                                           user_info_for_discount_dto)
 
             # purchase facade immediate
             purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = (
-                self.store_facade.get_purchase_shopping_cart(user_info_for_discount_dto ,cart))
-              
+                self.store_facade.get_purchase_shopping_cart(user_info_for_discount_dto, cart))
+
             pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
                                                                     purchase_shopping_cart)
 

@@ -225,24 +225,24 @@ class StoreDTO:
 
 
 class UserInformationForDiscountDTO:
-    def __init__(self, user_id: int, birthdate: date, address: AddressDTO):
+    def __init__(self, user_id: int, birthdate: Optional[date], address: AddressDTO):
         self.__user_id: int = user_id
-        self.__birthdate: date = birthdate
+        self.__birthdate: Optional[date] = birthdate
         self.__address: AddressDTO = address
 
     @property
-    def user_id(self) -> int:
+    def user_id(self):
         return self.__user_id
     
     @property
-    def birthdate(self) -> date:
+    def birthdate(self):
         return self.__birthdate
     
     @property
-    def address(self) -> AddressDTO:
+    def address(self):
         return self.__address
     
-    def get(self) -> dict:
+    def get(self):
         return {"user_id": self.__user_id, "birthdate": self.__birthdate, "address": self.__address.to_dict()}
 
 class ProductForDiscountDTO:

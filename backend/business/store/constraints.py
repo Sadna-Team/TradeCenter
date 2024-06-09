@@ -29,6 +29,9 @@ class AgeConstraint(Constraint):
     def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
         logger.info("[AgeConstraint]: Checking if user is older than " + str(self.__age_limit) + " years old")
         today = datetime.today()
+        if basket_information.user_info.birthdate is None:
+            logger.info("[AgeConstraint]: User birthdate is not provided")
+            return False
         birth_date = basket_information.user_info.birthdate
         age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
