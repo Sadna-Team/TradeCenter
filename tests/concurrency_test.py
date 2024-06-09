@@ -118,6 +118,7 @@ def init_store(client1, owner_token):
     data = {"store_id": 0, "policy_name": "no_funny_name"}
     response = client1.post('store/add_purchase_policy', headers=headers, json=data)
 
+
     data = {"store_id": 0, 
         "product_name": "funny", 
         "description": "test_description",
@@ -127,6 +128,7 @@ def init_store(client1, owner_token):
         "amount": 10}
 
     response = client1.post('store/add_product', headers=headers, json=data)
+
 
 @pytest.fixture
 def setup_2_owners(client1, client4, owner_token, init_store, token4):
@@ -263,3 +265,4 @@ def test_concurrent_accept_twice(client1, client2, client4, owner_token, user_to
     result1 = results.get()
     result2 = results.get()
     assert (result1 == 400 and result2 == 200) or (result1 == 200 and result2 == 400)
+
