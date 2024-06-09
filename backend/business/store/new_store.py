@@ -1067,7 +1067,7 @@ class StoreFacade:
         * Parameters: locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate,
          ratingsOfProduct_Id
         * This function adds a store to the store
-        * Returns: None
+        * Returns: the id of the store
         """
         if store_name is None:
             raise ValueError('Store name is missing')
@@ -1142,7 +1142,7 @@ class StoreFacade:
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
     def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
-                     store_id: Optional[int] = None, product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> None:
+                     store_id: Optional[int] = None, product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
         """
         * Parameters: description, startDate, endDate, percentage, categoryId, storeId, productId, appliedToSub
         * This function adds a discount to the store
@@ -1182,7 +1182,7 @@ class StoreFacade:
         return self.__discount_id_counter - 1
 
     def create_logical_composite_discount(self,description: str, start_date: datetime, ending_date: datetime, percentage: float,
-                                           discount_id1: int, discount_id2: int, type_of_connection: int) -> None:
+                                           discount_id1: int, discount_id2: int, type_of_connection: int) -> int:
         """
         * Parameters: description, startDate, endDate, percentage, discountId1, discountId2, typeOfConnection
         * This function creates a logical composite discount

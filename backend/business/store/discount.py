@@ -107,8 +107,8 @@ class CategoryDiscount(Discount):
             logger.info("[CategoryDiscount] Predicate not satisfied")
             return 0.0
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
-            logger.error("[CategoryDiscount] Discount expired!")
-            raise ValueError("Discount expired!")
+            logger.info("[CategoryDiscount] Discount expired!")
+            return 0.0
         
         discount_reduction = 0.0
         for category in basket_information.categories:
@@ -150,8 +150,8 @@ class StoreDiscount(Discount):
             return 0.0
         
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
-            logger.error("[StoreDiscount] Discount expired!")
-            raise ValueError("Discount expired!")
+            logger.info("[StoreDiscount] Discount expired!")
+            return 0.0
         
         discount_reduction = 0.0
         if self.__store_id == basket_information.store_id:
@@ -189,12 +189,12 @@ class ProductDiscount(Discount):
             logger.info("[ProductDiscount] Predicate not satisfied")
             return 0.0
         if self.starting_date > datetime.now() or self.ending_date < datetime.now():
-            logger.error("[ProductDiscount] Discount expired!")
-            raise ValueError("Discount expired!")
+            logger.info("[ProductDiscount] Discount expired!")
+            return 0.0
         
         if self.__store_id != basket_information.store_id:
-            logger.error("[ProductDiscount] Discount not applicable due to store mismatch")
-            raise ValueError("Discount not applicable")
+            logger.info("[ProductDiscount] Discount not applicable due to store mismatch")
+            return 0.0
 
         discount_reduction = 0.0
         for product in basket_information.products:

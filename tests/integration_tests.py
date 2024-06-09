@@ -161,11 +161,11 @@ def default_set_up():
             market_facade.add_product_amount(user_ids[i], store_ids[i], products[i][j],
                                              default_product_quantities[i][j])
             
-    #roles_facade.add_system_manager(0, user_id1) TODO: PLEASE FIX LOCKS SO I CAN DO THIS
-    discount_id1 = market_facade.add_discount(user_id1, 'best you can find', datetime(2024, 10, 31), datetime(2050,10,31),0.3, 0, None, None, None)
-    discount_id2 = market_facade.add_discount(user_id1, 'best you can find', datetime(2024, 10, 31), datetime(2050,10,31),0.2, 0, None, None, None)
-    temp1 = market_facade.add_discount(user_id1, 'best you can find', datetime(2024, 10, 31), datetime(2050,10,31),0.1, 0, 0, None, None)
-    temp2 = market_facade.add_discount(user_id1, 'best you can find', datetime(2024, 10, 31), datetime(2050,10,31),0.3, 0, None, None, None)
+    roles_facade.add_system_manager(0, user_id1)
+    discount_id1 = market_facade.add_discount(user_id1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31),0.3, store_id1, None, None, None)
+    discount_id2 = market_facade.add_discount(user_id1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31),0.2, store_id1, None, None, None)
+    temp1 = market_facade.add_discount(user_id1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31),0.1, store_id1, products[0][0], None, None)
+    temp2 = market_facade.add_discount(user_id1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31),0.3, store_id1, None, None, None)
     composite = market_facade.create_numerical_composite_discount(user_id1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [temp1, temp2], 1)
 
     discount_ids = [discount_id1, discount_id2, composite]
@@ -218,6 +218,7 @@ def test_checkout(default_user_cart):
     store_id2 = store_ids[1]
     quantity_before = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
         products[0][0]].amount
+    
     pur_id = market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout)
 
     assert not (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
@@ -271,11 +272,9 @@ def test_checkout_failed_no_products(default_user_cart):
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
     store_id5 = store_ids[4]
-    market_facade.add_product_to_basket(user_id1, store_id5, products[4][0], 1)
     market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products = {}
     with pytest.raises(ValueError):
         market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout)
-
     assert (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
             ._ShoppingCart__shopping_baskets)
     assert len(purchase_facade.get_purchases_of_store(user_id1)) == 0
@@ -357,7 +356,7 @@ def test_add_product(default_set_up):
     store_id1 = store_ids[0]
     product_id14 = market_facade.add_product(user_id1, store_id1, 'p14', 'd14', 14, 0.4, [])
     assert product_id14 in market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products
-    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id14].name == 'p14'
+    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id14].product_name == 'p14'
     assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id14].description == 'd14'
     assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id14].price == 14
     assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id14].weight == 0.4
@@ -384,21 +383,21 @@ def test_add_store(default_set_up):
     user_id1 = user_ids[0]
     store_id6 = market_facade.add_store(user_id1, 0, 'store6')
     assert store_id6 in market_facade.store_facade._StoreFacade__stores
-    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id6).name == 'store6'
+    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id6).store_name == 'store6'
     
 
 def test_remove_store(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     store_id6 = market_facade.add_store(user_id1, 0, 'store6')
-    market_facade.remove_store(user_id1, store_id6)
-    assert store_id6 not in market_facade.store_facade._StoreFacade__stores
+    market_facade.close_store(user_id1, store_id6)
+    assert market_facade.store_facade.get_store_by_id(store_id6).is_active == False
 
 def test_remove_store_bad_id(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     with pytest.raises(ValueError):
-        market_facade.remove_store(user_id1, 6)
+        market_facade.close_store(user_id1, 6)
 
 
 def test_add_tag_to_product(default_set_up):
