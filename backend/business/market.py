@@ -75,6 +75,13 @@ class MarketFacade:
             if self.store_facade.check_product_availability(store_id, product_id, amount):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
                 logger.info(f"User {user_id} has added {amount} of product {product_id} to the basket")
+            else:
+                raise ValueError("Product is not available")
+
+    def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
+        with MarketFacade.__lock:
+            self.user_facade.remove_product_from_basket(user_id, store_id, product_id, amount)
+            logger.info(f"User {user_id} has removed {amount} of product {product_id} from the basket")
 
     def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict) -> int:
         products_removed = False
@@ -111,6 +118,7 @@ class MarketFacade:
             # purchase facade immediate
             purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = (
                 self.store_facade.get_purchase_shopping_cart(user_info_for_discount_dto, cart))
+
             pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
                                                                     purchase_shopping_cart)
 
@@ -211,9 +219,14 @@ class MarketFacade:
 
         logger.info(f"User {actor_id} has changed the permissions of user {manager_id} in store {store_id}")
 
-    def remove_store_role(self, actor_id: int, store_id: int, user_id: int):
-        self.roles_facade.remove_role(actor_id, store_id, user_id)
+    def remove_store_role(self, actor_id: int, store_id: int, username: str):
+        user_id = self.user_facade.get_user_id_from_username(username)
+        self.roles_facade.remove_role(store_id, actor_id, user_id)
         logger.info(f"User {actor_id} has removed user {user_id} from store {store_id}")
+
+    def give_up_role(self, actor_id: int, store_id: int):
+        self.roles_facade.remove_role(store_id, actor_id, actor_id)
+        logger.info(f"User {actor_id} has given up his role in store {store_id}")
 
     def add_system_manager(self, actor: int, user_id: int):
         self.roles_facade.add_system_manager(actor, user_id)
@@ -321,9 +334,8 @@ class MarketFacade:
         return self.get_store_info(store_id).products
 
     # -------------Discount related methods-------------------#
-    def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float,
-                     store_id: Optional[int] = None, product_id: Optional[int] = None,
-                     category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
+    def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float, 
+                        store_id: Optional[int] = None, product_id: Optional[int] = None, category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> None:
         """
         * Parameters: userId, description, startDate, endDate, percentage, storeId(optional), productId(optional), categoryId(optional), appliedToSub(optional)
         * This function adds a simple discount to the system
@@ -332,12 +344,10 @@ class MarketFacade:
         """
         if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id,
-                                              product_id, applied_to_sub)
-
-    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime,
-                                          end_date: datetime, discount_id1: int, discount_id2: int,
-                                          type_of_composite: int) -> int:
+        self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id, product_id, applied_to_sub) 
+    
+    
+    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_id1: int, discount_id2: int, type_of_composite: int) -> None:
         """
         * Parameters: userId, description, startDate, endDate, discountId1, discountId2, typeOfComposite
         * This function creates a composite discount
@@ -347,11 +357,9 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1,
-                                                                   discount_id2, type_of_composite)
+        self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1, discount_id2, type_of_composite)
 
-    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime,
-                                            end_date: datetime, discount_ids: List[int], type_of_composite: int) -> int:
+    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_ids: List[int], type_of_composite: int) -> None:
         """
         * Parameters: userId, description, startDate, endDate, discountIds, typeOfComposite
         * This function creates a composite discount
@@ -361,7 +369,7 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
+        self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
 
     def assign_predicate_to_discount(self, user_id: int, discount_id: int, ages: List[Optional[int]],
                                      locations: List[Optional[Dict]],

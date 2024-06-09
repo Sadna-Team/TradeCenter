@@ -1,5 +1,6 @@
 from datetime import date, datetime, time
 from typing import Dict
+
 import pytest
 from backend.business.store.constraints import AgeConstraint, AndConstraint, LocationConstraint
 from backend.business.store.new_store import Store, Product, Category, StoreFacade
@@ -834,6 +835,7 @@ def test_remove_product_from_category_fail2(store_facade):
 def test_add_product_to_store(store_facade, product_dto):
     store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
+
     assert len(store_facade._StoreFacade__get_store_by_id(0).store_products) == 1
 
 def test_add_product_to_store_fail_store_id(store_facade, product_dto):
