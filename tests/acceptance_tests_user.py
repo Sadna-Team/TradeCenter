@@ -4,6 +4,7 @@ from flask import json
 app = create_app()
 client = app.test_client()
 
+
 def create_and_login_user(username, password, email, phone, year, month, day):
     response = client.get('/auth/')
     assert response.status_code == 200
@@ -36,6 +37,7 @@ def create_and_login_user(username, password, email, phone, year, month, day):
 
     return token1
 
+
 global token
 global guest_token
 
@@ -50,10 +52,7 @@ register_credentials = {
     'phone': '054-1234567'}
 
 
-
-
-
-def test_start(first = True):
+def test_start(first=True):
     global token
     response = client.get('/auth/')
     assert response.status_code == 200
@@ -103,14 +102,11 @@ def test_start(first = True):
         assert response.status_code == 200
 
         response = client.post('/store/restock_product', headers={'Authorization': 'Bearer ' + user2},
-                                 json={'store_id': 0,
-                                       'product_id': 0,
-                                       'quantity': 1
-                                       })
+                               json={'store_id': 0,
+                                     'product_id': 0,
+                                     'quantity': 1
+                                     })
         assert response.status_code == 200
-
-
-
 
     return data['token']
 
@@ -120,6 +116,7 @@ def init_guest_token():
     response = client.get('/auth/')
     data = json.loads(response.data)
     guest_token = data['token']
+
 
 def test_register():
     global token
@@ -445,4 +442,51 @@ def test_search_by_name_failed_store_not_exists():
     response = client.get('/market/search_products_by_name', headers={
         'Authorization': f'Bearer {token}'
     }, json=data)
+    assert response.status_code == 400
+
+def test_information_about_stores():
+    global token
+
+    test_add_product_to_basket()
+
+    response = client.get('/store/store_info', headers={
+        'Authorization': f'Bearer {token}'
+    }, json={
+        'store_id': 0
+    })
+    assert response.status_code == 200
+
+
+def test_information_about_stores_failed_store_not_exists():
+    global guest_token
+
+    init_guest_token()
+    response = client.get('/store/store_info', headers={
+        'Authorization': f'Bearer {guest_token}'
+    }, json={
+        'store_id': 100
+    })
+    assert response.status_code == 400
+
+
+def test_add_store():
+    global token
+    create_and_login_user('tests4', 'tests4', 'tests4@gmail.com', '054-1111111', 2003, 1, 1)
+    response = client.post('/store/add_store', headers={
+        'Authorization': f'Bearer {token}'
+    }, json={
+        'store_name': 'test_store',
+        'location_id': 1
+    })
+    assert response.status_code == 200
+
+def test_add_store_failed_user_not_a_member():
+    global guest_token
+    init_guest_token()
+    response = client.post('/store/add_store', headers={
+        'Authorization': f'Bearer {guest_token}'
+    }, json={
+        'store_name': 'test_store',
+        'location_id': 1,
+    })
     assert response.status_code == 400
