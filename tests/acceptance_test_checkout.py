@@ -16,6 +16,14 @@ default_payment_method = {'payment method': 'bogo'}
 
 default_supply_method = "bogo"
 
+default_address_checkout = {'address_id': 0, 
+                            'address': 'randomstreet 34th', 
+                            'city': 'arkham', 
+                            'country': 'Wakanda', 
+                            'state': 'Utopia', 
+                            'postal_code': '12345'}
+
+
 @pytest.fixture
 def app():
     app = create_app()
@@ -93,6 +101,9 @@ def init_store(client1, owner_token):
     
     response = client1.post('store/add_product', headers=headers, json=data)
 
+    data = {"store_id": 0, "policy_name": "no_funny_name"}
+    response = client1.post('store/add_purchase_policy', headers=headers, json=data)
+
     data = {"store_id": 0, 
         "product_name": "funny", 
         "description": "test_description",
@@ -103,4 +114,113 @@ def init_store(client1, owner_token):
 
     response = client1.post('store/add_product', headers=headers, json=data)
 
+def test_user_checkout_success(client2, user_token, init_store):
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_cart', headers=headers, json=data)
+    
+    data = {"payment_details": default_payment_method, 
+            "supply_method": default_supply_method, 
+            "address": default_address_checkout}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 200
 
+def test_guest_checkout_success(client3, guest_token, init_store):
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + guest_token}
+    response = client3.post('user/add_to_cart', headers=headers, json=data)
+
+    data = {"payment_details": default_payment_method,
+            "supply_method": default_supply_method,
+            "address": default_address_checkout}
+    response = client3.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 200
+
+def test_checkout_fail_store_closed(client1, client2, owner_token, user_token, init_store):
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_cart', headers=headers, json=data)
+    
+    owner_headers = {'Authorization': 'Bearer ' + owner_token}
+    data = {"store_id": 0}
+    response = client1.post('store/closing_store', headers=owner_headers, json=data)
+
+    data = {"payment_details": default_payment_method,
+            "supply_method": default_supply_method,
+            "address": default_address_checkout}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_checkout_fail_product_unavailable(client2, client3, user_token, guest_token, init_store):
+    guest_headers = {'Authorization': 'Bearer ' + guest_token}
+    data = {"store_id": 0, "product_id": 0, "quantity": 7}
+    response = client3.post('user/add_to_cart', headers=guest_headers, json=data)
+
+    user_headers = {'Authorization': 'Bearer ' + user_token}
+    data = {"store_id": 0, "product_id": 0, "quantity": 5}
+    response = client2.post('user/add_to_cart', headers=user_headers, json=data)
+
+    data = {"payment_details": default_payment_method,
+            "supply_method": default_supply_method,
+            "address": default_address_checkout}
+    
+    response = client2.post('market/checkout', headers=user_headers, json=data)
+    assert response.status_code == 200
+
+    response = client3.post('market/checkout', headers=guest_headers, json=data)
+    assert response.status_code == 400
+
+
+def test_checkout_failed_policy_not_met(client2, user_token, init_store):
+    data = {"store_id": 0, "product_id": 1, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_cart', headers=headers, json=data)
+    
+    data = {"payment_details": default_payment_method,
+            "supply_method": default_supply_method,
+            "address": default_address_checkout}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_checkout_failed_payment_method_invalid(client2, user_token, init_store):
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_cart', headers=headers, json=data)
+    
+    data = {"payment_details": {'payment method': 'invalid'},
+            "supply_method": default_supply_method,
+            "address": default_address_checkout}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_checkout_failed_empty_cart(client2, user_token):
+    data = {"payment_details": default_payment_method,
+            "supply_method": default_supply_method,
+            "address": default_address_checkout}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_checkout_failed_supply_method_invalid(client2, user_token, init_store):
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_cart', headers=headers, json=data)
+
+    data = {"payment_details": default_payment_method,
+            "supply_method": 'invalid',
+            "address": default_address_checkout}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 400
+
+def test_checkout_failed_address_invalid(client2, user_token, init_store):
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_cart', headers=headers, json=data)
+
+    data = {"payment_details": default_payment_method,
+            "supply_method": default_supply_method,
+            "address": {'address_id': 0}}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 400
+
+# CONCURRENT TESTS
