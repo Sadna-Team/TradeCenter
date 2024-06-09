@@ -75,6 +75,13 @@ class MarketFacade:
             if self.store_facade.check_product_availability(store_id, product_id, amount):
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
                 logger.info(f"User {user_id} has added {amount} of product {product_id} to the basket")
+            else:
+                raise ValueError("Product is not available")
+
+    def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, amount: int):
+        with MarketFacade.__lock:
+            self.user_facade.remove_product_from_basket(user_id, store_id, product_id, amount)
+            logger.info(f"User {user_id} has removed {amount} of product {product_id} from the basket")
 
     def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict, user_info: Dict) -> int:
         products_removed = False
