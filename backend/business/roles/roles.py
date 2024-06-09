@@ -209,6 +209,7 @@ class RolesFacade:
             self.__systems_nominations: Dict[int, Nomination] = {}
             self.__system_managers: List[int] = []
             self.__system_admin: int = -1
+            self.__notifier = Notifier()
             Nomination._Nomination__nomination_id_serializer = 0
 
             self.__creation_lock = Lock()
@@ -225,6 +226,7 @@ class RolesFacade:
         self.__system_managers.clear()
         self.__system_admin = -1
         Nomination._Nomination__nomination_id_serializer = 0
+        self.__notifier.clean_data()
 
     def add_store(self, store_id: int, owner_id: int) -> None:
         """
@@ -234,7 +236,6 @@ class RolesFacade:
         if store_id in self.__stores_to_roles:
             raise ValueError("Store already exists")
         self.__stores_to_roles[store_id] = {owner_id: StoreOwner()}
-        print(store_id)
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
         self.__stores_locks[store_id] = Lock()
 
@@ -298,7 +299,7 @@ class RolesFacade:
         # add role to the store
         self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
 
-        Notifier().sign_listener(nominee_id, nomination.store_id)
+        self.__notifier.sign_listener(nominee_id, nomination.store_id)
 
         # delete all nominations of the nominee in the store
         for n_id, nomination in self.__systems_nominations.copy().items():
@@ -350,7 +351,7 @@ class RolesFacade:
             removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
 
             for user_id in removed:
-                Notifier().unsign_listener(user_id, store_id)
+                self.__notifier.unsign_listener(user_id, store_id)
                 del self.__stores_to_roles[store_id][user_id]
 
     def get_employees_info(self, store_id: int, actor_id: int) -> Dict[int, str]:  # Dict[user_id, role]
@@ -366,8 +367,7 @@ class RolesFacade:
             return employees
 
     def is_system_manager(self, user_id: int) -> bool:
-        with self.__system_managers_lock:
-            return user_id in self.__system_managers
+        return user_id in self.__system_managers
 
     def add_system_manager(self, actor: int, user_id: int) -> None:
         """

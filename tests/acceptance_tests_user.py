@@ -97,7 +97,6 @@ def init_guest_token():
     data = json.loads(response.data)
     guest_token = data['token']
 
-
 def test_register():
     global token
 

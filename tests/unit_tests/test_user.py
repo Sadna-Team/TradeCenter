@@ -19,14 +19,14 @@ class TestShoppingBasket(unittest.TestCase):
     def test_remove_product(self):
         basket = ShoppingBasket(store_id=1)
         basket.add_product(100, 1)
-        basket.remove_product(100)
+        basket.remove_product(100, 1)
         self.assertNotIn(100, basket.get_dto())
         self.assertEqual(basket.get_dto(), {})
 
     def test_remove_product_not_found(self):
         basket = ShoppingBasket(store_id=1)
         with self.assertRaises(ValueError):
-            basket.remove_product(100)
+            basket.remove_product(100, 1)
 
 
 class TestShoppingCart(unittest.TestCase):
@@ -39,13 +39,13 @@ class TestShoppingCart(unittest.TestCase):
     def test_remove_product_from_cart(self):
         cart = ShoppingCart(user_id=1)
         cart.add_product_to_basket(store_id=1, product_id=100, quantity=1)
-        cart.remove_product_from_basket(store_id=1, product_id=100)
+        cart.remove_product_from_cart(store_id=1, product_id=100, quantity=1)
         self.assertEqual(cart.get_dto(), {1: {}})
 
     def test_remove_product_from_cart_store_not_found(self):
         cart = ShoppingCart(user_id=1)
         with self.assertRaises(ValueError):
-            cart.remove_product_from_basket(store_id=1, product_id=100)
+            cart.remove_product_from_cart(store_id=1, product_id=100, quantity=1)
 
 
 class TestState(unittest.TestCase):
@@ -83,12 +83,6 @@ class TestUser(unittest.TestCase):
         with self.assertRaises(ValueError):
             User(user_id=1, currency='GBP')
 
-    def test_get_notifications(self):
-        user = User(user_id=1, currency='USD')
-        self.assertEqual(user.get_notifications(), [])
-        user.add_notification(Notification(1, "Test Message", datetime.datetime.now()))
-        self.assertEqual(len(user.get_notifications()), 1)
-
     @patch.object(ShoppingCart, 'add_product_to_basket')
     def test_add_product_to_basket(self, mock_add_product_to_basket):
         user = User(user_id=1, currency='USD')
@@ -99,8 +93,8 @@ class TestUser(unittest.TestCase):
     def test_remove_product_from_cart(self, mock_remove_product_from_cart):
         user = User(user_id=1, currency='USD')
         user.add_product_to_basket(store_id=1, product_id=100, quantity=1)
-        user.remove_product_from_basket(store_id=1, product_id=100)
-        mock_remove_product_from_cart.assert_called_once_with(1, 100)
+        user.remove_product_from_cart(store_id=1, product_id=100, quantity=1)
+        mock_remove_product_from_cart.assert_called_once_with(1, 100, 1)
 
     def test_subtract_product_from_cart(self):
         user = User(user_id=1, currency='USD')
@@ -127,6 +121,14 @@ class TestUser(unittest.TestCase):
         with self.assertRaises(ValueError):
             user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1,
                           phone="1234567890")
+            
+    def test_get_notifications(self):
+        user = User(user_id=1, currency='USD')
+        user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1,
+                      phone="1234567890")
+        self.assertEqual(user.get_notifications(), [])
+        user.add_notification(Notification(1, "Test Message", datetime.datetime.now()))
+        self.assertEqual(len(user.get_notifications()), 1)
 
     def test_get_password_member(self):
         user = User(user_id=1, currency='USD')
@@ -138,6 +140,7 @@ class TestUser(unittest.TestCase):
         user = User(user_id=1, currency='USD')
         with self.assertRaises(ValueError):
             user.get_password()
+    
     def test_clear_basket(self):
         user = User(user_id=1, currency='USD')
         user.add_product_to_basket(store_id=1, product_id=100, quantity=1)
@@ -174,6 +177,10 @@ class TestUserFacade(unittest.TestCase):
 
     def test_clear_notifications(self):
         user_id = self.user_facade.create_user(currency='USD')
+        self.user_facade.register_user(user_id, "test@gmail.com", "testuser", "password", 2000, 1, 1, "1234567890")
+        self.user_facade.clear_notifications(user_id)
+        self.assertEqual(self.user_facade.get_notifications(user_id), [])
+        self.user_facade._UserFacade__get_user(user_id).add_notification(Notification(1, "Test Message", datetime.datetime.now()))
         self.user_facade.clear_notifications(user_id)
         self.assertEqual(self.user_facade.get_notifications(user_id), [])
 
@@ -196,8 +203,8 @@ class TestUserFacade(unittest.TestCase):
         facade = UserFacade()
         user_id = facade.create_user(currency='USD')
         facade.add_product_to_basket(user_id, store_id=1, product_id=100, quantity=1)
-        facade.remove_product_from_basket(user_id, store_id=1, product_id=100)
-        mock_remove_product_from_cart.assert_called_once_with(1, 100)
+        facade.remove_product_from_cart(user_id, store_id=1, product_id=100, quantity=1)
+        mock_remove_product_from_cart.assert_called_once_with(1, 100, 1)
 
     @patch.object(User, 'subtract_product_from_cart')
     def test_subtract_product_from_cart(self, mock_subtract_product_from_cart):

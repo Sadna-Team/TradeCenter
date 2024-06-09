@@ -67,7 +67,7 @@ class TestAuthentication(unittest.TestCase):
 
     def test_login_user(self):
         self.auth.user_facade.get_password.return_value = (3, self.auth.hash_password('test_password'))
-        token,_ = self.auth.login_user('test_user', 'test_password')
+        token, _ = self.auth.login_user('test_user', 'test_password')
         self.auth.user_facade.get_password.assert_called_once_with('test_user')
         self.assertIsInstance(token, str)
         with self.assertRaises(ValueError):
@@ -77,6 +77,7 @@ class TestAuthentication(unittest.TestCase):
 
     def test_logout_user(self):
         jti = 'test_jti'
+        self.auth.user_facade.create_user.return_value = 5
         self.auth.logged_in.add(3)
         self.auth.user_facade.create_user.return_value = 3
         self.auth.logout_user(jti, 3)
