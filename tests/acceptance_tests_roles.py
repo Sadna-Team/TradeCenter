@@ -104,3 +104,5 @@ def test_give_up_ownership():
                            json={'store_id': 0})
 
     assert response.status_code == 200
+
+
