@@ -61,7 +61,7 @@ class ShoppingCart:
     def get_dto(self) -> Dict[int, Dict[int, int]]:
         return {store_id: basket.get_dto() for store_id, basket in self.__shopping_baskets.items()}
 
-    def remove_product_from_cart(self, store_id: int, product_id: int, quantity: int) -> None:
+    def remove_product_from_basket(self, store_id: int, product_id: int, quantity: int) -> None:
         if store_id not in self.__shopping_baskets:
             raise ValueError("Store not found")
         self.__shopping_baskets[store_id].remove_product(product_id, quantity)
@@ -211,8 +211,8 @@ class User:
             raise ValueError("User is already registered")
         self.__member = Member(email, username, password, year, month, day, phone)
 
-    def remove_product_from_cart(self, store_id: int, product_id: int, quantity: int):
-        self.__shopping_cart.remove_product_from_cart(store_id, product_id, quantity)
+    def remove_product_from_basket(self, store_id: int, product_id: int, quantity: int):
+        self.__shopping_cart.remove_product_from_basket(store_id, product_id, quantity)
 
     def subtract_product_from_cart(self, store_id: int, product_id: int, quantity: int):
         self.__shopping_cart.subtract_product_from_cart(store_id, product_id, quantity)
@@ -329,11 +329,8 @@ class UserFacade:
     def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
         return self.__get_user(user_id).get_shopping_cart()
 
-    def remove_product_from_cart(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
-        self.__get_user(user_id).remove_product_from_cart(store_id, product_id, quantity)
-
-    def subtract_product_from_cart(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
-        self.__get_user(user_id).subtract_product_from_cart(store_id, product_id, quantity)
+    def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
+        self.__get_user(user_id).remove_product_from_basket(store_id, product_id, quantity)
 
     def clear_basket(self, user_id: int) -> None:
         self.__get_user(user_id).clear_basket()

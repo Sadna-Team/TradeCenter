@@ -1,5 +1,5 @@
 from datetime import datetime
-from dateutil import relativedelta
+# from dateutil import relativedelta
 import pytest
 from backend.business.store.new_store import Store, Product, Category, StoreFacade
 from backend.business.DTOs import ProductDTO, PurchaseUserDTO

@@ -264,6 +264,27 @@ def remove_product():
     return store_service.remove_product_from_store(user_id, store_id, product_id)
 
 
+@store_bp.route('/restock_product', methods=['POST'])
+@jwt_required()
+def restock_product():
+    """
+        Use Case
+        Restock a product in a store
+    """
+    logger.info('received request to restock product')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        quantity = int(data['quantity'])
+    except Exception as e:
+        logger.error('restock_product - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.restock(user_id, store_id, product_id, quantity)
+
+
 @store_bp.route('/add_category', methods=['POST'])
 @jwt_required()
 def add_category():
