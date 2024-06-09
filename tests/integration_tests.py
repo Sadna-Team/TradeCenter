@@ -125,6 +125,7 @@ def default_set_up():
     user_id5 = user_facade.create_user(default_currency)
     user_ids = [user_id1, user_id2, user_id3, user_id4, user_id5]
 
+
     user_facade.register_user(user_id1, default_usernames[0], default_passwords[0], default_emails[0], default_years[0],
                               default_months[0], default_days[0], default_phones[0])
     user_facade.register_user(user_id2, default_usernames[1], default_passwords[1], default_emails[1], default_years[1],

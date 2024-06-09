@@ -72,6 +72,15 @@ def test_add_discount(store_facade):
 def test_add_discount_fail(store_facade):
     with pytest.raises(ValueError):
         store_facade.add_discount('discount', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,0,None,None)
+
+def test_add_discount_fail_percentage_too_high(store_facade):
+    with pytest.raises(ValueError):
+        store_facade.add_discount('discount', datetime(2020, 1, 1), datetime(2020, 1, 2), 1.1,None,0,None,None)
+
+def test_add_discount_fail_percentage_too_low(store_facade):
+    with pytest.raises(ValueError):
+        store_facade.add_discount('discount', datetime(2020, 1, 1), datetime(2020, 1, 2), -0.1,None,0,None,None)
+
         
 def test_remove_discount(store_facade):
     store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)

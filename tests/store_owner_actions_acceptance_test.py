@@ -1,5 +1,4 @@
 #write acceptance tests for store owner actions
-
 import pytest
 from backend import create_app, clean_data
 
