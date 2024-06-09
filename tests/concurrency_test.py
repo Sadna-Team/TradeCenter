@@ -164,3 +164,66 @@ def test_user_purchases_item_while_admin_removes_item_from_store(client, admin_t
     # check the results
     ans = results.get()
     assert ans.status_code == 200 or (ans.status_code == 400 and ans.get_json()['message'] == 'Product is not found') # error message taken from new_store.py/remove_product_amount()
+
+
+def test_two_owners_promoting_a_manager_at_the_same_time(client, admin_token, add_store):
+    # create two owners
+    create_user(client, 'owner1')
+    owner1_token = login(client, 'owner1', 'test')
+    
+    create_user(client, 'owner2')
+    owner2_token = login(client, 'owner2', 'test')
+
+    # promote owner1 to owner
+    headers = {'Authorization': f'Bearer {admin_token}'}
+    json = {'store_id': 0, 'username': 'owner1'}
+    client.post('store/add_store_owner', headers=headers, json=json)
+
+    # promote owner2 to owner
+    headers = {'Authorization': f'Bearer {admin_token}'}
+    json = {'store_id': 0, 'username': 'owner2'}
+    client.post('store/add_store_owner', headers=headers, json=json)
+
+    # owner1 and owner2 accept the promotion
+    headers = {'Authorization': f'Bearer {owner1_token}'}
+    json = {'promotion_id': 0, 'accept': True}
+    client.post('user/accept_promotion', headers=headers, json=json)
+
+    headers = {'Authorization': f'Bearer {owner2_token}'}
+    json = {'promotion_id': 1, 'accept': True}
+    client.post('user/accept_promotion', headers=headers, json=json)
+
+    # create user (manager)
+    create_user(client, 'manager')
+    
+    # both owner1 and owner2 promote the manager to manager at the same time (using threads)
+    import threading
+    import queue
+
+    # create a queue to store the results
+    results = queue.Queue()
+
+    def promote_manager(token):
+        headers = {'Authorization': f'Bearer {token}'}
+        json = {'store_id': 0, 'username': 'manager'}
+        respones = client.post('store/add_store_manager', headers=headers, json=json)
+        results.put(respones.status_code)
+    
+    thread1 = threading.Thread(target=promote_manager, args=(owner1_token,))
+    thread2 = threading.Thread(target=promote_manager, args=(owner2_token,))
+
+    thread1.start()
+    thread2.start()
+    thread1.join()
+    thread2.join()
+
+    res = [0, 0]
+    # check the results
+    for _ in range(2):
+        if results.get() == 200:
+            res[0] += 1
+        else:
+            res[1] += 1
+    assert res == [1, 1]
+
+    clean_data()
