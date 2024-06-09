@@ -4,9 +4,6 @@ from flask_jwt_extended import JWTManager
 import secrets
 from backend.business.market import MarketFacade
 from backend.business.authentication.authentication import Authentication
-import os
-from logging.handlers import RotatingFileHandler
-import logging
 
 
 

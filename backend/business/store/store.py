@@ -685,7 +685,7 @@ class StoreFacade:
     
     
     
-    def add_category(self, category_name: str) -> None:
+    def add_category(self, category_name: str) -> int:
         """
         * Parameters: categoryName, parentCategoryId
         * This function adds a category to the store
@@ -693,9 +693,11 @@ class StoreFacade:
         """
         logger.info('[StoreFacade] attempting to add category')
         if category_name is not None:
+            new_id = self.__category_id_counter
             category = Category(self.__category_id_counter, category_name)
             self.__categories.append(category)
             self.__category_id_counter += 1
+            return new_id
         else:
             raise ValueError('Category name is not a valid string')
 

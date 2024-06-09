@@ -3,6 +3,7 @@ from typing import Dict
 
 import pytest
 from backend.business.store.constraints import AgeConstraint, AndConstraint, LocationConstraint
+from backend.business.store.discount import StoreDiscount
 from backend.business.store.new_store import Store, Product, Category, StoreFacade
 from backend.business.DTOs import AddressDTO, ProductDTO, PurchaseUserDTO, UserInformationForDiscountDTO
 @pytest.fixture
@@ -64,6 +65,7 @@ def test_add_discount(store_facade):
     assert store_facade.discounts[0].starting_date == datetime(2020, 1, 1)
     assert store_facade.discounts[0].ending_date == datetime(2020, 1, 2)
     assert store_facade.discounts[0].percentage == 0.1
+    assert isinstance(store_facade.discounts[0], StoreDiscount)
     assert store_facade.discounts[0].store_id == store_id
     
     
@@ -1083,7 +1085,7 @@ def test_check_purchase_policy(store):
     tabbaco_product = ProductDTO(product_id=1, name='tabbaco', description='description', price=10.0, tags=['tabbaco'], weight=10.0, amount=10)
     gun_powder_product = ProductDTO(product_id=2, name='gun_powder', description='description', price=10.0, tags=['gun_powder'], weight=10.0, amount=5)
     products = {alcohol_product: 1, tabbaco_product: 1, gun_powder_product: 8}
-    assert store.check_purchase_policy(products, user_dto) == None
+    assert store.check_purchase_policy(products, user_dto) is None
 
 def test_check_purchase_policy_fail(store):
     store.add_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
@@ -1130,7 +1132,7 @@ def test_validate_purchase_policies(store_facade):
     store_facade.add_product_to_store(1, 'tabbaco', 'description', 10.0, 10.0, ['tabbaco'])
     store_facade.add_product_to_store(1, 'gun_powder', 'description', 10.0, 10.0, ['gun_powder'])
     products = {0: {0:1, 1:1, 2:4}, 1: {0:1, 1:1, 2:4}}
-    assert store_facade.validate_purchase_policies(products, user_dto) == None
+    assert store_facade.validate_purchase_policies(products, user_dto) is None
 
 def test_validate_purchase_policies_fail(store_facade):
     store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)

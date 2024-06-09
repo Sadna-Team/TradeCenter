@@ -414,7 +414,7 @@ def pred_older_then_18(user: PurchaseUserDTO) -> bool:
     current_month = datetime.now().month
     current_day = datetime.now().day
     if user.birthdate is None:
-        logger.warn('User does not have a birthdate')
+        logger.warning('User does not have a birthdate')
         return False
     delta = current_year - user.birthdate.year + (current_month - user.birthdate.month) / 12 + (current_day - user.birthdate.day) / 365
     return delta >= 18
@@ -1076,7 +1076,6 @@ class StoreFacade:
         with self.__store_id_lock:
             store = Store(self.__store_id_counter, location_id, store_name, store_founder_id)
             self.__stores[self.__store_id_counter] = store
-            print(self.__stores)
             self.__store_id_counter += 1
         
         logger.info(f'Successfully added store: {store_name}')
@@ -1153,10 +1152,10 @@ class StoreFacade:
         logger.info('[StoreFacade] attempting to add discount to store')
         if category_id is not None:
             if category_id not in self.__categories:
-                logger.warn('[StoreFacade] category the discount is applied to is not found')
+                logger.warning('[StoreFacade] category the discount is applied to is not found')
                 raise ValueError('Category the discount is applied to is not found')
             if applied_to_sub is None:
-                logger.warn('[StoreFacade] applied to subcategories is missing')
+                logger.warning('[StoreFacade] applied to subcategories is missing')
                 raise ValueError('Applied to subcategories is missing')
             logger.info('[StoreFacade] successfully added category discount to store')
             new_category_discount = CategoryDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
@@ -1165,11 +1164,11 @@ class StoreFacade:
         
         elif store_id is not None:
             if store_id not in self.__stores:
-                logger.warn('[StoreFacade] store the discount is applied to is not found')
+                logger.warning('[StoreFacade] store the discount is applied to is not found')
                 raise ValueError('Store the discount is applied to is not found')
             if product_id is not None: 
                 if product_id not in self.__stores[store_id].store_products:
-                    logger.warn('[StoreFacade] product the discount is applied to is not found')
+                    logger.warning('[StoreFacade] product the discount is applied to is not found')
                     raise ValueError('Product the discount is applied to is not found')
                 logger.info('[StoreFacade] successfully added product discount to store')
                 new_product_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
@@ -1192,11 +1191,11 @@ class StoreFacade:
         """
         logger.info('[StoreFacade] attempting to create logical composite discount')
         if discount_id1 not in self.__discounts or discount_id2 not in self.__discounts:
-            logger.warn('[StoreFacade] one of the discounts is not found')
+            logger.warning('[StoreFacade] one of the discounts is not found')
             raise ValueError('One of the discounts is not found')
         
         if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_LOGICAL_DISCOUNT_TYPES:
-            logger.warn('[StoreFacade] type of connection is not valid')
+            logger.warning('[StoreFacade] type of connection is not valid')
             raise ValueError('Type of connection is not valid')
         
         discount1 = self.__discounts[discount_id1]
@@ -1240,17 +1239,17 @@ class StoreFacade:
         """
         logger.info('[StoreFacade] attempting to create numerical composite discount')
         if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_NUMERICAL_DISCOUNT_TYPES:
-            logger.warn('[StoreFacade] type of connection is not valid')
+            logger.warning('[StoreFacade] type of connection is not valid')
             raise ValueError('Type of connection is not valid')
         
         if len(discount_ids) < 2:
-            logger.warn('[StoreFacade] not enough discounts to create a composite discount')
+            logger.warning('[StoreFacade] not enough discounts to create a composite discount')
             raise ValueError('Not enough discounts to create a composite discount')
         
         discounts = []
         for discount_id in discount_ids:
             if discount_id not in self.__discounts:
-                logger.warn('[StoreFacade] one of the discounts is not found')
+                logger.warning('[StoreFacade] one of the discounts is not found')
                 raise ValueError('One of the discounts is not found')
             discounts.append(self.__discounts[discount_id])
             
@@ -1295,7 +1294,7 @@ class StoreFacade:
             predicate = TimeConstraint(starting_time, ending_time)
         elif min_price is not None and max_price is not None:
             if max_price != -1 and min_price > max_price:
-                logger.warn('[StoreFacade] min price is greater than max price')
+                logger.warning('[StoreFacade] min price is greater than max price')
                 raise ValueError('Min price is greater than max price')
             if category_id is not None:
                 logger.info('[StoreFacade] created price category constraint')
@@ -1311,7 +1310,7 @@ class StoreFacade:
 
         elif min_weight is not None and max_weight is not None:
             if min_weight > max_weight:
-                logger.warn('[StoreFacade] min weight is greater than max weight')
+                logger.warning('[StoreFacade] min weight is greater than max weight')
                 raise ValueError('Min weight is greater than max weight')
 
             if category_id is not None:
@@ -1503,10 +1502,10 @@ class StoreFacade:
         for store_id, product_id  in category.category_products:
             if product_id in shopping_basket:
                 if store_id not in self.__stores:
-                    logger.warn('[StoreFacade] store is not found')
+                    logger.warning('[StoreFacade] store is not found')
                     raise ValueError('Store is not found')
                 if product_id not in self.__stores[store_id].store_products:
-                    logger.warn('[StoreFacade] product is not found in the store')
+                    logger.warning('[StoreFacade] product is not found in the store')
                     raise ValueError('Product is not found in the store')
                 
                 product = self.__stores[store_id].get_product_by_id(product_id)

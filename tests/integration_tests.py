@@ -11,6 +11,7 @@ from time import sleep
 market_facade: Optional[MarketFacade] = None
 user_facade: Optional[UserFacade] = None
 purchase_facade: Optional[PurchaseFacade] = None
+roles_facade: Optional[RolesFacade] = None
 
 default_usernames = ['user1', 'user2', 'user3', 'user4', 'user5']
 default_passwords = ['password1', 'password2', 'password3', 'password4', 'password5']
