@@ -423,6 +423,18 @@ class StoreService:
         except Exception as e:
             logger.error('store was not closed')
             return jsonify({'message': str(e)}), 400
+        
+    def opening_store(self, user_id, store_id):
+        """
+            Open a store
+        """
+        try:
+            self.__market_facade.open_store(user_id, store_id)
+            logger.info('store was opened successfully')
+            return jsonify({'message': 'store was opened successfully'}), 200
+        except Exception as e:
+            logger.error('store was not opened')
+            return jsonify({'message': str(e)}), 400
 
     def view_employees_info(self, user_id: int, store_id: int):
         """

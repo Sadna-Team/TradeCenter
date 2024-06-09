@@ -534,6 +534,24 @@ def closing_store():
 
     return store_service.closing_store(user_id, store_id)
 
+@store_bp.route('/opening_store', methods=['POST'])
+@jwt_required()
+def opening_store():
+    """
+        Use Case 2.4.9:
+        Open a store
+    """
+    logger.info('received request to open store')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('opening_store - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.opening_store(user_id, store_id)
+
 
 @store_bp.route('/view_employees_info', methods=['GET'])
 @jwt_required()
