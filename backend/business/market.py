@@ -76,7 +76,7 @@ class MarketFacade:
                 self.user_facade.add_product_to_basket(user_id, store_id, product_id, amount)
                 logger.info(f"User {user_id} has added {amount} of product {product_id} to the basket")
 
-    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict, user_info: Dict) -> int:
+    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict) -> int:
         products_removed = False
         purchase_accepted = False
         basket_cleared = False
@@ -91,14 +91,12 @@ class MarketFacade:
             user_dto = self.user_facade.get_userDTO(user_id)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, date(user_dto.year, user_dto.month, user_dto.day))
 
-            if 'address_id' not in user_info or 'address' not in user_info or 'city' not in user_info or 'state' not in user_info or 'country' not in user_info or 'postal_code' not in user_info:
+            if 'address_id' not in address or 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'postal_code' not in address:
                 raise ValueError("Address information is missing")
-            address_of_user_for_discount: AddressDTO = AddressDTO(user_info['address_id'], user_info['address'],
-                                                                  user_info['city'], user_info['state'],
-                                                                  user_info['country'], user_info['postal_code'])
+            address_of_user_for_discount: AddressDTO = AddressDTO(address['address_id'], address['address'],
+                                                                  address['city'], address['state'],
+                                                                  address['country'], address['postal_code'])
 
-            if user_purchase_dto.birthdate is None:
-                raise ValueError("User birthdate is missing")
 
             user_info_for_discount_dto = UserInformationForDiscountDTO(user_id, user_purchase_dto.birthdate,
                                                                        address_of_user_for_discount)

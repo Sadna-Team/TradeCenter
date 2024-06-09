@@ -64,6 +64,7 @@ default_implies_constraint: Constraint = ImpliesConstraint(default_AgeConstraint
 #UserInformationForDiscountDTO
 default_user_id1: int = 0
 default_user_id2: int = 1
+default_user_id3: int = 2
 default_birthdate1: date = date(1990, 1, 1)
 default_birthdate2: date = date(2009, 1, 1)
 default_user_address: AddressDTO = AddressDTO(default_address_id, default_city, default_country, default_street, default_zip_code, default_house_number)
@@ -73,6 +74,8 @@ default_bad_user_address: AddressDTO = AddressDTO(1, "bad_city", "bad_country", 
 user_information_dto1=  UserInformationForDiscountDTO(default_user_id1, default_birthdate1, default_user_address)
 
 user_information_dto2=  UserInformationForDiscountDTO(default_user_id2, default_birthdate2, default_bad_user_address)
+
+guest_information_dto = UserInformationForDiscountDTO(default_user_id3,None, default_user_address)
 
 
 
@@ -99,6 +102,8 @@ basketInformationForDiscountDTO1= BasketInformationForDiscountDTO(default_store_
 
 basketInformationForDiscountDTO2= BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto2, [categoryDTO])
 
+basketInformationForDiscountDTO3 = BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, guest_information_dto, [categoryDTO])
+
 
 #AgeConstraint tests:
 
@@ -107,6 +112,9 @@ def test_AgeConstraint_is_satisfied():
     
 def test_AgeConstraint_is_not_satisfied():
     assert default_AgeConstraint.is_satisfied(basketInformationForDiscountDTO2) == False
+
+def test_AgeConstraint_is_not_satisfied_guest():
+    assert default_AgeConstraint.is_satisfied(basketInformationForDiscountDTO3) == False
     
     
 #LocationConstraint tests:
