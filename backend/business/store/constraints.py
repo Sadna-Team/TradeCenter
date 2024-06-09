@@ -40,7 +40,7 @@ class AgeConstraint(Constraint):
     
     @property
     def age_limit(self):
-        return self.__min_age
+        return self.__age_limit
 
 
 # --------------- location constraint class ---------------# 
@@ -93,7 +93,7 @@ class PriceBasketConstraint(Constraint):
 
     def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
         if basket_information.store_id != self.__store_id:
-            logger.warn("[PriceBasketConstraint]: Store id does not match the store id of the basket")
+            logger.warning("[PriceBasketConstraint]: Store id does not match the store id of the basket")
             return False
         
         if self.__max_price == -1:
@@ -208,7 +208,7 @@ class AmountBasketConstraint(Constraint):
             amount_in_basket += product.amount
         
         if basket_information.store_id != self.__store_id:
-            logger.warn("[AmountBasketConstraint]: Store id does not match the store id of the basket")
+            logger.warning("[AmountBasketConstraint]: Store id does not match the store id of the basket")
             return False
         
         logger.info("[AmountBasketConstraint]: Checking if the amount of products in the basket fulfills the constraint")
@@ -217,10 +217,6 @@ class AmountBasketConstraint(Constraint):
     @property
     def min_amount(self):
         return self.__min_amount
-    
-    @property
-    def max_amount(self):
-        return self.__max_amount
     
     @property
     def store_id(self):
@@ -237,7 +233,7 @@ class AmountProductConstraint(Constraint):
 
     def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
         if basket_information.store_id != self.__store_id:
-            logger.warn("[AmountProductConstraint]: Store id does not match the store id of the basket")
+            logger.warning("[AmountProductConstraint]: Store id does not match the store id of the basket")
             return False
         
         for product in basket_information.products:
@@ -251,10 +247,6 @@ class AmountProductConstraint(Constraint):
     @property
     def min_amount(self):
         return self.__min_amount
-    
-    @property
-    def max_amount(self):
-        return self.__max_amount
     
     @property
     def product_id(self):
@@ -293,10 +285,6 @@ class AmountCategoryConstraint(Constraint):
         return self.__min_amount
     
     @property
-    def max_amount(self):
-        return self.__max_amount
-    
-    @property
     def category_id(self):
         return self.__category_id
     
@@ -311,7 +299,7 @@ class WeightBasketConstraint(Constraint):
 
     def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
         if basket_information.store_id != self.__store_id:
-            logger.warn("[WeightBasketConstraint]: Store id does not match the store id of the basket")
+            logger.warning("[WeightBasketConstraint]: Store id does not match the store id of the basket")
             return False
         
         weight_of_basket = 0.0
@@ -348,7 +336,7 @@ class WeightProductConstraint(Constraint):
 
     def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
         if basket_information.store_id != self.__store_id:
-            logger.warn("[WeightProductConstraint]: Store id does not match the store id of the basket")
+            logger.warning("[WeightProductConstraint]: Store id does not match the store id of the basket")
             return False
         
         for product in basket_information.products:

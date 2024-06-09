@@ -1,5 +1,5 @@
 from backend import create_app
-from flask import json, jsonify
+from flask import json
 
 app = create_app()
 client = app.test_client()

@@ -105,7 +105,7 @@ def test_process_payment_no_details(payment_handler):
 def test_bogosupply_order():
     bogo_supply = BogoSupply()
     package_details["arrival time"] = datetime.now() + timedelta(seconds=10)
-    assert bogo_supply.order(package_details, user_id, supply_config, on_arrival) == None
+    assert bogo_supply.order(package_details, user_id, supply_config, on_arrival) is None
     
 
 def test_add_supply_method(supply_handler):
@@ -142,7 +142,7 @@ def test_edit_supply_method_not_found(supply_handler):
 
 def test_process_supply(supply_handler):
     package_details["arrival time"] = datetime.now() + timedelta(seconds=10)
-    assert supply_handler.process_supply(package_details, user_id, on_arrival) == None
+    assert supply_handler.process_supply(package_details, user_id, on_arrival) is None
 
 def test_process_supply_wrong_details(supply_handler):
     with pytest.raises(ValueError):
