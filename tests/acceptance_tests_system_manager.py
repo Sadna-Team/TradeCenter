@@ -284,8 +284,70 @@ def test_getting_info_about_purchase_history_of_a_store_wrong_store_credentials(
     response = client.get('market/store_purchase_history', headers=headers, json=data)
     assert response.status_code == 400
 
-    
 
+#test 2.4.13.a: A member is trying to view his purchase history
+def test_getting_info_about_purchase_history_of_a_user_in_store(client, admin_token, client2, user_token, init_store, clean):
+    # add discounts:    
+    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    headers = {'Authorization': 'Bearer ' + admin_token}
+    response = client.post('store/add_discount', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    #assign_discount_predicate
+    data = {"discount_id": 0, "ages": [None], "locations":[None], "starting_times":[None], "ending_times":[None], "min_prices":[None], "max_prices":[None], "min_weights":[None], "max_weights":[None],"min_amounts":[2],"store_ids":[0],"product_ids":[None],"category_ids":[None], "type_of_connections": [None]}
+    headers = {'Authorization': 'Bearer ' + admin_token}
+    response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    #user made purchase
+    data = {"store_id": 0, "product_id": 0, "quantity": 3}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_basket', headers=headers, json=data)
+    assert response.status_code == 200
+  
+    data = {"payment_details": default_payment_method, 
+            "supply_method": default_supply_method, 
+            "address": default_address}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #getting the purchase history:
+    data = {"store_id": 0}
+    headers = {'Authorization': 'Bearer ' + admin_token}
+    response = client.get('market/user_purchase_history', headers=headers, json=data)
+    assert response.status_code == 200
+    
+#test 2.4.13.b: A member is trying to view his purchase history with wrong credentials
+def test_getting_info_about_purchase_history_of_a_user_in_store_wrong_credentials(client, admin_token, client2, user_token, guest_token, init_store, clean):
+    # add discounts:
+    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    headers = {'Authorization': 'Bearer ' + admin_token}
+    response = client.post('store/add_discount', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    #assign_discount_predicate
+    data = {"discount_id": 0, "ages": [None], "locations":[None], "starting_times":[None], "ending_times":[None], "min_prices":[None], "max_prices":[None], "min_weights":[None], "max_weights":[None],"min_amounts":[2],"store_ids":[0],"product_ids":[None],"category_ids":[None], "type_of_connections": [None]}
+    headers = {'Authorization': 'Bearer ' + admin_token}
+    response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    #adding to basket:
+    data = {"store_id": 0, "product_id": 0, "quantity": 3}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_basket', headers=headers, json=data)
+    
+    #checkout:
+    data = {"payment_details": default_payment_method,
+            "supply_method": default_supply_method,
+            "address": default_address}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    
+    #getting the purchase history, wrong credentials:
+    data = {"store_id": 0}
+    headers = {'Authorization': 'Bearer ' + guest_token}
+    response = client.get('market/user_purchase_history', headers=headers, json=data)
+    assert response.status_code == 400
+    
 
 def test_add_payment_method_success(client, admin_token, clean):
     data = {"method_name": "Visa", "config": {"key": "value"}}
