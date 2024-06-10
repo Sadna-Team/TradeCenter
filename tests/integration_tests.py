@@ -8,6 +8,8 @@ from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from time import sleep
 
+from backend.business.store.constraints import AgeConstraint
+
 market_facade: Optional[MarketFacade] = None
 user_facade: Optional[UserFacade] = None
 purchase_facade: Optional[PurchaseFacade] = None
@@ -124,6 +126,7 @@ def default_set_up():
     user_id4 = user_facade.create_user(default_currency)
     user_id5 = user_facade.create_user(default_currency)
     user_ids = [user_id1, user_id2, user_id3, user_id4, user_id5]
+
 
     user_facade.register_user(user_id1, default_usernames[0], default_passwords[0], default_emails[0], default_years[0],
                               default_months[0], default_days[0], default_phones[0])
@@ -325,30 +328,148 @@ def test_add_purchase_policy():
 def test_remove_purchase_policy():
     pass
 
-def test_add_discount():
-    pass
-
-def test_remove_discount():
-    pass
-
-def test_create_logical_composite_discount():
-    pass
-
-def test_create_numerical_composite_discount():
-    pass
-
-def test_assign_predicate_to_discount():
-
-    pass
-
-def test_change_discount_percentage():
-
-    pass
-
-def test_change_discount_description():
-    pass
 
 
+
+
+
+
+#-----------------------------------------------------------
+
+
+# more thorough tests in the unit tests of new_store.py !!!
+def test_add_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    discount_id1 = market_facade.add_discount(user_id1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31), 0.3, store_id1, None, None, None)
+    assert market_facade.store_facade.discounts.get(discount_id1).discount_description == 'best you can find'
+    assert market_facade.store_facade.discounts.get(discount_id1).starting_date == datetime(2023, 10, 31)
+    assert market_facade.store_facade.discounts.get(discount_id1).ending_date == datetime(2050,10,31)
+    assert market_facade.store_facade.discounts.get(discount_id1).percentage == 0.3
+    
+    
+def test_add_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.add_discount(user_id1+1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31), 0.3, store_id1, None, None, None)
+        
+
+
+def test_remove_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    market_facade.remove_discount(user_id1, discount_id1)
+    assert discount_id1 not in market_facade.store_facade.discounts
+    
+def test_remove_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.remove_discount(user_id1+1, discount_id1)
+        
+
+def test_create_logical_composite_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    discount_id2 = discount_ids[1]
+    composite = market_facade.create_logical_composite_discount(user_id1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
+    assert composite in market_facade.store_facade.discounts
+    assert market_facade.store_facade.discounts.get(composite).discount_description == 'max of the two'
+    assert market_facade.store_facade.discounts.get(composite).starting_date == datetime(2024, 10, 31)
+    assert market_facade.store_facade.discounts.get(composite).ending_date == datetime(2050,10,31)
+    assert market_facade.store_facade.discounts.get(composite).discount_id == composite
+    assert market_facade.store_facade.discounts.get(composite).is_simple_discount()==True
+    
+def test_create_logical_composite_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    discount_id2 = discount_ids[1]
+    with pytest.raises(ValueError):
+        market_facade.create_logical_composite_discount(user_id1+1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
+        
+
+def test_create_numerical_composite_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    discount_id2 = discount_ids[1]
+    composite = market_facade.create_numerical_composite_discount(user_id1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [discount_id1, discount_id2], 1)
+    assert composite in market_facade.store_facade.discounts
+    assert market_facade.store_facade.discounts.get(composite).discount_description == 'max of the two'
+    assert market_facade.store_facade.discounts.get(composite).starting_date == datetime(2024, 10, 31)
+    assert market_facade.store_facade.discounts.get(composite).ending_date == datetime(2050,10,31)
+    assert market_facade.store_facade.discounts.get(composite).discount_id == composite
+    assert market_facade.store_facade.discounts.get(composite).is_simple_discount()==True
+    
+    
+def test_create_numerical_composite_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    discount_id2 = discount_ids[1]
+    with pytest.raises(ValueError):
+        market_facade.create_numerical_composite_discount(user_id1+1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [discount_id1, discount_id2], 1)
+        
+
+def test_assign_predicate_to_discount(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    market_facade.assign_predicate_to_discount(user_id1, discount_id1,[21],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None])
+    assert isinstance(market_facade.store_facade.discounts.get(discount_id1).predicate, AgeConstraint)
+    
+    
+def test_assign_predicate_to_discount_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id2 = user_ids[1]
+    discount_id1 = discount_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.assign_predicate_to_discount(user_id2, discount_id1,[21],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None])
+    assert market_facade.store_facade.discounts.get(discount_id1).predicate == None
+
+
+    
+
+def test_change_discount_percentage(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    market_facade.change_discount_percentage(user_id1, discount_id1, 0.5)
+    assert market_facade.store_facade.discounts.get(discount_id1).percentage == 0.5
+    
+def test_change_discount_percentage_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.change_discount_percentage(user_id1+1, discount_id1, 0.5)
+    assert market_facade.store_facade.discounts.get(discount_id1).percentage != 0.5
+
+def test_change_discount_description(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    market_facade.change_discount_description(user_id1, discount_id1, 'new description')
+    assert market_facade.store_facade.discounts.get(discount_id1).discount_description == 'new description'
+    
+def test_change_discount_description_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    discount_id1 = discount_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.change_discount_description(user_id1+1, discount_id1, 'new description')
+    assert market_facade.store_facade.discounts.get(discount_id1).discount_description != 'new description'
+    
+
+
+#-----------------------------------------------------------
 
 def test_add_product(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
@@ -419,31 +540,179 @@ def test_remove_tag_from_product(default_set_up):
     assert 'tag11' not in market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].tags
     
 
-def test_change_product_price():
-    pass
+def test_change_product_price(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    market_facade.change_product_price(user_id1, store_id1, product_id11, 14)
+    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].price == 14
+    
+def test_change_product_price_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    with pytest.raises(ValueError):
+        market_facade.change_product_price(user_id1+1, store_id1, product_id11, 14)
+    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].price != 14
 
     
 
-def test_change_product_description():
-    pass
+def test_change_product_description(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    market_facade.change_product_description(user_id1, store_id1, product_id11, 'd14')
+    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].description == 'd14'
 
-def test_change_product_weight():
-    pass
+def test_change_product_description_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    with pytest.raises(ValueError):
+        market_facade.change_product_description(user_id1+1, store_id1, product_id11, 'd14')
+    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].description != 'd14'
 
-def test_add_category():
-    pass
+def test_change_product_weight(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    market_facade.change_product_weight(user_id1, store_id1, product_id11, 0.5)
+    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].weight == 0.5
+    
+def test_change_product_weight_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    with pytest.raises(ValueError):
+        market_facade.change_product_weight(user_id1+1, store_id1, product_id11, 0.5)
+    assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].weight != 0.5
 
-def test_remove_category():
-    pass
+def test_add_category(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    category_id=market_facade.add_category(user_id1, 'category1')
+    assert category_id in market_facade.store_facade.categories
+    
+def test_add_category_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    with pytest.raises(ValueError):
+        category_id=market_facade.add_category(user_id1+1, 'category1')
+    
 
-def test_add_sub_category_to_category():
-    pass
+def test_remove_category(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    category_id=market_facade.add_category(user_id1, 'category1')
+    market_facade.remove_category(user_id1, category_id)
+    assert category_id not in market_facade.store_facade.categories
+    
+def test_remove_category_no_permission(default_set_up):
+    user_ids, store_ids, productsS, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    category_id=market_facade.add_category(user_id1, 'category1')
+    with pytest.raises(ValueError):
+        market_facade.remove_category(user_id1+1, category_id)   
+        
 
-def test_remove_sub_category_from_category():
-    pass
+def test_add_sub_category_to_category(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    category_id=market_facade.add_category(user_id1, 'category1')
+    sub_category_id = market_facade.add_category(user_id1, 'sub_category1')
+    market_facade.add_sub_category_to_category(user_id1, sub_category_id, category_id)
+    
+    assert market_facade.store_facade.get_category_by_id(sub_category_id) in market_facade.store_facade.get_category_by_id(category_id).sub_categories
+    
 
-def test_assign_product_to_category():
-    pass
+def test_add_sub_category_to_category_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    category_id = market_facade.add_category(user_id1, 'category1')
+    sub_category_id = market_facade.add_category(user_id1, 'sub_category1')
+    sub_category_id 
+    with pytest.raises(ValueError):
+        market_facade.add_sub_category_to_category(user_id2, sub_category_id ,category_id)
+    
 
-def test_remove_product_from_category():
-    pass
+def test_remove_sub_category_from_category(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    category_id = market_facade.add_category(user_id1, 'category1')
+    sub_category_id = market_facade.add_category(user_id1, 'sub_category1')
+    market_facade.add_sub_category_to_category(user_id1, sub_category_id, category_id)
+    assert market_facade.store_facade.get_category_by_id(sub_category_id) in market_facade.store_facade.get_category_by_id(category_id).sub_categories
+    market_facade.remove_sub_category_from_category(user_id1, category_id, sub_category_id)
+    assert market_facade.store_facade.get_category_by_id(sub_category_id) not in market_facade.store_facade.get_category_by_id(category_id).sub_categories
+
+def test_assign_product_to_category(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    category_id=market_facade.add_category(user_id1, 'category1')
+    product_id11 = products[0][0]
+    market_facade.assign_product_to_category(user_id1, store_id1, product_id11, category_id)
+    category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
+    product_ids = [product_id for store_id, product_id in category_products_tuples]
+    assert product_id11 in product_ids
+    
+def test_assign_product_to_category_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    category_id=market_facade.add_category(user_id1, 'category1')
+    product_id11 = products[0][0]
+    with pytest.raises(ValueError):
+        market_facade.assign_product_to_category(user_id2, store_id1, product_id11, category_id)
+    category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
+    product_ids = [product_id for store_id, product_id in category_products_tuples]
+    assert product_id11 not in product_ids
+    
+    
+
+def test_remove_product_from_category(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    category_id=market_facade.add_category(user_id1, 'category1')
+    product_id11 = products[0][0]
+    market_facade.assign_product_to_category(user_id1, store_id1, product_id11, category_id)
+    category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
+    product_ids = [product_id for store_id, product_id in category_products_tuples]
+    assert product_id11 in product_ids
+    market_facade.remove_product_from_category(user_id1, store_id1, product_id11, category_id)
+    category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
+    product_ids = [product_id for store_id, product_id in category_products_tuples]
+    assert product_id11 not in product_ids
+    
+def test_remove_product_from_category_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    category_id=market_facade.add_category(user_id1, 'category1')
+    product_id11 = products[0][0]
+    market_facade.assign_product_to_category(user_id1, store_id1, product_id11, category_id)
+    category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
+    product_ids = [product_id for store_id, product_id in category_products_tuples]
+    assert product_id11 in product_ids
+    with pytest.raises(ValueError):
+        market_facade.remove_product_from_category(user_id2, store_id1, product_id11, category_id)
+    category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
+    product_ids = [product_id for store_id, product_id in category_products_tuples]
+    assert product_id11 in product_ids
+    
+    
+    

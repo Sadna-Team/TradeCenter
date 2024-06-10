@@ -53,7 +53,7 @@ def show_store_purchase_history():
     logger.info('recieved request to show the purchase history of a store')
     try:
         user_id = get_jwt_identity()
-        data = request.args
+        data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
         logger.error('show_store_purchase_history - ', str(e))
@@ -72,10 +72,13 @@ def show_user_purchase_history():
     logger.info('recieved request to show the purchase history of a user in a store')
     try:
         user_id = get_jwt_identity()
-        data = request.get_json()
         store_id = None
-        if 'store_id' in data:
+        try:
+            data = request.get_json()
             store_id = int(data['store_id'])
+        except Exception as e:
+            logger.info("store_id not provided")
+
     except Exception as e:
         logger.error('show_user_purchase_history_in_store - ', str(e))
         return jsonify({'message': str(e)}), 400

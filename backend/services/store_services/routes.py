@@ -1,3 +1,5 @@
+from datetime import datetime
+from typing import Optional
 from flask import Blueprint, request, jsonify
 from .controllers import StoreService
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -158,6 +160,166 @@ def edit_purchase_policy():
         return jsonify({'message': str(e)}), 400
     pass'''
 
+@store_bp.route('/add_discount', methods=['POST'])
+@jwt_required()
+def add_discount():
+    """
+        Use Case 2.4.2
+        Add a discount to a store
+        
+    """
+    logger.info('received request to add discount')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        description: str = str(data['description'])
+        start_date: datetime = data['start_date']
+        end_date: datetime = data['end_date']
+        percentage: float = float(data['percentage'])
+        store_id: Optional[int] = data['store_id']
+        product_id: Optional[int] = data['product_id']
+        category_id: Optional[int] = data['category_id']
+        applied_to_sub: Optional[bool] = data['applied_to_sub']
+       
+    except Exception as e:
+        logger.error('add_discount - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    logger.info('discount was added successfully')
+    return store_service.add_discount(user_id, description, start_date, end_date, percentage, store_id, product_id, category_id, applied_to_sub)
+
+
+@store_bp.route('/remove_discount', methods=['POST'])
+@jwt_required()
+def remove_discount():
+    """
+        Use Case 2.4.2
+        Remove a discount from a store
+    """
+    logger.info('received request to remove discount')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        discount_id = int(data['discount_id'])
+    except Exception as e:
+        logger.error('remove_discount - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.remove_discount(user_id, discount_id)
+
+
+@store_bp.route('/create_logical_composite', methods=['POST'])
+@jwt_required()
+def create_logical_composite():
+    """
+        Use Case 2.4.2
+        Create a logical composite discount
+    """
+    logger.info('received request to create logical composite')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        description = str(data['description'])
+        start_date = data['start_date']
+        end_date = data['end_date']
+        discount_id1 = int(data['discount_id1'])
+        discount_id2 = int(data['discount_id2'])
+        type_of_composite = int(data['type_of_composite'])
+    except Exception as e:
+        logger.error('create_logical_composite - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.create_logical_composite_discount(user_id, description, start_date, end_date, discount_id1, discount_id2, type_of_composite)
+
+@store_bp.route('/create_numerical_composite', methods=['POST'])
+@jwt_required()
+def create_numerical_composite():
+    """
+        Use Case 2.4.2
+        Create a numerical composite discount
+    """
+    logger.info('received request to create numerical composite')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        description = str(data['description'])
+        start_date = data['start_date']
+        end_date = data['end_date']
+        discount_ids = data['discount_ids']
+        type_of_composite = int(data['type_of_composite'])
+    except Exception as e:
+        logger.error('create_numerical_composite - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.create_numerical_composite_discount(user_id, description, start_date, end_date, discount_ids, type_of_composite)
+
+@store_bp.route('/assign_predicate_to_discount', methods=['POST'])
+@jwt_required()
+def assign_predicate_to_discount():
+    """
+        Use Case 2.4.2
+        Assign a predicate to a discount
+    """
+    logger.info('received request to assign predicate to discount')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        discount_id = int(data['discount_id'])
+        ages = data['ages']
+        locations = data['locations']
+        starting_times = data['starting_times']
+        ending_times = data['ending_times']
+        min_prices = data['min_prices']
+        max_prices = data['max_prices']
+        min_weights = data['min_weights']
+        max_weights = data['max_weights']
+        min_amounts = data['min_amounts'] 
+        store_ids = data['store_ids'] 
+        product_ids = data['product_ids']
+        category_ids = data['category_ids']
+        type_of_connections = data['type_of_connections']
+    except Exception as e:
+        logger.error('assign_predicate_to_discount - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.assign_predicate_to_discount(user_id, discount_id, ages, locations, starting_times, ending_times, min_prices, max_prices, min_weights, max_weights, min_amounts, store_ids, product_ids, category_ids, type_of_connections)
+
+@store_bp.route('/change_discount_percentage', methods=['POST'])
+@jwt_required()
+def change_discount_percentage():
+    """
+        Use Case 2.4.2
+        Change the percentage of a discount
+    """
+    logger.info('received request to change discount percentage')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        discount_id = int(data['discount_id'])
+        percentage = float(data['percentage'])
+    except Exception as e:
+        logger.error('change_discount_percentage - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.change_discount_percentage(user_id, discount_id, percentage)
+
+@store_bp.route('/change_discount_description', methods=['POST'])
+@jwt_required()
+def change_discount_description():
+    """
+        Use Case 2.4.2
+        Change the description of a discount
+    """
+    logger.info('received request to change discount description')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        discount_id = int(data['discount_id'])
+        description = str(data['description'])
+    except Exception as e:
+        logger.error('change_discount_description - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.change_discount_description(user_id, discount_id, description)
 
 @store_bp.route('/store_info', methods=['GET'])
 @jwt_required()
@@ -288,6 +450,126 @@ def restock_product():
 
     return store_service.restock(user_id, store_id, product_id, quantity)
 
+@store_bp.route('/remove_product_amount', methods=['POST'])
+@jwt_required()
+def remove_product_amount():
+    """
+        Use Case
+        Remove a product amount from a store
+    """
+    logger.info('received request to remove product amount')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        amount = int(data['amount'])
+    except Exception as e:
+        logger.error('remove_product_amount - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.remove_amount_from_product(user_id, store_id, product_id, amount)
+
+@store_bp.route('/change_price_of_product', methods=['POST'])
+@jwt_required()
+def change_price_of_product():
+    """
+        Use Case
+        Change the price of a product in a store
+    """
+    logger.info('received request to change price of product')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        price = float(data['price'])
+    except Exception as e:
+        logger.error('change_price_of_product - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.change_price_of_product(user_id, store_id, product_id, price)
+
+@store_bp.route('/change_product_description', methods=['POST'])
+@jwt_required()
+def change_product_description():
+    """
+        Use Case
+        Change the description of a product in a store
+    """
+    logger.info('received request to change product description')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        description = str(data['description'])
+    except Exception as e:
+        logger.error('change_product_description - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.change_description_of_product(user_id, store_id, product_id, description)
+
+@store_bp.route('/change_product_weight', methods=['POST'])
+@jwt_required()
+def change_product_weight():
+    """
+        Use Case
+        Change the weight of a product in a store
+    """
+    logger.info('received request to change product weight')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        weight = float(data['weight'])
+    except Exception as e:
+        logger.error('change_product_weight - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.change_weight_of_product(user_id, store_id, product_id, weight)
+
+
+@store_bp.route('/add_tag_to_product', methods=['POST'])
+@jwt_required()
+def add_tag_to_product():
+    """
+        Use Case
+        Add a tag to a product in a store
+    """
+    logger.info('received request to add tag to product')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        tag = str(data['tag'])
+    except Exception as e:
+        logger.error('add_tag_to_product - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.add_tag_to_product(user_id, store_id, product_id, tag)
+
+@store_bp.route('/remove_tag_from_product', methods=['POST'])
+@jwt_required()
+def remove_tag_from_product():
+    """
+        Use Case
+        Remove a tag from a product in a store
+    """
+    logger.info('received request to remove tag from product')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        tag = str(data['tag'])
+    except Exception as e:
+        logger.error('remove_tag_from_product - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.remove_tag_from_product(user_id, store_id, product_id, tag)
 
 @store_bp.route('/add_category', methods=['POST'])
 @jwt_required()

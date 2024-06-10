@@ -1,7 +1,10 @@
 #write acceptance tests for store owner actions
-
+from datetime import datetime
 import pytest
 from backend import create_app, clean_data
+import json
+
+
 
 register_credentials = { 
         'username': 'test',
@@ -426,3 +429,196 @@ def test_remove_product_invalid_product_id():
     headers = owner_headers
     response = client.post('store/remove_product', headers=headers, json=data)
     assert response.status_code == 400
+
+# --------------------------------------------------------------------------------
+
+register_credentials1= { 
+        'username': 'testing',
+        'email': 'testing@gmail.com',
+        'password': 'test',
+        'location_id': 1,
+        'year': 2003,
+        'month': 1,
+        'day': 1,
+        'phone': '054-1238567' }
+
+default_payment_method = {'payment method': 'bogo'}
+
+default_supply_method = "bogo"
+
+default_address = {'address_id': 0, 
+                            'address': 'randomstreet 34th', 
+                            'city': 'arkham', 
+                            'country': 'Wakanda', 
+                            'state': 'Utopia', 
+                            'postal_code': '12345'}
+
+
+
+@pytest.fixture
+def app1():
+    app1 = create_app()
+    return app1
+
+@pytest.fixture
+def client11(app1):
+    return app1.test_client()
+
+@pytest.fixture
+def new_token(client11):
+    response = client11.get('/auth/')
+    data = json.loads(response.data)
+    return data['token']
+
+@pytest.fixture
+def admin_token(client11, new_token):
+    data = {
+        'username': 'admin',
+        'password': 'admin'
+    }
+    headers = { 'Authorization': 'Bearer ' + new_token }
+    response = client11.post('auth/login', headers=headers, json=data)
+    data = json.loads(response.data)
+    return data['token']
+
+@pytest.fixture
+def clean11():
+    yield
+    clean_data()
+    
+@pytest.fixture
+def client12(app1):
+    return app1.test_client()
+
+@pytest.fixture
+def client22(app1):
+    return app1.test_client()
+
+@pytest.fixture
+def client33(app1):
+    return app1.test_client()
+
+@pytest.fixture
+def token11(client12):
+    response = client12.get('/auth/')
+    data = json.loads(response.data)
+    return data['token']
+
+@pytest.fixture
+def token22(client22):
+    response = client22.get('/auth/')
+    data = json.loads(response.data)
+    return data['token']
+
+@pytest.fixture
+def guest_token10(client33):
+    response = client33.get('/auth/')
+    data = json.loads(response.data)
+    return data['token']
+
+@pytest.fixture
+def owner_token11(client12, token11):
+    headers = { 'Authorization': 'Bearer ' + token11}
+    manager_credentials = register_credentials1.copy()
+    manager_credentials['username'] = 'store_owner_new'
+    data = {"register_credentials": manager_credentials}
+    response = client12.post('auth/register', headers=headers, json=data)
+
+    data = { "username": "store_owner_new", "password": "test" }
+    response = client12.post('auth/login', json=data, headers=headers)
+    data = json.loads(response.data)
+    return data['token']
+
+
+
+
+@pytest.fixture
+def user_token(client22, token22):
+    headers = { 'Authorization': 'Bearer ' + token22 }
+    data = {"register_credentials": register_credentials1}
+    response = client22.post('auth/register', headers=headers, json=data)
+    data = { "username": "testing", "password": "test" }
+    response = client22.post('auth/login', json=data, headers=headers)
+    data = json.loads(response.data)
+    return data['token']
+
+
+
+
+@pytest.fixture
+def init_store(client12):
+    data = {'store_name': 'test_store', 'location_id': 1}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client12.post('store/add_store', headers=headers, json=data)
+
+    data = {"store_id": 1, 
+            "product_name": "test_product", 
+            "description": "test_description",
+            "price": 10.0,
+            "weight": 1.0,
+            "tags": ["tag1", "tag2"],
+            "amount": 10}
+    
+    response = client12.post('store/add_product', headers=headers, json=data)
+
+    data = {"store_id": 1, "policy_name": "no_funny_name"}
+    response = client12.post('store/add_purchase_policy', headers=headers, json=data)
+
+    data = {"store_id": 1, 
+        "product_name": "funny", 
+        "description": "test_description",
+        "price": 10.0,
+        "weight": 1.0,
+        "tags": ["tag1", "tag2"],
+        "amount": 10}
+
+    response = client12.post('store/add_product', headers=headers, json=data)
+    
+    
+
+@pytest.fixture
+def init_store2(client12):
+    data = {'store_name': 'test_store', 'location_id': 1}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client12.post('store/add_store', headers=headers, json=data)
+
+    data = {"store_id": 2, 
+            "product_name": "test_product", 
+            "description": "test_description",
+            "price": 10.0,
+            "weight": 1.0,
+            "tags": ["tag1", "tag2"],
+            "amount": 10}
+    
+    response = client12.post('store/add_product', headers=headers, json=data)
+
+#test 2.6.4.a (in a store)
+def test_getting_info_about_purchase_history_of_a_store(client12, client22, client33, user_token,guest_token10, init_store, clean11):
+    #user made purchase
+    data = {"store_id": 1, "product_id": 0, "quantity": 3}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client22.post('user/add_to_basket', headers=headers, json=data)
+    assert response.status_code == 200
+        
+    data = {"payment_details": default_payment_method, 
+            "supply_method": default_supply_method, 
+            "address": default_address}
+    response = client22.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #getting the purchase history:
+    data = {"store_id": 1}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client12.get('market/store_purchase_history', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    
+    # WRONG CREDENTIALS:
+    data = {"store_id": 1}
+    headers = {'Authorization': 'Bearer ' + guest_token10}
+    response = client33.get('market/store_purchase_history', headers=headers, json=data)
+    assert response.status_code == 400
+
+
+    
+

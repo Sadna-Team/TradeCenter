@@ -1313,15 +1313,21 @@ class StoreFacade:
         predicate: Optional[Constraint] = None
         if age is not None:
             logger.info('[StoreFacade] created age constraint')
+            if age < 0: 
+                logger.warning('[StoreFacade] age is a negative value')
+                raise ValueError('Age is a negative value')
             predicate = AgeConstraint(age)
         elif location is not None:
             logger.info('[StoreFacade] created location constraint')
             predicate = LocationConstraint(location)
         elif starting_time is not None and ending_time is not None:
+            if starting_time > ending_time:
+                logger.warning('[StoreFacade] starting time is greater than ending time')
+                raise ValueError('Starting time is greater than ending time')
             logger.info('[StoreFacade] created time constraint')
             predicate = TimeConstraint(starting_time, ending_time)
         elif min_price is not None and max_price is not None:
-            if max_price != -1 and min_price > max_price:
+            if max_price != -1 and min_price > max_price or min_price < 0:
                 logger.warning('[StoreFacade] min price is greater than max price')
                 raise ValueError('Min price is greater than max price')
             if category_id is not None:
@@ -1337,7 +1343,7 @@ class StoreFacade:
                     predicate = PriceBasketConstraint(min_price, max_price, store_id)
 
         elif min_weight is not None and max_weight is not None:
-            if min_weight > max_weight:
+            if min_weight > max_weight or min_weight < 0:
                 logger.warning('[StoreFacade] min weight is greater than max weight')
                 raise ValueError('Min weight is greater than max weight')
 
@@ -1355,6 +1361,9 @@ class StoreFacade:
                     predicate = WeightBasketConstraint(min_weight, max_weight, store_id)
 
         elif min_amount is not None:
+            if min_amount < 0:
+                logger.warning('[StoreFacade] min amount is a negative value')
+                raise ValueError('Min amount is a negative value')
             if category_id is not None:
                 logger.info('[StoreFacade] created amount category constraint')
                 predicate = AmountCategoryConstraint(min_amount, category_id)

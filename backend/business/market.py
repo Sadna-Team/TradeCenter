@@ -150,14 +150,14 @@ class MarketFacade:
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ValueError("Payment failed")
 
-            package_details = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date,
+            package_detail = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date,
                                'purchase id': pur_id, "supply method": supply_method}
-            if "supply method" not in package_details:
+            if "supply method" not in package_detail:
                 raise ValueError("Supply method not specified")
-            if package_details.get("supply method") not in SupplyHandler().supply_config:
+            if package_detail.get("supply method") not in SupplyHandler().supply_config:
                 raise ValueError("Invalid supply method")
             on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
-            SupplyHandler().process_supply(package_details, user_id, on_arrival)
+            SupplyHandler().process_supply(package_detail, user_id, on_arrival)
             for store_id in cart.keys():
                 Notifier().notify_new_purchase(store_id, user_id)
 
@@ -335,7 +335,7 @@ class MarketFacade:
         *NOTE: the discount is initialized with no predicate!
         * Returns none
         """
-        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
+        if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         return self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id, product_id, applied_to_sub) 
     
@@ -635,7 +635,7 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        self.add_sub_category_to_category(user_id, sub_category_id, parent_category_id)
+        self.store_facade.assign_sub_category_to_category(sub_category_id, parent_category_id)
         logger.info(f"User {user_id} has added a sub category to category {parent_category_id}")
 
     def remove_sub_category_from_category(self, user_id: int, category_id: int, sub_category_id: int):
@@ -646,7 +646,7 @@ class MarketFacade:
         """
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        self.remove_sub_category_from_category(user_id, category_id, sub_category_id)
+        self.store_facade.delete_sub_category_from_category(category_id, sub_category_id)
         logger.info(f"User {user_id} has removed a sub category from category {category_id}")
 
     def assign_product_to_category(self, user_id: int, category_id: int, store_id: int, product_id: int):
@@ -732,6 +732,8 @@ class MarketFacade:
         * This function returns the purchases of a user
         * Returns a string
         """
+        if not self.roles_facade.is_system_manager(user_id) and (not self.user_facade.is_member(user_id) or not self.auth_facade.is_logged_in(user_id)):
+            raise ValueError("User is not a member or is not logged in")
         return self.purchase_facade.get_purchases_of_user(user_id, store_id)
 
     def view_purchases_of_store(self, user_id: int, store_id: int) -> List[PurchaseDTO]:
@@ -740,7 +742,7 @@ class MarketFacade:
         * This function returns the purchases of a store
         * Returns a string
         """
-        if not self.roles_facade.is_owner(store_id, user_id) and not self.roles_facade.is_manager(store_id, user_id):
+        if not self.roles_facade.is_owner(store_id, user_id) and not self.roles_facade.is_manager(store_id, user_id) and not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a store owner or manager")
         return self.purchase_facade.get_purchases_of_store(store_id)
 
