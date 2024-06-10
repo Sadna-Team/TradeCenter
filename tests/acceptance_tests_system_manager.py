@@ -144,7 +144,7 @@ def init_store(client1, owner_token):
     response = client1.post('store/add_product', headers=headers, json=data)
 
 #test 2.6.4.a
-def test_getting_info_about_purchase_history_of_a_member(client, admin_token, client2, user_token, client3, guest_token, init_store, clean):
+def test_getting_info_about_purchase_history_of_a_member(client, admin_token, client2, user_token, init_store, clean):
     # add discounts:
     data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
@@ -168,22 +168,9 @@ def test_getting_info_about_purchase_history_of_a_member(client, admin_token, cl
             "address": default_address}
     response = client2.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 200
-    
-
-    #guest made purchase
-    data = {"store_id": 0, "product_id": 0, "quantity": 4}
-    headers = {'Authorization': 'Bearer ' + guest_token}
-    response = client3.post('user/add_to_basket', headers=headers, json=data)
-    assert response.status_code == 200
-
-    data = {"payment_details": default_payment_method,
-            "supply_method": default_supply_method,
-            "address": default_address}
-    response = client3.post('market/checkout', headers=headers, json=data)
-    assert response.status_code == 200
-
 
     #getting the purchase history:
+    data = {}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.get('market/user_purchase_history', headers=headers)
     assert response.status_code == 200
@@ -215,12 +202,13 @@ def test_getting_info_about_purchase_history_of_a_member_wrong_credentials(clien
     response = client2.post('market/checkout', headers=headers, json=data)
     
     #getting the purchase history, wrong credentials:
+    data = {}
     headers = {'Authorization': 'Bearer ' + guest_token}
     response = client3.get('market/user_purchase_history', headers=headers)
     assert response.status_code == 400
 
 #test 2.6.4.a (in a store)
-def test_getting_info_about_purchase_history_of_a_store(client, admin_token, client2, user_token, init_store, clean):
+def test_getting_info_about_purchase_history_of_a_store(client, admin_token, client2, user_token, guest_token, client3, init_store, clean):
     # add discounts:
     data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
@@ -233,16 +221,28 @@ def test_getting_info_about_purchase_history_of_a_store(client, admin_token, cli
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
     
+    #user made purchase
     data = {"store_id": 0, "product_id": 0, "quantity": 3}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
     assert response.status_code == 200
-
         
     data = {"payment_details": default_payment_method, 
             "supply_method": default_supply_method, 
             "address": default_address}
     response = client2.post('market/checkout', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #guest made purchase
+    data = {"store_id": 0, "product_id": 0, "quantity": 4}
+    headers = {'Authorization': 'Bearer ' + guest_token}
+    response = client3.post('user/add_to_basket', headers=headers, json=data)
+    assert response.status_code == 200
+
+    data = {"payment_details": default_payment_method,
+            "supply_method": default_supply_method,
+            "address": default_address}
+    response = client3.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 200
     
     #getting the purchase history:
