@@ -529,12 +529,28 @@ class Store:
         * This function closes the store
         * Returns: none
         """
-        if user_id == self.__store_founder_id:
-            with self.__checkout_lock:
-                self.__is_active = False
-                logger.info('[Store] successfully closed store with id: ' + str(self.__store_id))
-        else:
+        if not user_id == self.__store_founder_id:
             raise ValueError('User is not the founder of the store')
+        if not self.__is_active:
+            raise ValueError('Store is already closed')
+        with self.__checkout_lock:
+            self.__is_active = False
+            logger.info('[Store] successfully closed store with id: ' + str(self.__store_id))
+            
+
+    def open_store(self, user_id: int) -> None:
+        """
+        * Parameters: userId
+        * This function opens the store
+        * Returns: none
+        """
+        if not user_id == self.__store_founder_id:
+            raise ValueError('User is not the founder of the store')
+        if self.__is_active:
+            raise ValueError('Store is already open')
+        with self.__checkout_lock:
+            self.__is_active = True
+            logger.info('[Store] successfully opened store with id: ' + str(self.__store_id))
         
     def acquire_lock(self):
         self.__checkout_lock.acquire()
@@ -956,6 +972,8 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
+        if amount < 0:
+            raise ValueError('Amount is a negative value')
         
         if tags is None:
             tags = []
@@ -1090,6 +1108,16 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.close_store(user_id)
+
+    def open_store(self, store_id: int, user_id: int) -> None:
+        """
+        * Parameters: storeId, userId
+        * This function opens the store
+        * Note: the store verifies whether the userId is the id of the founder, only the founder can open the store
+        * Returns: None
+        """
+        store = self.__get_store_by_id(store_id)
+        store.open_store(user_id)
 
     def __get_store_by_id(self, store_id: int) -> Store:
         """

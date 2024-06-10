@@ -748,7 +748,7 @@ class PurchaseFacade:
         self._purchases_id_counter += 1
         return new_id
 
-    def get_purchases_of_user(self, user_id: int) -> List[PurchaseDTO]:
+    def get_purchases_of_user(self, user_id: int, store_id: Optional[int] = None) -> List[PurchaseDTO]:
         """
         * Parameters: userId
         * This function is responsible for returning the purchases of the user
@@ -759,11 +759,12 @@ class PurchaseFacade:
             if purchase.user_id == user_id:
                 if isinstance(purchase, ImmediatePurchase):
                     for sub_purchase in purchase.immediate_sub_purchases:
-                        purchases.append(PurchaseDTO(sub_purchase.purchase_id, sub_purchase.store_id,
-                                                     sub_purchase.date_of_purchase, sub_purchase.total_price,
-                                                     sub_purchase.total_price_after_discounts,
-                                                     sub_purchase.status.value, sub_purchase.products))
-                # if another type of purchase
+                        if store_id is None or sub_purchase.store_id == store_id:
+                            purchases.append(PurchaseDTO(sub_purchase.purchase_id, sub_purchase.store_id,
+                                                        sub_purchase.date_of_purchase, sub_purchase.total_price,
+                                                        sub_purchase.total_price_after_discounts,
+                                                        sub_purchase.status.value, sub_purchase.products))
+                    # if another type of purchase
 
         return purchases
 

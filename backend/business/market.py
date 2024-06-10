@@ -534,6 +534,14 @@ class MarketFacade:
         """
         self.store_facade.close_store(store_id, user_id)
 
+    def open_store(self, user_id: int, store_id: int):
+        """
+        * Parameters: userId, store_id
+        * This function opens a store
+        * Returns None
+        """
+        self.store_facade.open_store(store_id, user_id)
+
     def get_employees_info(self, user_id: int, store_id: int) -> Dict[int, str]:
         """
         * Parameters: userId, storeId
@@ -718,15 +726,15 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to create a lottery purchase")'''
 
-    def view_purchases_of_user(self, user_id: int) -> List[PurchaseDTO]:
+    def view_purchases_of_user(self, user_id: int, store_id: Optional[int]=None) -> List[PurchaseDTO]:
         """
         * Parameters: user_id
         * This function returns the purchases of a user
         * Returns a string
         """
-        if not self.user_facade.is_member(user_id) or not self.auth_facade.is_logged_in(user_id):
+        if not self.user_facade.is_member(user_id) or not self.auth_facade.is_logged_in(user_id) or not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a member or is not logged in")
-        return self.purchase_facade.get_purchases_of_user(user_id)
+        return self.purchase_facade.get_purchases_of_user(user_id, store_id)
 
     def view_purchases_of_store(self, user_id: int, store_id: int) -> List[PurchaseDTO]:
         """

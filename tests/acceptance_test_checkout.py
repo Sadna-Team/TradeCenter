@@ -1,6 +1,8 @@
 import pytest
 from backend import create_app, clean_data
 import json
+import threading
+import queue
 
 register_credentials = { 
         'username': 'test',
@@ -227,4 +229,3 @@ def test_checkout_failed_address_invalid(client2, user_token, init_store, clean)
     response = client2.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 400
 
-# CONCURRENT TESTS
