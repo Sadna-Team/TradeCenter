@@ -3,7 +3,6 @@ import pytest
 from backend import create_app, clean_data
 import json
 
-
 register_credentials = { 
         'username': 'test',
         'email': 'test@gmail.com',
