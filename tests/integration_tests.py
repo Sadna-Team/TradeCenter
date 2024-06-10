@@ -127,17 +127,16 @@ def default_set_up():
     user_id5 = user_facade.create_user(default_currency)
     user_ids = [user_id1, user_id2, user_id3, user_id4, user_id5]
 
-
-    user_facade.register_user(user_id1, default_usernames[0], default_passwords[0], default_emails[0], default_years[0],
-                              default_months[0], default_days[0], default_phones[0])
-    user_facade.register_user(user_id2, default_usernames[1], default_passwords[1], default_emails[1], default_years[1],
-                              default_months[1], default_days[1], default_phones[1])
-    user_facade.register_user(user_id3, default_usernames[2], default_passwords[2], default_emails[2], default_years[2],
-                              default_months[2], default_days[2], default_phones[2])
-    user_facade.register_user(user_id4, default_usernames[3], default_passwords[3], default_emails[3], default_years[3],
-                              default_months[3], default_days[3], default_phones[3])
-    user_facade.register_user(user_id5, default_usernames[4], default_passwords[4], default_emails[4], default_years[4],
-                              default_months[4], default_days[4], default_phones[4])
+    user_facade.register_user(user_id1, default_emails[0], default_usernames[0], default_passwords[0], default_years[0],
+                                default_months[0], default_days[0], default_phones[0])
+    user_facade.register_user(user_id2, default_emails[1], default_usernames[1], default_passwords[1], default_years[1],
+                                default_months[1], default_days[1], default_phones[1])
+    user_facade.register_user(user_id3, default_emails[2], default_usernames[2], default_passwords[2], default_years[2],
+                                default_months[2], default_days[2], default_phones[2])
+    user_facade.register_user(user_id4, default_emails[3], default_usernames[3], default_passwords[3], default_years[3],
+                                default_months[3], default_days[3], default_phones[3])
+    user_facade.register_user(user_id5, default_emails[4], default_usernames[4], default_passwords[4], default_years[4],
+                                default_months[4], default_days[4], default_phones[4])
 
     store_id1 = market_facade.add_store(user_id1, 0, default_store_names[0])
     store_id2 = market_facade.add_store(user_id2, 0, default_store_names[1])
@@ -282,12 +281,59 @@ def test_checkout_failed_no_products(default_user_cart):
             ._ShoppingCart__shopping_baskets)
     assert len(purchase_facade.get_purchases_of_store(user_id1)) == 0
 
-def test_nominate_store_owner():
-    pass
+def test_nominate_store_owner(default_set_up):
+    # User with user_id1 (The owner of store_id1 ) nominates user with user_id2 as store owner 
+    user_ids, store_ids, _, __ = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    user2_username = market_facade.user_facade.get_userDTO(user_id2).username
+    store_id1 = store_ids[0]
+    market_facade.nominate_store_owner(store_id1, user_id1, user2_username)
+    assert market_facade.user_facade._UserFacade__get_user(user_id2).get_notifications().__len__() == 1
 
-def test_nominate_store_manager():
-    pass
+def test_nominate_store_owner_failed_user_not_owner(default_set_up):
+    # User with user_id1 (The owner of store_id1 ) nominates user with user_id2 as store owner 
+    user_ids, store_ids, _, __ = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    user2_username = market_facade.user_facade.get_userDTO(user_id2).username
+    store_id1 = store_ids[1]
+    with pytest.raises(ValueError):
+        market_facade.nominate_store_owner(store_id1, user_id1, user2_username)
+    
+def test_nominate_store_owner_failed_user_already_owner(default_set_up):
+    user_ids, store_ids, products, _ = default_set_up
+    user_id1 = user_ids[0]
+    user1_username = market_facade.user_facade.get_userDTO(user_id1).username
+    store_id1 = store_ids[1]
+    with pytest.raises(ValueError):
+        market_facade.nominate_store_owner(store_id1, user_id1, user1_username)
 
+def test_nominate_store_manager(default_set_up):
+    user_ids, store_ids, products, _ = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    user2_username = market_facade.user_facade.get_userDTO(user_id2).username
+    store_id1 = store_ids[0]
+    market_facade.nominate_store_manager(store_id1, user_id1, user2_username)
+    assert market_facade.user_facade._UserFacade__get_user(user_id2).get_notifications().__len__() == 1
+
+def test_nominate_store_manager_failed_user_not_owner(default_set_up):
+    user_ids, store_ids, products, _ = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    user2_username = market_facade.user_facade.get_userDTO(user_id2).username
+    store_id1 = store_ids[1]
+    with pytest.raises(ValueError):
+        market_facade.nominate_store_manager(store_id1, user_id1, user2_username)
+
+def test_nominate_store_manager_failed_user_already_owner(default_set_up):
+    user_ids, store_ids, products, _ = default_set_up
+    user_id1 = user_ids[0]
+    user1_username = market_facade.user_facade.get_userDTO(user_id1).username
+    store_id1 = store_ids[1]
+    with pytest.raises(ValueError):
+        market_facade.nominate_store_manager(store_id1, user_id1, user1_username)
 
 def test_accept_nomination():
     pass
@@ -327,10 +373,6 @@ def test_add_purchase_policy():
 
 def test_remove_purchase_policy():
     pass
-
-
-
-
 
 
 
