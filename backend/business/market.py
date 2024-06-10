@@ -732,7 +732,7 @@ class MarketFacade:
         * This function returns the purchases of a user
         * Returns a string
         """
-        if not self.user_facade.is_member(user_id) or not self.auth_facade.is_logged_in(user_id) or not self.roles_facade.is_system_manager(user_id):
+        if not self.roles_facade.is_system_manager(user_id) and (not self.user_facade.is_member(user_id) or not self.auth_facade.is_logged_in(user_id)):
             raise ValueError("User is not a member or is not logged in")
         return self.purchase_facade.get_purchases_of_user(user_id, store_id)
 

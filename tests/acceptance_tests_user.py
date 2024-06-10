@@ -73,7 +73,8 @@ def test_start(first=True):
                                      'description': 'test_description',
                                      'price': 10,
                                      'weight': 1,
-                                     'tags': ['test_tag']
+                                     'tags': ['test_tag'],
+                                     'amount': 10
                                      })
         assert response.status_code == 200
 
@@ -83,7 +84,8 @@ def test_start(first=True):
                                      'description': 'test_description',
                                      'price': 10,
                                      'weight': 1,
-                                     'tags': ['test_tag2']
+                                     'tags': ['test_tag2'],
+                                     'amount': 10
                                      })
 
         guest_token = client.get('/auth/').json['token']
@@ -490,3 +492,120 @@ def test_add_store_failed_user_not_a_member():
         'location_id': 1,
     })
     assert response.status_code == 400
+
+
+default_payment_method = {'payment method': 'bogo'}
+
+default_supply_method = "bogo"
+
+default_address_checkout = {'address_id': 0, 
+                            'address': 'randomstreet 34th', 
+                            'city': 'arkham', 
+                            'country': 'Wakanda', 
+                            'state': 'Utopia', 
+                            'postal_code': '12345'}
+
+def test_show_purchase_history_of_user():
+    global token 
+    test_add_product_to_basket()
+
+    create_and_login_user('tests5', 'tests5', 'tests5@gmail.com', '055-1111111', 2003, 1, 1)
+    #purchase the product
+    response = client.post('market/checkout', headers={
+        'Authorization': f'Bearer {token}'
+    }, json={
+        'payment_details': default_payment_method,
+        'supply_method': default_supply_method,
+        'address': default_address_checkout})
+    assert response.status_code == 200
+
+    #show purchase history
+    response = client.get('market/user_purchase_history', headers={
+        'Authorization': f'Bearer {token}'
+    }, json={})
+    assert response.status_code == 200
+
+
+def test_show_purchase_history_of_user_failed_is_not_logged_in():
+    global guest_token
+    init_guest_token()
+
+    #adding a product to the basket
+    response = client.post('/user/add_to_basket', headers={
+        'Authorization': f'Bearer {guest_token}'
+    }, json={
+        'store_id': 0,
+        'product_id': 0,
+        'quantity': 1
+    })
+    assert response.status_code == 200
+
+    #purchase the product
+    response = client.post('market/checkout', headers={
+        'Authorization': f'Bearer {guest_token}'
+    }, json={
+        'payment_details': default_payment_method,
+        'supply_method': default_supply_method,
+        'address': default_address_checkout})
+    assert response.status_code == 200
+
+    #show purchase history
+    response = client.get('market/user_purchase_history', headers={
+        'Authorization': f'Bearer {guest_token}'
+    }, json={})
+    assert response.status_code == 400
+
+def test_show_purchase_history_of_user_in_store():
+    global token 
+    test_add_product_to_basket()
+
+    create_and_login_user('tests6', 'tests6', 'tests6@gmail.com', '056-1111111', 2003, 1, 1)
+    #purchase the product
+    response = client.post('market/checkout', headers={
+        'Authorization': f'Bearer {token}'
+    }, json={
+        'payment_details': default_payment_method,
+        'supply_method': default_supply_method,
+        'address': default_address_checkout})
+    assert response.status_code == 200
+
+    #show purchase history
+    response = client.get('market/user_purchase_history', headers={
+        'Authorization': f'Bearer {token}'
+    }, json={
+        'store_id': 0
+    })
+    assert response.status_code == 200
+
+
+def test_show_purchase_history_of_user_in_store_failed_is_not_logged_in():
+    global guest_token
+    init_guest_token()
+
+    #adding a product to the basket
+    response = client.post('/user/add_to_basket', headers={
+        'Authorization': f'Bearer {guest_token}'
+    }, json={
+        'store_id': 0,
+        'product_id': 0,
+        'quantity': 1
+    })
+    assert response.status_code == 200
+
+    #purchase the product
+    response = client.post('market/checkout', headers={
+        'Authorization': f'Bearer {guest_token}'
+    }, json={
+        'payment_details': default_payment_method,
+        'supply_method': default_supply_method,
+        'address': default_address_checkout})
+    assert response.status_code == 200
+
+    #show purchase history
+    response = client.get('market/user_purchase_history', headers={
+        'Authorization': f'Bearer {guest_token}'
+    }, json={
+        'store_id': 0
+    })
+    assert response.status_code == 400
+
