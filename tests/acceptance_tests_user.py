@@ -522,7 +522,7 @@ def test_show_purchase_history_of_user():
     #show purchase history
     response = client.get('market/user_purchase_history', headers={
         'Authorization': f'Bearer {token}'
-    }, json={})
+    }, json={"user_id": 1})
     assert response.status_code == 200
 
 
@@ -552,7 +552,7 @@ def test_show_purchase_history_of_user_failed_is_not_logged_in():
     #show purchase history
     response = client.get('market/user_purchase_history', headers={
         'Authorization': f'Bearer {guest_token}'
-    }, json={})
+    }, json={"user_id": 1})
     assert response.status_code == 400
 
 def test_show_purchase_history_of_user_in_store():
@@ -572,9 +572,7 @@ def test_show_purchase_history_of_user_in_store():
     #show purchase history
     response = client.get('market/user_purchase_history', headers={
         'Authorization': f'Bearer {token}'
-    }, json={
-        'store_id': 0
-    })
+    }, json={"user_id": 1, "store_id": 0})
     assert response.status_code == 200
 
 
@@ -604,8 +602,6 @@ def test_show_purchase_history_of_user_in_store_failed_is_not_logged_in():
     #show purchase history
     response = client.get('market/user_purchase_history', headers={
         'Authorization': f'Bearer {guest_token}'
-    }, json={
-        'store_id': 0
-    })
+    }, json={"user_id": 1, "store_id": 0})
     assert response.status_code == 400
 
