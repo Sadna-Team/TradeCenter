@@ -10,6 +10,7 @@ from .notifier import Notifier
 from typing import List, Dict, Tuple, Optional
 from datetime import date, datetime
 import threading
+from ..socketio import send_real_time_notification
 
 import logging
 
@@ -158,6 +159,9 @@ class MarketFacade:
                 raise ValueError("Invalid supply method")
             on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
             SupplyHandler().process_supply(package_detail, user_id, on_arrival)
+            
+            # notify the store owners
+            # TODO: add support for real time notifications
             for store_id in cart.keys():
                 Notifier().notify_new_purchase(store_id, user_id)
 
@@ -178,23 +182,38 @@ class MarketFacade:
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_username):
         # get user_id of new_owner_username
         new_owner_id = self.user_facade.get_user_id_from_username(new_owner_username)
+        
+        # nominate the new owner
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
-        # TODO: different implementation later
-        self.user_facade.notify_user(new_owner_id,
-                                     NotificationDTO(-1, f"You have been nominated to be the owner of store"
-                                                         f" {store_id}. nomination id: {nomination_id} ",
-                                                     datetime.now()))
+
+        # send notification to the new owner
+        is_logged_in = self.user_facade.is_logged_in(new_owner_id)
+        notification = NotificationDTO(-1, f"You have been nominated to be the owner of store"
+                                           f" {store_id}. nomination id: {nomination_id} ",
+                                            datetime.now())
+        if is_logged_in:
+            send_real_time_notification(new_owner_id, notification)
+        else:
+            self.user_facade.notify_user(new_owner_id, notification)
         logger.info(f"User {owner_id} has nominated user {new_owner_id} to be the owner of store {store_id}")
 
     def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_username):
         # get user_id of new_manager_username
         new_manager_id = self.user_facade.get_user_id_from_username(new_manager_username)
+        
+        # nominate the new manager
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
-        # TODO: different implementation later
-        self.user_facade.notify_user(new_manager_id,
-                                     NotificationDTO(-1, f"You have been nominated to be the manager of store"
-                                                         f" {store_id}. nomination id: {nomination_id} ",
-                                                     datetime.now()))
+
+        # send notification to the new manager
+        is_logged_in = self.user_facade.is_logged_in(new_manager_id)
+        notification = NotificationDTO(-1, f"You have been nominated to be the manager of store"
+                                           f" {store_id}. nomination id: {nomination_id} ",
+                                            datetime.now())
+        if is_logged_in:
+            send_real_time_notification(new_manager_id, notification)
+        else:
+            self.user_facade.notify_user(new_manager_id, notification)
+                                     
         logger.info(f"User {owner_id} has nominated user {new_manager_id} to be the manager of store {store_id}")
 
     def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
