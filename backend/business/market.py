@@ -264,7 +264,7 @@ class MarketFacade:
         if not self.roles_facade.is_system_manager(actor_id):
             raise ValueError("User is not a system manager")
         
-        self.user_facade.suspend_user_permanently(actor_id, user_id)
+        self.user_facade.suspend_user_permanently(user_id)
         logger.info(f"User {actor_id} has suspended user {user_id} permanently")
 
     def suspend_user_temporarily(self, actor_id: int, user_id: int, date_details: dict):
@@ -274,7 +274,7 @@ class MarketFacade:
         if not self.roles_facade.is_system_manager(actor_id):
             raise ValueError("User is not a system manager")
         
-        self.user_facade.suspend_user_temporarily(actor_id, user_id, date_details)
+        self.user_facade.suspend_user_temporarily(user_id, date_details)
         logger.info(f"User {actor_id} has suspended user {user_id} temporarily")
 
     def unsuspend_user(self, actor_id: int, user_id: int):
@@ -284,7 +284,7 @@ class MarketFacade:
         if not self.roles_facade.is_system_manager(actor_id):
             raise ValueError("User is not a system manager")
         
-        self.user_facade.unsuspend_user(actor_id, user_id)
+        self.user_facade.unsuspend_user(user_id)
         logger.info(f"User {actor_id} has unsuspended user {user_id}")
 
     def show_suspended_users(self, actor_id: int):

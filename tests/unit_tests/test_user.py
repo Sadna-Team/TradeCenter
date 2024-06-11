@@ -146,6 +146,12 @@ class TestUser(unittest.TestCase):
         user.clear_basket()
         self.assertEqual(user.get_shopping_cart(), {})
 
+    def test_suspend_user(self):
+        user = User(user_id=1, currency='USD')
+        user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1,
+                      phone="1234567890")
+        assert not user.is_suspended()
+
 class TestUserFacade(unittest.TestCase):
 
     def setUp(self):
@@ -234,12 +240,77 @@ class TestUserFacade(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.user_facade.remove_user(1)
 
-
-
     def test_is_member(self):
         user_id = self.user_facade.create_user(currency='USD')
         self.user_facade.register_user(user_id, email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
         self.assertTrue(self.user_facade.is_member(0))
+    
+    def test_is_suspended_true(self):
+        user_id = self.user_facade.create_user(currency='USD')
+        self.user_facade.register_user(user_id, email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
+        assert not self.user_facade.suspended(user_id)
+
+    def test_permanently_suspend_user(self):
+        user_id = self.user_facade.create_user(currency='USD')
+        self.user_facade.register_user(user_id, email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
+        self.user_facade.suspend_user_permanently(user_id)
+        assert self.user_facade.suspended(user_id)
+
+    def test_temporarily_suspend_user(self):
+        user_id = self.user_facade.create_user(currency='USD')
+        self.user_facade.register_user(user_id, email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
+        details = {
+            "year": 2026,
+            "month": 1,
+            "day": 1,
+            "hour": 0,
+            "minute": 0,
+        }
+        self.user_facade.suspend_user_temporarily(user_id, details)
+        assert self.user_facade.suspended(user_id)
+
+    def test_temporarily_suspend_user_and_the_time_passed(self):
+        user_id = self.user_facade.create_user(currency='USD')
+        self.user_facade.register_user(user_id, email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
+
+        if datetime.datetime.now().minute == 0:
+            minutes = 59
+            hour = datetime.datetime.now().hour - 1
+        else:
+            minutes = datetime.datetime.now().minute - 1
+            hour = datetime.datetime.now().hour
+            
+        details = {
+            "year": datetime.datetime.now().year,
+            "month": datetime.datetime.now().month,
+            "day": datetime.datetime.now().day,
+            "hour": hour,
+            "minute": minutes
+        }
+        self.user_facade.suspend_user_temporarily(user_id, details)
+        assert not self.user_facade.suspended(user_id)
+    
+    def test_suspend_user_not_found(self):
+        with self.assertRaises(ValueError):
+            self.user_facade.suspend_user_permanently(1)
+
+    def test_unsuspend_user(self):
+        user_id = self.user_facade.create_user(currency='USD')
+        self.user_facade.register_user(user_id, email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
+        self.user_facade.suspend_user_permanently(user_id)
+        self.user_facade.unsuspend_user(user_id)
+        assert not self.user_facade.suspended(user_id)
+    
+    def test_get_empty_suspended_users(self):
+        user_id = self.user_facade.create_user(currency='USD')
+        self.user_facade.register_user(user_id, email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
+        assert self.user_facade.get_suspended_users() == {}
+    
+    def test_get_suspended_users(self):
+        user_id = self.user_facade.create_user(currency='USD')
+        self.user_facade.register_user(user_id, email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
+        self.user_facade.suspend_user_permanently(user_id)
+        assert self.user_facade.get_suspended_users() == {user_id: None}
 
 if __name__ == '__main__':
     unittest.main()
