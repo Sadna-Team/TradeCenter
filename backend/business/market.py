@@ -257,6 +257,18 @@ class MarketFacade:
         self.roles_facade.remove_system_manager(actor, user_id)
         logger.info(f"User {actor} has removed user {user_id} as a system manager")
 
+    def suspend_user_permanently(self, actor_id: int, user_id: int):
+        pass
+
+    def suspend_user_temporarily(self, actor_id: int, user_id: int, numberOfDays: int):
+        pass 
+
+    def unsuspend_user(self, actor_id: int, user_id: int):
+        pass
+
+    def show_suspended_users(self, actor_id: int):
+        pass
+
     def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
         if self.suspended(user_id):
             raise ValueError("User is suspended")

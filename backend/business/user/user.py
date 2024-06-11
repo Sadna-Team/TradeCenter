@@ -163,6 +163,7 @@ class Member(State):
         self.__phone: str = phone
         self.__notifications: List[Notification] = []
         self.__is_suspended: bool = False
+        self.__suspended_until: Optional[datetime.datetime] = None
 
     def get_password(self):
         return self.__password
@@ -291,7 +292,17 @@ class UserFacade:
         if not self.__get_user(user_id).is_member():
             return False
         return self.__get_user(user_id).is_suspended()
-        
+
+    def suspend_user_permanently(self, actor_id: int, user_id: int):
+        pass
+
+    def suspend_user_temporarily(self, actor_id: int, user_id: int, until: datetime.datetime):
+        pass
+
+    def unsuspend_user(self, actor_id: int, user_id: int):
+        pass
+
+
     def __get_user(self, user_id: int) -> User:
         if user_id not in self.__users:
             raise ValueError("User not found")
