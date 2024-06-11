@@ -279,6 +279,16 @@ class UserFacade:
         self.__usernames.clear()
         UserFacade.__id_serializer = 0
 
+    def suspended(self, user_id: int) -> bool:
+        """
+        If a user is a guest we continue, 
+        otherwise we check if the user is registered and suspended
+        * Return True if we can't continue
+        """
+        if not self.__get_user(user_id).is_member():
+            return False
+        return self.__get_user(user_id).__member.is_suspended()
+        
     def __get_user(self, user_id: int) -> User:
         if user_id not in self.__users:
             raise ValueError("User not found")
@@ -295,7 +305,7 @@ class UserFacade:
         user = User(new_id, currency)
         self.__users[new_id] = user
         return new_id
-
+    
     def register_user(self, user_id: int, email: str, username: str, password: str,
                       year: int, month: int, day: int, phone: str) -> None:
         with UserFacade.__register_lock:
@@ -337,15 +347,23 @@ class UserFacade:
                              notification.get_message(), notification.get_date()))
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
+        if self.suspended(user_id):
+            raise ValueError("User is suspended")
         self.__get_user(user_id).add_product_to_basket(store_id, product_id, quantity)
 
     def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
+        if self.suspended(user_id):
+            raise ValueError("User is suspended")
         return self.__get_user(user_id).get_shopping_cart()
 
     def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
+        if self.suspended(user_id):
+            raise ValueError("User is suspended")
         self.__get_user(user_id).remove_product_from_basket(store_id, product_id, quantity)
 
     def clear_basket(self, user_id: int) -> None:
+        if self.suspended(user_id):
+            raise ValueError("User is suspended")
         self.__get_user(user_id).clear_basket()
 
     def get_password(self, username: str) -> Tuple[int, str]:
