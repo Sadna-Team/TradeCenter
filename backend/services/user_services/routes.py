@@ -220,3 +220,14 @@ def accept_promotion():
         logger.error('accept_promotion - ', str(e))
         return jsonify({'message': str(e)}), 400
     return user_service.accept_promotion(user_id, promotion_id, accept)
+
+
+@user_bp.route('/suspend_user', methods=['POST'])
+@jwt_required()
+def suspend_user():
+    pass
+
+@user_bp.route('/unsuspend_user', methods=['POST'])
+@jwt_required()
+def unsuspend_user():
+    pass
