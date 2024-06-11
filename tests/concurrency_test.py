@@ -217,8 +217,8 @@ def test_concurrent_checkout_remove(client1, client2, owner_token, user_token, i
     result1 = results.get()
     result2 = results.get()
     assert ((result1.status_code == 200 and result2.status_code == 200) or
-            (result1.status_code == 400 and result1.get_json()['message'] == 'Product not found' and result2.status_code == 200) or
-            (result1.status_code == 200 and result2.status_code == 400 and result2.get_json()['message'] == 'Product not found'))
+            (result1.status_code == 400 and result1.get_json()['message'] == 'Product is not found' and result2.status_code == 200) or
+            (result1.status_code == 200 and result2.status_code == 400 and result2.get_json()['message'] == 'Product is not found'))
     results.queue.clear()
 
 def test_concurrent_checkout_close_store(client1, client2, owner_token, user_token, init_store, clean):
