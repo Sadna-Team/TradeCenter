@@ -117,6 +117,10 @@ class State(ABC):
     def get_phone(self):
         pass
 
+    @abstractmethod
+    def is_suspended(self):
+        pass
+
 
 class Guest(State):
     def get_password(self):
@@ -142,11 +146,14 @@ class Guest(State):
 
     def get_phone(self):
         raise ValueError("User is not registered")
+    
+    def is_suspended(self):
+        raise ValueError("User is not registered")
 
 
 class Member(State):
     def __init__(self, email: str, username, password: str, year: int, month: int, day: int,
-                 phone: str) -> None:
+                 phone: str, is_suspended: bool) -> None:
         #  try to convert the birth
 
         self.__email: str = email
@@ -155,6 +162,7 @@ class Member(State):
         self.__birthdate: datetime.datetime = datetime.datetime(year, month, day)
         self.__phone: str = phone
         self.__notifications: List[Notification] = []
+        self.__is_suspended: bool = is_suspended
 
     def get_password(self):
         return self.__password
@@ -179,6 +187,9 @@ class Member(State):
 
     def get_phone(self):
         return self.__phone
+    
+    def is_suspended(self):
+        return self.__is_suspended
 
 
 class User:
@@ -207,10 +218,10 @@ class User:
         return self.__shopping_cart.get_dto()
 
     def register(self, email: str, username: str, password: str, year: int, month: int, day: int,
-                 phone: str) -> None:
+                 phone: str, is_suspended: bool) -> None:
         if isinstance(self.__member, Member):
             raise ValueError("User is already registered")
-        self.__member = Member(email, username, password, year, month, day, phone)
+        self.__member = Member(email, username, password, year, month, day, phone, is_suspended)
 
     def remove_product_from_basket(self, store_id: int, product_id: int, quantity: int):
         self.__shopping_cart.remove_product_from_basket(store_id, product_id, quantity)
@@ -292,7 +303,8 @@ class UserFacade:
                 raise ValueError("Username already exists")
             if user_id not in self.__users:
                 raise ValueError("User not found")
-            self.__get_user(user_id).register(email, username, password, year, month, day, phone)
+            # "False" is for is_suspended field
+            self.__get_user(user_id).register(email, username, password, year, month, day, phone, False)
             self.__usernames[username] = user_id
 
     def get_user_id_from_username(self, username: str) -> int:
