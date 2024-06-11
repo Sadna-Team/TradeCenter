@@ -258,19 +258,46 @@ class MarketFacade:
         logger.info(f"User {actor} has removed user {user_id} as a system manager")
 
     def suspend_user_permanently(self, actor_id: int, user_id: int):
-        pass
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
+        if not self.roles_facade.is_system_manager(actor_id):
+            raise ValueError("User is not a system manager")
+        
+        self.user_facade.suspend_user_permanently(actor_id, user_id)
+        logger.info(f"User {actor_id} has suspended user {user_id} permanently")
 
-    def suspend_user_temporarily(self, actor_id: int, user_id: int, numberOfDays: int):
-        pass 
+    def suspend_user_temporarily(self, actor_id: int, user_id: int, date_details: dict):
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
+        if not self.roles_facade.is_system_manager(actor_id):
+            raise ValueError("User is not a system manager")
+        
+        self.user_facade.suspend_user_temporarily(actor_id, user_id, date_details)
+        logger.info(f"User {actor_id} has suspended user {user_id} temporarily")
 
     def unsuspend_user(self, actor_id: int, user_id: int):
-        pass
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
+        if not self.roles_facade.is_system_manager(actor_id):
+            raise ValueError("User is not a system manager")
+        
+        self.user_facade.unsuspend_user(actor_id, user_id)
+        logger.info(f"User {actor_id} has unsuspended user {user_id}")
 
     def show_suspended_users(self, actor_id: int):
-        pass
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
+        if not self.roles_facade.is_system_manager(actor_id):
+            raise ValueError("User is not a system manager")
+        
+        return self.user_facade.get_suspended_users()
 
     def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
-        if self.suspended(user_id):
+        if self.user_facade.suspended(user_id):
             raise ValueError("User is suspended")
         
         if not self.roles_facade.is_system_manager(user_id):

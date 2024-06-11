@@ -121,6 +121,10 @@ class State(ABC):
     def is_suspended(self):
         pass
 
+    @abstractmethod
+    def set_suspense(self, value: bool, suspended_until:Optional[datetime.datetime]):
+        pass
+
 
 class Guest(State):
     def get_password(self):
@@ -150,6 +154,8 @@ class Guest(State):
     def is_suspended(self):
         raise ValueError("User is not registered")
 
+    def set_suspense(self, value: bool, suspended_until:Optional[datetime.datetime]):
+        raise ValueError("User is not registered")
 
 class Member(State):
     def __init__(self, email: str, username, password: str, year: int, month: int, day: int,
@@ -165,6 +171,14 @@ class Member(State):
         self.__is_suspended: bool = False
         self.__suspended_until: Optional[datetime.datetime] = None
 
+    def set_suspense(self, value: bool, suspended_until:Optional[datetime.datetime]):
+        """
+        * value: True if we want to suspend the user, False otherwise
+        * suspended_until: the date until the user is suspended
+        """
+        self.__is_suspended = value
+        self.__suspended_until = suspended_until
+        
     def get_password(self):
         return self.__password
 
@@ -190,9 +204,15 @@ class Member(State):
         return self.__phone
     
     def is_suspended(self):
+        """
+        * Return True if the user is suspended
+        * Check if the suspension date passed (If it did, we update the is_suspended field to False)
+        """
+        if self.__is_suspended and self.__suspended_until is not None:
+            if datetime(self.__suspended_until) < datetime.datetime.now():
+                self.__is_suspended = False         
         return self.__is_suspended
-
-
+        
 class User:
     def __init__(self, user_id: int, currency: str = 'USD') -> None:
         if currency not in c.currencies:
@@ -241,6 +261,9 @@ class User:
     
     def is_suspended(self):
         return self.__member.is_suspended()
+    
+    def change_suspend(self, value: bool, suspended_until: Optional[datetime.datetime]):
+        self.__member.set_suspense(value, suspended_until)
 
     def create_purchase_user_dto(self) -> PurchaseUserDTO:
         try:
@@ -274,6 +297,7 @@ class UserFacade:
             self._initialized = True
             self.__users: Dict[int, User] = {}
             self.__usernames: Dict[str, int] = {}  # username -> user_id
+            self.__suspend_users: Dict[int, Optional[datetime.datetime]] = {} # user_id's -> date until end of suspension
 
     def clean_data(self):
         """
@@ -282,6 +306,10 @@ class UserFacade:
         self.__users.clear()
         self.__usernames.clear()
         UserFacade.__id_serializer = 0
+        self.__suspend_users.clear()
+
+    def get_suspended_users(self) -> Dict[int, Optional[datetime.datetime]]:
+        return self.__suspend_users
 
     def suspended(self, user_id: int) -> bool:
         """
@@ -294,14 +322,32 @@ class UserFacade:
         return self.__get_user(user_id).is_suspended()
 
     def suspend_user_permanently(self, actor_id: int, user_id: int):
-        pass
+        """
+        Suspend user permanently, only system manager can do this
+        * actor_id: the id of system manager
+        * user_id: the id of the user to suspend
+        """
+        self.__get_user(user_id).change_suspend(True, None)
+        self.__suspend_users[user_id] = None # Added the user to the suspended users list
 
-    def suspend_user_temporarily(self, actor_id: int, user_id: int, until: datetime.datetime):
-        pass
+    def suspend_user_temporarily(self, actor_id: int, user_id: int, date_details: dict):
+        """
+        Suspend user for a specific time, only system manager can do this
+        * actor_id: the id of system manager
+        * user_id: the id of the user to suspend
+        """
+        date = datetime(date_details["year"], date_details["month"], date_details["day"], date_details["hour"], date_details["minute"])    
+        self.__get_user(user_id).change_suspend(True, date)
+        self.__suspend_users[user_id] = date # Added the user to the suspended users list
 
     def unsuspend_user(self, actor_id: int, user_id: int):
-        pass
-
+        """
+        Unsuspend user, only system manager can do this
+        * actor_id: the id of system manager
+        * user_id: the id of the user to unsuspend
+        """
+        self.__get_user(user_id).change_suspend(False, None)
+        self.__suspend_users.pop(user_id) # Removed the user from the suspended users list
 
     def __get_user(self, user_id: int) -> User:
         if user_id not in self.__users:
