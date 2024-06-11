@@ -732,8 +732,8 @@ class MarketFacade:
         * This function returns the purchases of a user
         * Returns a string
         """
-        if not self.roles_facade.is_system_manager(user_id):
-            raise ValueError("User is not a system manager")
+        if not self.roles_facade.is_system_manager(user_id) and (user_id != requested_id):
+            raise ValueError("User is not a system manager so can't view history of other users")
         return self.purchase_facade.get_purchases_of_user(requested_id, store_id)
 
     def view_purchases_of_store(self, user_id: int, store_id: int) -> List[PurchaseDTO]:
