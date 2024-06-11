@@ -153,7 +153,7 @@ class Guest(State):
 
 class Member(State):
     def __init__(self, email: str, username, password: str, year: int, month: int, day: int,
-                 phone: str, is_suspended: bool) -> None:
+                 phone: str) -> None:
         #  try to convert the birth
 
         self.__email: str = email
@@ -162,7 +162,7 @@ class Member(State):
         self.__birthdate: datetime.datetime = datetime.datetime(year, month, day)
         self.__phone: str = phone
         self.__notifications: List[Notification] = []
-        self.__is_suspended: bool = is_suspended
+        self.__is_suspended: bool = False
 
     def get_password(self):
         return self.__password
@@ -218,10 +218,10 @@ class User:
         return self.__shopping_cart.get_dto()
 
     def register(self, email: str, username: str, password: str, year: int, month: int, day: int,
-                 phone: str, is_suspended: bool) -> None:
+                 phone: str) -> None:
         if isinstance(self.__member, Member):
             raise ValueError("User is already registered")
-        self.__member = Member(email, username, password, year, month, day, phone, is_suspended)
+        self.__member = Member(email, username, password, year, month, day, phone)
 
     def remove_product_from_basket(self, store_id: int, product_id: int, quantity: int):
         self.__shopping_cart.remove_product_from_basket(store_id, product_id, quantity)
@@ -237,6 +237,9 @@ class User:
 
     def is_member(self):
         return isinstance(self.__member, Member)
+    
+    def is_suspended(self):
+        return self.__member.is_suspended()
 
     def create_purchase_user_dto(self) -> PurchaseUserDTO:
         try:
@@ -287,7 +290,7 @@ class UserFacade:
         """
         if not self.__get_user(user_id).is_member():
             return False
-        return self.__get_user(user_id).__member.is_suspended()
+        return self.__get_user(user_id).is_suspended()
         
     def __get_user(self, user_id: int) -> User:
         if user_id not in self.__users:
@@ -314,7 +317,7 @@ class UserFacade:
             if user_id not in self.__users:
                 raise ValueError("User not found")
             # "False" is for is_suspended field
-            self.__get_user(user_id).register(email, username, password, year, month, day, phone, False)
+            self.__get_user(user_id).register(email, username, password, year, month, day, phone)
             self.__usernames[username] = user_id
 
     def get_user_id_from_username(self, username: str) -> int:

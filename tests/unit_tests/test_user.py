@@ -56,7 +56,7 @@ class TestState(unittest.TestCase):
             guest.get_password()
 
     def test_member_get_password(self):
-        member = Member(email="test@example.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890", is_suspended=False)
+        member = Member(email="test@example.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
         self.assertEqual(member.get_password(), "password")
 
 
@@ -109,22 +109,22 @@ class TestUser(unittest.TestCase):
 
     def test_register(self):
         user = User(user_id=1, currency='USD')
-        user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890", is_suspended=False)
+        user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
         self.assertEqual(user.get_password(), "password")
         self.assertTrue(user.is_member())
 
     def test_register_already_registered(self):
         user = User(user_id=1, currency='USD')
-        user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890", is_suspended=False)
+        user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
 
         with self.assertRaises(ValueError):
             user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1,
-                          phone="1234567890", is_suspended=False)
+                          phone="1234567890")
             
     def test_get_notifications(self):
         user = User(user_id=1, currency='USD')
         user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1,
-                      phone="1234567890", is_suspended=False)
+                      phone="1234567890")
         self.assertEqual(user.get_notifications(), [])
         user.add_notification(Notification(1, "Test Message", datetime.datetime.now()))
         self.assertEqual(len(user.get_notifications()), 1)
@@ -132,7 +132,7 @@ class TestUser(unittest.TestCase):
     def test_get_password_member(self):
         user = User(user_id=1, currency='USD')
         user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1,
-                      phone="1234567890", is_suspended=False)
+                      phone="1234567890")
         self.assertEqual(user.get_password(), "password")
 
     def test_get_password_guest(self):

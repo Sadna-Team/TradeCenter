@@ -12,7 +12,7 @@ register_credentials = {
         'year': 2003,
         'month': 1,
         'day': 1,
-        'phone': '054-1234567' }
+        'phone': '054-1234567'}
 
 default_payment_method = {'payment method': 'bogo'}
 
