@@ -234,7 +234,8 @@ class MarketFacade:
 
     def remove_store_role(self, actor_id: int, store_id: int, username: str):
         user_id = self.user_facade.get_user_id_from_username(username)
-        self.roles_facade.remove_role(store_id, actor_id, user_id)
+        logged_in = self.auth_facade.get_logged_in()
+        self.roles_facade.remove_role(store_id, actor_id, user_id, logged_in)
         logger.info(f"User {actor_id} has removed user {user_id} from store {store_id}")
 
     def give_up_role(self, actor_id: int, store_id: int):
