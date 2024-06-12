@@ -164,7 +164,7 @@ class MarketFacade:
             # TODO: add support for real time notifications
             for store_id in cart.keys():
                 Notifier().notify_new_purchase(store_id, user_id)
-
+            
             logger.info(f"User {user_id} has checked out")
             return pur_id
         except Exception as e:

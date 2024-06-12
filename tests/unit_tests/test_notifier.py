@@ -71,7 +71,7 @@ class TestNotifier(unittest.TestCase):
     
     def test_notify(self):
         self.notifier._user_facade.notify_user = MagicMock()
-        self.notifier._notify(1, "message")
+        self.notifier._notify_delayed(1, "message")
         self.notifier._user_facade.notify_user.assert_called_once()
 
     

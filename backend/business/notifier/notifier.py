@@ -3,6 +3,7 @@ from typing import Dict
 from datetime import datetime
 from .. import NotificationDTO
 from threading import Lock
+from ...socketio import send_real_time_notification
 
 
 class Notifier:
@@ -37,58 +38,65 @@ class Notifier:
             self._notification_id += 1
             return self._notification_id
 
-    def _notify(self, user_id: int, message: str) -> None:
+    def _notify_delayed(self, user_id: int, message: str) -> None:
         """
         * Parameters: user_id: int, message: str
-        * This function sends a message to a single user.
+        * This function sends a message to a single offline user.
         """
         notification = NotificationDTO(self._generate_notification_id(), message, datetime.now())
         self._user_facade.notify_user(user_id, notification)
 
-    # Notify on new purchase --- for store owner    
-    def notify_new_purchase(self, store_id: int, purchase_id: int) -> None:
+    def _notify_real_time(self, user_id: int, message: str) -> None:
         """
-        * Parameters: store_id: int
-        * This function notifies the store owner(s) of a new purchase in the store.
+        * Parameters: user_id: int, message: str
+        * This function sends a message to a single online user.
+        """
+        notification = NotificationDTO(self._generate_notification_id(), message, datetime.now())
+        send_real_time_notification(user_id, notification)
+    
+    def _notify_multiple(self, store_id: int, message: str, logged_in: list[int]) -> None:
+        """
+        * Parameters: store_id: int, message: str, logged_in: list[int] (list of user IDs)
+        * This function sends a message to multiple users.
         """
         if store_id not in self._listeners:
             raise ValueError("No listeners for the store with ID:", store_id)
 
-        else:
-            msg = "New purchase in store: " + str(store_id) + "\n purchase ID: " + str(purchase_id) + "With the info:"
-            for ownerID in self._listeners[store_id]:
-                self._notify(ownerID, msg)
+        for owner in self._listeners[store_id]:
+            if owner in logged_in:
+                self._notify_real_time(owner, message)
+            else:
+                self._notify_delayed(owner, message)
+
+    # Notify on new purchase --- for store owner    
+    def notify_new_purchase(self, store_id: int, purchase_id: int, logged_in: list[int]) -> None:
+        """
+        * Parameters: store_id: int, purchase_id: int, logged_in: list[int] (list of user IDs)
+        * This function notifies the store owner(s) of a new purchase in the store.
+        """
+        msg = "New purchase in store: " + str(store_id) + "\n purchase ID: " + str(purchase_id)# + "With the info:"
+        self._notify_multiple(store_id, msg, logged_in)
 
     # Notify on a new bid  --- for store owner
-    def notify_new_bid(self, store_id: int, user_id: int) -> None:
+    def notify_new_bid(self, store_id: int, user_id: int, logged_in: list[int]) -> None:
         """
-        * Parameters: store_id: int, user_id(Who created a bid purchase): int 
+        * Parameters: store_id: int, user_id(Who created a bid purchase): int, logged_in: list[int] (list of user IDs)
         * This function notifies the store owner(s) of a new purchase in the store.
         """
-        if store_id not in self._listeners:
-            raise ValueError("No listeners for the store with ID:", store_id)
+        msg = f"User {user_id} has created a bid purchase"
+        self._notify_multiple(store_id, msg, logged_in)
 
-        else:
-            msg = f"User {user_id} has created a bid purchase"
-            for ownerID in self._listeners[store_id]:
-                self._notify(ownerID, msg)
-
-    def notify_general_listeners(self, store_id: int, message: str) -> None:
+    def notify_general_listeners(self, store_id: int, message: str, logged_in: list[int]) -> None:
         """
-        * Parameters: store_id: int, message: str
+        * Parameters: store_id: int, message: str, logged_in: list[int] (list of user IDs)
         * This function notifies all the store listeners on a general message.
         """
-        if store_id not in self._listeners:
-            raise ValueError("No listeners for the store with ID:", store_id)
-        else:
-            for ownerID in self._listeners[store_id]:
-                self._notify(ownerID, message)
+        self._notify_multiple(store_id, message, logged_in)
 
-                # Notify on a store update (closed or opened) --- for store owner
-
-    def notify_update_store_status(self, store_id: int, additional_details, is_closed: bool) -> None:
+    # Notify on a store update (closed or opened) --- for store owner
+    def notify_update_store_status(self, store_id: int, additional_details: str, is_closed: bool, logged_in: list[int]) -> None:
         """
-        * Parameters: store_id: int, additional details, isClosed: bool
+        * Parameters: store_id: int, additional details: str, isClosed: bool, logged_in: list[int] (list of user IDs)
         * isClosed is a boolean - *True* if the store is closed *False* if the store is opened.
         * This function notifies the store owner(s) on a change in the store status (closed or opened).
         """
@@ -98,35 +106,35 @@ class Notifier:
         else:
             update = "opened"
 
-        if store_id not in self._listeners:
-            raise ValueError("No listeners for the store with ID:", store_id)
-        else:
-            msg = "Store status updated on: " + str(store_id) + "\n Store is now: " + update
-            for ownerID in self._listeners[store_id]:
-                self._notify(ownerID, msg)
+        msg = "Store status updated for: " + str(store_id) + "\n Store is now: " + update + ".\nadditional details: " + additional_details
+        self._notify_multiple(store_id, msg, logged_in)
 
     # Notify on a removed management position --- for store owner
-    def notify_removed_management_position(self, store_id: int, user_id: int) -> None:
+    def notify_removed_management_position(self, store_id: int, user_id: int, logged_in: list[int]) -> None:
         """
-        * Parameters: store_id: int, user_id: int
+        * Parameters: store_id: int, user_id: int, logged_in: list[int] (list of user IDs)
         * This function notifies a store owner that he was removed from the management position.
         """
-        if store_id not in self._listeners:
-            raise ValueError("No listeners for the store with ID:", store_id)
+        
+        msg = "your position in store: " + str(store_id) + " has been terminated."
+        if user_id in logged_in:
+            self._notify_real_time(user_id, msg)
         else:
-            msg = "Management position from store: " + str(store_id) + " was removed from you."
-            self._notify(user_id, msg)
+            self._notify_delayed(user_id, msg)
 
     # Notify on a new message --- for member
-    def notify_general_message(self, user_id: int, message: str) -> None:
+    def notify_general_message(self, user_id: int, message: str, is_logged: list[int]) -> None:
         """
-        * Parameters: user_id: int, message: str
+        * Parameters: user_id: int, message: str, logged_in: list[int] (list of user IDs)
         * This function notifies a user on a new message.
         """
-        self._notify(user_id, message)
+        if user_id in is_logged:
+            self._notify_real_time(user_id, message)
+        else:
+            self._notify_delayed(user_id, message)
 
     # Notify and wait for 
-
+    
     def sign_listener(self, user_id: int, store_id: int) -> None:
         """
         * Parameters: user_id: int, store_id: int
