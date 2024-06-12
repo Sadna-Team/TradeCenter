@@ -4,7 +4,44 @@ from flask_jwt_extended import JWTManager
 import secrets
 from backend.business.market import MarketFacade
 from backend.business.authentication.authentication import Authentication
+from flask_socketio import SocketIO
 
+from flask_socketio import SocketIO, join_room, leave_room, send
+from backend.business.DTOs import NotificationDTO
+from flask import jsonify
+
+# -------------logging configuration----------------
+import logging
+
+logger = logging.getLogger('myapp')
+# ---------------------------------------------------
+
+bcrypt = Bcrypt()
+jwt = JWTManager()
+socketio = SocketIO()
+
+
+# @socketio.on('connect')
+def handle_connect(id):
+    logger.info(f"Client {id} connected")
+
+# @socketio.on('disconnect')
+def handle_disconnect(id):
+    logger.info(f"Client {id} disconnected")
+
+@socketio.on('join')
+def handle_join(data):
+    room = data['room']
+    handle_connect(room)
+    logger.info(f'Client joining room {room}')
+    join_room(room)
+
+@socketio.on('leave')
+def handle_leave(data):
+    room = data['room']
+    logger.info(f'Client leaving room {room}')
+    leave_room(room)
+    handle_disconnect(room)
 
 
 class Config:
@@ -13,8 +50,6 @@ class Config:
     JWT_TOKEN_LOCATION = ['headers']
 
 
-bcrypt = Bcrypt()
-jwt = JWTManager()
 
 
 def create_app():
@@ -22,6 +57,7 @@ def create_app():
     app.config.from_object(Config)
     bcrypt.init_app(app)
     jwt.init_app(app)
+    socketio.init_app(app)
 
     authentication = Authentication()
     authentication.set_jwt(jwt, bcrypt)

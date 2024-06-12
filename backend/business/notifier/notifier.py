@@ -3,7 +3,21 @@ from typing import Dict
 from datetime import datetime
 from .. import NotificationDTO
 from threading import Lock
-from ...socketio import send_real_time_notification
+# from ...socketio import send_real_time_notification
+from backend import socketio
+from flask import jsonify
+
+# -------------logging configuration----------------
+import logging
+
+logger = logging.getLogger('myapp')
+# ---------------------------------------------------
+
+
+def send_real_time_notification(user_id, notification: NotificationDTO):
+    message = jsonify({'message': notification.to_json()})
+    socketio.send(message, json=True, to=user_id, include_self=False)
+    logger.info(f"sent message to user {user_id}")
 
 
 class Notifier:

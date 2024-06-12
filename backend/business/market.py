@@ -10,7 +10,7 @@ from .notifier import Notifier
 from typing import List, Dict, Tuple, Optional
 from datetime import date, datetime
 import threading
-from ..socketio import send_real_time_notification
+# from ..socketio import send_real_time_notification
 
 import logging
 
@@ -188,14 +188,13 @@ class MarketFacade:
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
 
         # send notification to the new owner
-        is_logged_in = self.user_facade.is_logged_in(new_owner_id)
+        logged_in = self.auth_facade.get_logged_in()
         notification = NotificationDTO(-1, f"You have been nominated to be the owner of store"
                                            f" {store_id}. nomination id: {nomination_id} ",
                                             datetime.now())
-        if is_logged_in:
-            send_real_time_notification(new_owner_id, notification)
-        else:
-            self.user_facade.notify_user(new_owner_id, notification)
+        
+        self.notifier.notify_general_message(new_owner_id, notification.get_message, logged_in)
+
         logger.info(f"User {owner_id} has nominated user {new_owner_id} to be the owner of store {store_id}")
 
     def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_username):
@@ -206,14 +205,11 @@ class MarketFacade:
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
 
         # send notification to the new manager
-        is_logged_in = self.user_facade.is_logged_in(new_manager_id)
+        logged_in = self.auth_facade.get_logged_in()
         notification = NotificationDTO(-1, f"You have been nominated to be the manager of store"
                                            f" {store_id}. nomination id: {nomination_id} ",
                                             datetime.now())
-        if is_logged_in:
-            send_real_time_notification(new_manager_id, notification)
-        else:
-            self.user_facade.notify_user(new_manager_id, notification)
+        self.notifier.notify_general_message(new_manager_id, notification.get_message(), logged_in)
                                      
         logger.info(f"User {owner_id} has nominated user {new_manager_id} to be the manager of store {store_id}")
 
