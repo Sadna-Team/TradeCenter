@@ -128,3 +128,35 @@ def test_is_system_manager():
                           headers={'Authorization': 'Bearer ' + token})
     assert response.status_code == 200
     assert json.loads(response.data)['is_system_manager'] is True
+
+
+def test_is_store_owner():
+    global token1
+    global token2
+    response = client.get('/user/is_store_owner',
+                          headers={'Authorization': 'Bearer ' + token1},
+                          json={'store_id': 0})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_owner'] is True
+
+    response = client.get('/user/is_store_owner', headers={'Authorization': 'Bearer ' + token2}, json={'store_id': 0})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_owner'] is False
+
+
+def test_is_store_manager():
+    global token1
+    global token2
+    response = client.get('/user/is_store_manager',
+                          headers={'Authorization': 'Bearer ' + token1},
+                          json={'store_id': 0})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_manager'] is False
+
+    response = client.get('/user/is_store_manager', headers={'Authorization': 'Bearer ' + token2}, json={'store_id': 0})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_manager'] is False
+
+    response = client.post('/store/add_store_manager', headers={'Authorization': 'Bearer ' + token1},
+                           json={'store_id': 0, 'username': 'test2'})
+    assert response.status_code == 200
