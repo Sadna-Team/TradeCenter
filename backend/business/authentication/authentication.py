@@ -110,3 +110,6 @@ class Authentication:
 
     def is_logged_in(self, user_id):
         return user_id in self.logged_in
+
+    def get_logged_in(self) -> list[int]:
+        return list(self.logged_in)

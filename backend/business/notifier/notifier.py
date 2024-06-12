@@ -94,9 +94,9 @@ class Notifier:
         self._notify_multiple(store_id, message, logged_in)
 
     # Notify on a store update (closed or opened) --- for store owner
-    def notify_update_store_status(self, store_id: int, additional_details: str, is_closed: bool, logged_in: list[int]) -> None:
+    def notify_update_store_status(self, store_id: int, is_closed: bool, logged_in: list[int], additional_details="") -> None:
         """
-        * Parameters: store_id: int, additional details: str, isClosed: bool, logged_in: list[int] (list of user IDs)
+        * Parameters: store_id: int, isClosed: bool, logged_in: list[int] (list of user IDs), additional details: str
         * isClosed is a boolean - *True* if the store is closed *False* if the store is opened.
         * This function notifies the store owner(s) on a change in the store status (closed or opened).
         """
@@ -134,7 +134,7 @@ class Notifier:
             self._notify_delayed(user_id, message)
 
     # Notify and wait for 
-    
+
     def sign_listener(self, user_id: int, store_id: int) -> None:
         """
         * Parameters: user_id: int, store_id: int

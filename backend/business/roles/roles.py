@@ -238,6 +238,8 @@ class RolesFacade:
         self.__stores_to_roles[store_id] = {owner_id: StoreOwner()}
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
         self.__stores_locks[store_id] = Lock()
+        self.__notifier.sign_listener(owner_id, store_id)
+
 
     def remove_store(self, store_id: int, actor_id: int) -> None:
         if store_id not in self.__stores_to_roles:
@@ -298,7 +300,6 @@ class RolesFacade:
         self.__stores_to_role_tree[nomination.store_id].add_child_to_father(nomination.nominator_id, nominee_id)
         # add role to the store
         self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
-
         self.__notifier.sign_listener(nominee_id, nomination.store_id)
 
         # delete all nominations of the nominee in the store

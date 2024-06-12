@@ -161,9 +161,10 @@ class MarketFacade:
             SupplyHandler().process_supply(package_detail, user_id, on_arrival)
             
             # notify the store owners
-            # TODO: add support for real time notifications
+            # get the logged in users
+            logged_in = self.auth_facade.get_logged_in()
             for store_id in cart.keys():
-                Notifier().notify_new_purchase(store_id, user_id)
+                Notifier().notify_new_purchase(store_id, pur_id, logged_in)
             
             logger.info(f"User {user_id} has checked out")
             return pur_id
@@ -541,7 +542,7 @@ class MarketFacade:
 
         store_id = self.store_facade.add_store(location_id, store_name, founder_id)
         self.roles_facade.add_store(store_id, founder_id)
-        Notifier().sign_listener(founder_id, store_id)
+        # Notifier().sign_listener(founder_id, store_id) -- already happend inside roles.add_store()
 
         return store_id
 
@@ -552,6 +553,8 @@ class MarketFacade:
         * Returns None
         """
         self.store_facade.close_store(store_id, user_id)
+        logged_in = self.auth_facade.get_logged_in()
+        self.notifier.notify_update_store_status(store_id, True, logged_in)
 
     def open_store(self, user_id: int, store_id: int):
         """
@@ -559,7 +562,10 @@ class MarketFacade:
         * This function opens a store
         * Returns None
         """
-        self.store_facade.open_store(store_id, user_id)
+        self.store_facade.open_store(store_id, user_id)        
+        logged_in = self.auth_facade.get_logged_in()
+        self.notifier.notify_update_store_status(store_id, False, logged_in)
+
 
     def get_employees_info(self, user_id: int, store_id: int) -> Dict[int, str]:
         """
