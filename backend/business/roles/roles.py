@@ -337,7 +337,7 @@ class RolesFacade:
              .set_permissions(add_product, change_purchase_policy, change_purchase_types, change_discount_policy,
                               change_discount_types, add_manager, get_bid))
 
-    def remove_role(self, store_id: int, actor_id: int, removed_id: int, logged_in: list[int]) -> None:
+    def remove_role(self, store_id: int, actor_id: int, removed_id: int) -> None:
         with self.__stores_locks[store_id]:
             if store_id not in self.__stores_to_roles:
                 raise ValueError("Store does not exist")
@@ -349,11 +349,11 @@ class RolesFacade:
                 raise ValueError("Actor is not an ancestor of the removed user")
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
                 raise ValueError("Cannot remove the root owner of the store")
-            self.__notifier.notify_removed_management_position(removed_id, store_id, logged_in)
+            self.__notifier.notify_removed_management_position(store_id, removed_id)
             removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
 
             for user_id in removed:
-                self.__notifier.notify_removed_management_position(user_id, store_id, logged_in)
+                self.__notifier.notify_removed_management_position(store_id, user_id)
                 self.__notifier.unsign_listener(user_id, store_id)
                 del self.__stores_to_roles[store_id][user_id]
 

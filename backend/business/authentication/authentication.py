@@ -1,6 +1,6 @@
 from datetime import timedelta
 from .. import UserFacade
-from flask_jwt_extended import create_access_token,decode_token
+from flask_jwt_extended import create_access_token, decode_token
 
 
 # from backend import bcrypt, jwt
@@ -110,6 +110,3 @@ class Authentication:
 
     def is_logged_in(self, user_id):
         return user_id in self.logged_in
-
-    def get_logged_in(self) -> list[int]:
-        return list(self.logged_in)
