@@ -221,13 +221,10 @@ class MarketFacade:
         self.roles_facade.remove_role(store_id, actor_id, actor_id)
         logger.info(f"User {actor_id} has given up his role in store {store_id}")
 
-    def add_system_manager(self, actor: int, user_id: int):
+    def add_system_manager(self, actor: int, username: str):
+        user_id = self.user_facade.get_user_id_from_username(username)
         self.roles_facade.add_system_manager(actor, user_id)
         logger.info(f"User {actor} has added user {user_id} as a system manager")
-
-    def remove_system_manager(self, actor: int, user_id: int):
-        self.roles_facade.remove_system_manager(actor, user_id)
-        logger.info(f"User {actor} has removed user {user_id} as a system manager")
 
     def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
         if not self.roles_facade.is_system_manager(user_id):

@@ -106,3 +106,25 @@ def test_give_up_ownership():
     assert response.status_code == 200
 
 
+def test_is_system_manager():
+    global token1
+    response = client.get('/user/is_system_manager',
+                          headers={'Authorization': 'Bearer ' + token1})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_system_manager'] is False
+
+    # login as admin
+    response = client.get('/auth/')
+    assert response.status_code == 200
+    token = json.loads(response.data)['token']
+
+    response = client.post('/auth/login', headers={'Authorization': 'Bearer ' + token},
+                           json={'username': 'admin', 'password': 'admin'})
+    assert response.status_code == 200
+    token = json.loads(response.data)['token']
+
+    # check if admin is system manager
+    response = client.get('/user/is_system_manager',
+                          headers={'Authorization': 'Bearer ' + token})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_system_manager'] is True

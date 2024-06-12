@@ -140,7 +140,7 @@ def search_products_by_name():
         Use Case 2.2.2.1:
         Search products in the stores
     """
-    logger.info('recieved request to search for products')
+    logger.info('received request to search for products')
     try:
         data = request.get_json()
         name = str(data['name'])
