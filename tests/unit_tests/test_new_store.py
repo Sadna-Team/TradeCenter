@@ -776,7 +776,8 @@ def test_has_amount_of_product(store, product_dto):
     assert not store.has_amount_of_product(0, 6)
 
 def test_has_amount_of_product_fail(store):
-    assert not store.has_amount_of_product(0, 5)
+    with pytest.raises(ValueError):
+        store.has_amount_of_product(0, 5)
 
 def test_get_category_by_id(store_facade, category):
     store_facade.add_category(category.category_name)
