@@ -90,5 +90,13 @@ class TestRolesFacade(unittest.TestCase):
         self.facade.add_admin(1)
         self.assertTrue(self.facade.is_system_manager(1))
 
+    def test_switch_store_founder(self):
+        self.facade.add_store(1, 1)
+        # mock for the notifier .unsign_listener
+        self.facade._RolesFacade__notifier = MagicMock()
+        self.facade.switch_store_founder(1, 2, 1)
+        self.assertNotIn(1, self.facade._RolesFacade__stores_to_roles[1])
+        self.assertTrue(self.facade._RolesFacade__stores_to_role_tree[1].is_root(2))
+
 if __name__ == '__main__':
     unittest.main()
