@@ -152,6 +152,19 @@ class UserService:
             logger.error('accept_promotion - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
+    def switch_store_founder(self, user_id: int, store_id: int, new_founder_id: int):
+        """
+            Use Case
+            Switch the founder of a store to a new user
+        """
+        try:
+            self.market_facade.switch_store_founder(user_id, store_id, new_founder_id)
+            logger.info('founder switched successfully')
+            return jsonify({'message': 'founder switched successfully'}), 200
+        except Exception as e:
+            logger.error('switch_founder - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
 
 class AuthenticationService:
     # singleton

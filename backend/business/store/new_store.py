@@ -837,6 +837,16 @@ class Store:
         """
         product = self.get_product_by_id(product_id)
         product.change_weight(new_weight)
+
+    def switch_founder(self, new_founder_id):
+        """
+        * Parameters: newFounderId
+        * This function switches the founder of the store
+        * Returns: none
+        """
+        self.__store_founder_id = new_founder_id
+
+
 # ---------------------end of classes---------------------#
 
 # ---------------------storeFacade class---------------------#
@@ -1860,3 +1870,7 @@ class StoreFacade:
             store = self.__get_store_by_id(store_id)
             product_dtos: Dict[ProductDTO, int] = {store.get_product_dto_by_id(product_id): amount for product_id, amount in products.items()}
             store.check_purchase_policy(product_dtos, user)
+
+    def switch_store_founder(self, store_id, new_founder_id):
+        store = self.__get_store_by_id(store_id)
+        store.switch_founder(new_founder_id)

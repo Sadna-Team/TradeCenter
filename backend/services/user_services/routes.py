@@ -114,6 +114,7 @@ def logout_guest():
         return jsonify({'message': str(e)}), 400
     return authentication_service.logout_guest(jti, user_id)
 
+
 # ---------------------------------------------------------------user usecase routes---------------------------------------------------------------
 
 
@@ -220,3 +221,21 @@ def accept_promotion():
         logger.error('accept_promotion - ', str(e))
         return jsonify({'message': str(e)}), 400
     return user_service.accept_promotion(user_id, promotion_id, accept)
+
+
+@user_bp.route('/switch_store_founder', methods=['POST'])
+@jwt_required()
+def switch_store_founder():
+    """
+    switch the store founder
+    """
+    logger.info('received request to switch founder')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        new_founder = data['new_founder']
+    except Exception as e:
+        logger.error('accept_promotion - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    return user_service.switch_store_founder(user_id, store_id, new_founder)

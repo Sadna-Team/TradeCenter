@@ -229,6 +229,11 @@ class MarketFacade:
         self.roles_facade.remove_system_manager(actor, user_id)
         logger.info(f"User {actor} has removed user {user_id} as a system manager")
 
+    def switch_store_founder(self, actor_id: int, store_id: int, new_founder_id: int):
+        self.roles_facade.switch_store_founder(actor_id, store_id, new_founder_id)
+        self.store_facade.switch_store_founder(store_id, new_founder_id)
+        logger.info(f"User {actor_id} has switched the founder of store {store_id} to user {new_founder_id}")
+
     def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
