@@ -532,6 +532,7 @@ class MarketFacade:
         * This function closes a store
         * Returns None
         """
+        self.roles_facade.reopen_store(store_id, user_id)
         self.store_facade.close_store(store_id, user_id)
 
     def open_store(self, user_id: int, store_id: int):

@@ -489,3 +489,19 @@ class RolesFacade:
             for user_id, role in self.__stores_to_roles[store_id].items():
                 owners[user_id] = role.__str__()
             return owners
+
+    def __store_exists(self, store_id: int) -> None:
+        if store_id not in self.__stores_to_roles:
+            raise ValueError("Store does not exist")
+
+    def reopen_store(self, store_id, user_id):
+        self.__store_exists(store_id)
+        with self.__stores_locks[store_id]:
+            if not self.__stores_to_role_tree[store_id].is_root(user_id):
+                raise ValueError("User is not the root owner of the store")
+            self.__stores_to_roles[store_id] = {user_id: StoreOwner()}
+            self.__stores_to_role_tree[store_id] = Tree(Node(user_id))
+            # remove nominations in store
+            for nomination_id, nomination in self.__systems_nominations.items():
+                if nomination.store_id == store_id:
+                    del self.__systems_nominations[nomination_id]
