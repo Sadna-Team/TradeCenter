@@ -248,6 +248,8 @@ class AndDiscount(Discount):
                 logger.info("[AndDiscount] Both discounts applicable, applying discounts")
                 return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
     
+    def change_predicate(self, new_predicate: Constraint) -> None:
+        pass # we don't want to change the predicate of the composite discount
 
         
 
@@ -297,6 +299,10 @@ class OrDiscount(Discount):
                 return self.__discount2.calculate_discount(basket_information)
             else:
                 return 0.0
+            
+        
+    def change_predicate(self, new_predicate: Constraint) -> None:
+        pass # we don't want to change the predicate of the composite discount
 
 # --------------- Xor Discount ---------------#
 class XorDiscount(Discount):
@@ -332,6 +338,10 @@ class XorDiscount(Discount):
         else:
             logger.info("[XorDiscount] Both discounts applicable, applying discount 1")
             return self.__discount1.calculate_discount(basket_information) 
+        
+    
+    def change_predicate(self, new_predicate: Constraint) -> None:
+        pass # we don't want to change the predicate of the composite discount
 
 
 # --------------- Max Discount classes ---------------#
@@ -351,6 +361,10 @@ class MaxDiscount(Discount):
         """
         logger.info("[maxDiscount] Calculating max discount")
         return max([discount.calculate_discount(basket_information) for discount in self.__ListDiscount])
+    
+    
+    def change_predicate(self, new_predicate: Constraint) -> None:
+        pass # we don't want to change the predicate of the composite discount
 
 
 # --------------- Additive Discount classes ---------------#
@@ -370,6 +384,10 @@ class AdditiveDiscount(Discount):
         """
         logger.info("[additiveDiscount] Calculating additive discount")
         return sum([discount.calculate_discount(basket_information) for discount in self.__ListDiscount])
+    
+    
+    def change_predicate(self, new_predicate: Constraint) -> None:
+        pass # we don't want to change the predicate of the composite discount
     
 
 
