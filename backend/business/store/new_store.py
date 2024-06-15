@@ -866,22 +866,22 @@ class StoreFacade:
     
 
     constraint_types = {
-        "age": AgeConstraint,
-        "location" : LocationConstraint,
-        "time": TimeConstraint,
-        "price_basket": PriceBasketConstraint,
-        "price_product": PriceProductConstraint,
-        "price_category": PriceCategoryConstraint,
-        "weight_basket": WeightBasketConstraint,
-        "weight_product": WeightProductConstraint,
-        "weight_category": WeightCategoryConstraint,
-        "amount_basket": AmountBasketConstraint,
-        "amount_product": AmountProductConstraint,
-        "amount_category": AmountCategoryConstraint,
-        "and": AndConstraint,
-        "or": OrConstraint,
-        "xor": XorConstraint,
-        "implies": ImpliesConstraint
+        'age': AgeConstraint,
+        'location' : LocationConstraint,
+        'time': TimeConstraint,
+        'price_basket': PriceBasketConstraint,
+        'price_product': PriceProductConstraint,
+        'price_category': PriceCategoryConstraint,
+        'weight_basket': WeightBasketConstraint,
+        'weight_product': WeightProductConstraint,
+        'weight_category': WeightCategoryConstraint,
+        'amount_basket': AmountBasketConstraint,
+        'amount_product': AmountProductConstraint,
+        'amount_category': AmountCategoryConstraint,
+        'and': AndConstraint,
+        'or': OrConstraint,
+        'xor': XorConstraint,
+        'implies': ImpliesConstraint
     }
 
     # ---------------------methods--------------------------------
@@ -1335,11 +1335,15 @@ class StoreFacade:
                                             )
         * Returns: the predicated
         """
-        predicate_type = self.constraint_types[predicate_properties[0]]
-        if not isinstance(predicate_type, Constraint):
+        if predicate_properties[0] not in self.constraint_types:
             logger.warning('[StoreFacade] invalid predicate type')
             raise ValueError('Invalid predicate type')
         
+        predicate_type = self.constraint_types[predicate_properties[0]]
+    
+        if not isinstance(predicate_type, Constraint):
+            logger.warning('[StoreFacade] invalid predicate type')
+            
         if predicate_type == AndConstraint or predicate_type == OrConstraint or predicate_type == XorConstraint or predicate_type == ImpliesConstraint:
             if len(predicate_properties) < 3 and not isinstance(predicate_properties[1], tuple) and not isinstance(predicate_properties[2], tuple):
                 logger.warning('[StoreFacade] not enough sub predicates to create a composite predicate')
@@ -1359,10 +1363,10 @@ class StoreFacade:
                 raise ValueError('Age is not an integer')
         elif predicate_type == LocationConstraint:
             if isinstance(predicate_properties[1], Dict):
-                if "address_id" not in predicate_properties[1] or "address" not in predicate_properties[1] or "city" not in predicate_properties[1] or "state" not in predicate_properties[1] or "country" not in predicate_properties[1] or "postal_code" not in predicate_properties[1]:
+                if 'address_id' not in predicate_properties[1] or 'address' not in predicate_properties[1] or 'city' not in predicate_properties[1] or 'state' not in predicate_properties[1] or 'country' not in predicate_properties[1] or 'postal_code' not in predicate_properties[1]:
                     logger.warning('[StoreFacade] location is missing fields')
                     raise ValueError('Location is missing fields')
-                address = AddressDTO(predicate_properties[1]["address_id"], predicate_properties[1]["address"], predicate_properties[1]["city"], predicate_properties[1]["state"], predicate_properties[1]["country"], predicate_properties[1]["postal_code"])
+                address = AddressDTO(predicate_properties[1]['address_id'], predicate_properties[1]['address'], predicate_properties[1]['city'], predicate_properties[1]['state'], predicate_properties[1]['country'], predicate_properties[1]['postal_code'])
                 return predicate_type(address)
             else:
                 logger.warning('[StoreFacade] location is not a dictionary')
