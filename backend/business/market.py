@@ -361,21 +361,11 @@ class MarketFacade:
             raise ValueError("User is not a system manager")
         return self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
 
-    def assign_predicate_to_discount(self, user_id: int, discount_id: int, ages: List[Optional[int]],
-                                     locations: List[Optional[Dict]],
-                                     starting_times: List[Optional[datetime.time]],
-                                     ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]],
-                                     max_prices: List[Optional[float]], min_weights: List[Optional[float]],
-                                     max_weights: List[Optional[float]], min_amounts: List[Optional[int]],
-                                     store_ids: List[Optional[int]], product_ids: List[Optional[int]],
-                                     category_ids: List[Optional[int]],
-                                     type_of_connection: List[Optional[int]]) -> None:
+    def assign_predicate_to_discount(self, user_id: int, discount_id: int, predicate_properties: Tuple) -> None:
         if not self.roles_facade.is_system_manager(user_id):
             logger.warning(f"User {user_id} does not have permissions to assign a predicate to a discount")
             raise ValueError("User is not a system manager")
-        self.store_facade.assign_predicate_to_discount(discount_id, ages, locations, starting_times, ending_times,
-                                                       min_prices, max_prices, min_weights, max_weights, min_amounts,
-                                                       store_ids, product_ids, category_ids, type_of_connection)
+        self.store_facade.assign_predicate_to_discount(discount_id, predicate_properties)
 
     def change_discount_percentage(self, user_id: int, discount_id: int, new_percentage: float) -> None:
         """

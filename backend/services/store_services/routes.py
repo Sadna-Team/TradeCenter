@@ -264,24 +264,12 @@ def assign_predicate_to_discount():
         user_id = get_jwt_identity()
         data = request.get_json()
         discount_id = int(data['discount_id'])
-        ages = data['ages']
-        locations = data['locations']
-        starting_times = data['starting_times']
-        ending_times = data['ending_times']
-        min_prices = data['min_prices']
-        max_prices = data['max_prices']
-        min_weights = data['min_weights']
-        max_weights = data['max_weights']
-        min_amounts = data['min_amounts'] 
-        store_ids = data['store_ids'] 
-        product_ids = data['product_ids']
-        category_ids = data['category_ids']
-        type_of_connections = data['type_of_connections']
+        predicate_builder = data['predicate_builder']
     except Exception as e:
         logger.error('assign_predicate_to_discount - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.assign_predicate_to_discount(user_id, discount_id, ages, locations, starting_times, ending_times, min_prices, max_prices, min_weights, max_weights, min_amounts, store_ids, product_ids, category_ids, type_of_connections)
+    return store_service.assign_predicate_to_discount(user_id, discount_id, predicate_builder)
 
 @store_bp.route('/change_discount_percentage', methods=['POST'])
 @jwt_required()

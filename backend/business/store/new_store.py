@@ -157,22 +157,17 @@ class Product:
         logger.info('[Product] successfully changed weight of product with id: ' + str(self.__product_id))
 
 
-    def restock(self, amount: int) -> None:
+    def restock(self, amount) -> None:
         if amount < 0:
             raise ValueError('Amount is a negative value')
         with self.__product_lock:
             self.__amount += amount
 
-    def remove_amount(self, amount: int) -> None:
+    def remove_amount(self, amount) -> None:
         if self.__amount < amount:
             raise ValueError('Amount is greater than the available amount of the product')
         with self.__product_lock:
             self.__amount -= amount
-
-    def locked_remove_amount(self, amount: int) -> None:
-        if self.__amount < amount:
-            raise ValueError('Amount is greater than the available amount of the product')
-        self.__amount -= amount
 
 # ---------------------category class---------------------#
 class Category:
@@ -491,6 +486,8 @@ class Store:
         self.__product_id_lock = threading.Lock() # lock for product id
         self.__purchase_policy: Dict[str, Callable[[Dict[ProductDTO, int], PurchaseUserDTO], PurchaseComposite]] = {} # purchase policy
         self.__founded_date = datetime.now()
+        self.__purchase_policy_id_counter = 0  # purchase policy Id
+        self.__checkout_lock = threading.Lock() # lock for checkout
         logger.info('[Store] successfully created store with id: ' + str(store_id))
 
     # ---------------------getters and setters---------------------#
@@ -526,28 +523,6 @@ class Store:
     def purchase_policy(self) -> List[str]:
         return list(self.__purchase_policy.keys())
     # ---------------------methods--------------------------------
-    def acquire_products_lock(self, product_ids: List[int]) -> None:
-        """
-        * Parameters: productIds
-        * This function acquires the lock of the products
-        * Returns: none
-        """
-        # sort the product ids to avoid deadlocks
-        product_ids.sort()
-        for product_id in product_ids:
-            self.get_product_by_id(product_id).acquire_lock()
-    
-    def release_products_lock(self, product_ids: List[int]) -> None:
-        """
-        * Parameters: productIds
-        * This function releases the lock of the products
-        * Returns: none
-        """
-        # sort the product ids to avoid deadlocks
-        product_ids.sort()
-        for product_id in product_ids:
-            self.get_product_by_id(product_id).release_lock()
-
     def close_store(self, user_id: int) -> None:
         """
         * Parameters: userId
@@ -558,10 +533,9 @@ class Store:
             raise ValueError('User is not the founder of the store')
         if not self.__is_active:
             raise ValueError('Store is already closed')
-        self.acquire_products_lock(list(self.__store_products.keys()))
-        self.__is_active = False
-        self.release_products_lock(list(self.__store_products.keys()))
-        logger.info('[Store] successfully closed store with id: ' + str(self.__store_id))
+        with self.__checkout_lock:
+            self.__is_active = False
+            logger.info('[Store] successfully closed store with id: ' + str(self.__store_id))
             
 
     def open_store(self, user_id: int) -> None:
@@ -574,10 +548,15 @@ class Store:
             raise ValueError('User is not the founder of the store')
         if self.__is_active:
             raise ValueError('Store is already open')
-        self.acquire_products_lock(list(self.__store_products.keys()))
-        self.__is_active = True
-        self.release_products_lock(list(self.__store_products.keys()))
-        logger.info('[Store] successfully opened store with id: ' + str(self.__store_id))
+        with self.__checkout_lock:
+            self.__is_active = True
+            logger.info('[Store] successfully opened store with id: ' + str(self.__store_id))
+        
+    def acquire_lock(self):
+        self.__checkout_lock.acquire()
+
+    def release_lock(self):
+        self.__checkout_lock.release()
 
     # We assume that the marketFacade verified that the user attempting to add the product is a store Owner
     def add_product(self, name: str, description: str, price: float, tags: List[str], weight: float, amount: int = 0) -> int:
@@ -603,12 +582,9 @@ class Store:
         * Returns: none
         """
         try:
-            self.acquire_products_lock([product_id])
-            removed = self.__store_products.pop(product_id)
-            removed.release_lock()
-            logger.info(f'Successfully removed product from store with id: {self.__store_id}')
+            self.__store_products.pop(product_id)
+            logger.info('Successfully removed product from store with id: {self.__store_id}')
         except KeyError:
-            self.release_products_lock([product_id])
             raise ValueError('Product is not found')
 
     def get_product_by_id(self, product_id: int) -> Product:
@@ -660,6 +636,28 @@ class Store:
         for policy in self.__purchase_policy.values():
             if not policy(products, user).pass_filter():
                 raise ValueError(f'Purchase policy of store: {self.__store_name} is not satisfied!')
+    
+    def acquire_products_lock(self, product_ids: List[int]) -> None:
+        """
+        * Parameters: productIds
+        * This function acquires the lock of the products
+        * Returns: none
+        """
+        # sort the product ids to avoid deadlocks
+        product_ids.sort()
+        for product_id in product_ids:
+            self.get_product_by_id(product_id).acquire_lock()
+
+    def release_products_lock(self, product_ids: List[int]) -> None:
+        """
+        * Parameters: productIds
+        * This function releases the lock of the products
+        * Returns: none
+        """
+        # sort the product ids to avoid deadlocks
+        product_ids.sort()
+        for product_id in product_ids:
+            self.get_product_by_id(product_id).release_lock()
 
     def get_total_price_of_basket_before_discount(self, basket: Dict[int, int]) -> float:
         """
@@ -726,18 +724,7 @@ class Store:
         if self.__store_products[product_id].amount < amount:
             raise ValueError('Amount is greater than the available amount of the product')
         self.__store_products[product_id].remove_amount(amount)
-        logger.info(f'Successfully removed product amount with id: {product_id}')
-
-    def locked_remove_product_amount(self, product_id: int, amount: int) -> None:
-        """
-        * Parameters: productId, amount
-        * This function removes a product from the store
-        * Returns: none
-        """
-        if product_id not in self.__store_products:
-            raise ValueError('Product is not found')
-        self.__store_products[product_id].locked_remove_amount(amount)
-        logger.info(f'Successfully removed product amount with id: {product_id}')
+        logger.info('Successfully removed product amount with id: {product_id}')
 
     def change_description_of_product(self, product_id: int, new_description: str) -> None:
         """
@@ -807,27 +794,18 @@ class Store:
         """
         * Parameters: productId, amount
         * This function checks if the store has the given amount of the product
-        * Returns: true if the store has the given amount of the product, false if it does not and raises an exception if the product is not found
+        * Returns: true if the store has the given amount of the product
         """
-        try:
-            self.acquire_products_lock([product_id])
-            ans = self.__store_products[product_id].amount >= amount
-            self.release_products_lock([product_id])
+        if product_id in self.__store_products:
+            self.__store_products[product_id].acquire_lock()
+            try:
+                ans = self.__store_products[product_id].amount >= amount
+                self.__store_products[product_id].release_lock()
+            except Exception as e:
+                self.__store_products[product_id].release_lock()
+                raise e
             return ans
-        except KeyError:
-            self.release_products_lock([product_id])
-            raise ValueError('Product is not found')
-    
-    def locked_has_amount_of_product(self, product_id: int, amount: int) -> bool:
-        """
-        * Parameters: productId, amount
-        * This function checks if the store has the given amount of the product
-        * Returns: true if the store has the given amount of the product, false if it does not and raises an exception if the product is not found
-        """
-        try:
-            return self.__store_products[product_id].amount >= amount
-        except KeyError:
-            raise ValueError('Product is not found')
+        return False
 
     def change_weight_of_product(self, product_id: int, new_weight: float) -> None:
         """
@@ -885,6 +863,26 @@ class StoreFacade:
     @property
     def stores(self) -> List[int]:
         return list(self.__stores.keys())
+    
+
+    constraint_types = {
+        'age': AgeConstraint,
+        'location' : LocationConstraint,
+        'time': TimeConstraint,
+        'price_basket': PriceBasketConstraint,
+        'price_product': PriceProductConstraint,
+        'price_category': PriceCategoryConstraint,
+        'weight_basket': WeightBasketConstraint,
+        'weight_product': WeightProductConstraint,
+        'weight_category': WeightCategoryConstraint,
+        'amount_basket': AmountBasketConstraint,
+        'amount_product': AmountProductConstraint,
+        'amount_category': AmountCategoryConstraint,
+        'and': AndConstraint,
+        'or': OrConstraint,
+        'xor': XorConstraint,
+        'implies': ImpliesConstraint
+    }
 
     # ---------------------methods--------------------------------
     def get_category_by_id(self, category_id: int) -> Category:
@@ -994,7 +992,7 @@ class StoreFacade:
             raise ValueError('Description is missing')
         if price < 0:
             raise ValueError('Price is a negative value')
-        if amount < 0:
+        if amount is not None and amount < 0:
             raise ValueError('Amount is a negative value')
         
         if tags is None:
@@ -1003,6 +1001,8 @@ class StoreFacade:
         if weight < 0 :
             raise ValueError('Weight is a negative value')
         logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
+        if amount is None:
+            amount = 0
         return store.add_product(product_name, description, price, tags, weight, amount)
 
 
@@ -1013,7 +1013,13 @@ class StoreFacade:
         * Returns: none
         """
         store = self.__get_store_by_id(store_id)
-        store.remove_product(product_id)
+        store.acquire_lock()
+        try:
+            store.remove_product(product_id)
+            store.release_lock()
+        except Exception as e:
+            store.release_lock()
+            raise e
 
     def add_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
@@ -1022,7 +1028,13 @@ class StoreFacade:
         * Returns: none
         """
         store = self.__get_store_by_id(store_id)
-        store.restock_product(product_id, amount)
+        store.acquire_lock()
+        try:
+            store.restock_product(product_id, amount)
+            store.release_lock()
+        except Exception as e:
+            store.release_lock()
+            raise e
         logger.info(f'Successfully added {amount} of product with id: {product_id} to store with id: {store_id}')
 
     def remove_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
@@ -1033,15 +1045,6 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.remove_product_amount(product_id, amount)
-
-    def locked_remove_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
-        """
-        * Parameters: store_id, product_id, amount, condition
-        * This function removes a product from the store
-        * Returns: none
-        """
-        store = self.__get_store_by_id(store_id)
-        store.locked_remove_product_amount(product_id, amount)
 
     def change_description_of_product(self, store_id: int, product_id: int, new_description: str) -> None:
         """
@@ -1086,6 +1089,8 @@ class StoreFacade:
         * Returns: None
         """
         store = self.__get_store_by_id(store_id)
+        if store is None:
+            raise ValueError('Store is not found')
         store.remove_tag_from_product(product_id, tag)
 
     def get_tags_of_product(self, store_id: int, product_id: int) -> List[str]:
@@ -1317,171 +1322,173 @@ class StoreFacade:
         return self.__discount_id_counter - 1
 
     
-    def assign_predicate_helper(self, discount: Discount, age: Optional[int] = None, location: Optional[AddressDTO] = None, starting_time: Optional[datetime.time] = None, ending_time: Optional[datetime.time] = None,
-                                min_price: Optional[float] = None, max_price: Optional[float] = None, min_weight: Optional[float] = None, max_weight: Optional[float] = None, min_amount: Optional[int] = None,
-                                store_id: Optional[int] = None, product_id: Optional[int] = None, category_id: Optional[int] = None) -> Constraint:
+    def assign_predicate_helper(self, predicate_properties: Tuple) -> Optional[Constraint]:
         """
-        * Parameters: discountId, age, location, startingTime, endingTime, minPrice, maxPrice, minWeight, maxWeight, storeId, productId, categoryId, typeOfConnection
-        * This function assigns a predicate to a discount
-        *NOTE: if the predicate is a type of category/product/store, the discount must also be of type category/product/store respectively
-        * NOTE: for now subdiscounts are inaccessible to be changed
-        * Returns: the predicate assigned to the discount
+        * Parameters: predicate_properties
+        * this function recursively creates a predicate for a discount
+        * NOTE: the following are examples: (and, 
+                                                (age, 18), 
+                                                (or 
+                                                    (location, {address_id: 1, address: "bla", city: "bla", state: "bla", country: "bla", postal_code: "bla"}),
+                                                    (time, 10:00, 20:00)
+                                                ) 
+                                            )
+        * Returns: the predicated
         """
-        predicate: Optional[Constraint] = None
-        if age is not None:
-            logger.info('[StoreFacade] created age constraint')
-            if age < 0: 
-                logger.warning('[StoreFacade] age is a negative value')
-                raise ValueError('Age is a negative value')
-            predicate = AgeConstraint(age)
-        elif location is not None:
-            logger.info('[StoreFacade] created location constraint')
-            predicate = LocationConstraint(location)
-        elif starting_time is not None and ending_time is not None:
-            if starting_time > ending_time:
-                logger.warning('[StoreFacade] starting time is greater than ending time')
-                raise ValueError('Starting time is greater than ending time')
-            logger.info('[StoreFacade] created time constraint')
-            predicate = TimeConstraint(starting_time, ending_time)
-        elif min_price is not None and max_price is not None:
-            if max_price != -1 and min_price > max_price or min_price < 0:
-                logger.warning('[StoreFacade] min price is greater than max price')
-                raise ValueError('Min price is greater than max price')
-            if category_id is not None:
-                logger.info('[StoreFacade] created price category constraint')
-                predicate = PriceCategoryConstraint(min_price, max_price, category_id)
-
-            elif store_id is not None:
-                if product_id is not None:
-                    logger.info('[StoreFacade] created price product constraint')
-                    predicate = PriceProductConstraint(min_price, max_price, product_id, store_id)
-                else:
-                    logger.info('[StoreFacade] created price basket constraint')
-                    predicate = PriceBasketConstraint(min_price, max_price, store_id)
-
-        elif min_weight is not None and max_weight is not None:
-            if min_weight > max_weight or min_weight < 0:
-                logger.warning('[StoreFacade] min weight is greater than max weight')
-                raise ValueError('Min weight is greater than max weight')
-
-            if category_id is not None:
-                logger.info('[StoreFacade] created weight category constraint')
-                predicate = WeightCategoryConstraint(min_weight, max_weight, category_id)
-
-            elif store_id is not None:
-                if product_id is not None:
-                    logger.info('[StoreFacade] created weight product constraint')
-                    predicate = WeightProductConstraint(min_weight, max_weight, product_id, store_id)
-                
-                else:
-                    logger.info('[StoreFacade] created weight basket constraint')
-                    predicate = WeightBasketConstraint(min_weight, max_weight, store_id)
-
-        elif min_amount is not None:
-            if min_amount < 0:
-                logger.warning('[StoreFacade] min amount is a negative value')
-                raise ValueError('Min amount is a negative value')
-            if category_id is not None:
-                logger.info('[StoreFacade] created amount category constraint')
-                predicate = AmountCategoryConstraint(min_amount, category_id)
-
-            elif store_id is not None:
-                if product_id is not None:
-                    logger.info('[StoreFacade] created amount product constraint')
-                    predicate = AmountProductConstraint(min_amount, product_id, store_id)
-                else:
-                    logger.info('[StoreFacade] created amount basket constraint')
-                    predicate = AmountBasketConstraint(min_amount, store_id)
-        else:
-            logger.error('[StoreFacade] no valid predicate found')
-            raise ValueError('No valid predicate found')
+        if predicate_properties[0] not in self.constraint_types:
+            logger.warning('[StoreFacade] invalid predicate type')
+            raise ValueError('Invalid predicate type')
+        
+        predicate_type = self.constraint_types[predicate_properties[0]]
+    
+        if not isinstance(predicate_type, Constraint):
+            logger.warning('[StoreFacade] invalid predicate type')
             
-        if predicate is None:
-            logger.error('[StoreFacade] no valid predicate found')
-            raise ValueError('No valid predicate found')
-        return predicate
-           
+        if predicate_type == AndConstraint or predicate_type == OrConstraint or predicate_type == XorConstraint or predicate_type == ImpliesConstraint:
+            if len(predicate_properties) < 3 and not isinstance(predicate_properties[1], tuple) and not isinstance(predicate_properties[2], tuple):
+                logger.warning('[StoreFacade] not enough sub predicates to create a composite predicate')
+                raise ValueError('Not enough sub predicates to create a composite predicate')
+            predicate_left = self.assign_predicate_helper(predicate_properties[1])
+            predicate_right = self.assign_predicate_helper(predicate_properties[2])
+            return predicate_type(predicate_left, predicate_right)
+        
+        if predicate_type == AgeConstraint:
+            if isinstance(predicate_properties[1], int):
+                if predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] age is a negative value')
+                    raise ValueError('Age is a negative value')
+                return predicate_type(predicate_properties[1])
+            else:
+                logger.warning('[StoreFacade] age is not an integer')
+                raise ValueError('Age is not an integer')
+        elif predicate_type == LocationConstraint:
+            if isinstance(predicate_properties[1], Dict):
+                if 'address_id' not in predicate_properties[1] or 'address' not in predicate_properties[1] or 'city' not in predicate_properties[1] or 'state' not in predicate_properties[1] or 'country' not in predicate_properties[1] or 'postal_code' not in predicate_properties[1]:
+                    logger.warning('[StoreFacade] location is missing fields')
+                    raise ValueError('Location is missing fields')
+                address = AddressDTO(predicate_properties[1]['address_id'], predicate_properties[1]['address'], predicate_properties[1]['city'], predicate_properties[1]['state'], predicate_properties[1]['country'], predicate_properties[1]['postal_code'])
+                return predicate_type(address)
+            else:
+                logger.warning('[StoreFacade] location is not a dictionary')
+                raise ValueError('Location is not a dictionary')
+        elif predicate_type == TimeConstraint:
+            if isinstance(predicate_properties[1], time) and isinstance(predicate_properties[2], time):
+                if predicate_properties[1] > predicate_properties[2]:
+                    logger.warning('[StoreFacade] starting time is greater than ending time')
+                    raise ValueError('Starting time is greater than ending time')
+                return predicate_type(predicate_properties[1], predicate_properties[2])
+            else:
+                logger.warning('[StoreFacade] starting time or ending time is not a datetime.time')
+                raise ValueError('Starting time or ending time is not a datetime.time')
+        elif predicate_type == PriceCategoryConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min price is greater than max price')
+                    raise ValueError('Min price is greater than max price')
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            else:
+                logger.warning('[StoreFacade] min price, max price or category id is not valid')
+                raise ValueError('Min price, max price or category id is not valid')
+        elif predicate_type == PriceProductConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min price is greater than max price')
+                    raise ValueError('Min price is greater than max price')
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
+            else:
+                logger.warning('[StoreFacade] min price, max price, product id or store id is not valid')
+                raise ValueError('Min price, max price, product id or store id is not valid')
+        elif predicate_type == PriceBasketConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min price is greater than max price')
+                    raise ValueError('Min price is greater than max price')
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            else:
+                logger.warning('[StoreFacade] min price, max price or store id is not valid')
+                raise ValueError('Min price, max price or store id is not valid')
+        elif predicate_type == WeightCategoryConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min weight is greater than max weight')
+                    raise ValueError('Min weight is greater than max weight')
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            else:
+                logger.warning('[StoreFacade] min weight, max weight or category id is not valid')
+                raise ValueError('Min weight, max weight or category id is not valid')
+        elif predicate_type == WeightProductConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min weight is greater than max weight')
+                    raise ValueError('Min weight is greater than max weight')
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
+            else:
+                logger.warning('[StoreFacade] min weight, max weight, product id or store id is not valid')
+                raise ValueError('Min weight, max weight, product id or store id is not valid')
+        elif predicate_type == WeightBasketConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min weight is greater than max weight')
+                    raise ValueError('Min weight is greater than max weight')
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            else:
+                logger.warning('[StoreFacade] min weight, max weight or store id is not valid')
+                raise ValueError('Min weight, max weight or store id is not valid')
+        elif predicate_type == AmountCategoryConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
+                if predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min amount is a negative value')
+                    raise ValueError('Min amount is a negative value')
+                return predicate_type(predicate_properties[1], predicate_properties[2])
+            else:
+                logger.warning('[StoreFacade] min amount or category id is not valid')
+                raise ValueError('Min amount or category id is not valid')
+        elif predicate_type == AmountProductConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min amount is a negative value')
+                    raise ValueError('Min amount is a negative value')
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            else:
+                logger.warning('[StoreFacade] min amount, product id or store id is not valid')
+                raise ValueError('Min amount, product id or store id is not valid')
+        elif predicate_type == AmountBasketConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
+                if predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min amount is a negative value')
+                    raise ValueError('Min amount is a negative value')
+                return predicate_type(predicate_properties[1], predicate_properties[2])
+            else:
+                logger.warning('[StoreFacade] min amount or store id is not valid')
+                raise ValueError('Min amount or store id is not valid')
+        return None
 
-    def assign_predicate_to_discount(self, discount_id: int, ages: List[Optional[int]], locations: List[Optional[Dict]],
-                                     starting_times: List[Optional[datetime.time]], ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]], 
-                                     max_prices: List[Optional[float]], min_weights: List[Optional[float]], max_weights: List[Optional[float]], min_amounts: List[Optional[int]],
-                                     store_ids: List[Optional[int]], product_ids: List[Optional[int]], category_ids: List[Optional[int]], 
-                                        type_of_connection: List[Optional[int]]) -> None:
+
+    def assign_predicate_to_discount(self, discount_id: int, predicate_builder: Tuple) -> None:
         """
-        * Parameters: discountId, ages, locations, startingTimes, endingTimes, minPrices, maxPrices, minWeights, maxWeights, storeIds, productIds, categoryIds, typeOfConnection
+        * Parameters: discountId, predicateBuilder
         * This function assigns a predicate to a discount
-        * NOTE: if type_of_connection is an empty list, then it is a simple predicate
-        * NOTE: the composite predicate is assign from the last to the start where the last predicate and second to last are combined and then their combination is combined to the previous all the way to the first
-        * In other words [and, or, xor] -> pred1 and (pred2 or(pred3 xor pred4))
-        * NOTE: type_of_connection: 1-> And, 2-> Or, 3-> Xor, 4-> Implies
-        * NOTE: the lists of the optionals should of same size, and [0] is for the first, [1] is for the second, and so on, if the value is None then the first predicate is of different type
         * NOTE: for now subdiscounts are inaccessible to be changed
+        * NOTE: address would be a dict of address_id, address, city, state, country, postal_code
+        * NOTE: component_constraint would have two tuples in the second value.
         * Returns: none
-        """
+        """        
         if discount_id not in self.__discounts:
             logger.error('[StoreFacade] discount is not found')
             raise ValueError('Discount is not found')
         
-        length = len(ages)
-        if length != len(locations) or length != len(starting_times) or length != len(ending_times) or length != len(min_prices) or length != len(max_prices) or length != len(min_weights) or length != len(max_weights) or length != len(store_ids) or length != len(product_ids) or length != len(category_ids):
-            logger.error('[StoreFacade] lengths of predicate lists are not equal')
-            raise ValueError('Lengths of predicate lists are not equal')
-
-
         discount = self.__discounts[discount_id]
-        if len(type_of_connection) == 1 and type_of_connection[0] is None:
-            #creating the location addressDTO
-            address = None
-            if locations[0] is not None:
-                if 'address_id' not in locations[0] or 'address' not in locations[0] or 'city' not in locations[0] or 'state' not in locations[0] or 'country' not in locations[0] or 'postal_code' not in locations[0]:
-                    logger.error('[StoreFacade] location is not valid')
-                    raise ValueError('Location is not valid')
-                address = AddressDTO(locations[0]['address_id'], locations[0]['address'], locations[0]['city'],locations[0]['state'], locations[0]['country'], locations[0]['postal_code'])
-                
-            predicate = self.assign_predicate_helper(discount, ages[0], address, starting_times[0], ending_times[0], min_prices[0], max_prices[0], min_weights[0], max_weights[0], min_amounts[0], store_ids[0], product_ids[0], category_ids[0])
-            logger.info('[StoreFacade] successfully assigned simple predicate')
-            discount.change_predicate(predicate)
-        else:
-            if len(type_of_connection) != length - 1:
-                logger.error('[StoreFacade] length of type of connection list is not valid')
-                raise ValueError('Length of type of connection list is not valid')
-            
-            predicate2 = None
-            
-            for i in range(length - 1, -1, -1):
-                address = None
-                location=locations[i]
-                if location is not None:
-                    if 'address_id' not in location or 'address' not in location or 'city' not in location or 'state' not in location or 'country' not in location or 'postal_code' not in location:
-                        logger.error('[StoreFacade] location is not valid')
-                        raise ValueError('Location is not valid')
-                    address = AddressDTO(location['address_id'], location['address'], location['city'],location['state'], location['country'], location['postal_code'])
-            
-                predicate1 = self.assign_predicate_helper(discount, ages[i], address, starting_times[i], ending_times[i], min_prices[i], max_prices[i], min_weights[i], max_weights[i], min_amounts[i], store_ids[i], product_ids[i], category_ids[i])
-                if predicate2 is None:
-                    predicate2 = predicate1
-                else:
-                    if type_of_connection[i] == 1:
-                        predicate2 = AndConstraint(predicate1, predicate2)
-                        logger.info('[StoreFacade] successfully assigned AND predicate')
-                    elif type_of_connection[i] == 2:
-                        predicate2 = OrConstraint(predicate1, predicate2)
-                        logger.info('[StoreFacade] successfully assigned OR predicate')
-                    elif type_of_connection[i] == 3:
-                        predicate2 = XorConstraint(predicate1, predicate2)
-                        logger.info('[StoreFacade] successfully assigned XOR predicate')
-                    elif type_of_connection[i] == 4:
-                        predicate2 = ImpliesConstraint(predicate1, predicate2)
-                        logger.info('[StoreFacade] successfully assigned IMPLIES predicate')
-                    else:
-                        logger.error('[StoreFacade] type of connection is not valid')
-                        raise ValueError('Type of connection is not valid')
-            if predicate2 is not None:
-                logger.info('[StoreFacade] successfully assigned composite predicate')
-                discount.change_predicate(predicate2)
-            else:
-                logger.error('[StoreFacade] no valid predicate found')
-                raise ValueError('No valid predicate found')
+        if predicate_builder is None:
+            logger.error('[StoreFacade] predicate builder is missing')
+            raise ValueError('Predicate builder is missing')
+        
+        predicate = self.assign_predicate_helper(predicate_builder)
+
+        if predicate is None:
+            logger.error('[StoreFacade] no valid predicate found')
+            raise ValueError('No valid predicate found')
+        
+        discount.change_predicate(predicate)
         
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
@@ -1658,34 +1665,41 @@ class StoreFacade:
     def get_store_product_information(self, user_id: int, store_id: int) -> List[ProductDTO]:
         """
         * Parameters: storeId
-        * This function returns the store information as DTOs
+        * This function returns the store information as a string
         * Returns: the store information as a string
         """
         store = self.__get_store_by_id(store_id)
         return store.create_store_dto().products
 
-    def __aquire_cart_keys(self, shopping_cart: Dict[int, Dict[int, int]]) -> None:
+    def __acquire_store_locks(self, store_ids: List[int]) -> None:
         """
-        * Parameters: shoppingCart
-        * This function acquires the locks of the stores in the shopping cart
+        * Parameters: storeIds
+        * This function acquires locks for the given stores
         * Returns: none
         """
-        store_ids = list(shopping_cart.keys())
+        # sort the store ids to avoid deadlock
         store_ids.sort()
-        for store_id in shopping_cart:
-            self.__stores[store_id].acquire_products_lock(list(shopping_cart[store_id].keys()))
+        acquired = []
+        try:
+            for store_id in store_ids:
+                store = self.__get_store_by_id(store_id)
+                store.acquire_lock()
+                acquired.append(store_id)
+        except Exception as e:
+            self.__release_store_locks(acquired)
+            raise e
 
-    def __release_cart_keys(self, shopping_cart: Dict[int, Dict[int, int]]) -> None:
+    def __release_store_locks(self, store_ids: List[int]) -> None:
         """
-        * Parameters: shoppingCart
-        * This function releases the locks of the stores in the shopping cart
+        * Parameters: storeIds
+        * This function releases locks for the given stores
         * Returns: none
         """
-        store_ids = list(shopping_cart.keys())
+        # sort the store ids to avoid deadlock
         store_ids.sort()
-        for store_id in shopping_cart:
-            self.__stores[store_id].release_products_lock(list(shopping_cart[store_id].keys()))
-            
+        for store_id in store_ids:
+            store = self.__get_store_by_id(store_id)
+            store.release_lock()
 
     def check_and_remove_shopping_cart(self, shopping_cart: Dict[int, Dict[int, int]]) -> None:
         """
@@ -1693,23 +1707,23 @@ class StoreFacade:
         * This function checks if the store has the given amount of the products in the shopping cart and removes them
         * Returns: none
         """
-        self.__aquire_cart_keys(shopping_cart)
+        self.__acquire_store_locks(list(shopping_cart.keys()))
         try:
             for store_id, products in shopping_cart.items():
                 store = self.__get_store_by_id(store_id)
                 if not store.is_active:
                     raise ValueError('Store is not active')
                 for product_id, amount in products.items():
-                    if not store.locked_has_amount_of_product(product_id, amount):
-                        self.__release_cart_keys(shopping_cart)
+                    if not store.has_amount_of_product(product_id, amount):
+                        self.__release_store_locks(list(shopping_cart.keys()))
                         raise ValueError('Store does not have the given amount of the product')
 
             for store_id, products in shopping_cart.items():
                 for product_id, amount in products.items():
-                    self.locked_remove_product_amount(store_id, product_id, amount)
-            self.__release_cart_keys(shopping_cart)
+                    self.remove_product_amount(store_id, product_id, amount)
+            self.__release_store_locks(list(shopping_cart.keys()))
         except Exception as e:
-            self.__release_cart_keys(shopping_cart)
+            self.__release_store_locks(list(shopping_cart.keys()))
             raise e
 
     def get_purchase_shopping_cart(self, user_info: UserInformationForDiscountDTO, shopping_cart: Dict[int, Dict[int, int]]) \

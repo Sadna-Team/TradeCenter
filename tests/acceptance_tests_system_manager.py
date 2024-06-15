@@ -151,7 +151,7 @@ def test_getting_info_about_purchase_history_of_a_member(client, admin_token, cl
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, "ages": [None], "locations":[None], "starting_times":[None], "ending_times":[None], "min_prices":[None], "max_prices":[None], "min_weights":[None], "max_weights":[None],"min_amounts":[2],"store_ids":[0],"product_ids":[None],"category_ids":[None], "type_of_connections": [None]}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -184,7 +184,7 @@ def test_getting_info_about_purchase_history_of_a_member_wrong_credentials(clien
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, "ages": [None], "locations":[None], "starting_times":[None], "ending_times":[None], "min_prices":[None], "max_prices":[None], "min_weights":[None], "max_weights":[None],"min_amounts":[2],"store_ids":[0],"product_ids":[None],"category_ids":[None], "type_of_connections": [None]}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -215,7 +215,7 @@ def test_getting_info_about_purchase_history_of_a_store(client, admin_token, cli
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, "ages": [None], "locations":[None], "starting_times":[None], "ending_times":[None], "min_prices":[None], "max_prices":[None], "min_weights":[None], "max_weights":[None],"min_amounts":[2],"store_ids":[0],"product_ids":[None],"category_ids":[None], "type_of_connections": [None]}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -260,7 +260,7 @@ def test_getting_info_about_purchase_history_of_a_store_wrong_store_credentials(
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, "ages": [None], "locations":[None], "starting_times":[None], "ending_times":[None], "min_prices":[None], "max_prices":[None], "min_weights":[None], "max_weights":[None],"min_amounts":[2],"store_ids":[0],"product_ids":[None],"category_ids":[None], "type_of_connections": [None]}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -293,7 +293,7 @@ def test_getting_info_about_purchase_history_of_a_user_in_store(client, admin_to
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, "ages": [None], "locations":[None], "starting_times":[None], "ending_times":[None], "min_prices":[None], "max_prices":[None], "min_weights":[None], "max_weights":[None],"min_amounts":[2],"store_ids":[0],"product_ids":[None],"category_ids":[None], "type_of_connections": [None]}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -325,7 +325,7 @@ def test_getting_info_about_purchase_history_of_a_user_in_store_wrong_credential
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, "ages": [None], "locations":[None], "starting_times":[None], "ending_times":[None], "min_prices":[None], "max_prices":[None], "min_weights":[None], "max_weights":[None],"min_amounts":[2],"store_ids":[0],"product_ids":[None],"category_ids":[None], "type_of_connections": [None]}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
