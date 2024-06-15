@@ -75,8 +75,6 @@ def create_app():
     app.register_blueprint(store_bp, url_prefix='/store')
     app.register_blueprint(third_party_bp, url_prefix='/third_party')
 
-
-
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blacklist(jwt_header, jwt_payload):
         return authentication.check_if_token_in_blacklist(jwt_header, jwt_payload)
