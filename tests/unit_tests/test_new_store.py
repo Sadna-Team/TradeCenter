@@ -153,10 +153,12 @@ def test_create_numerical_composite_discount_fail(store_facade):
 
 def test_assign_predicate_to_discount(store_facade):
     store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
-    store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
-    store_facade.add_discount('discount2', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.4,None,store_id,None,None)
-    assert len(store_facade.discounts) == 2
-    store_facade.assign_predicate_to_discount(0, [20], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None], [None])
+    store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2025, 1, 2), 0.1,None,store_id,None,None)
+    store_facade.add_discount('discount2', datetime(2020, 1, 1), datetime(2025, 1, 2), 0.4,None,store_id,None,None)
+    new_id=store_facade.create_logical_composite_discount('composite discount', datetime(2020, 1, 1), datetime(2025, 1, 2), -1, 0, 1, 1)
+    #34 euro
+    assert len(store_facade.discounts) == 1
+    store_facade.assign_predicate_to_discount(new_id,('age',18))
     assert isinstance(store_facade.discounts[0].predicate, AgeConstraint)
     
     
