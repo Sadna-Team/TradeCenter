@@ -88,6 +88,10 @@ class MarketFacade:
         cart: Dict[int, Dict[int, int]] = {}  # store_id -> product_id -> amount
         pur_id = -1
         try:
+            # Check if the user is suspended
+            if self.user_facade.suspended(user_id):
+                raise ValueError("User is suspended")
+
             cart = self.user_facade.get_shopping_cart(user_id)
 
             if not cart:
@@ -176,6 +180,9 @@ class MarketFacade:
             raise e
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_username):
+        if self.user_facade.suspended(owner_id):
+            raise ValueError("User is suspended")
+
         # get user_id of new_owner_username
         new_owner_id = self.user_facade.get_user_id_from_username(new_owner_username)
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
@@ -187,6 +194,9 @@ class MarketFacade:
         logger.info(f"User {owner_id} has nominated user {new_owner_id} to be the owner of store {store_id}")
 
     def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_username):
+        if self.user_facade.suspended(owner_id):
+            raise ValueError("User is suspended")
+        
         # get user_id of new_manager_username
         new_manager_id = self.user_facade.get_user_id_from_username(new_manager_username)
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
@@ -206,6 +216,9 @@ class MarketFacade:
     def change_permissions(self, actor_id: int, store_id: int, manager_id: int, add_product: bool,
                            change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
                            change_discount_types: bool, add_manager: bool, get_bid: bool):
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
         self.roles_facade.set_manager_permissions(store_id, actor_id, manager_id, add_product, change_purchase_policy,
                                                   change_purchase_types, change_discount_policy, change_discount_types,
                                                   add_manager, get_bid)
@@ -213,45 +226,128 @@ class MarketFacade:
         logger.info(f"User {actor_id} has changed the permissions of user {manager_id} in store {store_id}")
 
     def remove_store_role(self, actor_id: int, store_id: int, username: str):
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
         user_id = self.user_facade.get_user_id_from_username(username)
         self.roles_facade.remove_role(store_id, actor_id, user_id)
         logger.info(f"User {actor_id} has removed user {user_id} from store {store_id}")
 
     def give_up_role(self, actor_id: int, store_id: int):
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
         self.roles_facade.remove_role(store_id, actor_id, actor_id)
         logger.info(f"User {actor_id} has given up his role in store {store_id}")
 
+    def remove_system_manager(self, actor: int, user_id: int):
+        """"
+        Removes a system manager from the system
+        """
+        if self.user_facade.suspended(actor):
+            raise ValueError("User is suspended")
+        
+        self.roles_facade.remove_system_manager(actor, user_id)
+        logger.info(f"User {actor} has removed user {user_id} as a system manager")
+
+    def suspend_user_permanently(self, actor_id: int, user_id: int):
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
+        if not self.roles_facade.is_system_manager(actor_id):
+            raise ValueError("User is not a system manager")
+        
+        self.user_facade.suspend_user_permanently(user_id)
+        logger.info(f"User {actor_id} has suspended user {user_id} permanently")
+
+    def suspend_user_temporarily(self, actor_id: int, user_id: int, date_details: dict):
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
+        if not self.roles_facade.is_system_manager(actor_id):
+            raise ValueError("User is not a system manager")
+        
+        self.user_facade.suspend_user_temporarily(user_id, date_details)
+        logger.info(f"User {actor_id} has suspended user {user_id} temporarily")
+
+    def unsuspend_user(self, actor_id: int, user_id: int):
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
+        if not self.roles_facade.is_system_manager(actor_id):
+            raise ValueError("User is not a system manager")
+        
+        self.user_facade.unsuspend_user(user_id)
+        logger.info(f"User {actor_id} has unsuspended user {user_id}")
+
+    def show_suspended_users(self, actor_id: int):
+        if self.user_facade.suspended(actor_id):
+            raise ValueError("User is suspended")
+        
+        if not self.roles_facade.is_system_manager(actor_id):
+            raise ValueError("User is not a system manager")
+        
+        return self.user_facade.get_suspended_users()
+
     def add_system_manager(self, actor: int, username: str):
+        if self.user_facade.suspended(actor):
+            raise ValueError("User is suspended")
+          
         user_id = self.user_facade.get_user_id_from_username(username)
+        if self.user_facade.suspended(user_id):
+            raise ValueError("New wanted system manager is suspended")
+            
         self.roles_facade.add_system_manager(actor, user_id)
         logger.info(f"User {actor} has added user {user_id} as a system manager")
 
     def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
+        
         PaymentHandler().add_payment_method(method_name, payment_config)
+        logger.info(f"User {user_id} has added payment method {method_name}")
 
     def edit_payment_method(self, user_id: int, method_name: str, editing_data: Dict):
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         PaymentHandler().edit_payment_method(method_name, editing_data)
+        logger.info(f"User {user_id} has edited payment method {method_name}")
 
     def remove_payment_method(self, user_id: int, method_name: str):
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         PaymentHandler().remove_payment_method(method_name)
+        logger.info(f"User {user_id} has removed payment method {method_name}")
 
     def add_supply_method(self, user_id: int, method_name: str, supply_config: Dict):
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         SupplyHandler().add_supply_method(method_name, supply_config)
 
     def edit_supply_method(self, user_id: int, method_name: str, editing_data: Dict):
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         SupplyHandler().edit_supply_method(method_name, editing_data)
 
     def remove_supply_method(self, user_id: int, method_name: str):
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         SupplyHandler().remove_supply_method(method_name)
@@ -332,6 +428,9 @@ class MarketFacade:
         *NOTE: the discount is initialized with no predicate!
         * Returns none
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         return self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id, product_id, applied_to_sub) 
@@ -345,6 +444,9 @@ class MarketFacade:
         * NOTE: type_of_connection: 1 is AND, 2 OR, 3 XOR
         * Returns none
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         return self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1, discount_id2, type_of_composite)
@@ -357,11 +459,16 @@ class MarketFacade:
         * NOTE: type_of_connection: 1 is MAX, 2 is ADDITIVE
         * Returns none
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         return self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
 
     def assign_predicate_to_discount(self, user_id: int, discount_id: int, predicate_properties: Tuple) -> None:
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.is_system_manager(user_id):
             logger.warning(f"User {user_id} does not have permissions to assign a predicate to a discount")
             raise ValueError("User is not a system manager")
@@ -373,6 +480,9 @@ class MarketFacade:
         * This function changes the percentage of a discount
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        
         if not self.roles_facade.is_system_manager(user_id):
             logger.warning(f"User {user_id} does not have permissions to change the percentage of a discount")
             raise ValueError("User is not a system manager")
@@ -384,12 +494,17 @@ class MarketFacade:
         * This function changes the description of a discount
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        
         if not self.roles_facade.is_system_manager(user_id):
             logger.warning(f"User {user_id} does not have permissions to change the description of a discount")
             raise ValueError("User is not a system manager")
         self.store_facade.change_discount_description(discount_id, new_description)
 
     def remove_discount(self, user_id: int, discount_id: int) -> None:
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         if self.store_facade.remove_discount(discount_id):
@@ -435,6 +550,8 @@ class MarketFacade:
         * This function adds a purchase policy to the store
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
             self.store_facade.add_purchase_policy_to_store(store_id, policy_name)
             logger.info(f"User {user_id} has added a policy to store {store_id}")
@@ -447,6 +564,8 @@ class MarketFacade:
         * This function removes a purchase policy from the store
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
             self.store_facade.remove_purchase_policy_from_store(store_id, policy_name)
             logger.info(f"User {user_id} has removed a policy from store {store_id}")
@@ -461,6 +580,8 @@ class MarketFacade:
         * This function adds a product to the store
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add a product to the store")
         return self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags, amount)
@@ -471,6 +592,8 @@ class MarketFacade:
         * This function removes a product from the store
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to remove a product from the store")
         self.store_facade.remove_product_from_store(store_id, product_id)
@@ -481,6 +604,8 @@ class MarketFacade:
         * This function adds an amount of a product to the store
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add an amount of a product to the store")
         self.store_facade.add_product_amount(store_id, product_id, amount)
@@ -491,6 +616,8 @@ class MarketFacade:
         * This function removes an amount of a product from the store
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to remove an amount of a product from the "
                              "store")
@@ -504,6 +631,9 @@ class MarketFacade:
         * Returns None
         """
         # TODO: add transaction
+        if self.user_facade.suspended(founder_id):
+            raise ValueError("User is suspended")
+        
         if not self.user_facade.is_member(founder_id):
             raise ValueError("User is not a member")
 
@@ -519,6 +649,8 @@ class MarketFacade:
         * This function closes a store
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         self.store_facade.close_store(store_id, user_id)
 
     def open_store(self, user_id: int, store_id: int):
@@ -527,6 +659,8 @@ class MarketFacade:
         * This function opens a store
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         self.store_facade.open_store(store_id, user_id)
 
     def get_employees_info(self, user_id: int, store_id: int) -> Dict[int, str]:
@@ -546,6 +680,8 @@ class MarketFacade:
         * This function adds a tag to a product specification
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to add a tag to a product in the store")
         self.store_facade.add_tag_to_product(store_id, product_id, tag)
@@ -556,6 +692,8 @@ class MarketFacade:
         * This function removes a tag from a product specification
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to remove a tag to a product in the store")
         self.store_facade.remove_tag_from_product(store_id, product_id, tag)
@@ -567,6 +705,8 @@ class MarketFacade:
         * This function changes the price of a product
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError(
                 "User does not have the necessary permissions to change the price of a product in the store")
@@ -578,6 +718,8 @@ class MarketFacade:
         * This function changes the description of a product
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User is not a system manager")
         self.store_facade.change_description_of_product(store_id, product_id, description)
@@ -599,6 +741,8 @@ class MarketFacade:
         * This function adds a category to the system
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         return self.store_facade.add_category(category_name)
@@ -609,6 +753,8 @@ class MarketFacade:
         * This function removes a category from the system
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         self.store_facade.remove_category(category_id)
@@ -620,6 +766,8 @@ class MarketFacade:
         * NOTE: It is assumed that the subCategory is already created and exists in the system
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         self.store_facade.assign_sub_category_to_category(sub_category_id, parent_category_id)
@@ -631,6 +779,8 @@ class MarketFacade:
         * This function removes a sub category from a category
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
         self.store_facade.delete_sub_category_from_category(category_id, sub_category_id)
@@ -643,6 +793,8 @@ class MarketFacade:
         * NOTE: it is assumed that the product exists in the system
         * Returns None
         """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise ValueError("User does not have the necessary permissions to assign a product to a category")
         self.store_facade.assign_product_to_category(category_id, store_id, product_id)

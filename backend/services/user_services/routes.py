@@ -222,7 +222,6 @@ def accept_promotion():
         return jsonify({'message': str(e)}), 400
     return user_service.accept_promotion(user_id, promotion_id, accept)
 
-
 @user_bp.route('/is_system_manager', methods=['GET'])
 @jwt_required()
 def is_system_manager():
@@ -384,3 +383,15 @@ def add_system_manager():
         return jsonify({'message': str(e)}), 400
 
     return user_service.add_system_manager(user_id, username)
+  
+"""
+@user_bp.route('/suspend_user', methods=['POST'])
+@jwt_required()
+def suspend_user():
+    pass
+
+@user_bp.route('/unsuspend_user', methods=['POST'])
+@jwt_required()
+def unsuspend_user():
+    pass
+"""

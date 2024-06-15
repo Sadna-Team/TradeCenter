@@ -1,6 +1,6 @@
 from . import c
 from typing import List, Dict, Optional, Set, Tuple
-import datetime
+from datetime import datetime
 from abc import ABC, abstractmethod
 import threading
 from collections import defaultdict
@@ -75,10 +75,10 @@ class ShoppingCart:
 
 
 class Notification:
-    def __init__(self, notification_id: int, message: str, date: datetime.datetime) -> None:
+    def __init__(self, notification_id: int, message: str, date: datetime) -> None:
         self.__notification_id: int = notification_id
         self.__message: str = message
-        self.__date: datetime.datetime = date
+        self.__date: datetime = date
 
     def get_notification_dto(self) -> NotificationDTO:
         return NotificationDTO(self.__notification_id, self.__message, self.__date)
@@ -110,11 +110,19 @@ class State(ABC):
         pass
 
     @abstractmethod
-    def get_birthdate(self) -> Optional[datetime.datetime]:
+    def get_birthdate(self) -> Optional[datetime]:
         pass
 
     @abstractmethod
     def get_phone(self):
+        pass
+
+    @abstractmethod
+    def is_suspended(self):
+        pass
+
+    @abstractmethod
+    def set_suspense(self, value: bool, suspended_until:Optional[datetime]):
         pass
 
 
@@ -137,12 +145,17 @@ class Guest(State):
     def get_username(self):
         raise ValueError("User is not registered")
 
-    def get_birthdate(self) -> Optional[datetime.datetime]:
+    def get_birthdate(self) -> Optional[datetime]:
         raise ValueError("User is not registered")
 
     def get_phone(self):
         raise ValueError("User is not registered")
+    
+    def is_suspended(self):
+        raise ValueError("User is not registered")
 
+    def set_suspense(self, value: bool, suspended_until:Optional[datetime]):
+        raise ValueError("User is not registered")
 
 class Member(State):
     def __init__(self, email: str, username, password: str, year: int, month: int, day: int,
@@ -152,10 +165,20 @@ class Member(State):
         self.__email: str = email
         self.__username: str = username
         self.__password: str = password
-        self.__birthdate: datetime.datetime = datetime.datetime(year, month, day)
+        self.__birthdate: datetime = datetime(year, month, day)
         self.__phone: str = phone
         self.__notifications: List[Notification] = []
+        self.__is_suspended: bool = False
+        self.__suspended_until: Optional[datetime] = None
 
+    def set_suspense(self, value: bool, suspended_until: Optional[datetime]):
+        """
+        * value: True if we want to suspend the user, False otherwise
+        * suspended_until: the date until the user is suspended
+        """
+        self.__is_suspended = value
+        self.__suspended_until = suspended_until
+        
     def get_password(self):
         return self.__password
 
@@ -174,13 +197,22 @@ class Member(State):
     def get_username(self):
         return self.__username
 
-    def get_birthdate(self) -> Optional[datetime.datetime]:
+    def get_birthdate(self) -> Optional[datetime]:
         return self.__birthdate
 
     def get_phone(self):
         return self.__phone
-
-
+    
+    def is_suspended(self):
+        """
+        * Return True if the user is suspended
+        * Check if the suspension date passed (If it did, we update the is_suspended field to False)
+        """
+        if self.__is_suspended and self.__suspended_until is not None:
+            if self.__suspended_until < datetime.now():
+                self.__is_suspended = False         
+        return self.__is_suspended
+        
 class User:
     def __init__(self, user_id: int, currency: str = 'USD') -> None:
         if currency not in c.currencies:
@@ -226,6 +258,12 @@ class User:
 
     def is_member(self):
         return isinstance(self.__member, Member)
+    
+    def is_suspended(self):
+        return self.__member.is_suspended()
+    
+    def change_suspend(self, value: bool, suspended_until: Optional[datetime]):
+        self.__member.set_suspense(value, suspended_until)
 
     def create_purchase_user_dto(self) -> PurchaseUserDTO:
         try:
@@ -259,6 +297,7 @@ class UserFacade:
             self._initialized = True
             self.__users: Dict[int, User] = {}
             self.__usernames: Dict[str, int] = {}  # username -> user_id
+            self.__suspend_users: Dict[int, Optional[datetime]] = {} # user_id's -> date until end of suspension
 
     def clean_data(self):
         """
@@ -267,6 +306,47 @@ class UserFacade:
         self.__users.clear()
         self.__usernames.clear()
         UserFacade.__id_serializer = 0
+        self.__suspend_users.clear()
+
+    def get_suspended_users(self) -> Dict[int, Optional[datetime]]:
+        return self.__suspend_users
+
+    def suspended(self, user_id: int) -> bool:
+        """
+        If a user is a guest we continue, 
+        otherwise we check if the user is registered and suspended
+        * Return True if we can't continue
+        """
+        if not self.__get_user(user_id).is_member():
+            return False
+        return self.__get_user(user_id).is_suspended()
+
+    def suspend_user_permanently(self, user_id: int):
+        """
+        Suspend user permanently, only system manager can do this
+        * user_id: the id of the user to suspend
+        """
+        self.__get_user(user_id).change_suspend(True, None)
+        self.__suspend_users[user_id] = None # Added the user to the suspended users list
+
+    def suspend_user_temporarily(self, user_id: int, date_details: dict):
+        """
+        Suspend user for a specific time, only system manager can do this
+        * user_id: the id of the user to suspend
+        * date_details: the date until the user is suspended (year, month, day, hour, minute)
+        """
+        date = datetime(date_details["year"], date_details["month"], date_details["day"], date_details["hour"], date_details["minute"])    
+        self.__get_user(user_id).change_suspend(True, date)
+        self.__suspend_users[user_id] = date # Added the user to the suspended users list
+
+    def unsuspend_user(self, user_id: int):
+        """
+        Unsuspend user, only system manager can do this
+        * actor_id: the id of system manager
+        * user_id: the id of the user to unsuspend
+        """
+        self.__get_user(user_id).change_suspend(False, None)
+        self.__suspend_users.pop(user_id) # Removed the user from the suspended users list
 
     def __get_user(self, user_id: int) -> User:
         if user_id not in self.__users:
@@ -284,7 +364,7 @@ class UserFacade:
         user = User(new_id, currency)
         self.__users[new_id] = user
         return new_id
-
+    
     def register_user(self, user_id: int, email: str, username: str, password: str,
                       year: int, month: int, day: int, phone: str) -> None:
         with UserFacade.__register_lock:
@@ -292,6 +372,7 @@ class UserFacade:
                 raise ValueError("Username already exists")
             if user_id not in self.__users:
                 raise ValueError("User not found")
+            # "False" is for is_suspended field
             self.__get_user(user_id).register(email, username, password, year, month, day, phone)
             self.__usernames[username] = user_id
 
@@ -325,15 +406,23 @@ class UserFacade:
                              notification.get_message(), notification.get_date()))
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
+        if self.suspended(user_id):
+            raise ValueError("User is suspended")
         self.__get_user(user_id).add_product_to_basket(store_id, product_id, quantity)
 
     def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
+        if self.suspended(user_id):
+            raise ValueError("User is suspended")
         return self.__get_user(user_id).get_shopping_cart()
 
     def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
+        if self.suspended(user_id):
+            raise ValueError("User is suspended")
         self.__get_user(user_id).remove_product_from_basket(store_id, product_id, quantity)
 
     def clear_basket(self, user_id: int) -> None:
+        if self.suspended(user_id):
+            raise ValueError("User is suspended")
         self.__get_user(user_id).clear_basket()
 
     def get_password(self, username: str) -> Tuple[int, str]:
