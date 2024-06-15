@@ -464,7 +464,8 @@ def test_assign_predicate_to_discount(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
-    market_facade.assign_predicate_to_discount(user_id1, discount_id1,[21],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None])
+
+    market_facade.assign_predicate_to_discount(user_id1, discount_id1,('age',21))
     assert isinstance(market_facade.store_facade.discounts.get(discount_id1).predicate, AgeConstraint)
     
     
@@ -473,7 +474,7 @@ def test_assign_predicate_to_discount_no_permission(default_set_up):
     user_id2 = user_ids[1]
     discount_id1 = discount_ids[0]
     with pytest.raises(ValueError):
-        market_facade.assign_predicate_to_discount(user_id2, discount_id1,[21],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None],[None])
+        market_facade.assign_predicate_to_discount(user_id2, discount_id1,('age',21))
     assert market_facade.store_facade.discounts.get(discount_id1).predicate == None
 
 

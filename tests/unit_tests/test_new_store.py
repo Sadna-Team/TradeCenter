@@ -163,10 +163,8 @@ def test_assign_predicate_to_discount(store_facade):
 def test_assign_predicate_to_discount2(store_facade):
     store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
     discount_id1 = store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
-    discount_id2 = store_facade.add_discount('discount2', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.4,None,store_id,None,None)
-    assert len(store_facade.discounts) == 2
     locations: Dict = {'address_id': 1, 'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'postal_code': 'postal_code'}
-    store_facade.assign_predicate_to_discount(0, [20,None],[None,locations] , [None,None], [None,None], [None,None], [None,None], [None,None], [None,None], [None,None], [None,None], [None,None], [None,None], [1])
+    store_facade.assign_predicate_to_discount(discount_id1,('and', ('location',locations) , ('time', time(10, 0), time(12, 0))))
     assert isinstance(store_facade.discounts[0].predicate, AndConstraint)
     
     
@@ -200,8 +198,8 @@ def test_get_total_price_after_discount(store_facade):
     
 def test_assign_predicate_to_discount_fail(store_facade):
     with pytest.raises(ValueError):
-        store_facade.assign_predicate_to_discount(0, [20, 30], [{'city':'city1'}, {'city':'city2'}], [time(10, 0), time(12, 0)], [time(14, 0), time(16, 0)], [10.0, 20.0], [30.0, 40.0], [10.0, 20.0], [30.0, 40.0], [10, 20], [0, 1], [0, 1], [0, 1], [0, 1])
-    
+        store_facade.assign_predicate_to_discount(0,('age',18))
+
 
 #specific unit tests that are requested in version 2:
 
@@ -232,10 +230,10 @@ def test_apply_tomatoes_discount(store_facade):
     store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
     store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', 10.0, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(0, 50)
-    store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2030, 1, 2), 0.1,None,store_id,None,None)
-    shopping_basket= {0:21}
+    discount_id = store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2030, 1, 2), 0.1,None,store_id,None,None)
+    shopping_basket = {0:21}
     total_price_of_basket=210
-    store_facade.assign_predicate_to_discount(0, [None], [None], [None], [None], [200.0], [-1], [None], [None], [None], [store_id], [None], [None], [None])
+    store_facade.assign_predicate_to_discount(discount_id, ('price_basket', 200.0, -1.0, store_id))
     assert store_facade.apply_discount(0, store_id, total_price_of_basket, shopping_basket, user_information_dto1)==21.0
 
 #4. discount on milk products or bread products but not on both (XOR):
@@ -311,10 +309,10 @@ def test_apply_baked_goods_discount(store_facade):
     store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
     #bread discount
     temp1 = store_facade.add_discount('bread_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), 0.05,None,store_id,product_id1,None)
-    store_facade.assign_predicate_to_discount(temp1, [None], [None], [None], [None], [None], [None], [None], [None], [5], [store_id], [product_id1], [None], [None])
+    store_facade.assign_predicate_to_discount(temp1, ('amount_product', 5, product_id1, store_id))
     #cake discount
     temp2 = store_facade.add_discount('cake_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), 0.05,None,store_id,product_id2,None)
-    store_facade.assign_predicate_to_discount(temp2, [None], [None], [None], [None], [None], [None], [None], [None], [2], [store_id], [product_id2], [None], [None])
+    store_facade.assign_predicate_to_discount(temp2, ('amount_product', 2, product_id2, store_id))
     
     
     discount_id = store_facade.create_logical_composite_discount('bread_and_cake', datetime(2020, 1, 1), datetime(2050, 1, 2), -1, temp1, temp2, 1)
@@ -351,10 +349,10 @@ def test_apply_milk_discount(store_facade):
     store_facade.get_store_by_id(store_id).restock_product(product_id3, 50)
     #cottage cheese discount
     temp1 = store_facade.add_discount('cottage_cheese_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), 0.05,None,store_id,product_id2,None)
-    store_facade.assign_predicate_to_discount(temp1, [None], [None], [None], [None], [None], [None], [None], [None], [3], [store_id], [product_id2], [None], [None])
+    store_facade.assign_predicate_to_discount(temp1, ('amount_product', 3, product_id2, store_id))
     #yogurt discount
     temp2 = store_facade.add_discount('yogurt_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), 0.05,None,store_id,product_id3,None)
-    store_facade.assign_predicate_to_discount(temp2, [None], [None], [None], [None], [None], [None], [None], [None], [2], [store_id], [product_id3], [None], [None])
+    store_facade.assign_predicate_to_discount(temp2, ('amount_product', 2, product_id3, store_id))
     
     
     discount_id = store_facade.create_logical_composite_discount('cottage_cheese_and_yogurt', datetime(2020, 1, 1), datetime(2050, 1, 2), -1, temp1, temp2, 2)
@@ -392,7 +390,7 @@ def test_apply_milk_discount2(store_facade):
     store_facade.get_store_by_id(store_id).restock_product(product_id3, 50)
     #pasta discount
     discount_id = store_facade.add_discount('milk_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), 0.05,category_id,None,None,False)
-    store_facade.assign_predicate_to_discount(discount_id, [None,None], [None,None],[None,None], [None,None], [100.0,None],[-1,None], [None,None],[None,None], [None,3],[store_id,store_id],[None,product_id2],[None,None],[1])
+    store_facade.assign_predicate_to_discount(discount_id, ('and', ('amount_product', 3, product_id2, store_id), ('price_basket', 100.0, -1.0, store_id)))
     
     shopping_basket= {product_id1:1, product_id2:1, product_id3:1}
     total_price_of_basket=40.0
@@ -412,6 +410,7 @@ def test_apply_milk_discount2(store_facade):
     shopping_basket= {product_id1:10, product_id2:3,product_id3: 5}
     total_price_of_basket=230.0
     assert store_facade.apply_discount(discount_id, store_id, total_price_of_basket, shopping_basket, user_information_dto1)==10.0
+    
     
     
 #8. the discount that is given is the max between 5% of the pastas in the cart, and 17% of milk bottles in the cart:
@@ -776,8 +775,8 @@ def test_has_amount_of_product(store, product_dto):
     assert not store.has_amount_of_product(0, 6)
 
 def test_has_amount_of_product_fail(store):
-    with pytest.raises(ValueError):
-        store.has_amount_of_product(0, 5)
+    assert not store.has_amount_of_product(0, 5)
+  
 
 def test_get_category_by_id(store_facade, category):
     store_facade.add_category(category.category_name)
