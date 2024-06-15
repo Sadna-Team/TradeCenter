@@ -106,3 +106,57 @@ def test_give_up_ownership():
     assert response.status_code == 200
 
 
+def test_is_system_manager():
+    global token1
+    response = client.get('/user/is_system_manager',
+                          headers={'Authorization': 'Bearer ' + token1})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_system_manager'] is False
+
+    # login as admin
+    response = client.get('/auth/')
+    assert response.status_code == 200
+    token = json.loads(response.data)['token']
+
+    response = client.post('/auth/login', headers={'Authorization': 'Bearer ' + token},
+                           json={'username': 'admin', 'password': 'admin'})
+    assert response.status_code == 200
+    token = json.loads(response.data)['token']
+
+    # check if admin is system manager
+    response = client.get('/user/is_system_manager',
+                          headers={'Authorization': 'Bearer ' + token})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_system_manager'] is True
+
+
+def test_is_store_owner():
+    global token1
+    global token2
+    response = client.get('/user/is_store_owner',
+                          headers={'Authorization': 'Bearer ' + token1},
+                          json={'store_id': 0})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_owner'] is True
+
+    response = client.get('/user/is_store_owner', headers={'Authorization': 'Bearer ' + token2}, json={'store_id': 0})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_owner'] is False
+
+
+def test_is_store_manager():
+    global token1
+    global token2
+    response = client.get('/user/is_store_manager',
+                          headers={'Authorization': 'Bearer ' + token1},
+                          json={'store_id': 0})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_manager'] is False
+
+    response = client.get('/user/is_store_manager', headers={'Authorization': 'Bearer ' + token2}, json={'store_id': 0})
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_manager'] is False
+
+    response = client.post('/store/add_store_manager', headers={'Authorization': 'Bearer ' + token1},
+                           json={'store_id': 0, 'username': 'test2'})
+    assert response.status_code == 200

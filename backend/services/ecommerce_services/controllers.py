@@ -38,12 +38,12 @@ class PurchaseService:
             logger.error('show_purchase_history_in_store was not successful')
             return jsonify({'message': str(e)}), 400
 
-    def show_purchase_history_of_user(self, user_id: int, store_id: Optional[int] = None):
+    def show_purchase_history_of_user(self, user_id: int, requested_id: int, store_id: Optional[int] = None):
         """
             Show the purchase history of a member
         """
         try:
-            info = self.__market_facade.view_purchases_of_user(user_id, store_id)
+            info = self.__market_facade.view_purchases_of_user(user_id, requested_id, store_id)
             logger.info('show_purchase_history_of_user was successful')
             info = [x.get() for x in info]
             return jsonify({'message': info}), 200

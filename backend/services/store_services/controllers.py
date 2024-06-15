@@ -1,6 +1,6 @@
 # communication with business logic
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from backend.business import MarketFacade
 from flask import jsonify
 
@@ -63,16 +63,13 @@ class StoreService:
             logger.error('composite discount was not created')
             return jsonify({'message': str(e)}), 400
     
-    def assign_predicate_to_discount(self, user_id: int, discount_id: int, ages: List[Optional[int]], locations: List[Optional[Dict]],
-                                     starting_times: List[Optional[datetime.time]], ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]], 
-                                     max_prices: List[Optional[float]], min_weights: List[Optional[float]], max_weights: List[Optional[float]], min_amounts: List[Optional[int]],
-                                     store_ids: List[Optional[int]], product_ids: List[Optional[int]], category_ids: List[Optional[int]], 
-                                        type_of_connection: List[Optional[int]]):
+    def assign_predicate_to_discount(self, user_id: int, discount_id: int, predicate_builder: Tuple):
         """
             Assign a predicate to a discount
         """
         try:
-            self.__market_facade.assign_predicate_to_discount(user_id, discount_id, ages, locations, starting_times, ending_times, min_prices, max_prices, min_weights, max_weights, min_amounts, store_ids, product_ids, category_ids, type_of_connection)
+            """ Maybe we have to receive the predicate_builder as a string and then build it here to a tuple?"""
+            self.__market_facade.assign_predicate_to_discount(user_id, discount_id, predicate_builder)
             logger.info('predicate was assigned successfully')
             return jsonify({'message': 'predicate was assigned successfully'}), 200
         except Exception as e:

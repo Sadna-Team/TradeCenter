@@ -67,23 +67,22 @@ def show_store_purchase_history():
 def show_user_purchase_history():
     """
         Use Case 2.2.4.13:
-        Show the purchase history of a user in a store
+        Show the purchase history of a user (if store id is provided, show the purchase history in the store)
     """
-    logger.info('recieved request to show the purchase history of a user in a store')
+    logger.info('recieved request to show the purchase history of a user')
     try:
         user_id = get_jwt_identity()
         store_id = None
-        try:
-            data = request.get_json()
+        data = request.get_json()
+        requested_id = int(data['user_id'])
+        if 'store_id' in data:
             store_id = int(data['store_id'])
-        except Exception as e:
-            logger.info("store_id not provided")
 
     except Exception as e:
-        logger.error('show_user_purchase_history_in_store - ', str(e))
+        logger.error('show_user_purchase_history - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.show_purchase_history_of_user(user_id, store_id)
+    return purchase_service.show_purchase_history_of_user(user_id, requested_id, store_id)
 
 
 @market_bp.route('/search_products_by_category', methods=['GET'])
@@ -141,7 +140,7 @@ def search_products_by_name():
         Use Case 2.2.2.1:
         Search products in the stores
     """
-    logger.info('recieved request to search for products')
+    logger.info('received request to search for products')
     try:
         data = request.get_json()
         name = str(data['name'])

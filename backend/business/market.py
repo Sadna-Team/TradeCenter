@@ -240,13 +240,6 @@ class MarketFacade:
         self.roles_facade.remove_role(store_id, actor_id, actor_id)
         logger.info(f"User {actor_id} has given up his role in store {store_id}")
 
-    def add_system_manager(self, actor: int, user_id: int):
-        if self.user_facade.suspended(actor):
-            raise ValueError("User is suspended")
-        
-        self.roles_facade.add_system_manager(actor, user_id)
-        logger.info(f"User {actor} has added user {user_id} as a system manager")
-
     def remove_system_manager(self, actor: int, user_id: int):
         """"
         Removes a system manager from the system
@@ -295,6 +288,17 @@ class MarketFacade:
             raise ValueError("User is not a system manager")
         
         return self.user_facade.get_suspended_users()
+
+    def add_system_manager(self, actor: int, username: str):
+        if self.user_facade.suspended(actor):
+            raise ValueError("User is suspended")
+          
+        user_id = self.user_facade.get_user_id_from_username(username)
+        if self.user_facade.suspended(user_id):
+            raise ValueError("New wanted system manager is suspended")
+            
+        self.roles_facade.add_system_manager(actor, user_id)
+        logger.info(f"User {actor} has added user {user_id} as a system manager")
 
     def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
         if self.user_facade.suspended(user_id):
@@ -462,23 +466,13 @@ class MarketFacade:
             raise ValueError("User is not a system manager")
         return self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
 
-    def assign_predicate_to_discount(self, user_id: int, discount_id: int, ages: List[Optional[int]],
-                                     locations: List[Optional[Dict]],
-                                     starting_times: List[Optional[datetime.time]],
-                                     ending_times: List[Optional[datetime.time]], min_prices: List[Optional[float]],
-                                     max_prices: List[Optional[float]], min_weights: List[Optional[float]],
-                                     max_weights: List[Optional[float]], min_amounts: List[Optional[int]],
-                                     store_ids: List[Optional[int]], product_ids: List[Optional[int]],
-                                     category_ids: List[Optional[int]],
-                                     type_of_connection: List[Optional[int]]) -> None:
+    def assign_predicate_to_discount(self, user_id: int, discount_id: int, predicate_properties: Tuple) -> None:
         if self.user_facade.suspended(user_id):
             raise ValueError("User is suspended")
         if not self.roles_facade.is_system_manager(user_id):
             logger.warning(f"User {user_id} does not have permissions to assign a predicate to a discount")
             raise ValueError("User is not a system manager")
-        self.store_facade.assign_predicate_to_discount(discount_id, ages, locations, starting_times, ending_times,
-                                                       min_prices, max_prices, min_weights, max_weights, min_amounts,
-                                                       store_ids, product_ids, category_ids, type_of_connection)
+        self.store_facade.assign_predicate_to_discount(discount_id, predicate_properties)
 
     def change_discount_percentage(self, user_id: int, discount_id: int, new_percentage: float) -> None:
         """
@@ -871,15 +865,15 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to create a lottery purchase")'''
 
-    def view_purchases_of_user(self, user_id: int, store_id: Optional[int]=None) -> List[PurchaseDTO]:
+    def view_purchases_of_user(self, user_id: int, requested_id: int, store_id: Optional[int]=None) -> List[PurchaseDTO]:
         """
         * Parameters: user_id
         * This function returns the purchases of a user
         * Returns a string
         """
-        if not self.roles_facade.is_system_manager(user_id) and (not self.user_facade.is_member(user_id) or not self.auth_facade.is_logged_in(user_id)):
-            raise ValueError("User is not a member or is not logged in")
-        return self.purchase_facade.get_purchases_of_user(user_id, store_id)
+        if not self.roles_facade.is_system_manager(user_id) and (user_id != requested_id):
+            raise ValueError("User is not a system manager so can't view history of other users")
+        return self.purchase_facade.get_purchases_of_user(requested_id, store_id)
 
     def view_purchases_of_store(self, user_id: int, store_id: int) -> List[PurchaseDTO]:
         """
