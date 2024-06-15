@@ -139,6 +139,10 @@ basketInformationForDiscountDTO1= BasketInformationForDiscountDTO(default_store_
 basketInformationForDiscountDTO2= BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto2, [categoryDTO, categoryDTO2])
 
 
+
+#magic:
+default_zero: float = 0.0
+
 #Discount tests:
 
 def test_change_discount_percentage():
@@ -154,7 +158,7 @@ def test_is_conditional_discount():
 #CategoryDiscount tests:
 
 def test_calculate_category_discount():
-    discount = 0.0
+    discount = default_zero
     for product in basketInformationForDiscountDTO1.products:
         if product in categoryDTO.products:
             discount += product.price * default_category_discount1.percentage * product.amount
@@ -162,7 +166,7 @@ def test_calculate_category_discount():
     assert default_category_discount1.calculate_discount(basketInformationForDiscountDTO1) == discount
     
 def test_calculate_category_discount2():
-    discount = 0.0
+    discount = default_zero
     for category in basketInformationForDiscountDTO2.categories:
         if category.category_id == 1:
             products = set(category.products)
@@ -176,11 +180,11 @@ def test_calculate_category_discount2():
     
     
 def test_discount_calculation_with_constraint():
-    assert default_category_discount3.calculate_discount(basketInformationForDiscountDTO1) == 0.0
+    assert default_category_discount3.calculate_discount(basketInformationForDiscountDTO1) == default_zero
     
 #StoreDiscount tests:
 def test_calculate_store_discount():
-    discount = 0.0
+    discount = default_zero
     for product in basketInformationForDiscountDTO1.products:
         discount += product.price * default_store_discount1.percentage * product.amount
     assert default_store_discount1.calculate_discount(basketInformationForDiscountDTO1) == discount
@@ -189,7 +193,7 @@ def test_calculate_store_discount():
 #ProductDiscount tests:
 
 def test_calculate_product_discount():
-    discount= 0.0
+    discount= default_zero
     for product in basketInformationForDiscountDTO1.products:
         if product in categoryDTO.products:
             discount += product.price * default_product_discount1.percentage * product.amount
@@ -205,7 +209,7 @@ def test_calculate_and_discount1():
     assert default_and_discount1.calculate_discount(basketInformationForDiscountDTO1) == discount
     
 def test_calculate_and_discount3():
-    discount = 0.0
+    discount = default_zero
     for product in basketInformationForDiscountDTO1.products:
         discount += product.price * default_store_discount1.percentage * product.amount
         discount += product.price * default_product_discount1.percentage * product.amount
@@ -214,7 +218,7 @@ def test_calculate_and_discount3():
     
 #OrDiscount tests:
 def test_calculate_or_discount1():
-    discount = 0.0
+    discount = default_zero
     for product in basketInformationForDiscountDTO1.products:
         if product in categoryDTO.products:
             discount += product.price * default_category_discount1.percentage * product.amount
@@ -224,7 +228,7 @@ def test_calculate_or_discount1():
     assert default_or_discount1.calculate_discount(basketInformationForDiscountDTO1) == discount
     
 def test_calculate_or_discount2():
-    discount = 0.0
+    discount = default_zero
     for product in basketInformationForDiscountDTO1.products:
         if product in categoryDTO.products:
             discount += product.price * default_category_discount1.percentage * product.amount
@@ -234,7 +238,7 @@ def test_calculate_or_discount2():
     assert default_or_discount2.calculate_discount(basketInformationForDiscountDTO1) == discount
     
 def test_calculate_or_discount3():
-    discount = 0.0
+    discount = default_zero
     for product in basketInformationForDiscountDTO1.products:
         discount += product.price * default_store_discount1.percentage * product.amount
         discount += product.price * default_product_discount1.percentage * product.amount
@@ -244,7 +248,7 @@ def test_calculate_or_discount3():
 #XorDiscount tests:
 
 def test_calculate_xor_discount1():
-    discount = 0.0
+    discount = default_zero
     products = set()
     for category in basketInformationForDiscountDTO1.categories:
         if category.category_id == 0:
@@ -259,7 +263,7 @@ def test_calculate_xor_discount1():
         
         
 def test_calculate_xor_discount2():
-    discount = 0.0
+    discount = default_zero
     for product in basketInformationForDiscountDTO1.products:
         if product in categoryDTO.products:
             discount += product.price * default_category_discount1.percentage * product.amount
@@ -270,8 +274,8 @@ def test_calculate_xor_discount2():
     
 #maxDiscount tests:
 def test_calculate_max_discount1():
-    discount1 = 0.0
-    discount2 = 0.0
+    discount1 = default_zero
+    discount2 = default_zero
     for product in basketInformationForDiscountDTO1.products:
         discount1 += product.price * default_store_discount1.percentage * product.amount
         discount2 += product.price * default_product_discount1.percentage * product.amount
@@ -280,7 +284,7 @@ def test_calculate_max_discount1():
     
 #additiveDiscount tests:
 def test_calculate_additive_discount1():
-    discount = 0.0
+    discount = default_zero
     for product in basketInformationForDiscountDTO1.products:
         discount += product.price * default_store_discount1.percentage * product.amount
         discount += product.price * default_product_discount1.percentage * product.amount
