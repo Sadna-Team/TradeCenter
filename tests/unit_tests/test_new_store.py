@@ -366,20 +366,15 @@ def test_apply_milk_discount(store_facade):
     store_facade.get_store_by_id(store_id).restock_product(product_id1, 50)
     store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
     store_facade.get_store_by_id(store_id).restock_product(product_id3, 50)
-    #cottage cheese discount
-    temp1 = store_facade.add_discount('cottage_cheese_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_005,None,store_id,product_id2,None)
-    store_facade.assign_predicate_to_discount(temp1, ('amount_product', 3, product_id2, store_id))
-    #yogurt discount
-    temp2 = store_facade.add_discount('yogurt_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_005,None,store_id,product_id3,None)
-    store_facade.assign_predicate_to_discount(temp2, ('amount_product', 2, product_id3, store_id))
+    #milk discount
+    discount_id = store_facade.add_discount('milk_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_005,category_id,None,None,False)
+    store_facade.assign_predicate_to_discount(discount_id, ('or', ('amount_product', 2, product_id3, store_id) ,('amount_product', 3, product_id2, store_id)))
     
-    
-    discount_id = store_facade.create_logical_composite_discount('cottage_cheese_and_yogurt', datetime(2020, 1, 1), datetime(2050, 1, 2), -1, temp1, temp2, 2)
     shopping_basket= {product_id2:1, product_id3:1}
     total_price_of_basket=shopping_basket[product_id2]*product_price_10+shopping_basket[product_id3]*product_price_10
     assert store_facade.apply_discount(discount_id, store_id, total_price_of_basket, shopping_basket, user_information_dto1)==default_zero #0.0
     
-    """
+
     shopping_basket= {product_id2:1, product_id3:3}
     total_price_of_basket=shopping_basket[product_id2]*product_price_10+shopping_basket[product_id3]*product_price_10
     assert store_facade.apply_discount(discount_id, store_id, total_price_of_basket, shopping_basket, user_information_dto1)== total_price_of_basket*product_per_005 #2
@@ -388,7 +383,7 @@ def test_apply_milk_discount(store_facade):
     shopping_basket= {product_id2:3, product_id3:1}
     total_price_of_basket=shopping_basket[product_id2]*product_price_10+shopping_basket[product_id3]*product_price_10
     assert store_facade.apply_discount(discount_id, store_id, total_price_of_basket, shopping_basket, user_information_dto1)==total_price_of_basket*product_per_005 #2
-    """
+
     
     shopping_basket= {product_id2:3, product_id3:3}
     total_price_of_basket=shopping_basket[product_id2]*product_price_10+shopping_basket[product_id3]*product_price_10
