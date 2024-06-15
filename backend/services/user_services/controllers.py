@@ -152,6 +152,203 @@ class UserService:
             logger.error('accept_promotion - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
+    def is_system_manager(self, user_id: int):
+        """
+            Check if the user is a system manager
+
+            Args:
+                user_id (int): id of the user
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            is_system_manager = self.roles_facade.is_system_manager(user_id)
+            return jsonify({'is_system_manager': is_system_manager}), 200
+        except Exception as e:
+            logger.error('is_system_manager - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def is_store_owner(self, user_id: int, store_id: int):
+        """
+            Check if the user is a store owner
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            is_store_owner = self.roles_facade.is_owner(store_id, user_id)
+            return jsonify({'is_store_owner': is_store_owner}), 200
+        except Exception as e:
+            logger.error('is_store_owner - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def is_store_manager(self, user_id: int, store_id: int):
+        """
+            Check if the user is a store manager
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            is_store_manager = self.roles_facade.is_manager(store_id, user_id)
+            return jsonify({'is_store_manager': is_store_manager}), 200
+        except Exception as e:
+            logger.error('is_store_manager - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def has_add_product_permission(self, user_id: int, store_id: int):
+        """
+            Check if the user has permission to add a product to the store
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            has_permission = self.roles_facade.has_add_product_permission(store_id, user_id)
+            return jsonify({'has_permission': has_permission}), 200
+        except Exception as e:
+            logger.error('has_add_product_permission - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def has_change_purchase_policy_permission(self, user_id: int, store_id: int):
+        """
+            Check if the user has permission to change the purchase policy of the store
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            has_permission = self.roles_facade.has_change_purchase_policy_permission(store_id, user_id)
+            return jsonify({'has_permission': has_permission}), 200
+        except Exception as e:
+            logger.error('has_change_purchase_policy_permission - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def has_change_purchase_types_permission(self, user_id: int, store_id: int):
+        """
+            Check if the user has permission to change the purchase types of the store
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            has_permission = self.roles_facade.has_change_purchase_types_permission(store_id, user_id)
+            return jsonify({'has_permission': has_permission}), 200
+        except Exception as e:
+            logger.error('has_change_purchase_types_permission - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def has_change_discount_policy_permission(self, user_id: int, store_id: int):
+        """
+            Check if the user has permission to change the discount policy of the store
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            has_permission = self.roles_facade.has_change_discount_policy_permission(store_id, user_id)
+            return jsonify({'has_permission': has_permission}), 200
+        except Exception as e:
+            logger.error('has_change_discount_policy_permission - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def has_change_discount_types_permission(self, user_id: int, store_id: int):
+        """
+            Check if the user has permission to change the discount types of the store
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            has_permission = self.roles_facade.has_change_discount_types_permission(store_id, user_id)
+            return jsonify({'has_permission': has_permission}), 200
+        except Exception as e:
+            logger.error('has_change_discount_types_permission - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def has_add_manager_permission(self, user_id: int, store_id: int):
+        """
+            Check if the user has permission to add a manager to the store
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            has_permission = self.roles_facade.has_add_manager_permission(store_id, user_id)
+            return jsonify({'has_permission': has_permission}), 200
+        except Exception as e:
+            logger.error('has_add_manager_permission - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def has_get_bid_permission(self, user_id: int, store_id: int):
+        """
+            Check if the user has permission to get a bid from the store
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            has_permission = self.roles_facade.has_get_bid_permission(store_id, user_id)
+            return jsonify({'has_permission': has_permission}), 200
+        except Exception as e:
+            logger.error('has_get_bid_permission - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def add_system_manager(self, user_id: int, username: str):
+        """
+            Add a system manager
+
+            Args:
+                user_id (int): id of the user
+                username (str): username of the new system manager
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            self.market_facade.add_system_manager(user_id, username)
+            return jsonify({'message': 'system manager added successfully'}), 200
+        except Exception as e:
+            logger.error('add_system_manager - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
 
 class AuthenticationService:
     # singleton
