@@ -2,7 +2,7 @@ from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
 from .DTOs import AddressDTO, NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO, \
-    PurchaseUserDTO, UserInformationForDiscountDTO
+    PurchaseUserDTO, UserInformationForConstraintDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
@@ -110,7 +110,7 @@ class MarketFacade:
                                                                   address['country'], address['postal_code'])
 
 
-            user_info_for_discount_dto = UserInformationForDiscountDTO(user_id, user_purchase_dto.birthdate,
+            user_info_for_discount_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
                                                                        address_of_user_for_discount)
             # calculate the total price
             self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
@@ -379,29 +379,6 @@ class MarketFacade:
         """
         product_dtos = self.store_facade.search_by_name(name, store_id)
         return product_dtos
-
-    '''    def search_product_in_store(self, store_id: int, name: str, sort_type: int) \
-            -> Dict[int, Tuple[Tuple[int, float], float]]:
-        """
-        * Parameters: storeId, names, sortByLowesToHighestPrice
-        * This function returns the list of all productIds
-        * Note: if sortType is 1, the list will be sorted by lowest to highest price, 2 is highest to lowest, 3 is by
-        rating lowest to Highest, 4 is by highest to lowest
-        * Returns a dict of <productId, <amount, price> rating> of the product in a store
- product ids of the products with the names in names
-        """
-        product_ids_to_store = self.store_facade.search_product_in_store(store_id, name)
-
-        if sort_type == 1:
-            product_ids_to_store.sort(key=lambda x: x[1][0])
-        elif sort_type == 2:
-            product_ids_to_store.sort(key=lambda x: x[1][0], reverse=True)
-        elif sort_type == 3:
-            product_ids_to_store.sort(key=lambda x: x[1][1])
-        elif sort_type == 4:
-            product_ids_to_store.sort(key=lambda x: x[1][1], reverse=True)
-        return product_ids_to_store
-    '''
 
     def get_store_info(self, store_id: int) -> StoreDTO:
         """

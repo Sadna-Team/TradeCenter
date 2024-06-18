@@ -5,7 +5,7 @@ from .constraints import *
 from .discount import *
 from .PurchasePolicyStrategy import PurchasePolicyStrategy
 from datetime import datetime
-from backend.business.DTOs import ProductDTO, ProductForDiscountDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForDiscountDTO
+from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
 import threading
 # -------------logging configuration----------------
@@ -1553,13 +1553,13 @@ class StoreFacade:
     '''
 
 
-    def get_category_as_dto_for_discount(self, category: Category, shopping_basket: Dict[int,int]) -> CategoryForDiscountDTO:
+    def get_category_as_dto_for_discount(self, category: Category, shopping_basket: Dict[int,int]) -> CategoryForConstraintDTO:
         """
         * Parameters: category
         * This function creates a category DTO for discounts
         * Returns: the category DTO
         """
-        products_dto: List[ProductForDiscountDTO] = []
+        products_dto: List[ProductForConstraintDTO] = []
         for store_id, product_id  in category.category_products:
             if product_id in shopping_basket:
                 if store_id not in self.__stores:
@@ -1571,19 +1571,19 @@ class StoreFacade:
                 
                 product = self.__stores[store_id].get_product_by_id(product_id)
                 
-                productDTO = ProductForDiscountDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
+                productDTO = ProductForConstraintDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
                 products_dto.append(productDTO)
         
-        sub_categories_dto: List[CategoryForDiscountDTO] = []
+        sub_categories_dto: List[CategoryForConstraintDTO] = []
         for sub_category in category.sub_categories:
             sub_category_dto = self.get_category_as_dto_for_discount(sub_category, shopping_basket)
             sub_categories_dto.append(sub_category_dto)
         
         logger.info('[StoreFacade] successfully created category DTO from category ' + category.category_name + ' for discounts')
-        return CategoryForDiscountDTO(category.category_id, category.category_name, category.parent_category_id, sub_categories_dto, products_dto)
+        return CategoryForConstraintDTO(category.category_id, category.category_name, category.parent_category_id, sub_categories_dto, products_dto)
 
         
-    def apply_discount(self, discount_id: int, store_id: int , total_price_of_basket: float, shopping_basket: Dict[int, int], user_info: UserInformationForDiscountDTO) -> float:
+    def apply_discount(self, discount_id: int, store_id: int , total_price_of_basket: float, shopping_basket: Dict[int, int], user_info: UserInformationForConstraintDTO) -> float:
         """
         * Parameters: discountId, shoppingCart
         * This function applies the discount to the shopping basket
@@ -1601,25 +1601,25 @@ class StoreFacade:
             logger.error('[StoreFacade] store is not found')
             raise ValueError('Store is not found')
         
-        categories: List[CategoryForDiscountDTO] = []
+        categories: List[CategoryForConstraintDTO] = []
         for category_id in self.__categories:
             curr_category = self.__categories[category_id]
             curr_category_dto = self.get_category_as_dto_for_discount(curr_category, shopping_basket)
             categories.append(curr_category_dto)
             
         
-        products: List[ProductForDiscountDTO] = []
+        products: List[ProductForConstraintDTO] = []
         for product_id in shopping_basket:
             if product_id not in self.__stores[store_id].store_products:
                 raise ValueError('Product is not found in the store')
             
             product = self.__stores[store_id].get_product_by_id(product_id)
-            productDTO = ProductForDiscountDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
+            productDTO = ProductForConstraintDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
             products.append(productDTO)
         
         time_of_purchase = datetime.now()
 
-        basket_info: BasketInformationForDiscountDTO = BasketInformationForDiscountDTO(store_id, products, total_price_of_basket, time_of_purchase, user_info, categories)
+        basket_info: BasketInformationForConstraintDTO = BasketInformationForConstraintDTO(store_id, products, total_price_of_basket, time_of_purchase, user_info, categories)
 
         logger.info('[StoreFacade] successfully applied discount')
         return discount.calculate_discount(basket_info)
@@ -1645,7 +1645,7 @@ class StoreFacade:
         return store.get_total_price_of_basket_before_discount(shopping_cart)
 
 
-    def get_total_price_after_discount(self, shopping_cart: Dict[int, Dict[int, int]], user_info: UserInformationForDiscountDTO) -> float:
+    def get_total_price_after_discount(self, shopping_cart: Dict[int, Dict[int, int]], user_info: UserInformationForConstraintDTO) -> float:
         """
         * Parameters: discountId, shoppingCart
         * This function calculates the total price of the shopping cart after applying the discount
@@ -1726,7 +1726,7 @@ class StoreFacade:
             self.__release_store_locks(list(shopping_cart.keys()))
             raise e
 
-    def get_purchase_shopping_cart(self, user_info: UserInformationForDiscountDTO, shopping_cart: Dict[int, Dict[int, int]]) \
+    def get_purchase_shopping_cart(self, user_info: UserInformationForConstraintDTO, shopping_cart: Dict[int, Dict[int, int]]) \
             -> Dict[int, Tuple[List[PurchaseProductDTO], float, float]]:
         purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = {}
 
