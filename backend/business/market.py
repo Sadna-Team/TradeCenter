@@ -160,7 +160,7 @@ class MarketFacade:
 
             # notify the store owners
             for store_id in cart.keys():
-                Notifier().notify_new_purchase(store_id, pur_id)
+                self.notifier.notify_new_purchase(store_id, pur_id)
 
             logger.info(f"User {user_id} has checked out")
             return pur_id

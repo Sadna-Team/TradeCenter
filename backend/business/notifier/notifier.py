@@ -4,7 +4,7 @@ from datetime import datetime
 from .. import NotificationDTO
 from threading import Lock
 # from ...socketio import send_real_time_notification
-from backend import socketio
+from backend import socketio_manager
 from flask import jsonify
 from backend.business.authentication.authentication import Authentication
 
@@ -19,7 +19,8 @@ logger = logging.getLogger('myapp')
 
 def send_real_time_notification(user_id, notification: NotificationDTO):
     message = jsonify({'message': notification.to_json()})
-    socketio.send(message, json=True, to=user_id, include_self=False)
+    # socketio_manager.send(message, json=True, to=user_id, include_self=False)
+    socketio_manager.send(message, json=True, to=user_id)
     logger.info(f"sent message to user {user_id}")
 
 

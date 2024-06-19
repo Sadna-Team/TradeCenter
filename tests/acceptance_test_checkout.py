@@ -128,6 +128,7 @@ def test_user_checkout_success(client2, user_token, init_store, clean):
             "supply_method": default_supply_method, 
             "address": default_address_checkout}
     response = client2.post('market/checkout', headers=headers, json=data)
+    print(response.data)
     assert response.status_code == 200
 
 def test_guest_checkout_success(client3, guest_token, init_store, clean):

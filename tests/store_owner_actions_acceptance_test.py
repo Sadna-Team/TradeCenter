@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from backend import create_app, clean_data
 import json
-from backend import socketio
+from backend import socketio_manager
 
 
 register_credentials = { 
@@ -142,7 +142,7 @@ response = client.post('auth/login', headers=headers, json=data)
 owner3_token = response.get_json()['token']
 
 # connect users to sockets
-user1_socket = socketio.test_client(app, flask_test_client=client)
+user1_socket = socketio_manager.test_client(app, flask_test_client=client)
 user1_socket.emit('join', {'room': 4})
 
 
