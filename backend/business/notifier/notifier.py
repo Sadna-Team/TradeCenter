@@ -3,8 +3,8 @@ from typing import Dict
 from datetime import datetime
 from .. import NotificationDTO
 from threading import Lock
-# from ...socketio import send_real_time_notification
-from backend import socketio_manager
+from flask_socketio import join_room
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import jsonify
 from backend.business.authentication.authentication import Authentication
 
@@ -17,12 +17,6 @@ logger = logging.getLogger('myapp')
 # ---------------------------------------------------
 
 
-def send_real_time_notification(user_id, notification: NotificationDTO):
-    message = jsonify({'message': notification.to_json()})
-    # socketio_manager.send(message, json=True, to=user_id, include_self=False)
-    socketio_manager.send(message, json=True, to=user_id)
-    logger.info(f"sent message to user {user_id}")
-
 
 class Notifier:
     # singleton
@@ -33,7 +27,7 @@ class Notifier:
 
     def __new__(cls):
         if Notifier.__instance is None:
-            Notifier.__instance = object.__new__(cls)
+            Notifier.__instance = super(Notifier, cls).__new__(cls)
         return Notifier.__instance
 
     def __init__(self) -> None:
@@ -43,6 +37,7 @@ class Notifier:
             self._authentication: Authentication = Authentication()  # Singleton
             self._listeners: Dict = {}  # Would it restart the listeners every time the server restarts?
             self._notification_id = 0
+            self.socketio_manager = None
 
     def clean_data(self) -> None:
         """
@@ -51,6 +46,15 @@ class Notifier:
         self._user_facade.clean_data()
         self._listeners.clear()
         self._notification_id = 0
+
+    def set_socketio_manager(self, socketio_manager):
+        self.socketio_manager = socketio_manager
+
+    def send_real_time_notification(self, user_id, notification: NotificationDTO):
+        message = jsonify({'message': notification.to_json()})
+        self.socketio_manager.send(notification.to_json(), json=True, to=user_id)
+        # self.socketio_manager.send(message, json=True, to=user_id)
+        logger.info(f"sent message to user {user_id}")
 
     def _generate_notification_id(self) -> int:
         with self.__create_lock:
@@ -71,7 +75,7 @@ class Notifier:
         * This function sends a message to a single online user.
         """
         notification = NotificationDTO(self._generate_notification_id(), message, datetime.now())
-        send_real_time_notification(user_id, notification)
+        self.send_real_time_notification(user_id, notification)
 
     def _notify_multiple(self, store_id: int, message: str) -> None:
         """

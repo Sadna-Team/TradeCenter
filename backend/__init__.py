@@ -4,10 +4,11 @@ from flask_jwt_extended import JWTManager
 import secrets
 from backend.business.market import MarketFacade
 from backend.business.authentication.authentication import Authentication
-# from flask_socketio import SocketIO
+from backend.business.notifier.notifier import Notifier
 from flask_socketio import SocketIO, join_room, leave_room, send
 from backend.business.DTOs import NotificationDTO
-from flask import jsonify
+from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
+
 
 # -------------logging configuration----------------
 import logging
@@ -29,11 +30,12 @@ def handle_disconnect(id):
     logger.info(f"Client {id} disconnected")
 
 @socketio_manager.on('join')
-def handle_join(data):
-    room = data['room']
+@jwt_required()
+def handle_join():
+    room = get_jwt_identity()
     handle_connect(room)
     logger.info(f'Client joining room {room}')
-    join_room(room)
+    join_room(room=room)
 
 @socketio_manager.on('leave')
 def handle_leave(data):
@@ -60,6 +62,9 @@ def create_app():
 
     authentication = Authentication()
     authentication.set_jwt(jwt, bcrypt)
+
+    notifier = Notifier()
+    notifier.set_socketio_manager(socketio_manager)
 
     MarketFacade()
 

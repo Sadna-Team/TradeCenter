@@ -25,6 +25,7 @@ client4 = app.test_client()
 client5 = app.test_client()
 
 owner_token = ""
+global owner2_token
 owner2_token = ""
 guest1_token = ""
 guest2_token = ""
@@ -65,13 +66,13 @@ def add_user(token):
 def setup():
 """
 # start guest1 for client
-guest1_token = start_guest1()
+guest1_token = start_guest1() # id = 1
 
 # create a user(owner)
-add_user(guest1_token)
+add_user(guest1_token) # id = 1
 
 # start guest2 for client2
-guest2_token = start_guest2()
+guest2_token = start_guest2() # id = 3
 
 # create a user(manager1)
 manager_creds = register_credentials.copy()
@@ -142,8 +143,10 @@ response = client.post('auth/login', headers=headers, json=data)
 owner3_token = response.get_json()['token']
 
 # connect users to sockets
-user1_socket = socketio_manager.test_client(app, flask_test_client=client)
-user1_socket.emit('join', {'room': 4})
+user1_socket = socketio_manager.test_client(app, flask_test_client=client, headers={'Authorization': 'Bearer ' + owner_token})
+# send token to socket
+
+user1_socket.emit('join')
 
 
 def test_appoint_store_manager_success():
@@ -244,9 +247,24 @@ def test_view_employees_info_invalid_store_id():
     assert response.status_code == 400
 
 def test_appoint_store_owner_success():
+    global owner2_token
+    # logout owner2
+    headers = {'Authorization': 'Bearer ' + owner2_token}
+    response = client.post('auth/logout', headers=headers)
+    assert response.status_code == 200
+
     data = {'store_id': 0, 'username': 'owner2'}
     headers = owner_headers
     response = client.post('store/add_store_owner', headers=headers, json=data)
+    print(response.get_json())
+    assert response.status_code == 200
+
+    # login as owner2
+    data = {'username': 'owner2', 'password': 'test'}
+    temp_token = client.get('auth/').get_json()['token']
+    headers = {'Authorization': 'Bearer ' + temp_token}
+    response = client.post('auth/login', headers=headers, json=data)
+    owner2_token = response.get_json()['token']
     assert response.status_code == 200
 
 def test_appoint_store_owner_invalid_member_credentials():
@@ -332,6 +350,7 @@ def test_close_store_success():
     data = store_close_open_data.copy()
     headers = owner_headers
     response = client.post('store/closing_store', headers=headers, json=data)
+    print(response.get_json())
     assert response.status_code == 200
 
 def test_close_store_invalid_store_id():
