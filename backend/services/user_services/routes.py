@@ -384,14 +384,41 @@ def add_system_manager():
 
     return user_service.add_system_manager(user_id, username)
   
-"""
+
 @user_bp.route('/suspend_user', methods=['POST'])
 @jwt_required()
 def suspend_user():
-    pass
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        suspended_user_id = data['suspended_user_id']
+        date = data['date']
+    except Exception as e:
+        logger.error('suspend_user - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return user_service.suspend_user(user_id, suspended_user_id, date)
 
 @user_bp.route('/unsuspend_user', methods=['POST'])
 @jwt_required()
 def unsuspend_user():
-    pass
-"""
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        suspended_user_id = data['suspended_user_id']
+    except Exception as e:
+        logger.error('unsuspend_user - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return user_service.unsuspend_user(user_id, suspended_user_id)
+
+@user_bp.route('/view_suspended_users', methods=['GET'])
+@jwt_required()
+def view_suspended_users():
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('view_suspended_users - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return user_service.view_suspended_users(user_id)
