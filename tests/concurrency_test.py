@@ -179,7 +179,7 @@ def thread_accept_promotion(client, token, nomination_id):
     response = client.post('user/accept_promotion', headers=headers, json=data)
     results.put(response.status_code)
 
-def test_concurrent_checkout_competition(client2, client3, user_token, guest_token, init_store, clean):
+def concurrent_checkout_competition(client2, client3, user_token, guest_token, init_store, clean):
     data = {"store_id": 0, "product_id": 0, "quantity": 6}
     user_headers = {'Authorization': 'Bearer ' + user_token}
     guest_headers = {'Authorization': 'Bearer ' + guest_token}
@@ -200,7 +200,7 @@ def test_concurrent_checkout_competition(client2, client3, user_token, guest_tok
     assert (result1.status_code == 200 and result2.status_code == 400) or (result1.status_code == 400 and result2.status_code == 200)
     results.queue.clear()
 
-def test_concurrent_checkout_remove(client1, client2, owner_token, user_token, init_store, clean):
+def concurrent_checkout_remove(client1, client2, owner_token, user_token, init_store, clean):
     data = {"store_id": 0, "product_id": 0, "quantity": 10}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
@@ -221,7 +221,7 @@ def test_concurrent_checkout_remove(client1, client2, owner_token, user_token, i
             (result1.status_code == 200 and result2.status_code == 400 and result2.get_json()['message'] == 'Product is not found'))
     results.queue.clear()
 
-def test_concurrent_checkout_close_store(client1, client2, owner_token, user_token, init_store, clean):
+def concurrent_checkout_close_store(client1, client2, owner_token, user_token, init_store, clean):
     data = {"store_id": 0, "product_id": 0, "quantity": 10}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
@@ -243,7 +243,7 @@ def test_concurrent_checkout_close_store(client1, client2, owner_token, user_tok
             (result1.status_code == 200 and result2.status_code == 400 and result2.get_json()['message'] == 'Store not found'))
     results.queue.clear()
 
-def test_concurrent_accept_twice(client1, client2, client4, owner_token, user_token, setup_2_owners, clean):
+def concurrent_accept_twice(client1, client2, client4, owner_token, user_token, setup_2_owners, clean):
     owner1_header = {'Authorization': f'Bearer {owner_token}'}
     owner2_header = {'Authorization': f'Bearer {setup_2_owners}'}
 
@@ -266,3 +266,18 @@ def test_concurrent_accept_twice(client1, client2, client4, owner_token, user_to
     result2 = results.get()
     assert (result1 == 400 and result2 == 200) or (result1 == 200 and result2 == 400)
 
+def test_concurrent_checkout_competition(client2, client3, user_token, guest_token, init_store, clean):
+    for i in range(1000):
+        concurrent_checkout_competition(client2, client3, user_token, guest_token, init_store, clean)
+
+def test_concurrent_checkout_remove(client1, client2, owner_token, user_token, init_store, clean):
+    for i in range(1000):
+        concurrent_checkout_remove(client1, client2, owner_token, user_token, init_store, clean)
+
+def test_concurrent_checkout_close_store(client1, client2, owner_token, user_token, init_store, clean):
+    for i in range(1000):
+        concurrent_checkout_close_store(client1, client2, owner_token, user_token, init_store, clean)
+
+def test_concurrent_accept_twice(client1, client2, client4, owner_token, user_token, setup_2_owners, clean):
+    for i in range(1000):
+        concurrent_accept_twice(client1, client2, client4, owner_token, user_token, setup_2_owners, clean)
