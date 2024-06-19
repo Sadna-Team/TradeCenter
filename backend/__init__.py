@@ -38,8 +38,9 @@ def handle_join():
     join_room(room=room)
 
 @socketio_manager.on('leave')
-def handle_leave(data):
-    room = data['room']
+@jwt_required()
+def handle_leave():
+    room = get_jwt_identity()
     logger.info(f'Client leaving room {room}')
     leave_room(room)
     handle_disconnect(room)

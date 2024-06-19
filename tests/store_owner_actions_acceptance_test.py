@@ -176,8 +176,6 @@ def test_accepting_manager_promotion_success():
     data = {'username': 'new_manager', 'password': 'test'}
     headers = {'Authorization': 'Bearer ' + guest2_token}
     response = client2.post('auth/login', headers=headers, json=data)
-    print(response.get_json())
-    print("help")
     manager1_token = response.get_json()['token']
 
     # accept promotion
