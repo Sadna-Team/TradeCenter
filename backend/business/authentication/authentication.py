@@ -1,6 +1,6 @@
 from datetime import timedelta
 from .. import UserFacade
-from flask_jwt_extended import create_access_token,decode_token
+from flask_jwt_extended import create_access_token, decode_token, get_jwt_identity
 
 
 # from backend import bcrypt, jwt
@@ -39,6 +39,10 @@ class Authentication:
     def check_if_token_in_blacklist(self, jwt_header, jwt_payload):
         jti = jwt_payload['jti']
         return jti in self.blacklist
+
+    # @
+    # def get_user_id_from_token(self, token):
+    #     return get_jwt_identity()
 
     def generate_token(self, user_id):
         while True:
