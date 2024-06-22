@@ -28,4 +28,5 @@ best online store for selling your products! <br/>
   * https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-typescript-next
   * https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets
   * https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss
+* `npm install` to install all dependencies
 * to start server: `npm run dev`
