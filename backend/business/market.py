@@ -155,15 +155,17 @@ class MarketFacade:
                 raise ValueError("Payment failed")
 
             package_detail = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date,
-                               'purchase id': pur_id, "supply method": supply_method}
+                              'purchase id': pur_id, "supply method": supply_method}
             if "supply method" not in package_detail:
                 raise ValueError("Supply method not specified")
             if package_detail.get("supply method") not in SupplyHandler().supply_config:
                 raise ValueError("Invalid supply method")
             on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
             SupplyHandler().process_supply(package_detail, user_id, on_arrival)
+
+            # notify the store owners
             for store_id in cart.keys():
-                Notifier().notify_new_purchase(store_id, user_id)
+                self.notifier.notify_new_purchase(store_id, pur_id)
 
             logger.info(f"User {user_id} has checked out")
             return pur_id
@@ -185,12 +187,17 @@ class MarketFacade:
 
         # get user_id of new_owner_username
         new_owner_id = self.user_facade.get_user_id_from_username(new_owner_username)
+
+        # nominate the new owner
         nomination_id = self.roles_facade.nominate_owner(store_id, owner_id, new_owner_id)
-        # TODO: different implementation later
-        self.user_facade.notify_user(new_owner_id,
-                                     NotificationDTO(-1, f"You have been nominated to be the owner of store"
-                                                         f" {store_id}. nomination id: {nomination_id} ",
-                                                     datetime.now()))
+
+        # send notification to the new owner
+        notification = NotificationDTO(-1, f"You have been nominated to be the owner of store"
+                                           f" {store_id}. nomination id: {nomination_id} ",
+                                       datetime.now())
+
+        self.notifier.notify_general_message(new_owner_id, notification.get_message())
+
         logger.info(f"User {owner_id} has nominated user {new_owner_id} to be the owner of store {store_id}")
 
     def nominate_store_manager(self, store_id: int, owner_id: int, new_manager_username):
@@ -199,12 +206,16 @@ class MarketFacade:
         
         # get user_id of new_manager_username
         new_manager_id = self.user_facade.get_user_id_from_username(new_manager_username)
+
+        # nominate the new manager
         nomination_id = self.roles_facade.nominate_manager(store_id, owner_id, new_manager_id)
-        # TODO: different implementation later
-        self.user_facade.notify_user(new_manager_id,
-                                     NotificationDTO(-1, f"You have been nominated to be the manager of store"
-                                                         f" {store_id}. nomination id: {nomination_id} ",
-                                                     datetime.now()))
+
+        # send notification to the new manager
+        notification = NotificationDTO(-1, f"You have been nominated to be the manager of store"
+                                           f" {store_id}. nomination id: {nomination_id} ",
+                                       datetime.now())
+        self.notifier.notify_general_message(new_manager_id, notification.get_message())
+
         logger.info(f"User {owner_id} has nominated user {new_manager_id} to be the manager of store {store_id}")
 
     def accept_nomination(self, user_id: int, nomination_id: int, accept: bool):
@@ -397,8 +408,9 @@ class MarketFacade:
         return self.get_store_info(store_id).products
 
     # -------------Discount related methods-------------------#
-    def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float, 
-                        store_id: Optional[int] = None, product_id: Optional[int] = None, category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
+    def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float,
+                     store_id: Optional[int] = None, product_id: Optional[int] = None,
+                     category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
         """
         * Parameters: userId, description, startDate, endDate, percentage, storeId(optional), productId(optional), categoryId(optional), appliedToSub(optional)
         * This function adds a simple discount to the system
@@ -410,10 +422,12 @@ class MarketFacade:
         
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id, product_id, applied_to_sub) 
-    
-    
-    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_id1: int, discount_id2: int, type_of_composite: int) -> int:
+        return self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id,
+                                              product_id, applied_to_sub)
+
+    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime,
+                                          end_date: datetime, discount_id1: int, discount_id2: int,
+                                          type_of_composite: int) -> int:
         """
         * Parameters: userId, description, startDate, endDate, discountId1, discountId2, typeOfComposite
         * This function creates a composite discount
@@ -426,9 +440,11 @@ class MarketFacade:
         
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1, discount_id2, type_of_composite)
+        return self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1,
+                                                                   discount_id2, type_of_composite)
 
-    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_ids: List[int], type_of_composite: int) -> int:
+    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime,
+                                            end_date: datetime, discount_ids: List[int], type_of_composite: int) -> int:
         """
         * Parameters: userId, description, startDate, endDate, discountIds, typeOfComposite
         * This function creates a composite discount
@@ -441,7 +457,8 @@ class MarketFacade:
         
         if not self.roles_facade.is_system_manager(user_id):
             raise ValueError("User is not a system manager")
-        return self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0, discount_ids, type_of_composite)
+        return self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0,
+                                                                     discount_ids, type_of_composite)
 
     def assign_predicate_to_discount(self, user_id: int, discount_id: int, predicate_properties: Tuple) -> None:
         if self.user_facade.suspended(user_id):
@@ -521,7 +538,7 @@ class MarketFacade:
     # -------------Policies related methods-------------------#
     def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str):
 
-        # for now, we dont support the creation of different types of policies
+        # for now, we don't support the creation of different types of policies
         """
         * Parameters: userId, store_id, policy_name
         * This function adds a purchase policy to the store
@@ -551,7 +568,7 @@ class MarketFacade:
 
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
-                    weight: float, tags: List[str], amount: Optional[int]=0) -> int:
+                    weight: float, tags: List[str], amount: Optional[int] = 0) -> int:
         """
         * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
         * This function adds a product to the store
@@ -616,7 +633,7 @@ class MarketFacade:
 
         store_id = self.store_facade.add_store(location_id, store_name, founder_id)
         self.roles_facade.add_store(store_id, founder_id)
-        Notifier().sign_listener(founder_id, store_id)
+        # Notifier().sign_listener(founder_id, store_id) -- already happened inside roles.add_store()
 
         return store_id
 
@@ -629,6 +646,7 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise ValueError("User is suspended")
         self.store_facade.close_store(store_id, user_id)
+        self.notifier.notify_update_store_status(store_id, True)
 
     def open_store(self, user_id: int, store_id: int):
         """
@@ -639,6 +657,7 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise ValueError("User is suspended")
         self.store_facade.open_store(store_id, user_id)
+        self.notifier.notify_update_store_status(store_id, False)
 
     def get_employees_info(self, user_id: int, store_id: int) -> Dict[int, str]:
         """
@@ -858,7 +877,9 @@ class MarketFacade:
         * This function returns the purchases of a store
         * Returns a string
         """
-        if not self.roles_facade.is_owner(store_id, user_id) and not self.roles_facade.is_manager(store_id, user_id) and not self.roles_facade.is_system_manager(user_id):
+        if not self.roles_facade.is_owner(store_id, user_id) and not self.roles_facade.is_manager(store_id,
+                                                                                                  user_id) and not self.roles_facade.is_system_manager(
+            user_id):
             raise ValueError("User is not a store owner or manager")
         return self.purchase_facade.get_purchases_of_store(store_id)
 
@@ -1070,7 +1091,7 @@ class MarketFacade:
                     #NOTE: How do we know who won the auction? 
 
                     #TODO: third party services
-                    #if thirdparty services work, then:
+                    #if third party services work, then:
                     #TODO: call validatePurchaseOfUser(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
                     #else:
                     #TODO: call invalidatePurchase(purchase.get_purchaseId(), purchase.get_userId()
@@ -1155,7 +1176,7 @@ class MarketFacade:
                         Notifier.notify_general_message(userIdOfWinner, msg)
 
                         #TODO: third party services
-                        #if thirdparty services work, then:
+                        #if third party services work, then:
                         #TODO: call validateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId(), deliveryDate)
                         #else:
                         #TODO: call invali  dateDeliveryOfWinner(purchase.get_purchaseId(), purchase.get_userId()

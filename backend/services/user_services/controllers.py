@@ -412,6 +412,7 @@ class AuthenticationService:
 
             Returns:
                 token (str): token of the user
+                notification (list[str]): list of delayed notifications
         """
         try:
             user_token, notification = self.authentication.login_user(username, password)

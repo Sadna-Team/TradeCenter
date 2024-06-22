@@ -48,7 +48,7 @@ class NotificationDTO:
         return {
             'notification_id': self.__notification_id,
             'message': self.__message,
-            'date': self.__date
+            'date': self.__date.strftime('%Y-%m-%d %H:%M:%S')
         }
 
 
