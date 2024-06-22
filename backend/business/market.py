@@ -110,19 +110,21 @@ class MarketFacade:
                                                                   address['country'], address['postal_code'])
 
 
-            user_info_for_discount_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
+            user_info_for_constraint_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
                                                                        address_of_user_for_discount)
             # calculate the total price
-            self.store_facade.validate_purchase_policies(cart, user_purchase_dto)
+            if not self.store_facade.validate_purchase_policies(cart, user_info_for_constraint_dto):
+                raise ValueError("Purchase policies are not met")
+            
 
             total_price = self.store_facade.get_total_price_before_discount(cart)
 
             total_price_after_discounts = self.store_facade.get_total_price_after_discount(cart,
-                                                                                           user_info_for_discount_dto)
+                                                                                           user_info_for_constraint_dto)
 
             # purchase facade immediate
             purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = (
-                self.store_facade.get_purchase_shopping_cart(user_info_for_discount_dto, cart))
+                self.store_facade.get_purchase_shopping_cart(user_info_for_constraint_dto, cart))
 
             pur_id = self.purchase_facade.create_immediate_purchase(user_id, total_price, total_price_after_discounts,
                                                                     purchase_shopping_cart)
@@ -535,24 +537,25 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to rate product {product_spec_id}")'''
 
-    # -------------Policies related methods-------------------#
-    def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str):
 
-        # for now, we don't support the creation of different types of policies
+    # -------------Policies related methods-------------------#
+    def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None) -> int:
         """
-        * Parameters: userId, store_id, policy_name
+        * Parameters: userId, store_id, policy_name, categoryId(optional), productId(optional)
         * This function adds a purchase policy to the store
-        * Returns None
+        * Returns int of the policy id
         """
         if self.user_facade.suspended(user_id):
             raise ValueError("User is suspended")
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
-            self.store_facade.add_purchase_policy_to_store(store_id, policy_name)
+            toreturn = self.store_facade.add_purchase_policy_to_store(store_id, policy_name,category_id, product_id)
             logger.info(f"User {user_id} has added a policy to store {store_id}")
+            return toreturn
+            
         else:
             raise ValueError("User does not have the necessary permissions to add a policy to the store")
 
-    def remove_purchase_policy(self, user_id, store_id: int, policy_name: str):
+    def remove_purchase_policy(self, user_id, store_id: int, policy_id: int) -> None:
         """
         * Parameters: store_id, policy_name
         * This function removes a purchase policy from the store
@@ -561,10 +564,33 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise ValueError("User is suspended")
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
-            self.store_facade.remove_purchase_policy_from_store(store_id, policy_name)
+            self.store_facade.remove_purchase_policy_from_store(store_id, policy_id)
             logger.info(f"User {user_id} has removed a policy from store {store_id}")
         else:
             raise ValueError("User does not have the necessary permissions to remove a policy from the store")
+    
+    def create_composite_purchase_policy(self, user_id: int, store_id: int, policy_name: str, left_policy_id: int, right_policy_id: int, type_of_composite: int) -> int:
+        """
+        * Parameters: userId, store_id, policy_name, left_policy_id, right_policy_id, type_of_composite
+        * This function creates a composite purchase policy
+        * NOTE: type_of_connection: 1 is AND, 2 OR, 3 XOR
+        * Returns int of the policy id
+        """
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
+            toreturn = self.store_facade.create_composite_purchase_policy_to_store(store_id, policy_name, left_policy_id, right_policy_id, type_of_composite)
+            logger.info(f"User {user_id} has created a composite policy in store {store_id}")
+            return toreturn
+        else:
+            raise ValueError("User does not have the necessary permissions to create a composite policy in the store")
+    
+    
+    def assign_predicate_to_purchase_policy(self, user_id: int, store_id: int, policy_id: int, predicate_properties: Tuple) -> None:
+        if self.user_facade.suspended(user_id):
+            raise ValueError("User is suspended")
+        if self.roles_facade.has_change_purchase_policy_permission(policy_id, user_id):
+            self.store_facade.assign_predicate_to_purchase_policy(store_id, policy_id, predicate_properties)
 
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
