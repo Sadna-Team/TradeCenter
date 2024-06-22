@@ -971,6 +971,7 @@ class StoreFacade:
         'time': TimeConstraint,
         'day_of_month': DayOfMonthConstraint,
         'day_of_week': DayOfWeekConstraint,
+        'season': SeasonConstraint,
         'holidays_of_country': HolidaysOfCountryConstraint,
         'price_basket': PriceBasketConstraint,
         'price_product': PriceProductConstraint,
@@ -1473,6 +1474,12 @@ class StoreFacade:
             else:
                 logger.warning('[StoreFacade] day of week is not an integer')
                 raise ValueError('Day of week is not an integer')
+        elif predicate_type == SeasonConstraint:
+            if isinstance(predicate_properties[1], str):
+                return predicate_type(predicate_properties[1])
+            else:
+                logger.warning('[StoreFacade] season is not an integer')
+                raise ValueError('Season is not an integer')
         elif predicate_type == HolidaysOfCountryConstraint:
             if isinstance(predicate_properties[1], str):
                 return predicate_type(predicate_properties[1])

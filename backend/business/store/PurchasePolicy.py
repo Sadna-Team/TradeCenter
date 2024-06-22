@@ -142,9 +142,6 @@ class AndPurchasePolicy(PurchasePolicy):
     
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:
-        if self._predicate is None:
-            return True
-        
         if self.store_id != basket.store_id:
             return True
         
@@ -175,9 +172,6 @@ class OrPurchasePolicy(PurchasePolicy):
     
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:
-        if self._predicate is None:
-            return True
-        
         if self.store_id != basket.store_id:
             return True
         
@@ -207,9 +201,6 @@ class ConditioningPurchasePolicy(PurchasePolicy):
     
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:
-        if self._predicate is None:
-            return True
-        
         if self.store_id != basket.store_id:
             return True
         

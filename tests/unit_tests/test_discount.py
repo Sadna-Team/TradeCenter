@@ -1,7 +1,7 @@
 import pytest
 from backend.business.store.discount import *
 from backend.business.store.constraints import *
-from backend.business.DTOs import CategoryForDiscountDTO, BasketInformationForDiscountDTO, ProductForDiscountDTO, UserInformationForDiscountDTO, AddressDTO
+from backend.business.DTOs import CategoryForConstraintDTO, BasketInformationForConstraintDTO, ProductForConstraintDTO, UserInformationForConstraintDTO, AddressDTO
 from typing import List, Dict, Tuple
 from datetime import date, datetime
 from datetime import time
@@ -99,9 +99,9 @@ default_user_address: AddressDTO = AddressDTO(default_address_id, default_city, 
 default_bad_user_address: AddressDTO = AddressDTO(1, "bad_city", "bad_country", default_street, default_zip_code, default_house_number)
 
 
-user_information_dto1=  UserInformationForDiscountDTO(default_user_id1, default_birthdate1, default_user_address)
+user_information_dto1=  UserInformationForConstraintDTO(default_user_id1, default_birthdate1, default_user_address)
 
-user_information_dto2=  UserInformationForDiscountDTO(default_user_id2, default_birthdate2, default_bad_user_address)
+user_information_dto2=  UserInformationForConstraintDTO(default_user_id2, default_birthdate2, default_bad_user_address)
 
 
 
@@ -116,27 +116,27 @@ default_product_weight2: float = 20
 default_product_amount2: int = 1
 
 
-productForDiscountDTO = ProductForDiscountDTO(default_product_id, default_store_id, default_product_price, default_product_weight, default_product_amount)
-productForDiscountDTO2 = ProductForDiscountDTO(1, default_store_id, default_product_price2, default_product_weight2, default_product_amount2)
+productForDiscountDTO = ProductForConstraintDTO(default_product_id, default_store_id, default_product_price, default_product_weight, default_product_amount)
+productForDiscountDTO2 = ProductForConstraintDTO(1, default_store_id, default_product_price2, default_product_weight2, default_product_amount2)
 #CategoryDTO
 default_category_name: str = "category_name"
 default_parent_category_id: int = 2
-default_sub_categories: List[CategoryForDiscountDTO] = []
-default_products: List[ProductForDiscountDTO] = [productForDiscountDTO]
+default_sub_categories: List[CategoryForConstraintDTO] = []
+default_products: List[ProductForConstraintDTO] = [productForDiscountDTO]
 
 
 
-categoryDTO= CategoryForDiscountDTO(default_category_id, default_category_name, default_parent_category_id, default_sub_categories, default_products)
-categoryDTO2= CategoryForDiscountDTO(1, default_category_name, default_parent_category_id, [categoryDTO], [productForDiscountDTO2])
+categoryDTO= CategoryForConstraintDTO(default_category_id, default_category_name, default_parent_category_id, default_sub_categories, default_products)
+categoryDTO2= CategoryForConstraintDTO(1, default_category_name, default_parent_category_id, [categoryDTO], [productForDiscountDTO2])
 
 
 #BasketInformationForDiscountDTO
 default_total_price_of_basket: float = 100  
 default_time_of_purchase: datetime = datetime(2020, 1, 1)
 
-basketInformationForDiscountDTO1= BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto1, [categoryDTO])
+basketInformationForDiscountDTO1= BasketInformationForConstraintDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto1, [categoryDTO])
 
-basketInformationForDiscountDTO2= BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto2, [categoryDTO, categoryDTO2])
+basketInformationForDiscountDTO2= BasketInformationForConstraintDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto2, [categoryDTO, categoryDTO2])
 
 
 

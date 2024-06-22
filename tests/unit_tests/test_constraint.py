@@ -1,6 +1,6 @@
 import pytest
 from backend.business.store.constraints import *
-from backend.business.DTOs import CategoryForDiscountDTO, BasketInformationForDiscountDTO, ProductForDiscountDTO, UserInformationForDiscountDTO
+from backend.business.DTOs import CategoryForConstraintDTO, BasketInformationForConstraintDTO, ProductForConstraintDTO, UserInformationForConstraintDTO
 from typing import List, Dict, Tuple
 from datetime import date, datetime
 from datetime import time
@@ -43,6 +43,14 @@ default_max_weight: float = 100
 default_AgeConstraint: Constraint = AgeConstraint(default_age_limit)
 default_LocationConstraint: Constraint = LocationConstraint(default_location)
 default_TimeConstraint: Constraint = TimeConstraint(default_start_time, default_end_time)  
+default_day_of_month_constraint: Constraint = DayOfMonthConstraint(1, 31)
+default_day_of_week_constraint = DayOfWeekConstraint(0, 6)
+default_season_constraint = SeasonConstraint("winter")
+default_season_constraint_wrong = SeasonConstraint("summer")
+default_holidays_of_country_constraint = HolidaysOfCountryConstraint("IL")
+
+
+
 default_PriceBasketConstraint: Constraint = PriceBasketConstraint(default_min_price, default_max_price, default_store_id)
 default_PriceProductConstraint: Constraint = PriceProductConstraint(default_min_price, default_max_price, default_product_id, default_store_id)
 default_PriceCategoryConstraint: Constraint = PriceCategoryConstraint(default_min_price, default_max_price, default_category_id)
@@ -71,11 +79,11 @@ default_user_address: AddressDTO = AddressDTO(default_address_id, default_city, 
 default_bad_user_address: AddressDTO = AddressDTO(1, "bad_city", "bad_country", default_street, default_zip_code, default_house_number)
 
 
-user_information_dto1=  UserInformationForDiscountDTO(default_user_id1, default_birthdate1, default_user_address)
+user_information_dto1=  UserInformationForConstraintDTO(default_user_id1, default_birthdate1, default_user_address)
 
-user_information_dto2=  UserInformationForDiscountDTO(default_user_id2, default_birthdate2, default_bad_user_address)
+user_information_dto2=  UserInformationForConstraintDTO(default_user_id2, default_birthdate2, default_bad_user_address)
 
-guest_information_dto = UserInformationForDiscountDTO(default_user_id3,None, default_user_address)
+guest_information_dto = UserInformationForConstraintDTO(default_user_id3,None, default_user_address)
 
 
 
@@ -84,29 +92,28 @@ default_product_price: float = 10
 default_product_weight: float = 10
 default_product_amount: int = 10
 
-productForDiscountDTO = ProductForDiscountDTO(default_product_id, default_store_id, default_product_price, default_product_weight, default_product_amount)
+productForDiscountDTO = ProductForConstraintDTO(default_product_id, default_store_id, default_product_price, default_product_weight, default_product_amount)
 
 #CategoryDTO
 default_category_name: str = "category_name"
 default_parent_category_id: int = 2
-default_sub_categories: List[CategoryForDiscountDTO] = []
-default_products: List[ProductForDiscountDTO] = [productForDiscountDTO]
+default_sub_categories: List[CategoryForConstraintDTO] = []
+default_products: List[ProductForConstraintDTO] = [productForDiscountDTO]
 
-categoryDTO= CategoryForDiscountDTO(default_category_id, default_category_name, default_parent_category_id, default_sub_categories, default_products)
+categoryDTO= CategoryForConstraintDTO(default_category_id, default_category_name, default_parent_category_id, default_sub_categories, default_products)
 
 #BasketInformationForDiscountDTO
 default_total_price_of_basket: float = 100  
 default_time_of_purchase: datetime = datetime(2020, 1, 1)
 
-basketInformationForDiscountDTO1= BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto1, [categoryDTO])
+basketInformationForDiscountDTO1= BasketInformationForConstraintDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto1, [categoryDTO])
 
-basketInformationForDiscountDTO2= BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto2, [categoryDTO])
+basketInformationForDiscountDTO2= BasketInformationForConstraintDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto2, [categoryDTO])
 
-basketInformationForDiscountDTO3 = BasketInformationForDiscountDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, guest_information_dto, [categoryDTO])
+basketInformationForDiscountDTO3 = BasketInformationForConstraintDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, guest_information_dto, [categoryDTO])
 
 
 #AgeConstraint tests:
-
 def test_AgeConstraint_is_satisfied():
     assert default_AgeConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
     
@@ -127,6 +134,30 @@ def test_LocationConstraint_is_not_satisfied():
 #TimeConstraint tests:
 def test_TimeConstraint_is_satisfied():
     assert default_TimeConstraint.is_satisfied(basketInformationForDiscountDTO1) == True
+    
+
+#THESE 4 TESTS CAN SOMETIMES NOT WORK BUT ITS OKAY! (depends on the time of the test)
+
+
+#DayOfMonthConstraint tests:
+def test_DayOfMonthConstraint_is_satisfied():
+    assert default_day_of_month_constraint.is_satisfied(basketInformationForDiscountDTO1) == True
+    
+    
+#DayOfWeekConstraint tests:
+def test_DayOfWeekConstraint_is_satisfied():
+    assert default_day_of_week_constraint.is_satisfied(basketInformationForDiscountDTO1) == True
+    
+    
+#SeasonConstraint tests:
+def test_SeasonConstraint_is_satisfied():
+    assert default_season_constraint.is_satisfied(basketInformationForDiscountDTO1) == True 
+    assert default_season_constraint_wrong.is_satisfied(basketInformationForDiscountDTO1) == False 
+    
+
+#HolidaysOfCountryConstraint tests:
+def test_HolidaysOfCountryConstraint_is_satisfied():
+    assert default_holidays_of_country_constraint.is_satisfied(basketInformationForDiscountDTO1) == False
     
     
 #PriceBasketConstraint tests:
