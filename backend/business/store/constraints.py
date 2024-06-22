@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 from datetime import datetime, time
+import holidays
 
 from backend.business.DTOs import AddressDTO, BasketInformationForConstraintDTO, CategoryForConstraintDTO #maybe timezone constraints :O
 
@@ -81,6 +82,70 @@ class TimeConstraint(Constraint):
     @property
     def end_time(self):
         return self.__end_time
+    
+
+# --------------- day constraint class ---------------#
+class DayOfMonthConstraint(Constraint):
+    def __init__(self, start_day: int, end_day: int):
+        self.__start_day = start_day
+        self.__end_day = end_day
+        logger.info("[DayOfMonthConstraint]: Day of month constraint created with start day: " + str(start_day) + " and end day: " + str(end_day))
+
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
+        logger.info("[DayOfMonthConstraint]: Checking if the day of the month fulfills the constraint")
+        day_of_purchase = basket_information.time_of_purchase.day
+
+        return self.__start_day <= day_of_purchase <= self.__end_day
+    
+    @property
+    def start_day(self):
+        return self.__start_day
+    
+    @property
+    def end_day(self):
+        return self.__end_day
+
+# --------------- day of week constraint class ---------------#
+class DayOfWeekConstraint(Constraint):
+    def __init__(self, start_day: int, end_day: int):
+        self.__start_day = start_day
+        self.__end_day = end_day
+        logger.info("[DayOfWeekConstraint]: Day of week constraint created with start day: " + str(start_day) + " and end day: " + str(end_day))
+
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
+        logger.info("[DayOfWeekConstraint]: Checking if the day of the week fulfills the constraint")
+        day_of_purchase = basket_information.time_of_purchase.weekday()
+
+        return self.__start_day <= day_of_purchase <= self.__end_day
+    
+    @property
+    def start_day(self):
+        return self.__start_day
+    
+    @property
+    def end_day(self):
+        return self.__end_day
+    
+
+# --------------- holiday constraint class ---------------#
+class HolidaysOfCountryConstraint(Constraint):
+    def __init__(self, country_code: str):
+        if country_code not in holidays.list_supported_countries().keys():
+            raise ValueError("Country code is not valid")
+        self.__country_code = country_code
+        logger.info("[HolidaysOfCountryConstraint]: Holidays of country constraint created with country code: " + str(country_code))
+
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
+        logger.info("[HolidaysOfCountryConstraint]: Checking if the day of the purchase is a holiday in the country")
+        day_of_purchase = basket_information.time_of_purchase.date()
+        country_holidays = holidays.CountryHoliday(self.country_code)
+        if country_holidays.get(day_of_purchase) is None:
+            return False
+        return True
+
+    @property
+    def country_code(self):
+        return self.__country_code
     
 # --------------- price basket constraint class ---------------#
 class PriceBasketConstraint(Constraint):

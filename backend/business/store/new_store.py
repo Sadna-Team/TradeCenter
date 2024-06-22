@@ -969,6 +969,9 @@ class StoreFacade:
         'age': AgeConstraint,
         'location' : LocationConstraint,
         'time': TimeConstraint,
+        'day_of_month': DayOfMonthConstraint,
+        'day_of_week': DayOfWeekConstraint,
+        'holidays_of_country': HolidaysOfCountryConstraint,
         'price_basket': PriceBasketConstraint,
         'price_product': PriceProductConstraint,
         'price_category': PriceCategoryConstraint,
@@ -1452,6 +1455,30 @@ class StoreFacade:
             else:
                 logger.warning('[StoreFacade] starting time or ending time is not a datetime.time')
                 raise ValueError('Starting time or ending time is not a datetime.time')
+        elif predicate_type == DayOfMonthConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
+                if predicate_properties[1] < 1 or predicate_properties[1] > 31 or predicate_properties[2] < 1 or predicate_properties[2] > 31:
+                    logger.warning('[StoreFacade] day of month is not valid')
+                    raise ValueError('Day of month is not valid')
+                return predicate_type(predicate_properties[1], predicate_properties[2])
+            else:
+                logger.warning('[StoreFacade] day of month is not an integer')
+                raise ValueError('Day of month is not an integer')
+        elif predicate_type == DayOfWeekConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
+                if predicate_properties[1] < 1 or predicate_properties[1] > 7 or predicate_properties[2] < 1 or predicate_properties[2] > 7:
+                    logger.warning('[StoreFacade] day of week is not valid')
+                    raise ValueError('Day of week is not valid')
+                return predicate_type(predicate_properties[1], predicate_properties[2])
+            else:
+                logger.warning('[StoreFacade] day of week is not an integer')
+                raise ValueError('Day of week is not an integer')
+        elif predicate_type == HolidaysOfCountryConstraint:
+            if isinstance(predicate_properties[1], str):
+                return predicate_type(predicate_properties[1])
+            else:
+                logger.warning('[StoreFacade] country is not a string')
+                raise ValueError('Country is not a string')
         elif predicate_type == PriceCategoryConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
