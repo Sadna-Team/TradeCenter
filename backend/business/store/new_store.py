@@ -3,9 +3,9 @@ from typing import List, Dict, Tuple, Optional, Callable
 
 from .constraints import *
 from .discount import *
-from .PurchasePolicyStrategy import PurchasePolicyStrategy
+from .PurchasePolicy import *
 from datetime import datetime
-from backend.business.DTOs import ProductDTO, ProductForDiscountDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForDiscountDTO
+from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
 import threading
 # -------------logging configuration----------------
@@ -352,126 +352,127 @@ class Category:
         return names
 '''
 
+'''
+    def pred_no_alcohol_past_time(products: Dict[ProductDTO, int]) -> bool:
+        """
+            * Parameters: store_id, product_id, time
+            * This function checks if the product is an alcohol product and if the time is after the time of the purchase
+            * Returns: True if the product is an alcohol product and the time is after the time of the purchase, False otherwise
+        """
+        for product in products:
+            if 'alcohol' in product.tags and datetime.now().hour > 22:
+                logger.info('Alcohol product is not allowed after 22')
+                return False
+        return True
 
-def pred_no_alcohol_past_time(products: Dict[ProductDTO, int]) -> bool:
-    """
-        * Parameters: store_id, product_id, time
-        * This function checks if the product is an alcohol product and if the time is after the time of the purchase
-        * Returns: True if the product is an alcohol product and the time is after the time of the purchase, False otherwise
-    """
-    for product in products:
-        if 'alcohol' in product.tags and datetime.now().hour > 22:
-            logger.info('Alcohol product is not allowed after 22')
-            return False
-    return True
-
-def pred_has_tabacco(products: Dict[ProductDTO, int]) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products contain alcohol
-    * Returns: True if the products contain alcohol, False otherwise
-    """
-    for product in products:
-        if 'alcohol' in product.tags:
-            logger.info('Alcohol product in the basket')
-            return True
-    logger.info('No alcohol product in the basket')
-    return False
-
-def pred_not_too_much_gun_powder(products: Dict[ProductDTO, int]) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products contain too much gun powder
-    * Returns: True if the products contain too much gun powder, False otherwise
-    """
-    for product in products:
-        if 'gunpowder' in product.tags:
-            logger.info('Amount of gunpowder product in the basket exceeds the limit of 100')
-            return  product.weight * products[product] >= 100
-    logger.info('Not too much gunpowder found in basket')
-    return False
-
-def pred_has_tabbaco(products: Dict[ProductDTO, int]) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products contain tabbaco
-    * Returns: True if the products contain tabbaco, False otherwise
-    """
-    for product in products:
-        if 'tabbaco' in product.tags:
-            logger.info('Tabbaco product in the basket')
-            return True
-    logger.info('No tabbaco product in the basket')
-    return False
-
-def pred_older_then_18(user: PurchaseUserDTO) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products are older than 18
-    * Returns: True if the products are older than 18, False otherwise
-    """
-    current_year = datetime.now().year
-    current_month = datetime.now().month
-    current_day = datetime.now().day
-    if user.birthdate is None:
-        logger.warning('User does not have a birthdate')
+    def pred_has_tabacco(products: Dict[ProductDTO, int]) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products contain alcohol
+        * Returns: True if the products contain alcohol, False otherwise
+        """
+        for product in products:
+            if 'alcohol' in product.tags:
+                logger.info('Alcohol product in the basket')
+                return True
+        logger.info('No alcohol product in the basket')
         return False
-    delta = current_year - user.birthdate.year + (current_month - user.birthdate.month) / 12 + (current_day - user.birthdate.day) / 365
-    return delta >= 18
 
-def pred_funny_name(products: Dict[ProductDTO, int]) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products have a funny name
-    * Returns: True if the products have a funny name, False otherwise
-    """
-    for product in products:
-        if product.name == 'funny':
-            return True
-    return False
+    def pred_not_too_much_gun_powder(products: Dict[ProductDTO, int]) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products contain too much gun powder
+        * Returns: True if the products contain too much gun powder, False otherwise
+        """
+        for product in products:
+            if 'gunpowder' in product.tags:
+                logger.info('Amount of gunpowder product in the basket exceeds the limit of 100')
+                return  product.weight * products[product] >= 100
+        logger.info('Not too much gunpowder found in basket')
+        return False
 
-def filter_no_alcohol_and_tabbaco_bellow_18(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
-    """
-    * Parameters: products, user
-    * This function checks if the products contain alcohol and the user is older than 18
-    * Returns: True if the products contain alcohol and the user is older than 18, False otherwise
-    """
-    user_old_enough = UserFilter(user, pred_older_then_18)
-    no_alcohol = NotFilter(ProductFilter(products, pred_has_tabacco))
-    no_tabbaco = NotFilter(ProductFilter(products, pred_has_tabbaco))
-    total_filter = OrFilter([user_old_enough, AndFilter([no_alcohol, no_tabbaco])])
-    return total_filter
+    def pred_has_tabbaco(products: Dict[ProductDTO, int]) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products contain tabbaco
+        * Returns: True if the products contain tabbaco, False otherwise
+        """
+        for product in products:
+            if 'tabbaco' in product.tags:
+                logger.info('Tabbaco product in the basket')
+                return True
+        logger.info('No tabbaco product in the basket')
+        return False
 
-def filter_no_alcohol_past_time(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
-    """
-    * Parameters: products
-    * This function checks if the products contain alcohol and the time is after 22
-    * Returns: True if the products contain alcohol and the time is after 22, False otherwise
-    """
-    return ProductFilter(products, pred_no_alcohol_past_time)
+    def pred_older_then_18(user: PurchaseUserDTO) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products are older than 18
+        * Returns: True if the products are older than 18, False otherwise
+        """
+        current_year = datetime.now().year
+        current_month = datetime.now().month
+        current_day = datetime.now().day
+        if user.birthdate is None:
+            logger.warning('User does not have a birthdate')
+            return False
+        delta = current_year - user.birthdate.year + (current_month - user.birthdate.month) / 12 + (current_day - user.birthdate.day) / 365
+        return delta >= 18
 
-def filter_not_too_much_gun_powder(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
-    """
-    * Parameters: products
-    * This function checks if the products contain too much gun powder
-    * Returns: True if the products contain too much gun powder, False otherwise
-    """
-    return NotFilter(ProductFilter(products, pred_not_too_much_gun_powder))
+    def pred_funny_name(products: Dict[ProductDTO, int]) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products have a funny name
+        * Returns: True if the products have a funny name, False otherwise
+        """
+        for product in products:
+            if product.name == 'funny':
+                return True
+        return False
 
-def filter_no_funny_name(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
-    """
-    * Parameters: products
-    * This function checks if the products have a funny name
-    * Returns: True if the products have a funny name, False otherwise
-    """
-    return NotFilter(ProductFilter(products, pred_funny_name))
+    def filter_no_alcohol_and_tabbaco_bellow_18(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+        """
+        * Parameters: products, user
+        * This function checks if the products contain alcohol and the user is older than 18
+        * Returns: True if the products contain alcohol and the user is older than 18, False otherwise
+        """
+        user_old_enough = UserFilter(user, pred_older_then_18)
+        no_alcohol = NotFilter(ProductFilter(products, pred_has_tabacco))
+        no_tabbaco = NotFilter(ProductFilter(products, pred_has_tabbaco))
+        total_filter = OrFilter([user_old_enough, AndFilter([no_alcohol, no_tabbaco])])
+        return total_filter
 
-AVAILABLE_POLICIES = {
-    "no_alcohol_past_time": filter_no_alcohol_past_time,
-    "not_too_much_gun_powder": filter_not_too_much_gun_powder,
-    "no_alcohol_and_tabbaco_bellow_18": filter_no_alcohol_and_tabbaco_bellow_18, 
-    "no_funny_name": filter_no_funny_name
-}
+    def filter_no_alcohol_past_time(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+        """
+        * Parameters: products
+        * This function checks if the products contain alcohol and the time is after 22
+        * Returns: True if the products contain alcohol and the time is after 22, False otherwise
+        """
+        return ProductFilter(products, pred_no_alcohol_past_time)
+
+    def filter_not_too_much_gun_powder(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+        """
+        * Parameters: products
+        * This function checks if the products contain too much gun powder
+        * Returns: True if the products contain too much gun powder, False otherwise
+        """
+        return NotFilter(ProductFilter(products, pred_not_too_much_gun_powder))
+
+    def filter_no_funny_name(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+        """
+        * Parameters: products
+        * This function checks if the products have a funny name
+        * Returns: True if the products have a funny name, False otherwise
+        """
+        return NotFilter(ProductFilter(products, pred_funny_name))
+
+    AVAILABLE_POLICIES = {
+        "no_alcohol_past_time": filter_no_alcohol_past_time,
+        "not_too_much_gun_powder": filter_not_too_much_gun_powder,
+        "no_alcohol_and_tabbaco_bellow_18": filter_no_alcohol_and_tabbaco_bellow_18, 
+        "no_funny_name": filter_no_funny_name
+    }
+'''
 
 class Store:
     # id of store is storeId. It is unique for each store
@@ -484,7 +485,7 @@ class Store:
         self.__store_products: Dict[int, Product] = {}
         self.__product_id_counter = 0  # product Id
         self.__product_id_lock = threading.Lock() # lock for product id
-        self.__purchase_policy: Dict[str, Callable[[Dict[ProductDTO, int], PurchaseUserDTO], PurchaseComposite]] = {} # purchase policy
+        self.__purchase_policy: Dict[int, PurchasePolicy] = {} # purchase policy
         self.__founded_date = datetime.now()
         self.__purchase_policy_id_counter = 0  # purchase policy Id
         self.__checkout_lock = threading.Lock() # lock for checkout
@@ -520,7 +521,7 @@ class Store:
         return self.__founded_date
 
     @property
-    def purchase_policy(self) -> List[str]:
+    def purchase_policy(self) -> List[int]:
         return list(self.__purchase_policy.keys())
     # ---------------------methods--------------------------------
     def close_store(self, user_id: int) -> None:
@@ -606,36 +607,135 @@ class Store:
         """
         return self.get_product_by_id(product_id).create_product_dto()
         
-    def add_purchase_policy(self, policy_name: str) -> None:
+    def add_purchase_policy(self, policy_name: str, category_id: Optional[int], product_id: Optional[int]) -> int:
         """
-        * Parameters: policyName
+        * Parameters: policyName, categoryId, productId
         * This function adds a purchase policy to the store
+        * Returns: the purchase policy ID
+        """
+        policy_id: int = -1
+        if policy_name is None or policy_name == '':
+            raise ValueError('Policy name is not a valid string')
+        if category_id is None and product_id is None:
+            basket_policy_to_add = BasketSpecificPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name)
+            self.__purchase_policy[self.__purchase_policy_id_counter] = basket_policy_to_add
+            policy_id = basket_policy_to_add.purchase_policy_id
+            self.__purchase_policy_id_counter += 1
+
+        elif category_id is not None and product_id is None:
+            category_policy_to_add = CategorySpecificPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, category_id)
+            self.__purchase_policy[self.__purchase_policy_id_counter] = category_policy_to_add
+            policy_id = category_policy_to_add.purchase_policy_id
+            self.__purchase_policy_id_counter += 1
+        
+        elif category_id is None and product_id is not None:
+            if product_id not in self.__store_products:
+                logger.warn('[Store] Product is not found in the store with id: {self.__store_id}')
+                raise ValueError('Product is not found')
+            product_policy_to_add = ProductSpecificPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, product_id)
+            policy_id = product_policy_to_add.purchase_policy_id
+            self.__purchase_policy[self.__purchase_policy_id_counter] = product_policy_to_add
+            self.__purchase_policy_id_counter += 1
+        
+        else:
+            logger.warn('[Store] Invalid input when trying to add a purchase policy to store with id: {self.__store_id}')
+            raise ValueError('Invalid input')
+
+        if policy_id == -1:
+            raise ValueError('Something unexpected happened when adding the purchase policy to the store with id: {self.__store_id}')
+
+        logger.info('[Store] successfully added purchase policy to store with id: {self.__store_id}')
+        return policy_id
+
+    def remove_purchase_policy(self, policy_id: int) -> None:
+        """
+        * Parameters: policyId
+        * This function removes a purchase policy from the store
         * Returns: none
         """
-        if policy_name not in AVAILABLE_POLICIES:
-            raise ValueError('Policy name is not valid')
-        if policy_name in self.__purchase_policy:
-            raise ValueError('Policy name is already in the list of purchase policies')
-        self.__purchase_policy[policy_name] = AVAILABLE_POLICIES[policy_name]
-        logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__store_id))
-
-
-    def remove_purchase_policy(self, policy_name: str) -> None:
-        if policy_name in self.__purchase_policy:
-            self.__purchase_policy.pop(policy_name)
-            logger.info('[Store] successfully removed purchase policy from store with id: ' + str(self.__store_id))
-        else:
-            raise ValueError('Policy name is not found')
-
-    def check_purchase_policy(self, products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> None:
+        if policy_id not in self.__purchase_policy:
+            raise ValueError('Purchase policy is not found')
+        self.__purchase_policy.pop(policy_id)
+        logger.info('[Store] successfully removed purchase policy from store with id: {self.__store_id}')
+        
+    def create_composite_purchase_policy(self, policy_name: str, policy_id_left: int, policy_id_right: int, type_of_composite: int) -> int:
         """
-        * Parameters: products, user
+        * Parameters: policyName, policyIdLeft, policyIdRight, typeOfComposite
+        * This function creates a composite purchase policy
+        * Returns: the purchase policy ID
+        * NOTE: in type_of_composite: 1 is AND, 2 is OR, 3 is Conditional
+        """
+        new_policy_id: int = -1
+        if policy_id_left not in self.__purchase_policy or policy_id_right not in self.__purchase_policy:
+            logger.error('[Store] Purchase policy components of new composite policy are not found in store with id: {self.__store_id}')
+            raise ValueError('Failed to create composite policy due to having atleast one of the policies missing')
+        
+        
+        left_policy = self.__purchase_policy[policy_id_left]
+        right_policy = self.__purchase_policy[policy_id_right]
+        if type_of_composite == 1:
+            and_composite_policy = AndPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
+            self.__purchase_policy[self.__purchase_policy_id_counter] = and_composite_policy
+            new_policy_id = and_composite_policy.purchase_policy_id
+            self.__purchase_policy_id_counter += 1
+            
+            #we will now remove the two policies that were used to create the composite policy
+            self.__purchase_policy.pop(policy_id_left)
+            self.__purchase_policy.pop(policy_id_right)
+
+        elif type_of_composite == 2:
+            or_composite_policy = OrPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
+            self.__purchase_policy[self.__purchase_policy_id_counter] = or_composite_policy
+            new_policy_id = or_composite_policy.purchase_policy_id
+            self.__purchase_policy_id_counter += 1
+
+            #we will now remove the two policies that were used to create the composite policy
+            self.__purchase_policy.pop(policy_id_left)
+            self.__purchase_policy.pop(policy_id_right)
+
+        elif type_of_composite == 3:
+            conditional_composite_policy = ConditioningPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
+            self.__purchase_policy[self.__purchase_policy_id_counter] = conditional_composite_policy
+            new_policy_id = conditional_composite_policy.purchase_policy_id
+            self.__purchase_policy_id_counter += 1
+
+            #we will now remove the two policies that were used to create the composite policy
+            self.__purchase_policy.pop(policy_id_left)
+            self.__purchase_policy.pop(policy_id_right)
+        else:
+            raise ValueError('Invalid type of composite')
+        
+        if new_policy_id == -1:
+            raise ValueError('Failed to create composite policy')
+        
+        logger.info('[Store] successfully created composite purchase policy in store with id: {self.__store_id}')
+        return new_policy_id
+
+    def assign_predicate_to_purchase_policy(self, policy_id: int, predicate: Constraint):
+        """
+        * Parameters: policyId, predicate
+        * This function assigns a predicate to a purchase policy
+        * Returns: none
+        """
+        if policy_id not in self.__purchase_policy:
+            raise ValueError('Purchase policy is not found')
+        self.__purchase_policy[policy_id].set_predicate(predicate)
+
+    def check_purchase_policies_of_store(self, basket: BasketInformationForConstraintDTO) -> bool:
+        """
+        * Parameters: basket
         * This function checks if the purchase policy is satisfied
         * Returns: true if the purchase policy is satisfied
         """
+        if basket is None:
+            raise ValueError('Basket is not a valid basket')
+        if basket.store_id != self.__store_id:
+            raise ValueError('Basket is not from the same store')
+
         for policy in self.__purchase_policy.values():
-            if not policy(products, user).pass_filter():
-                raise ValueError(f'Purchase policy of store: {self.__store_name} is not satisfied!')
+            if not policy.check_constraint(basket):
+                return False
+        return True
     
     def acquire_products_lock(self, product_ids: List[int]) -> None:
         """
@@ -869,6 +969,9 @@ class StoreFacade:
         'age': AgeConstraint,
         'location' : LocationConstraint,
         'time': TimeConstraint,
+        'day_of_month': DayOfMonthConstraint,
+        'day_of_week': DayOfWeekConstraint,
+        'holidays_of_country': HolidaysOfCountryConstraint,
         'price_basket': PriceBasketConstraint,
         'price_product': PriceProductConstraint,
         'price_category': PriceCategoryConstraint,
@@ -1161,34 +1264,6 @@ class StoreFacade:
         if store_id in self.__stores:
             return self.__stores[store_id]
         raise ValueError('Store not found')
-    
-    ''' def add_purchase_policy_to_store(self, store_id: int) -> None:
-        # TODO: for now we dont know how to implement the purchasePolicy and what fields it receives
-        """
-        * Parameters: storeId, purchasePolicy
-        * This function adds a purchase policy to the store
-        * Note: the marketFacade is responsible for verifying whether the purchase policy is added by someone with the
-        necessary permissions.
-        * Returns: True if the purchase policy is added successfully
-        """
-        logger.info('[StoreFacade] attempting to add purchase policy to store')
-        if store_id is not None:
-            # if purchasePolicy is not None:
-            store = self.get_store_by_id(store_id)
-            if store is not None:
-                return store.add_purchase_policy()
-            else:
-                raise ValueError('Store not found')'''
-
-    '''def update_purchase_policy_of_store(self, store_id: int, purchase_policy_id: int) -> None:
-        # TODO: implement this function
-        pass
-    '''
-    '''def check_policies_of_store(self, store_id: int, basket: List[int]) -> bool:
-        # TODO: implement this function
-        pass
-    '''
-
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
     def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
@@ -1380,6 +1455,30 @@ class StoreFacade:
             else:
                 logger.warning('[StoreFacade] starting time or ending time is not a datetime.time')
                 raise ValueError('Starting time or ending time is not a datetime.time')
+        elif predicate_type == DayOfMonthConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
+                if predicate_properties[1] < 1 or predicate_properties[1] > 31 or predicate_properties[2] < 1 or predicate_properties[2] > 31:
+                    logger.warning('[StoreFacade] day of month is not valid')
+                    raise ValueError('Day of month is not valid')
+                return predicate_type(predicate_properties[1], predicate_properties[2])
+            else:
+                logger.warning('[StoreFacade] day of month is not an integer')
+                raise ValueError('Day of month is not an integer')
+        elif predicate_type == DayOfWeekConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
+                if predicate_properties[1] < 1 or predicate_properties[1] > 7 or predicate_properties[2] < 1 or predicate_properties[2] > 7:
+                    logger.warning('[StoreFacade] day of week is not valid')
+                    raise ValueError('Day of week is not valid')
+                return predicate_type(predicate_properties[1], predicate_properties[2])
+            else:
+                logger.warning('[StoreFacade] day of week is not an integer')
+                raise ValueError('Day of week is not an integer')
+        elif predicate_type == HolidaysOfCountryConstraint:
+            if isinstance(predicate_properties[1], str):
+                return predicate_type(predicate_properties[1])
+            else:
+                logger.warning('[StoreFacade] country is not a string')
+                raise ValueError('Country is not a string')
         elif predicate_type == PriceCategoryConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
@@ -1489,7 +1588,6 @@ class StoreFacade:
             raise ValueError('No valid predicate found')
         
         discount.change_predicate(predicate)
-        
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
     def remove_discount(self, discount_id: int) -> None:
@@ -1553,13 +1651,13 @@ class StoreFacade:
     '''
 
 
-    def get_category_as_dto_for_discount(self, category: Category, shopping_basket: Dict[int,int]) -> CategoryForDiscountDTO:
+    def get_category_as_dto_for_discount(self, category: Category, shopping_basket: Dict[int,int]) -> CategoryForConstraintDTO:
         """
         * Parameters: category
         * This function creates a category DTO for discounts
         * Returns: the category DTO
         """
-        products_dto: List[ProductForDiscountDTO] = []
+        products_dto: List[ProductForConstraintDTO] = []
         for store_id, product_id  in category.category_products:
             if product_id in shopping_basket:
                 if store_id not in self.__stores:
@@ -1571,19 +1669,50 @@ class StoreFacade:
                 
                 product = self.__stores[store_id].get_product_by_id(product_id)
                 
-                productDTO = ProductForDiscountDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
+                productDTO = ProductForConstraintDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
                 products_dto.append(productDTO)
         
-        sub_categories_dto: List[CategoryForDiscountDTO] = []
+        sub_categories_dto: List[CategoryForConstraintDTO] = []
         for sub_category in category.sub_categories:
             sub_category_dto = self.get_category_as_dto_for_discount(sub_category, shopping_basket)
             sub_categories_dto.append(sub_category_dto)
         
         logger.info('[StoreFacade] successfully created category DTO from category ' + category.category_name + ' for discounts')
-        return CategoryForDiscountDTO(category.category_id, category.category_name, category.parent_category_id, sub_categories_dto, products_dto)
+        return CategoryForConstraintDTO(category.category_id, category.category_name, category.parent_category_id, sub_categories_dto, products_dto)
+
+    def creating_basket_info_for_constraints(self, store_id: int, total_price_of_basket: float, shopping_basket: Dict[int, int], user_info: UserInformationForConstraintDTO) -> BasketInformationForConstraintDTO:
+        """
+        * Parameters: storeId, total_price_of_basket, shoppingBasket
+        * This function creates the basket information for the constraints
+        * Returns: the basket information for the constraints
+        """
+        
+        if store_id not in self.__stores:
+            logger.error('[StoreFacade] store is not found')
+            raise ValueError('Store is not found')
+        
+        categories: List[CategoryForConstraintDTO] = []
+        for category_id in self.__categories:
+            curr_category = self.__categories[category_id]
+            curr_category_dto = self.get_category_as_dto_for_discount(curr_category, shopping_basket)
+            categories.append(curr_category_dto)
+            
+        
+        products: List[ProductForConstraintDTO] = []
+        for product_id in shopping_basket:
+            if product_id not in self.__stores[store_id].store_products:
+                raise ValueError('Product is not found in the store')
+            
+            product = self.__stores[store_id].get_product_by_id(product_id)
+            productDTO = ProductForConstraintDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
+            products.append(productDTO)
+        
+        time_of_purchase = datetime.now()
+
+        return BasketInformationForConstraintDTO(store_id, products, total_price_of_basket, time_of_purchase, user_info, categories)
 
         
-    def apply_discount(self, discount_id: int, store_id: int , total_price_of_basket: float, shopping_basket: Dict[int, int], user_info: UserInformationForDiscountDTO) -> float:
+    def apply_discount(self, discount_id: int, store_id: int , total_price_of_basket: float, shopping_basket: Dict[int, int], user_info: UserInformationForConstraintDTO) -> float:
         """
         * Parameters: discountId, shoppingCart
         * This function applies the discount to the shopping basket
@@ -1597,29 +1726,7 @@ class StoreFacade:
             raise ValueError('Discount is not found')
         discount = self.__discounts[discount_id]
 
-        if store_id not in self.__stores:
-            logger.error('[StoreFacade] store is not found')
-            raise ValueError('Store is not found')
-        
-        categories: List[CategoryForDiscountDTO] = []
-        for category_id in self.__categories:
-            curr_category = self.__categories[category_id]
-            curr_category_dto = self.get_category_as_dto_for_discount(curr_category, shopping_basket)
-            categories.append(curr_category_dto)
-            
-        
-        products: List[ProductForDiscountDTO] = []
-        for product_id in shopping_basket:
-            if product_id not in self.__stores[store_id].store_products:
-                raise ValueError('Product is not found in the store')
-            
-            product = self.__stores[store_id].get_product_by_id(product_id)
-            productDTO = ProductForDiscountDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
-            products.append(productDTO)
-        
-        time_of_purchase = datetime.now()
-
-        basket_info: BasketInformationForDiscountDTO = BasketInformationForDiscountDTO(store_id, products, total_price_of_basket, time_of_purchase, user_info, categories)
+        basket_info: BasketInformationForConstraintDTO = self.creating_basket_info_for_constraints(store_id, total_price_of_basket, shopping_basket, user_info)
 
         logger.info('[StoreFacade] successfully applied discount')
         return discount.calculate_discount(basket_info)
@@ -1645,7 +1752,7 @@ class StoreFacade:
         return store.get_total_price_of_basket_before_discount(shopping_cart)
 
 
-    def get_total_price_after_discount(self, shopping_cart: Dict[int, Dict[int, int]], user_info: UserInformationForDiscountDTO) -> float:
+    def get_total_price_after_discount(self, shopping_cart: Dict[int, Dict[int, int]], user_info: UserInformationForConstraintDTO) -> float:
         """
         * Parameters: discountId, shoppingCart
         * This function calculates the total price of the shopping cart after applying the discount
@@ -1660,7 +1767,97 @@ class StoreFacade:
             total_price += price_before_discount
         logger.info('[StoreFacade] successfully calculated total price after discount to be ' + str(total_price))
         return total_price
+
+    
+    def add_purchase_policy_to_store(self, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None) -> int: 
+        """
+        * Parameters: store_id, policy_name, category_id(default=None), product_id(default=None)
+        * This function adds a purchase policy to the store
+        * Returns: the integer ID of the purchase policy
+        """
+        store = self.__get_store_by_id(store_id)
+        if category_id is not None: 
+            if category_id not in self.__categories:
+                raise ValueError('Category is not found')
         
+        return store.add_purchase_policy(policy_name, category_id, product_id)
+
+    def remove_purchase_policy_from_store(self, store_id: int, policy_id: int) -> None: 
+        """
+        * Parameters: store_id, policy_name
+        * This function removes a purchase policy from the store
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        store.remove_purchase_policy(policy_id)
+
+    def create_composite_purchase_policy_to_store(self, store_id: int, policy_name: str, policy_id_left: int, policy_id_right: int, type_of_connection: int) -> int:
+        """
+        * Parameters: store_id, policy_name, policy_id_left, policy_id_right, type_of_connection
+        * This function creates a composite purchase policy
+        * NOTE: type_of_connection: 1-> AND, 2-> OR, 3-> Conditional
+        * Returns: the integer ID of the composite purchase policy
+        """
+        store = self.__get_store_by_id(store_id)
+        return store.create_composite_purchase_policy(policy_name, policy_id_left, policy_id_right, type_of_connection)
+
+    def assign_predicate_to_purchase_policy(self, store_id: int, policy_id: int, predicate_builder: Tuple) -> None:
+        """
+        * Parameters: store_id, policy_id, predicate
+        * This function assigns a predicate to a purchase policy
+        * Returns: none
+        """
+        if store_id not in self.__stores:
+            logger.error('[StoreFacade] store is not found')
+            raise ValueError('Store is not found')
+        
+        store = self.__stores[store_id]
+
+        if predicate_builder is None:
+            logger.error('[StoreFacade] predicate builder is missing')
+            raise ValueError('Predicate builder is missing')
+        
+        predicate = self.assign_predicate_helper(predicate_builder)
+
+        if predicate is None:
+            logger.error('[StoreFacade] no valid predicate found')
+            raise ValueError('No valid predicate found')
+        
+        store.assign_predicate_to_purchase_policy(policy_id,predicate)
+        
+
+    def validate_purchase_policy(self, store_id: int, total_price_of_basket: float, shopping_basket: Dict[int, int], user_info: UserInformationForConstraintDTO) -> bool:
+        """
+        * Parameters: store_id, total_price_of_basket, shoppingBasket, user_info
+        * This function validates the purchase policies of the stores
+        * Returns: True if the purchase policies are satisfied
+        """
+        if store_id not in self.__stores:
+            logger.error('[StoreFacade] store is not found')
+            raise ValueError('Store is not found')
+        
+        store = self.__stores[store_id]
+
+        basket_info: BasketInformationForConstraintDTO = self.creating_basket_info_for_constraints(store_id, total_price_of_basket, shopping_basket, user_info)
+
+        logger.info('[StoreFacade] successfully applied discount')
+        return store.check_purchase_policies_of_store(basket_info)
+            
+    
+
+    def validate_purchase_policies(self, shopping_cart: Dict[int, Dict[int, int]], user_info: UserInformationForConstraintDTO) -> bool:
+        """
+        * Parameters: store_id, total_price_of_basket, shoppingBasket, user_info
+        * This function validates the purchase policies of the stores
+        * Returns: True if the purchase policies are satisfied
+        """
+        total_price = 0.0
+        for store_id, products in shopping_cart.items():
+            price_of_purchase = self.get_total_basket_price_before_discount(store_id, products)
+            if not self.validate_purchase_policy(store_id, price_of_purchase, products, user_info):
+                return False
+        return True    
+
 
     def get_store_product_information(self, user_id: int, store_id: int) -> List[ProductDTO]:
         """
@@ -1726,7 +1923,7 @@ class StoreFacade:
             self.__release_store_locks(list(shopping_cart.keys()))
             raise e
 
-    def get_purchase_shopping_cart(self, user_info: UserInformationForDiscountDTO, shopping_cart: Dict[int, Dict[int, int]]) \
+    def get_purchase_shopping_cart(self, user_info: UserInformationForConstraintDTO, shopping_cart: Dict[int, Dict[int, int]]) \
             -> Dict[int, Tuple[List[PurchaseProductDTO], float, float]]:
         purchase_shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]] = {}
 
@@ -1845,32 +2042,3 @@ class StoreFacade:
                             products[store.store_id] = []
                         products[store.store_id].append(product)
         return products
-
-    def add_purchase_policy_to_store(self, store_id: int, policy_name: str) -> None:
-        """
-        * Parameters: store_id, policy_name
-        * This function adds a purchase policy to the store
-        * Returns: none
-        """
-        store = self.__get_store_by_id(store_id)
-        store.add_purchase_policy(policy_name)
-
-    def remove_purchase_policy_from_store(self, store_id: int, policy_name: str) -> None:
-        """
-        * Parameters: store_id, policy_name
-        * This function removes a purchase policy from the store
-        * Returns: none
-        """
-        store = self.__get_store_by_id(store_id)
-        store.remove_purchase_policy(policy_name)
-
-    def validate_purchase_policies(self, cart: Dict[int, Dict[int, int]], user: PurchaseUserDTO) -> None:
-        """
-        * Parameters: cart, user
-        * This function validates the purchase policies of the stores
-        * Returns: True if the purchase policies are satisfied
-        """
-        for store_id, products in cart.items():
-            store = self.__get_store_by_id(store_id)
-            product_dtos: Dict[ProductDTO, int] = {store.get_product_dto_by_id(product_id): amount for product_id, amount in products.items()}
-            store.check_purchase_policy(product_dtos, user)

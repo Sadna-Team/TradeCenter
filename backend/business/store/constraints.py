@@ -2,8 +2,9 @@
 from abc import ABC, abstractmethod
 from typing import List
 from datetime import datetime, time
+import holidays
 
-from backend.business.DTOs import AddressDTO, BasketInformationForDiscountDTO, CategoryForDiscountDTO #maybe timezone constraints :O
+from backend.business.DTOs import AddressDTO, BasketInformationForConstraintDTO, CategoryForConstraintDTO #maybe timezone constraints :O
 
 # -------------logging configuration----------------
 import logging
@@ -15,7 +16,7 @@ logger = logging.getLogger('myapp')
 # --------------- Constraint Interface ---------------#
 class Constraint(ABC):
     @abstractmethod
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         pass
 
 # ------------------------------------ Leaf Classes of Composite: ------------------------------------ #
@@ -26,7 +27,7 @@ class AgeConstraint(Constraint):
         self.__age_limit = age_limit
         logger.info("[AgeConstraint]: Age constraint created with age limit: " + str(age_limit))
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[AgeConstraint]: Checking if user is older than " + str(self.__age_limit) + " years old")
         today = datetime.today()
         if basket_information.user_info.birthdate is None:
@@ -49,7 +50,7 @@ class LocationConstraint(Constraint):
         self.__location = location
         logger.info("[LocationConstraint]: Location constraint created with location: " + str(location))
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[LocationConstraint]: Checking if user location fulfills the constraint")
         user_location = basket_information.user_info.address
         country = user_location.country
@@ -68,7 +69,7 @@ class TimeConstraint(Constraint):
         self.__end_time = end_time
         logger.info("[TimeConstraint]: Time constraint created with start time: " + str(start_time) + " and end time: " + str(end_time))
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[TimeConstraint]: Checking if the time of purchase is within the time constraint")
         time_of_purchase = basket_information.time_of_purchase.time()
 
@@ -82,6 +83,70 @@ class TimeConstraint(Constraint):
     def end_time(self):
         return self.__end_time
     
+
+# --------------- day constraint class ---------------#
+class DayOfMonthConstraint(Constraint):
+    def __init__(self, start_day: int, end_day: int):
+        self.__start_day = start_day
+        self.__end_day = end_day
+        logger.info("[DayOfMonthConstraint]: Day of month constraint created with start day: " + str(start_day) + " and end day: " + str(end_day))
+
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
+        logger.info("[DayOfMonthConstraint]: Checking if the day of the month fulfills the constraint")
+        day_of_purchase = basket_information.time_of_purchase.day
+
+        return self.__start_day <= day_of_purchase <= self.__end_day
+    
+    @property
+    def start_day(self):
+        return self.__start_day
+    
+    @property
+    def end_day(self):
+        return self.__end_day
+
+# --------------- day of week constraint class ---------------#
+class DayOfWeekConstraint(Constraint):
+    def __init__(self, start_day: int, end_day: int):
+        self.__start_day = start_day
+        self.__end_day = end_day
+        logger.info("[DayOfWeekConstraint]: Day of week constraint created with start day: " + str(start_day) + " and end day: " + str(end_day))
+
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
+        logger.info("[DayOfWeekConstraint]: Checking if the day of the week fulfills the constraint")
+        day_of_purchase = basket_information.time_of_purchase.weekday()
+
+        return self.__start_day <= day_of_purchase <= self.__end_day
+    
+    @property
+    def start_day(self):
+        return self.__start_day
+    
+    @property
+    def end_day(self):
+        return self.__end_day
+    
+
+# --------------- holiday constraint class ---------------#
+class HolidaysOfCountryConstraint(Constraint):
+    def __init__(self, country_code: str):
+        if country_code not in holidays.list_supported_countries().keys():
+            raise ValueError("Country code is not valid")
+        self.__country_code = country_code
+        logger.info("[HolidaysOfCountryConstraint]: Holidays of country constraint created with country code: " + str(country_code))
+
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
+        logger.info("[HolidaysOfCountryConstraint]: Checking if the day of the purchase is a holiday in the country")
+        day_of_purchase = basket_information.time_of_purchase.date()
+        country_holidays = holidays.CountryHoliday(self.country_code)
+        if country_holidays.get(day_of_purchase) is None:
+            return False
+        return True
+
+    @property
+    def country_code(self):
+        return self.__country_code
+    
 # --------------- price basket constraint class ---------------#
 class PriceBasketConstraint(Constraint):
     def __init__(self, min_price: float, max_price: float, store_id: int):
@@ -91,7 +156,7 @@ class PriceBasketConstraint(Constraint):
         logger.info("[PriceBasketConstraint]: Price basket constraint created!")
 
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         if basket_information.store_id != self.__store_id:
             logger.warning("[PriceBasketConstraint]: Store id does not match the store id of the basket")
             return False
@@ -124,7 +189,7 @@ class PriceProductConstraint(Constraint):
         logger.info("[PriceProductConstraint]: Price product constraint created!")
 
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[PriceProductConstraint]: Checking if the price of the product fulfills the constraint")
         if basket_information.store_id != self.__store_id:
             return False
@@ -161,7 +226,7 @@ class PriceCategoryConstraint(Constraint):
         self.__category_id = category_id 
         logger.info("[PriceCategoryConstraint]: Price category constraint created!")
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         categories= basket_information.categories
         for category in categories:
             if category.category_id == self.__category_id:
@@ -202,7 +267,7 @@ class AmountBasketConstraint(Constraint):
         self.__store_id = store_id
         logger.info("[AmountBasketConstraint]: Amount basket constraint created!")
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         amount_in_basket = 0
         for product in basket_information.products:
             amount_in_basket += product.amount
@@ -231,7 +296,7 @@ class AmountProductConstraint(Constraint):
         self.__store_id = store_id
         logger.info("[AmountProductConstraint]: Amount product constraint created!")
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         if basket_information.store_id != self.__store_id:
             logger.warning("[AmountProductConstraint]: Store id does not match the store id of the basket")
             return False
@@ -263,7 +328,7 @@ class AmountCategoryConstraint(Constraint):
         self.__category_id = category_id
         logger.info("[AmountCategoryConstraint]: Amount category constraint created!")
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         categories = basket_information.categories
         for c in categories:
             if c.category_id == self.__category_id:
@@ -297,7 +362,7 @@ class WeightBasketConstraint(Constraint):
         self.__store_id = store_id
         logger.info("[WeightBasketConstraint]: Weight basket constraint created!")
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         if basket_information.store_id != self.__store_id:
             logger.warning("[WeightBasketConstraint]: Store id does not match the store id of the basket")
             return False
@@ -334,7 +399,7 @@ class WeightProductConstraint(Constraint):
         self.__store_id = store_id
         logger.info("[WeightProductConstraint]: Weight product constraint created!")
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         if basket_information.store_id != self.__store_id:
             logger.warning("[WeightProductConstraint]: Store id does not match the store id of the basket")
             return False
@@ -375,7 +440,7 @@ class WeightCategoryConstraint(Constraint):
         self.__category_id = category_id
         logger.info("[WeightCategoryConstraint]: Weight category constraint created!")
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         for curr_category in basket_information.categories:
             if curr_category.category_id == self.__category_id:
                 products = curr_category.products
@@ -417,7 +482,7 @@ class AndConstraint(Constraint):
         logger.info("[AndConstraint]: And constraint created with two constraints")
 
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[AndConstraint]: Checking if both constraints are satisfied")
         return self.__constraint1.is_satisfied(basket_information) and self.__constraint2.is_satisfied(basket_information)
     
@@ -438,7 +503,7 @@ class OrConstraint(Constraint):
         logger.info("[OrConstraint]: Or constraint created with two constraints")
 
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[OrConstraint]: Checking if at least one of the constraints is satisfied")
         return self.__constraint1.is_satisfied(basket_information) or self.__constraint2.is_satisfied(basket_information)
     
@@ -459,7 +524,7 @@ class XorConstraint(Constraint):
         logger.info("[XorConstraint]: Xor constraint created with two constraints")
 
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[XorConstraint]: Checking if exactly one of the constraints is satisfied")
         return self.__constraint1.is_satisfied(basket_information) ^ self.__constraint2.is_satisfied(basket_information)
     
@@ -481,7 +546,7 @@ class ImpliesConstraint(Constraint):
         logger.info("[ImpliesConstraint]: Implies constraint created with two constraints")
 
 
-    def is_satisfied(self, basket_information: BasketInformationForDiscountDTO) -> bool:
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[ImpliesConstraint]: Checking if the first constraint implies the second constraint")
         return not self.__constraint1.is_satisfied(basket_information) or self.__constraint2.is_satisfied(basket_information)
     

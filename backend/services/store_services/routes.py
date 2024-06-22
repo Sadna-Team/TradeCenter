@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Tuple
 from flask import Blueprint, request, jsonify
 from .controllers import StoreService
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -704,7 +704,7 @@ def add_store_owner():
     except Exception as e:
         logger.error('add_store_owner - ', str(e))
         return jsonify({'message': str(e)}), 400
-    return store_service.add_store_owner(user_id, store_id, username)
+    store_service.add_store_owner(user_id, store_id, username)
 
 
 @store_bp.route('/add_store_manager', methods=['POST'])
@@ -843,7 +843,6 @@ def view_employees_info():
 
     return info
 
-
 @store_bp.route('/add_purchase_policy', methods=['POST'])
 @jwt_required()
 def add_purchase_policy():
@@ -857,11 +856,13 @@ def add_purchase_policy():
         data = request.get_json()
         store_id = int(data['store_id'])
         policy_name = data['policy_name']
+        category_id: Optional[int] = data['category_id']
+        product_id: Optional[int] = data['product_id']
     except Exception as e:
         logger.error('add_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.add_purchase_policy(user_id, store_id, policy_name)
+    return store_service.add_purchase_policy(user_id, store_id, policy_name, category_id, product_id)
 
 
 @store_bp.route('/remove_purchase_policy', methods=['POST'])
@@ -876,9 +877,51 @@ def remove_purchase_policy():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = int(data['store_id'])
-        policy_name = str(data['policy_name'])
+        policy_id = int(data['policy_name'])
     except Exception as e:
         logger.error('remove_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.remove_purchase_policy(user_id, store_id, policy_name)
+    return store_service.remove_purchase_policy(user_id, store_id, policy_id)
+
+
+@store_bp.route('/create_composite_purchase_policy', methods=['POST'])
+@jwt_required()
+def create_composite_purchase_policy():
+    """
+        Use Case ____(idk I need to check)
+        Create a composite purchase policy
+    """
+    logger.info('received request to create composite purchase policy')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        policy_name = data['policy_name']
+        policy_id1 = data['policy_id1']
+        policy_id2 = data['policy_id2']
+        type_of_composite = data['type_of_composite']
+    except Exception as e:
+        logger.error('create_composite_purchase_policy - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    
+    return store_service.create_composite_purchase_policy(user_id, store_id, policy_name, policy_id1,policy_id2, type_of_composite)
+
+@store_bp.route('/assign_predicate_to_purchase_policy', methods=['POST'])
+@jwt_required()
+def assign_predicate_to_purchase_policy():
+    """
+        Use Case ____(idk I need to check)
+        Assign a predicate to a purchase policy
+    """
+    logger.info('received request to assign predicate to purchase policy')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        policy_id = int(data['policy_id'])
+        predicate_builder: Tuple = data['predicate_builder']
+    except Exception as e:
+        logger.error('assign_predicate_to_purchase_policy - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.assign_predicate_to_purchase_policy(user_id, policy_id, predicate_builder)

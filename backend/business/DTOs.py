@@ -48,7 +48,7 @@ class NotificationDTO:
         return {
             'notification_id': self.__notification_id,
             'message': self.__message,
-            'date': self.__date
+            'date': self.__date.strftime('%Y-%m-%d %H:%M:%S')
         }
 
 
@@ -224,7 +224,7 @@ class StoreDTO:
                 "products": [product.get() for product in self.__products]}
 
 
-class UserInformationForDiscountDTO:
+class UserInformationForConstraintDTO:
     def __init__(self, user_id: int, birthdate: Optional[date], address: AddressDTO):
         self.__user_id: int = user_id
         self.__birthdate: Optional[date] = birthdate
@@ -245,7 +245,7 @@ class UserInformationForDiscountDTO:
     def get(self):
         return {"user_id": self.__user_id, "birthdate": self.__birthdate, "address": self.__address.to_dict()}
 
-class ProductForDiscountDTO:
+class ProductForConstraintDTO:
     def __init__(self, product_id: int, store_id: int, price: float, weight: float, amount: int):
         self.__product_id: int = product_id
         self.__store_id: int = store_id
@@ -278,13 +278,13 @@ class ProductForDiscountDTO:
 
 
 
-class CategoryForDiscountDTO:
-    def __init__(self, category_id: int, category_name: str, parent_category_id: int, sub_categories: List['CategoryForDiscountDTO'], products: List[ProductForDiscountDTO]):
+class CategoryForConstraintDTO:
+    def __init__(self, category_id: int, category_name: str, parent_category_id: int, sub_categories: List['CategoryForConstraintDTO'], products: List[ProductForConstraintDTO]):
         self.__category_id: int = category_id
         self.__category_name: str = category_name
         self.__parent_category_id: int = parent_category_id
-        self.__sub_categories: List['CategoryForDiscountDTO'] = sub_categories
-        self.__products: List[ProductForDiscountDTO] = products
+        self.__sub_categories: List['CategoryForConstraintDTO'] = sub_categories
+        self.__products: List[ProductForConstraintDTO] = products
 
     @property
     def category_id(self) -> int:
@@ -299,30 +299,30 @@ class CategoryForDiscountDTO:
         return self.__parent_category_id
 
     @property
-    def sub_categories(self) -> List['CategoryForDiscountDTO']:
+    def sub_categories(self) -> List['CategoryForConstraintDTO']:
         return self.__sub_categories
     
     @property
-    def products(self) -> List[ProductForDiscountDTO]:
+    def products(self) -> List[ProductForConstraintDTO]:
         return self.__products
 
 
 
-class BasketInformationForDiscountDTO:
-    def __init__(self, store_id: int, products: List[ProductForDiscountDTO], total_price_of_basket: float, time_of_purchase: datetime, user_info: UserInformationForDiscountDTO, categories: List[CategoryForDiscountDTO]):
+class BasketInformationForConstraintDTO:
+    def __init__(self, store_id: int, products: List[ProductForConstraintDTO], total_price_of_basket: float, time_of_purchase: datetime, user_info: UserInformationForConstraintDTO, categories: List[CategoryForConstraintDTO]):
         self.__store_id: int = store_id
-        self.__products: List[ProductForDiscountDTO] = products
+        self.__products: List[ProductForConstraintDTO] = products
         self.__total_price_of_basket: float = total_price_of_basket
         self.__time_of_purchase: datetime = time_of_purchase
-        self.__user_info: UserInformationForDiscountDTO = user_info
-        self.__categories: List[CategoryForDiscountDTO] = categories
+        self.__user_info: UserInformationForConstraintDTO = user_info
+        self.__categories: List[CategoryForConstraintDTO] = categories
 
     @property
     def store_id(self) -> int:
         return self.__store_id
     
     @property
-    def products(self) -> List[ProductForDiscountDTO]:
+    def products(self) -> List[ProductForConstraintDTO]:
         return self.__products
     
     @property
@@ -334,11 +334,11 @@ class BasketInformationForDiscountDTO:
         return self.__time_of_purchase
     
     @property
-    def user_info(self) -> UserInformationForDiscountDTO:
+    def user_info(self) -> UserInformationForConstraintDTO:
         return self.__user_info
     
     @property
-    def categories(self) -> List[CategoryForDiscountDTO]:
+    def categories(self) -> List[CategoryForConstraintDTO]:
         return self.__categories
 
     def get(self) -> dict:

@@ -100,27 +100,44 @@ class StoreService:
             logger.error('discount description was not changed')
             return jsonify({'message': str(e)}), 400
 
-
-    def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str):
+    def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None):
         try:
-            self.__market_facade.add_purchase_policy(user_id, store_id, policy_name)
+            self.__market_facade.add_purchase_policy(user_id, store_id, policy_name, category_id, product_id)
             logger.info('purchase policy was added successfully')
             return jsonify({'message': 'purchase policy was added successfully'}), 200
         except Exception as e:
             logger.error('purchase policy was not added')
             return jsonify({'message': str(e)}), 400
 
-    def remove_purchase_policy(self, user_id: int, store_id: int, policy_name: str):
+     
+    def remove_purchase_policy(self, user_id: int, store_id: int, policy_id: int):
         try:
-            self.__market_facade.remove_purchase_policy(user_id, store_id, policy_name)
+            self.__market_facade.remove_purchase_policy(user_id, store_id, policy_id)
             logger.info('purchase policy was removed successfully')
             return jsonify({'message': 'purchase policy was removed successfully'}), 200
         except Exception as e:
             logger.error('purchase policy was not removed')
             return jsonify({'message': str(e)}), 400
 
-    def edit_purchase_policy(self):
-        pass
+    def create_composite_purchase_policy(self, user_id: int, store_id: int, policy_name: str, policy_id1: int, policy_id2: int, type_of_composite: int):
+        try:
+            composite_policy_id = self.__market_facade.create_composite_purchase_policy(user_id, store_id, policy_name, policy_id1, policy_id2, type_of_composite)
+            logger.info('composite purchase policy was created successfully')
+            return jsonify({'message': composite_policy_id}), 200
+        except Exception as e:
+            logger.error('composite purchase policy was not created')
+            return jsonify({'message': str(e)}), 400
+        
+    def assign_predicate_to_purchase_policy(self, user_id: int, store_id:int, policy_id: int, predicate_builder: Tuple):
+        try:
+            """ Maybe we have to receive the predicate_builder as a string and then build it here to a tuple?"""
+            self.__market_facade.assign_predicate_to_purchase_policy(user_id, store_id,policy_id, predicate_builder)
+            logger.info('predicate was assigned successfully')
+            return jsonify({'message': 'predicate was assigned successfully'}), 200
+        except Exception as e:
+            logger.error('predicate was not assigned')
+            return jsonify({'message': str(e)}), 400
+
 
     def show_store_info(self, store_id: int):
         """

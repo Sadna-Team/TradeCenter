@@ -2,7 +2,7 @@
 from enum import Enum
 from typing import List, Dict, Tuple, Optional
 from .discount import Discount
-from .PurchasePolicyStrategy import PurchasePolicyStrategy
+from .PurchasePolicy import PurchasePolicy
 from datetime import datetime
 from backend.business.DTOs import ProductDTO
 
@@ -398,7 +398,7 @@ class Store:
         self.__rating: float = 0.0
         self.__is_active = True
         self.__store_products: List[Product] = []
-        self.__purchase_policies: List[PurchasePolicyStrategy] = []
+        self.__purchase_policies: List[PurchasePolicy] = []
         self.__founded_date = datetime.now()
         self.__ratings_of_product: Dict[int, float] = {}
         self.__purchase_policy_id_counter = 0 # purchase policy Id 
@@ -434,7 +434,7 @@ class Store:
         return self.__store_products
 
     @property
-    def purchase_policies(self) -> List[PurchasePolicyStrategy]:
+    def purchase_policies(self) -> List[PurchasePolicy]:
         return self.__purchase_policies
 
     @property
@@ -531,11 +531,11 @@ class Store:
         else:
             raise ValueError('Purchase policy is not a valid purchase policy')
 
-    def update_purchase_policy(self, purchase_policy: PurchasePolicyStrategy) -> None:
+    def update_purchase_policy(self, purchase_policy: PurchasePolicy) -> None:
         # not implemented yet
         pass
 
-    def get_purchase_policy_by_id(self, purchase_policy_id: int) -> Optional[PurchasePolicyStrategy]:
+    def get_purchase_policy_by_id(self, purchase_policy_id: int) -> Optional[PurchasePolicy]:
         """
         * Parameters: purchasePolicyId
         * This function gets a purchase policy by its ID

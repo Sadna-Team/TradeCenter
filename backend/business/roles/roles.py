@@ -238,6 +238,8 @@ class RolesFacade:
         self.__stores_to_roles[store_id] = {owner_id: StoreOwner()}
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
         self.__stores_locks[store_id] = Lock()
+        self.__notifier.sign_listener(owner_id, store_id)
+
 
     def remove_store(self, store_id: int, actor_id: int) -> None:
         if store_id not in self.__stores_to_roles:
@@ -298,7 +300,6 @@ class RolesFacade:
         self.__stores_to_role_tree[nomination.store_id].add_child_to_father(nomination.nominator_id, nominee_id)
         # add role to the store
         self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
-
         self.__notifier.sign_listener(nominee_id, nomination.store_id)
 
         # delete all nominations of the nominee in the store
@@ -348,9 +349,11 @@ class RolesFacade:
                 raise ValueError("Actor is not an ancestor of the removed user")
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
                 raise ValueError("Cannot remove the root owner of the store")
+            self.__notifier.notify_removed_management_position(store_id, removed_id)
             removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
 
             for user_id in removed:
+                self.__notifier.notify_removed_management_position(store_id, user_id)
                 self.__notifier.unsign_listener(user_id, store_id)
                 del self.__stores_to_roles[store_id][user_id]
 

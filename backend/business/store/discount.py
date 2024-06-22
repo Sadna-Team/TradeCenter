@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Optional
 
-from backend.business.DTOs import BasketInformationForDiscountDTO, CategoryDTO
+from backend.business.DTOs import BasketInformationForConstraintDTO, CategoryDTO
 from backend.business.store.constraints import Constraint
 
 
@@ -56,7 +56,7 @@ class Discount(ABC):
         return self.__predicate
 
     @abstractmethod
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         pass
 
     def change_discount_percentage(self, new_percentage: float) -> None:
@@ -101,9 +101,9 @@ class CategoryDiscount(Discount):
         return self.__applied_to_subcategories
     
 
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
-        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * Parameters: basket_information in BasketInformationForConstraintDTO
         * This function is responsible for calculating the discount based on the basket information, the discount is only applied to the products that fall under the category.
         * Returns: float of the amount the discount will deduce from the total price.
         """
@@ -143,9 +143,9 @@ class StoreDiscount(Discount):
     def store_id(self) -> int:
         return self.__store_id
 
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
-        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * Parameters: basket_information in BasketInformationForConstraintDTO
         * This function is responsible for calculating the discount based on the basket information, the discount is only applied to the products that fall under the store.
         * Returns: float of the amount the discount will deduce from the total price.
         """
@@ -183,9 +183,9 @@ class ProductDiscount(Discount):
     def store_id(self) -> int:
         return self.__store_id
     
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
-        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * Parameters: basket_information in BasketInformationForConstraintDTO
         * This function is responsible for calculating the discount based on the basket information, the discount is only applied to the products that fall under the product.
         * Returns: float of the amount the discount will deduce from the total price.
         """
@@ -220,9 +220,9 @@ class AndDiscount(Discount):
         self.__discount2 = discount2
         logger.info("[AndDiscount] And discount created successfully!")
 
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
-        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * Parameters: basket_information in BasketInformationForConstraintDTO
         * This function is responsible for calculating the discount based on the basket information. It is only applied when both discounts have satisfied predicates and returns the sum of the discounts
         """
         if self.__discount1.predicate is not None and self.__discount2.predicate is not None:
@@ -264,9 +264,9 @@ class OrDiscount(Discount):
         self.__discount1 = discount1
         self.__discount2 = discount2
 
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
-        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * Parameters: basket_information in BasketInformationForConstraintDTO
         * This function is responsible for calculating the discount based on the basket information. It is only applied when at least one of the discounts have satisfied predicates and returns the sum of the discounts
         * NOTE: for simplicity, we assume that if both discounts are applicable, we would use both, but if only one is applicable, we would use only that one.
         """
@@ -313,9 +313,9 @@ class XorDiscount(Discount):
         self.__discount2 = discount2
         logger.info("[XorDiscount] Xor discount created successfully!")
 
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
-        * Parameters: basket_information in BasketInformationForDiscountDTO
+        * Parameters: basket_information in BasketInformationForConstraintDTO
         * This function is responsible for calculating the discount based on the basket information.
         * Returns: float of the amount the discount will deduce from the total price.
         """
@@ -353,7 +353,7 @@ class MaxDiscount(Discount):
         self.__ListDiscount = ListDiscount
         logger.info("[maxDiscount] Max discount created successfully!")
 
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
         * Parameters: basket in BasketDTO, user in UserDTO
         * This function is responsible for calculating the discount based on the basket and user.
@@ -376,7 +376,7 @@ class AdditiveDiscount(Discount):
         self.__ListDiscount = ListDiscount
         logger.info("[additiveDiscount] Additive discount created successfully!")
 
-    def calculate_discount(self, basket_information: BasketInformationForDiscountDTO) -> float:
+    def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
         * Parameters: basket in BasketDTO, user in UserDTO
         * This function is responsible for calculating the discount based on the basket and user.
