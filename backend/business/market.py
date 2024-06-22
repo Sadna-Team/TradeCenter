@@ -537,7 +537,6 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to rate product {product_spec_id}")'''
 
-
     # -------------Policies related methods-------------------#
     def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None) -> int:
         """
