@@ -3,7 +3,7 @@ from typing import List, Dict, Tuple, Optional, Callable
 
 from .constraints import *
 from .discount import *
-from .PurchasePolicyStrategy import PurchasePolicyStrategy
+from .PurchasePolicy import PurchasePolicy
 from datetime import datetime
 from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
@@ -352,126 +352,127 @@ class Category:
         return names
 '''
 
+'''
+    def pred_no_alcohol_past_time(products: Dict[ProductDTO, int]) -> bool:
+        """
+            * Parameters: store_id, product_id, time
+            * This function checks if the product is an alcohol product and if the time is after the time of the purchase
+            * Returns: True if the product is an alcohol product and the time is after the time of the purchase, False otherwise
+        """
+        for product in products:
+            if 'alcohol' in product.tags and datetime.now().hour > 22:
+                logger.info('Alcohol product is not allowed after 22')
+                return False
+        return True
 
-def pred_no_alcohol_past_time(products: Dict[ProductDTO, int]) -> bool:
-    """
-        * Parameters: store_id, product_id, time
-        * This function checks if the product is an alcohol product and if the time is after the time of the purchase
-        * Returns: True if the product is an alcohol product and the time is after the time of the purchase, False otherwise
-    """
-    for product in products:
-        if 'alcohol' in product.tags and datetime.now().hour > 22:
-            logger.info('Alcohol product is not allowed after 22')
-            return False
-    return True
-
-def pred_has_tabacco(products: Dict[ProductDTO, int]) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products contain alcohol
-    * Returns: True if the products contain alcohol, False otherwise
-    """
-    for product in products:
-        if 'alcohol' in product.tags:
-            logger.info('Alcohol product in the basket')
-            return True
-    logger.info('No alcohol product in the basket')
-    return False
-
-def pred_not_too_much_gun_powder(products: Dict[ProductDTO, int]) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products contain too much gun powder
-    * Returns: True if the products contain too much gun powder, False otherwise
-    """
-    for product in products:
-        if 'gunpowder' in product.tags:
-            logger.info('Amount of gunpowder product in the basket exceeds the limit of 100')
-            return  product.weight * products[product] >= 100
-    logger.info('Not too much gunpowder found in basket')
-    return False
-
-def pred_has_tabbaco(products: Dict[ProductDTO, int]) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products contain tabbaco
-    * Returns: True if the products contain tabbaco, False otherwise
-    """
-    for product in products:
-        if 'tabbaco' in product.tags:
-            logger.info('Tabbaco product in the basket')
-            return True
-    logger.info('No tabbaco product in the basket')
-    return False
-
-def pred_older_then_18(user: PurchaseUserDTO) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products are older than 18
-    * Returns: True if the products are older than 18, False otherwise
-    """
-    current_year = datetime.now().year
-    current_month = datetime.now().month
-    current_day = datetime.now().day
-    if user.birthdate is None:
-        logger.warning('User does not have a birthdate')
+    def pred_has_tabacco(products: Dict[ProductDTO, int]) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products contain alcohol
+        * Returns: True if the products contain alcohol, False otherwise
+        """
+        for product in products:
+            if 'alcohol' in product.tags:
+                logger.info('Alcohol product in the basket')
+                return True
+        logger.info('No alcohol product in the basket')
         return False
-    delta = current_year - user.birthdate.year + (current_month - user.birthdate.month) / 12 + (current_day - user.birthdate.day) / 365
-    return delta >= 18
 
-def pred_funny_name(products: Dict[ProductDTO, int]) -> bool:
-    """
-    * Parameters: products
-    * This function checks if the products have a funny name
-    * Returns: True if the products have a funny name, False otherwise
-    """
-    for product in products:
-        if product.name == 'funny':
-            return True
-    return False
+    def pred_not_too_much_gun_powder(products: Dict[ProductDTO, int]) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products contain too much gun powder
+        * Returns: True if the products contain too much gun powder, False otherwise
+        """
+        for product in products:
+            if 'gunpowder' in product.tags:
+                logger.info('Amount of gunpowder product in the basket exceeds the limit of 100')
+                return  product.weight * products[product] >= 100
+        logger.info('Not too much gunpowder found in basket')
+        return False
 
-def filter_no_alcohol_and_tabbaco_bellow_18(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
-    """
-    * Parameters: products, user
-    * This function checks if the products contain alcohol and the user is older than 18
-    * Returns: True if the products contain alcohol and the user is older than 18, False otherwise
-    """
-    user_old_enough = UserFilter(user, pred_older_then_18)
-    no_alcohol = NotFilter(ProductFilter(products, pred_has_tabacco))
-    no_tabbaco = NotFilter(ProductFilter(products, pred_has_tabbaco))
-    total_filter = OrFilter([user_old_enough, AndFilter([no_alcohol, no_tabbaco])])
-    return total_filter
+    def pred_has_tabbaco(products: Dict[ProductDTO, int]) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products contain tabbaco
+        * Returns: True if the products contain tabbaco, False otherwise
+        """
+        for product in products:
+            if 'tabbaco' in product.tags:
+                logger.info('Tabbaco product in the basket')
+                return True
+        logger.info('No tabbaco product in the basket')
+        return False
 
-def filter_no_alcohol_past_time(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
-    """
-    * Parameters: products
-    * This function checks if the products contain alcohol and the time is after 22
-    * Returns: True if the products contain alcohol and the time is after 22, False otherwise
-    """
-    return ProductFilter(products, pred_no_alcohol_past_time)
+    def pred_older_then_18(user: PurchaseUserDTO) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products are older than 18
+        * Returns: True if the products are older than 18, False otherwise
+        """
+        current_year = datetime.now().year
+        current_month = datetime.now().month
+        current_day = datetime.now().day
+        if user.birthdate is None:
+            logger.warning('User does not have a birthdate')
+            return False
+        delta = current_year - user.birthdate.year + (current_month - user.birthdate.month) / 12 + (current_day - user.birthdate.day) / 365
+        return delta >= 18
 
-def filter_not_too_much_gun_powder(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
-    """
-    * Parameters: products
-    * This function checks if the products contain too much gun powder
-    * Returns: True if the products contain too much gun powder, False otherwise
-    """
-    return NotFilter(ProductFilter(products, pred_not_too_much_gun_powder))
+    def pred_funny_name(products: Dict[ProductDTO, int]) -> bool:
+        """
+        * Parameters: products
+        * This function checks if the products have a funny name
+        * Returns: True if the products have a funny name, False otherwise
+        """
+        for product in products:
+            if product.name == 'funny':
+                return True
+        return False
 
-def filter_no_funny_name(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
-    """
-    * Parameters: products
-    * This function checks if the products have a funny name
-    * Returns: True if the products have a funny name, False otherwise
-    """
-    return NotFilter(ProductFilter(products, pred_funny_name))
+    def filter_no_alcohol_and_tabbaco_bellow_18(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+        """
+        * Parameters: products, user
+        * This function checks if the products contain alcohol and the user is older than 18
+        * Returns: True if the products contain alcohol and the user is older than 18, False otherwise
+        """
+        user_old_enough = UserFilter(user, pred_older_then_18)
+        no_alcohol = NotFilter(ProductFilter(products, pred_has_tabacco))
+        no_tabbaco = NotFilter(ProductFilter(products, pred_has_tabbaco))
+        total_filter = OrFilter([user_old_enough, AndFilter([no_alcohol, no_tabbaco])])
+        return total_filter
 
-AVAILABLE_POLICIES = {
-    "no_alcohol_past_time": filter_no_alcohol_past_time,
-    "not_too_much_gun_powder": filter_not_too_much_gun_powder,
-    "no_alcohol_and_tabbaco_bellow_18": filter_no_alcohol_and_tabbaco_bellow_18, 
-    "no_funny_name": filter_no_funny_name
-}
+    def filter_no_alcohol_past_time(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+        """
+        * Parameters: products
+        * This function checks if the products contain alcohol and the time is after 22
+        * Returns: True if the products contain alcohol and the time is after 22, False otherwise
+        """
+        return ProductFilter(products, pred_no_alcohol_past_time)
+
+    def filter_not_too_much_gun_powder(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+        """
+        * Parameters: products
+        * This function checks if the products contain too much gun powder
+        * Returns: True if the products contain too much gun powder, False otherwise
+        """
+        return NotFilter(ProductFilter(products, pred_not_too_much_gun_powder))
+
+    def filter_no_funny_name(products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> PurchaseComposite:
+        """
+        * Parameters: products
+        * This function checks if the products have a funny name
+        * Returns: True if the products have a funny name, False otherwise
+        """
+        return NotFilter(ProductFilter(products, pred_funny_name))
+
+    AVAILABLE_POLICIES = {
+        "no_alcohol_past_time": filter_no_alcohol_past_time,
+        "not_too_much_gun_powder": filter_not_too_much_gun_powder,
+        "no_alcohol_and_tabbaco_bellow_18": filter_no_alcohol_and_tabbaco_bellow_18, 
+        "no_funny_name": filter_no_funny_name
+    }
+'''
 
 class Store:
     # id of store is storeId. It is unique for each store
@@ -606,26 +607,18 @@ class Store:
         """
         return self.get_product_by_id(product_id).create_product_dto()
         
-    def add_purchase_policy(self, policy_name: str) -> None:
+
+    def add_purchase_policy(self, policy_name: str, category_id: Optional[int], product_id: Optional[int]) -> int:
         """
-        * Parameters: policyName
+        * Parameters: policyName, categoryId, productId
         * This function adds a purchase policy to the store
-        * Returns: none
+        * Returns: the purchase policy ID
         """
-        if policy_name not in AVAILABLE_POLICIES:
-            raise ValueError('Policy name is not valid')
         if policy_name in self.__purchase_policy:
-            raise ValueError('Policy name is already in the list of purchase policies')
-        self.__purchase_policy[policy_name] = AVAILABLE_POLICIES[policy_name]
-        logger.info('[Store] successfully added purchase policy to store with id: ' + str(self.__store_id))
+            raise ValueError('Purchase policy with the same name already exists')
 
-
-    def remove_purchase_policy(self, policy_name: str) -> None:
-        if policy_name in self.__purchase_policy:
-            self.__purchase_policy.pop(policy_name)
-            logger.info('[Store] successfully removed purchase policy from store with id: ' + str(self.__store_id))
-        else:
-            raise ValueError('Policy name is not found')
+    def remove_purchase_policy(self, policy_name: str) -> None: #TODO
+        pass
 
     def check_purchase_policy(self, products: Dict[ProductDTO, int], user: PurchaseUserDTO) -> None:
         """
@@ -1489,6 +1482,10 @@ class StoreFacade:
             raise ValueError('No valid predicate found')
         
         discount.change_predicate(predicate)
+
+
+    def assign_predicate_to_purchase_policy():
+        pass #TODO implement this function
         
 
     # we assume that the marketFacade verified that the user has necessary permissions to remove a discount
@@ -1846,7 +1843,7 @@ class StoreFacade:
                         products[store.store_id].append(product)
         return products
 
-    def add_purchase_policy_to_store(self, store_id: int, policy_name: str) -> None:
+    def add_purchase_policy_to_store(self, store_id: int, policy_name: str) -> None: #TODO fix
         """
         * Parameters: store_id, policy_name
         * This function adds a purchase policy to the store
@@ -1855,7 +1852,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         store.add_purchase_policy(policy_name)
 
-    def remove_purchase_policy_from_store(self, store_id: int, policy_name: str) -> None:
+    def remove_purchase_policy_from_store(self, store_id: int, policy_name: str) -> None: #TODO fix
         """
         * Parameters: store_id, policy_name
         * This function removes a purchase policy from the store
@@ -1864,7 +1861,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         store.remove_purchase_policy(policy_name)
 
-    def validate_purchase_policies(self, cart: Dict[int, Dict[int, int]], user: PurchaseUserDTO) -> None:
+    def validate_purchase_policies(self, cart: Dict[int, Dict[int, int]], user: PurchaseUserDTO) -> None: #TODO fix
         """
         * Parameters: cart, user
         * This function validates the purchase policies of the stores
