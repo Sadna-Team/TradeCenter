@@ -5,7 +5,7 @@ import pytest
 from backend.business.store.constraints import AgeConstraint, AndConstraint, LocationConstraint
 from backend.business.store.discount import StoreDiscount
 from backend.business.store.new_store import Store, Product, Category, StoreFacade
-from backend.business.DTOs import AddressDTO, ProductDTO, PurchaseUserDTO, UserInformationForDiscountDTO
+from backend.business.DTOs import AddressDTO, ProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO
 from backend.error_types import *
 
 @pytest.fixture
@@ -20,6 +20,11 @@ def tagged_product(product):
 @pytest.fixture
 def category():
     return Category(category_id=0, category_name='category')
+
+@pytest.fixture
+def category2():
+    return Category(category_id=3, category_name='alcohol')
+
 
 @pytest.fixture
 def sub_category(category):
@@ -38,8 +43,13 @@ def product_dto():
     return ProductDTO(product_id=0, name='product', description='very good product', price=10.0, tags=['tag'], weight=30.0, amount=10)
 
 @pytest.fixture
-def product_dto2():
+def product_dto3():
     return ProductDTO(product_id=1, name='product2', description='very good product', price=10.0, tags=['tag'], weight=30.0, amount=10)
+
+@pytest.fixture
+def product_dto2():
+    return ProductDTO(product_id=3, name='product3', description='alcohol!', price=10.0, tags=['tag'], weight=30.0, amount=10)
+
 
 @pytest.fixture
 def store_facade():
@@ -54,7 +64,9 @@ default_street: str = "street"
 default_zip_code: str = "zip_code"
 default_house_number: str = "house_number"
 default_location: AddressDTO = AddressDTO(default_address_id, default_city, default_country, default_street, default_zip_code, default_house_number)
-user_information_dto1=  UserInformationForDiscountDTO(0, date(1990, 1, 1), default_location)
+user_information_dto1=  UserInformationForConstraintDTO(0, date(1990, 1, 1), default_location)
+user_information_dto2=  UserInformationForConstraintDTO(1, date(2009, 1, 1), default_location)
+
 
 
 #magic:
@@ -304,7 +316,7 @@ def test_apply_milk_and_bread_discount(store_facade):
     assert store_facade.apply_discount(new_id, store_id, total_price_of_basket, shopping_basket, user_information_dto1)== total_price_of_basket* product_per_01 #42 
 
 #4.5 same test but with OR:
-def test_apply_milk_or_bread_discount(store_facade):
+def test_apply_milk_or_bread_discount2(store_facade):
     store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
     product_id1 = store_facade.get_store_by_id(store_id).add_product('milk', 'very good product', product_price_10, ['tag'], 30.0)
     product_id2 = store_facade.get_store_by_id(store_id).add_product('bread', 'very good product', product_price_10, ['tag'], 30.0)
@@ -1146,6 +1158,272 @@ def test_search_in_store_by_name(store_facade):
     out = store_facade.search_by_name('product', 0)
     assert out[0][0].product_id == 0
 
+
+def test_add_purchase_policy(store, category2):
+    assert len(store.purchase_policy) == 0
+    policy_id=store.add_purchase_policy('no_alcohol_bellow_18', category2.category_id, None)
+    assert len(store.purchase_policy) == 1
+    assert store.purchase_policy[0] == policy_id
+    
+    
+def test_remove_purchase_policy(store,category2):
+    policy_id=store.add_purchase_policy('no_alcohol_bellow_18', category2.category_id, None)
+    assert len(store.purchase_policy) == 1
+    store.remove_purchase_policy(policy_id)
+    assert len(store.purchase_policy) == 0
+    
+    
+    
+    
+#tests from the story:
+
+#test 1: policy where a basket cannot have more than 5 kg of tomatoes:
+def test_create_simple_purchase_policy_to_store(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(0, 50)
+    policy_id=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes', None, product_id)
+    shopping_basket = {product_id:21}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10
+    store_facade.assign_predicate_to_purchase_policy(store_id,policy_id, ('weight_product', 0.0, 5.0,product_id, store_id))
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto1)==False
+    
+#test 2: policy where a user cant buy alcohol if he is under 18:
+def test_create_simple_purchase_policy_to_store2(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('alcohol', 'very good product', product_price_10, ['tag'], 30.0)
+    category_id3 = store_facade.add_category('alcohol')
+    store_facade.assign_product_to_category(0, store_id,product_id)
+    store_facade.get_store_by_id(store_id).restock_product(0, 50)
+    policy_id=store_facade.add_purchase_policy_to_store(store_id, 'no_alcohol_bellow_18', category_id3)
+    shopping_basket = {product_id:21}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10
+    store_facade.assign_predicate_to_purchase_policy(store_id,policy_id, ('age', 18, -1, store_id))
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto2)==False
+
+    
+#test 3: policy where a user cant buy alcohol if the hour is past 23:00:
+def test_create_simple_purchase_policy_to_store3(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('alcohol', 'very good product', product_price_10, ['tag'], 30.0)
+    category_id3 = store_facade.add_category('alcohol')
+    store_facade.assign_product_to_category(0, store_id,product_id)
+    store_facade.get_store_by_id(store_id).restock_product(0, 50)
+    policy_id=store_facade.add_purchase_policy_to_store(store_id, 'no_alcohol_after_23', category_id3)
+    shopping_basket = {product_id:21}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10
+    store_facade.assign_predicate_to_purchase_policy(store_id,policy_id, ('time', time(6, 0, 0), time(23, 0, 0), store_id))
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto2)==False
+    
+    
+#test 4: a policy where there cannot be any ice cream sales at the beggining of the month:
+def test_create_simple_purchase_policy_to_store4(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('ice_cream', 'very good product', product_price_10, ['tag'], 30.0)
+    category_id3 = store_facade.add_category('ice_cream')
+    store_facade.assign_product_to_category(0, store_id,product_id)
+    store_facade.get_store_by_id(store_id).restock_product(0, 50)
+    policy_id=store_facade.add_purchase_policy_to_store(store_id, 'no_ice_cream_at_beginning_of_month', category_id3)
+    shopping_basket = {product_id:21}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10
+    store_facade.assign_predicate_to_purchase_policy(store_id,policy_id, ('day_of_month', 2, 31, store_id))
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto2)==True
+    
+    
+#test 5: a "AND" policy where a basket cannot have more than 5 kg of tomatoes and a basket must have at least 2 corn:
+def test_create_simple_purchase_policy_to_store5(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 30.0)
+    product_id2=store_facade.get_store_by_id(store_id).add_product('corn', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
+    store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'at_least_2_corn', None, product_id2)
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 2, product_id2, store_id))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'and policy', policy_id1, policy_id2, 1)
+
+    shopping_basket = {product_id:21, product_id2:6}
+    
+    total_price_of_basket=shopping_basket[product_id]*product_price_10+shopping_basket[product_id2]*product_price_10    
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto1)==False
+
+    
+#test 5.5: test 5 but it works now:
+def test_create_simple_purchase_policy_to_store5_5(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
+    product_id2=store_facade.get_store_by_id(store_id).add_product('corn', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
+    store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'at_least_2_corn', None, product_id2)
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 2, product_id2, store_id))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'and policy', policy_id1, policy_id2, 1)
+
+    shopping_basket = {product_id:4, product_id2:6}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10+shopping_basket[product_id2]*product_price_10    
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto1)==True
+
+    
+#test 6: a "OR" policy where a user cannot buy alcohol after 23:00 or when its a holiday:
+def test_create_simple_purchase_policy_to_store6(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('alcohol', 'very good product', product_price_10, ['tag'], 30.0)
+    category_id3 = store_facade.add_category('alcohol')
+    store_facade.assign_product_to_category(0, store_id,product_id)
+    store_facade.get_store_by_id(store_id).restock_product(0, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_alcohol_after_23', category_id3)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'no_alcohol_on_holidays', category_id3)
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('time', time(6, 0, 0), time(23, 0, 0), store_id))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('holidays_of_country', 'IL'))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 2)
+
+    shopping_basket = {product_id:21}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto1)==False
+    
+    
+#test 7: a user can buy 5 kg of tomatoes only if (conditioning) there are eggplants in the basket:
+def test_create_simple_purchase_policy_to_store7(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
+    product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
+    store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_eggplants', None, product_id2)
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 1, product_id2, store_id))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'condition policy', policy_id1, policy_id2, 3)
+
+    shopping_basket = {product_id:5, product_id2:1}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10+shopping_basket[product_id2]*product_price_10    
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto1)==True
+   
+#test 7.5: a user can buy 5 kg of tomatoes only if (conditioning) there are eggplants in the basket:
+def test_create_simple_purchase_policy_to_store75(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
+    product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
+    store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_eggplants', None, product_id2)
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 1, product_id2, store_id))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'condition policy', policy_id1, policy_id2, 3)
+
+    shopping_basket = {product_id:5}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10    
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto1)==False
+     
+#test 8: a user can buy 5 kg of tomatoes only if (conditioning) there are at least 2 eggplants in the basket or its a holiday:
+def test_create_simple_purchase_policy_to_store8(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
+    product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
+    store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
+        
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
+
+    shopping_basket = {product_id:5, product_id2:1}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10+shopping_basket[product_id2]*product_price_10    
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto1)==False
+     
+     
+     
+#test 9: a user can buy 5 kg of tomatoes only if (conditioning) there are at least 2 eggplants in the basket or its a holiday:
+def test_create_simple_purchase_policy_to_store9(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
+    product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
+    store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
+        
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
+
+    shopping_basket = {product_id:5, product_id2:5}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10+shopping_basket[product_id2]*product_price_10    
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto1)==True
+     
+
+def test_create_composite_purchase_policy_to_store (store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
+    product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
+    store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
+        
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
+
+    shopping_basket = {product_id:5, product_id2:5}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10+shopping_basket[product_id2]*product_price_10    
+    assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto1)==True
+
+
+
+def test_validate_purchase_policies(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
+    product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
+    store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
+        
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
+
+    shopping_basket = {product_id:5, product_id2:1}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10+shopping_basket[product_id2]*product_price_10    
+    assert store_facade.validate_purchase_policies({store_id:shopping_basket}, user_information_dto1)==False
+    
+def test_validate_purchase_policies2(store_facade):
+    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
+    product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
+    store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
+    policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
+    policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
+        
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    
+    new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
+
+    shopping_basket = {product_id:5, product_id2:2}
+    total_price_of_basket=shopping_basket[product_id]*product_price_10+shopping_basket[product_id2]*product_price_10    
+    assert store_facade.validate_purchase_policies({store_id:shopping_basket}, user_information_dto1)==True
+
+
+
+'''
 def test_add_purchase_policy(store):
     store.add_purchase_policy("no_alcohol_and_tabbaco_bellow_18")
     assert len(store.purchase_policy) == 1
@@ -1245,4 +1523,7 @@ def test_validate_purchase_policies_fail(store_facade):
         store_facade.validate_purchase_policies(products, user_dto)
     assert e.value.error_type == StoreErrorTypes.policy_not_satisfied
 
+'''
 
+     
+     

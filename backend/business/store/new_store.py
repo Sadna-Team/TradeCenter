@@ -878,6 +878,18 @@ class Store:
         else:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
+         
+    def get_policy_by_id(self, policy_id: int) -> PurchasePolicy:
+        """
+        * Parameters: policyId
+        * This function gets a purchase policy by its ID
+        * Returns: the purchase policy with the given ID
+        """
+        try:
+            return self.__purchase_policy[policy_id]
+        except KeyError:
+            raise ValueError('Purchase policy is not found')
+
     def get_tags_of_product(self, product_id: int) -> List[str]:
         """
         * Parameters: productId
@@ -971,6 +983,7 @@ class StoreFacade:
         'time': TimeConstraint,
         'day_of_month': DayOfMonthConstraint,
         'day_of_week': DayOfWeekConstraint,
+        'season': SeasonConstraint,
         'holidays_of_country': HolidaysOfCountryConstraint,
         'price_basket': PriceBasketConstraint,
         'price_product': PriceProductConstraint,
@@ -1473,6 +1486,12 @@ class StoreFacade:
             else:
                 logger.warning('[StoreFacade] day of week is not an integer')
                 raise DiscountAndConstraintsError('Day of week is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+        elif predicate_type == SeasonConstraint:
+            if isinstance(predicate_properties[1], str):
+                return predicate_type(predicate_properties[1])
+            else:
+                logger.warning('[StoreFacade] season is not an integer')
+                raise ValueError('Season is not an integer')
         elif predicate_type == HolidaysOfCountryConstraint:
             if isinstance(predicate_properties[1], str):
                 return predicate_type(predicate_properties[1])
@@ -1768,6 +1787,7 @@ class StoreFacade:
         logger.info('[StoreFacade] successfully calculated total price after discount to be ' + str(total_price))
         return total_price
 
+#--------------------------------------------------
     
     def add_purchase_policy_to_store(self, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None) -> int: 
         """
@@ -1858,6 +1878,7 @@ class StoreFacade:
                 return False
         return True    
 
+#-------------------------------------------------------------
 
     def get_store_product_information(self, user_id: int, store_id: int) -> List[ProductDTO]:
         """

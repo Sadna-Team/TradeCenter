@@ -13,6 +13,12 @@ import logging
 logger = logging.getLogger('myapp')
 
 # ---------------------------------------------------
+seasons = {
+    'spring': (21, 3, 20, 6),
+    'summer': (21,6, 22, 9),
+    'autumn': (23, 9, 20, 12),
+    'winter': (21, 12, 20, 3)
+}
 
 # --------------- Constraint Interface ---------------#
 class Constraint(ABC):
@@ -126,7 +132,51 @@ class DayOfWeekConstraint(Constraint):
     @property
     def end_day(self):
         return self.__end_day
+
+# --------------- season constraint class ---------------#
+class SeasonConstraint(Constraint):
+    def __init__(self, season: str):
+        if season not in seasons.keys():
+            raise ValueError("Season is not valid")
+        
+        self.__start_month = seasons[season][1]
+        self.__start_day_of_month = seasons[season][0]
+        self.__end_month = seasons[season][3]
+        self.__end_day_of_month = seasons[season][2]
+        logger.info("[SeasonConstraint]: Season constraint created with season: " + str(season))
+        
+    def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
+        logger.info("[SeasonConstraint]: Checking if the season fulfills the constraint")
+        month_of_purchase = basket_information.time_of_purchase.month
+        day_of_purchase = basket_information.time_of_purchase.day
+        if month_of_purchase == self.__start_month:
+            return day_of_purchase >= self.__start_day_of_month
+        if month_of_purchase == self.__end_month:
+            return day_of_purchase <= self.__end_day_of_month
+        if self.__start_month > self.__end_month:
+            if month_of_purchase > self.__start_month or month_of_purchase < self.__end_month:
+                return True
+        else:
+            if self.__start_month < month_of_purchase < self.__end_month:
+                return True
+        return False
+        
+    @property
+    def start_month(self):
+        return self.__start_month
     
+    @property
+    def start_day_of_month(self):
+        return self.__start_day_of_month
+    
+    @property
+    def end_month(self):
+        return self.__end_month
+    
+    @property
+    def end_day_of_month(self):
+        return self.__end_day_of_month
+
 
 # --------------- holiday constraint class ---------------#
 class HolidaysOfCountryConstraint(Constraint):
@@ -139,7 +189,7 @@ class HolidaysOfCountryConstraint(Constraint):
     def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[HolidaysOfCountryConstraint]: Checking if the day of the purchase is a holiday in the country")
         day_of_purchase = basket_information.time_of_purchase.date()
-        country_holidays = holidays.CountryHoliday(self.country_code)
+        country_holidays = holidays.CountryHoliday(self.country_code,None, day_of_purchase.year)
         if country_holidays.get(day_of_purchase) is None:
             return False
         return True

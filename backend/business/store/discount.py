@@ -25,6 +25,12 @@ class Discount(ABC):
             starting_date = datetime.strptime(starting_date, '%a, %d %b %Y %H:%M:%S %Z')
         if isinstance(ending_date,str):
             ending_date = datetime.strptime(ending_date, '%a, %d %b %Y %H:%M:%S %Z')
+        if starting_date > ending_date:
+            logger.error("[Discount] Invalid dates")
+            raise ValueError("Invalid dates")
+        if percentage < 0 or percentage > 1:
+            logger.error("[Discount] Invalid percentage")
+            raise ValueError("Invalid percentage")
         self.__discount_id = discount_id
         self.__discount_description = discount_description
         self.__starting_date = starting_date

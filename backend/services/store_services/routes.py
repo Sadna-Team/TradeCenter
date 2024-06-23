@@ -857,7 +857,7 @@ def add_purchase_policy():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = int(data['store_id'])
-        policy_name = data['policy_name']
+        policy_name = str(data['policy_name'])
         category_id: Optional[int] = data['category_id']
         product_id: Optional[int] = data['product_id']
     except Exception as e:
@@ -879,7 +879,7 @@ def remove_purchase_policy():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = int(data['store_id'])
-        policy_id = int(data['policy_name'])
+        policy_id = int(data['policy_id'])
     except Exception as e:
         logger.error('remove_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -899,10 +899,10 @@ def create_composite_purchase_policy():
         user_id = get_jwt_identity()
         data = request.get_json()
         store_id = int(data['store_id'])
-        policy_name = data['policy_name']
-        policy_id1 = data['policy_id1']
-        policy_id2 = data['policy_id2']
-        type_of_composite = data['type_of_composite']
+        policy_name = str(data['policy_name'])
+        policy_id1 = int(data['policy_id1'])
+        policy_id2 = int(data['policy_id2'])
+        type_of_composite = int(data['type_of_composite']) 
     except Exception as e:
         logger.error('create_composite_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -920,10 +920,11 @@ def assign_predicate_to_purchase_policy():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
+        store_id = int(data['store_id'])
         policy_id = int(data['policy_id'])
         predicate_builder: Tuple = data['predicate_builder']
     except Exception as e:
         logger.error('assign_predicate_to_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.assign_predicate_to_purchase_policy(user_id, policy_id, predicate_builder)
+    return store_service.assign_predicate_to_purchase_policy(user_id, store_id, policy_id, predicate_builder)
