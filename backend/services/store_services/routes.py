@@ -3,6 +3,8 @@ from typing import Optional, Tuple
 from flask import Blueprint, request, jsonify
 from .controllers import StoreService
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from backend.error_types import *
+
 
 # -------------logging configuration----------------
 import logging
@@ -385,7 +387,7 @@ def add_product_to_store():
         weight = float(data['weight'])
         tags_helper = data['tags']
         if not isinstance(tags_helper, list):
-            raise ValueError("Tags must be a list")
+            raise ServiceLayerError("Tags must be a list", ServiceLayerErrorTypes.tags_not_list)
         tags = [str(tag) for tag in tags_helper]
         amount=0
         if 'amount' in data:
