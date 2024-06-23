@@ -3,6 +3,8 @@ from backend.business.user.user import *
 from backend.business.DTOs import NotificationDTO
 import datetime
 from unittest.mock import patch, MagicMock
+from backend.error_types import *
+
 class TestShoppingBasket(unittest.TestCase):
 
     def test_add_product(self):
@@ -25,9 +27,9 @@ class TestShoppingBasket(unittest.TestCase):
 
     def test_remove_product_not_found(self):
         basket = ShoppingBasket(store_id=1)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(StoreError) as e:
             basket.remove_product(100, 1)
-
+        assert e.exception.store_error_type == StoreErrorTypes.product_not_found
 
 class TestShoppingCart(unittest.TestCase):
 
@@ -44,16 +46,18 @@ class TestShoppingCart(unittest.TestCase):
 
     def test_remove_product_from_basket_store_not_found(self):
         cart = ShoppingCart(user_id=1)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(StoreError) as e:
             cart.remove_product_from_basket(store_id=1, product_id=100, quantity=1)
+        assert e.exception.store_error_type == StoreErrorTypes.store_not_found
 
 
 class TestState(unittest.TestCase):
 
     def test_guest_get_password(self):
         guest = Guest()
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UserError) as e:
             guest.get_password()
+        assert e.exception.user_error_type == UserErrorTypes.user_not_registered
 
     def test_member_get_password(self):
         member = Member(email="test@example.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
@@ -80,8 +84,9 @@ class TestUser(unittest.TestCase):
 
     @patch('backend.business.user.user.c.currencies', ['USD', 'EUR'])
     def test_init_user_currency_not_supported(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UserError) as e:
             User(user_id=1, currency='GBP')
+        assert e.exception.user_error_type == UserErrorTypes.currency_not_supported
 
     @patch.object(ShoppingCart, 'add_product_to_basket')
     def test_add_product_to_basket(self, mock_add_product_to_basket):
@@ -117,9 +122,10 @@ class TestUser(unittest.TestCase):
         user = User(user_id=1, currency='USD')
         user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UserError) as e:
             user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1,
                           phone="1234567890")
+        assert e.exception.user_error_type == UserErrorTypes.user_already_registered
             
     def test_get_notifications(self):
         user = User(user_id=1, currency='USD')
@@ -137,8 +143,9 @@ class TestUser(unittest.TestCase):
 
     def test_get_password_guest(self):
         user = User(user_id=1, currency='USD')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UserError) as e:
             user.get_password()
+        assert e.exception.user_error_type == UserErrorTypes.user_not_registered
     
     def test_clear_basket(self):
         user = User(user_id=1, currency='USD')
@@ -222,8 +229,9 @@ class TestUserFacade(unittest.TestCase):
     @patch.object(User, 'get_password')
     def test_get_password_guest(self, mock_get_password):
         self.user_facade.create_user(currency='USD')
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UserError) as e:
             self.user_facade.get_password("testuser")
+        assert e.exception.user_error_type == UserErrorTypes.user_not_found
 
     @patch.object(User, 'get_password')
     def test_get_password_member(self, mock_get_password):
@@ -237,8 +245,9 @@ class TestUserFacade(unittest.TestCase):
         self.assertNotIn(user_id, self.user_facade._UserFacade__users)
 
     def test_remove_user_not_found(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UserError) as e:
             self.user_facade.remove_user(1)
+        assert e.exception.user_error_type == UserErrorTypes.user_not_found
 
     def test_is_member(self):
         user_id = self.user_facade.create_user(currency='USD')
@@ -291,8 +300,9 @@ class TestUserFacade(unittest.TestCase):
         assert not self.user_facade.suspended(user_id)
     
     def test_suspend_user_not_found(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UserError) as e:
             self.user_facade.suspend_user_permanently(1)
+        assert e.exception.user_error_type == UserErrorTypes.user_not_found
 
     def test_unsuspend_user(self):
         user_id = self.user_facade.create_user(currency='USD')

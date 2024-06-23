@@ -3,6 +3,8 @@ import pytest
 from backend.business.purchase.purchase import ImmediateSubPurchase, PurchaseStatus, ImmediatePurchase, PurchaseFacade
 from backend.business.DTOs import PurchaseProductDTO
 from typing import List, Dict, Tuple
+from backend.error_types import *
+
 
 default_ongoing_purchase_id: int = 0
 default_accepted_purchase_id: int = 1
@@ -83,11 +85,13 @@ def test_accept_subpurchase(ongoing_subpurchase):
 
 
 def test_accept_subpurchase_failed(completed_subpurchase, accepted_subpurchase):
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         completed_subpurchase.accept()
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_ongoing
 
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         accepted_subpurchase.accept()
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_ongoing
 
 
 def test_complete_subpurchase(accepted_subpurchase):
@@ -96,11 +100,13 @@ def test_complete_subpurchase(accepted_subpurchase):
 
 
 def test_complete_subpurchase_failed(completed_subpurchase, ongoing_subpurchase):
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         completed_subpurchase.complete()
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_accepted
 
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         ongoing_subpurchase.complete()
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_accepted
 
 
 # Test the ImmediatePurchase class:
@@ -112,11 +118,13 @@ def test_accept_purchase(ongoing_purchase):
 
 
 def test_accept_purchase_failed(accepted_purchase, completed_purchase):
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         accepted_purchase.accept()
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_ongoing
 
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         completed_purchase.accept()
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_ongoing
 
 
 def test_complete_purchase(accepted_purchase):
@@ -127,11 +135,13 @@ def test_complete_purchase(accepted_purchase):
 
 
 def test_complete_purchase_failed(ongoing_purchase, completed_purchase):
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         ongoing_purchase.complete()
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_accepted
 
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         completed_purchase.complete()
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_accepted
 
 
 def create_purchase_default(p_facade):
@@ -152,13 +162,15 @@ def test_create_immediate_purchase(purchase_facade):
 
 
 def test_create_immediate_purchase_failed_invalid_price(purchase_facade):
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         purchase_facade.create_immediate_purchase(default_user_id, -1, default_discounted_price,
                                                   default_shoppping_cart)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_total_price
 
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         purchase_facade.create_immediate_purchase(default_user_id, default_price, -1,
                                                   default_shoppping_cart)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_total_price
 
 
 def test_get_new_purchase_id(purchase_facade):
@@ -201,15 +213,16 @@ def test_accept_purchase_facade(purchase_facade):
 
 
 def test_accept_purchase_facade_purchase_doesnt_exist(purchase_facade):
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
-
+    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_purchase_id
 
 def test_accept_purchase_facade_purchase_already_accepted(purchase_facade):
     create_purchase_default(purchase_facade)
     purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e: 
         purchase_facade.accept_purchase(0 , datetime.now() + timedelta(days=1))
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_ongoing
 
 
 def test_complete_purchase_facade(purchase_facade):
@@ -220,22 +233,25 @@ def test_complete_purchase_facade(purchase_facade):
 
 
 def test_complete_purchase_facade_purchase_doesnt_exist(purchase_facade):
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         purchase_facade.complete_purchase(0)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_purchase_id
 
 
 def test_complete_purchase_facade_purchase_not_accepted(purchase_facade):
     create_purchase_default(purchase_facade)
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         purchase_facade.complete_purchase(0)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_accepted
 
 
 def test_complete_purchase_facade_purchase_already_completed(purchase_facade):
     create_purchase_default(purchase_facade)
     purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
     purchase_facade.complete_purchase(0)
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         purchase_facade.complete_purchase(0)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_not_accepted
 
 
 def test_reject_purchase_facade(purchase_facade):
@@ -245,15 +261,17 @@ def test_reject_purchase_facade(purchase_facade):
 
 
 def test_reject_purchase_facade_purchase_doesnt_exist(purchase_facade):
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         purchase_facade.reject_purchase(0)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_purchase_id
 
 
 def test_reject_purchase_facade_purchase_already_accepted(purchase_facade):
     create_purchase_default(purchase_facade)
     purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         purchase_facade.reject_purchase(0)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.purchase_already_accepted_or_completed
 
 
 def test_get_purchase_by_id(purchase_facade):
@@ -262,8 +280,9 @@ def test_get_purchase_by_id(purchase_facade):
 
 
 def test_get_purchase_by_id_doesnt_exist(purchase_facade):
-    with pytest.raises(ValueError):
+    with pytest.raises(PurchaseError) as e:
         purchase_facade._PurchaseFacade__get_purchase_by_id(0)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_purchase_id
 
 
 def clean_data():

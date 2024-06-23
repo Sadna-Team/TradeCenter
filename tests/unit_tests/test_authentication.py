@@ -4,6 +4,8 @@ from flask_jwt_extended import JWTManager, create_access_token, decode_token
 from flask_bcrypt import Bcrypt
 from backend.business.authentication.authentication import Authentication
 from unittest.mock import MagicMock
+from backend.error_types import *
+
 
 class TestAuthentication(unittest.TestCase):
     def setUp(self):
@@ -70,10 +72,12 @@ class TestAuthentication(unittest.TestCase):
         token, _ = self.auth.login_user('test_user', 'test_password')
         self.auth.user_facade.get_password.assert_called_once_with('test_user')
         self.assertIsInstance(token, str)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UserError) as e:
             self.auth.login_user('test_user', 'test_password')
-        with self.assertRaises(ValueError):
+        assert e.exception.user_error_type == UserErrorTypes.user_logged_in
+        with self.assertRaises(UserError) as e:
             self.auth.login_user('test_user', 'wrong_password')
+        assert e.exception.user_error_type == UserErrorTypes.invalid_credentials
 
     def test_logout_user(self):
         jti = 'test_jti'
