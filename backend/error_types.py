@@ -29,6 +29,9 @@ class StoreErrorTypes(Enum):
     product_not_available = 24
     no_listeners_for_store = 25
     cart_is_empty = 27
+    invalid_purchase_policy_input = 28
+    unexpected_error = 29
+    invalid_product_name = 30
 
 class UserErrorTypes(Enum):
     user_suspended = 1
@@ -82,6 +85,9 @@ class PurchaseErrorTypes(Enum):
     product_not_in_basket = 6
     category_not_in_basket = 7
     invalid_country_code = 8
+    invalid_basket = 9
+    basket_not_for_store = 10
+
 
 class ThirdPartyHandlerErrorTypes(Enum):
     payment_method_not_supported = 1
@@ -99,13 +105,15 @@ class ThirdPartyHandlerErrorTypes(Enum):
     payment_failed = 13
     support_not_specified = 14
 
-class DiscountErrorTypes(Enum):
+class DiscountAndConstraintsErrorTypes(Enum):
     discount_not_found = 1
     invalid_percentage = 2
     discount_creation_error = 3
     invalid_type_of_composite_discount = 4
     not_enough_discounts = 5
     predicate_creation_error = 6
+    missing_predicate_builder = 7
+    no_predicate_found = 8
 
 class ServiceLayerErrorTypes(Enum):
     payment_details_not_dict = 1
@@ -131,8 +139,8 @@ class StoreError(ValueError):
 
 
 # -------------------------------------- discount Errors --------------------------------------
-class DiscountError(ValueError):
-    def __init__(self, message: str, discount_error_type: DiscountErrorTypes):
+class DiscountAndConstraintsError(ValueError):
+    def __init__(self, message: str, discount_error_type: DiscountAndConstraintsErrorTypes):
         self.__message = message
         super().__init__(self.__message)
         self.__discount_error_type = discount_error_type
@@ -142,7 +150,7 @@ class DiscountError(ValueError):
         return self.__message
     
     @property
-    def discount_error_type(self) -> DiscountErrorTypes:
+    def discount_error_type(self) -> DiscountAndConstraintsErrorTypes:
         return self.__discount_error_type
 
 # -------------------------------------- User Errors --------------------------------------
