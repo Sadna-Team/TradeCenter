@@ -64,7 +64,7 @@ class Discount(ABC):
     def change_discount_percentage(self, new_percentage: float) -> None:
         if new_percentage < 0 or new_percentage > 1:
             logger.error("[Discount] Invalid percentage")
-            raise DiscountError("Invalid percentage", DiscountErrorTypes.invalid_percentage)
+            raise DiscountAndConstraintsError("Invalid percentage", DiscountAndConstraintsErrorTypes.invalid_percentage)
         logger.info("[Discount] Discount percentage changed to: " + str(new_percentage))
         self.__percentage = new_percentage        
 
