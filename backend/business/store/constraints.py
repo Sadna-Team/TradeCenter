@@ -188,7 +188,7 @@ class HolidaysOfCountryConstraint(Constraint):
     def is_satisfied(self, basket_information: BasketInformationForConstraintDTO) -> bool:
         logger.info("[HolidaysOfCountryConstraint]: Checking if the day of the purchase is a holiday in the country")
         day_of_purchase = basket_information.time_of_purchase.date()
-        country_holidays = holidays.CountryHoliday(self.country_code)
+        country_holidays = holidays.CountryHoliday(self.country_code,None, day_of_purchase.year)
         if country_holidays.get(day_of_purchase) is None:
             return False
         return True
@@ -356,8 +356,7 @@ class AmountProductConstraint(Constraint):
                 logger.info("[AmountProductConstraint]: Checking if the amount of the product fulfills the constraint")
                 return self.__min_amount <= product.amount
             
-        logger.error("[AmountProductConstraint]: Product not found in basket")
-        raise ValueError("Product not found in basket")
+        return False
         
     @property
     def min_amount(self):

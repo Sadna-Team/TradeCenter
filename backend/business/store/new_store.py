@@ -1775,6 +1775,7 @@ class StoreFacade:
         logger.info('[StoreFacade] successfully calculated total price after discount to be ' + str(total_price))
         return total_price
 
+#--------------------------------------------------
     
     def add_purchase_policy_to_store(self, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None) -> int: 
         """
@@ -1865,6 +1866,7 @@ class StoreFacade:
                 return False
         return True    
 
+#-------------------------------------------------------------
 
     def get_store_product_information(self, user_id: int, store_id: int) -> List[ProductDTO]:
         """

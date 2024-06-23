@@ -105,6 +105,9 @@ categoryDTO= CategoryForConstraintDTO(default_category_id, default_category_name
 #BasketInformationForDiscountDTO
 default_total_price_of_basket: float = 100  
 default_time_of_purchase: datetime = datetime(2020, 1, 1)
+default_time_of_purchase_holiday: datetime = datetime(2022, 9, 26)
+
+
 
 basketInformationForDiscountDTO1= BasketInformationForConstraintDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, user_information_dto1, [categoryDTO])
 
@@ -112,6 +115,7 @@ basketInformationForDiscountDTO2= BasketInformationForConstraintDTO(default_stor
 
 basketInformationForDiscountDTO3 = BasketInformationForConstraintDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase, guest_information_dto, [categoryDTO])
 
+basketInformationForDiscountDTO4= BasketInformationForConstraintDTO(default_store_id, default_products, default_total_price_of_basket, default_time_of_purchase_holiday, user_information_dto1, [categoryDTO])
 
 #AgeConstraint tests:
 def test_AgeConstraint_is_satisfied():
@@ -156,8 +160,11 @@ def test_SeasonConstraint_is_satisfied():
     
 
 #HolidaysOfCountryConstraint tests:
-def test_HolidaysOfCountryConstraint_is_satisfied():
+def test_HolidaysOfCountryConstraint_is_satisfied1():
     assert default_holidays_of_country_constraint.is_satisfied(basketInformationForDiscountDTO1) == False
+    
+def test_HolidaysOfCountryConstraint_is_satisfied2():
+    assert default_holidays_of_country_constraint.is_satisfied(basketInformationForDiscountDTO4) == True
     
     
 #PriceBasketConstraint tests:
