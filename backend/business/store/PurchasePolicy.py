@@ -66,12 +66,7 @@ class ProductSpecificPurchasePolicy(PurchasePolicy):
         if self.store_id != basket.store_id:
             return True
         
-        #we check the predicate of the purchasepolicy only if the product is included in the basket
-        for product in basket.products:
-            if product.product_id == self.product_id:
-                return self._predicate.is_satisfied(basket)
-        #the product is not found in the basket therefore the policy is satisfied
-        return True
+        return self._predicate.is_satisfied(basket)
     
     def set_predicate(self, predicate: Constraint):
         self._predicate = predicate
@@ -142,9 +137,6 @@ class AndPurchasePolicy(PurchasePolicy):
     
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:
-        if self._predicate is None:
-            return True
-        
         if self.store_id != basket.store_id:
             return True
         
@@ -175,9 +167,6 @@ class OrPurchasePolicy(PurchasePolicy):
     
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:
-        if self._predicate is None:
-            return True
-        
         if self.store_id != basket.store_id:
             return True
         
@@ -207,9 +196,6 @@ class ConditioningPurchasePolicy(PurchasePolicy):
     
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:
-        if self._predicate is None:
-            return True
-        
         if self.store_id != basket.store_id:
             return True
         
