@@ -5,10 +5,12 @@ from typing import Optional
 
 from backend.business.DTOs import BasketInformationForConstraintDTO, CategoryDTO
 from backend.business.store.constraints import Constraint
+from backend.error_types import *
 
 
 # -------------logging configuration----------------
 import logging
+
 
 logger = logging.getLogger('myapp')
 
@@ -62,7 +64,7 @@ class Discount(ABC):
     def change_discount_percentage(self, new_percentage: float) -> None:
         if new_percentage < 0 or new_percentage > 1:
             logger.error("[Discount] Invalid percentage")
-            raise ValueError("Invalid percentage")
+            raise DiscountError("Invalid percentage", DiscountErrorTypes.invalid_percentage)
         logger.info("[Discount] Discount percentage changed to: " + str(new_percentage))
         self.__percentage = new_percentage        
 

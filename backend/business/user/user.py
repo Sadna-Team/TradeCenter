@@ -4,6 +4,7 @@ from datetime import datetime
 from abc import ABC, abstractmethod
 import threading
 from collections import defaultdict
+from backend.error_types import *
 
 import logging
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
@@ -32,18 +33,18 @@ class ShoppingBasket:
 
     def remove_product(self, product_id: int, quantity: int):
         if product_id not in self.__products:
-            raise ValueError("Product not found")
+            raise StoreError("Product not found", StoreErrorTypes.product_not_found)
         if self.__products[product_id] < quantity:
-            raise ValueError("Not enough quantity")
+            raise StoreError("Not enough quantity", StoreErrorTypes.product_not_available)
         self.__products[product_id] -= quantity
         if self.__products[product_id] == 0:
             del self.__products[product_id]
 
     def subtract_product(self, product_id: int, quantity: int):
         if product_id not in self.__products:
-            raise ValueError("Product not found")
+            raise StoreError("Product not found", StoreErrorTypes.product_not_found)
         if self.__products[product_id] < quantity:
-            raise ValueError("Not enough quantity")
+            raise StoreError("Not enough quantity", StoreErrorTypes.product_not_available)
         self.__products[product_id] -= quantity
 
 
@@ -64,12 +65,12 @@ class ShoppingCart:
 
     def remove_product_from_basket(self, store_id: int, product_id: int, quantity: int) -> None:
         if store_id not in self.__shopping_baskets:
-            raise ValueError("Store not found")
+            raise StoreError("Store not found", StoreErrorTypes.store_not_found)
         self.__shopping_baskets[store_id].remove_product(product_id, quantity)
 
     def subtract_product_from_cart(self, store_id: int, product_id: int, quantity: int) -> None:
         if store_id not in self.__shopping_baskets:
-            raise ValueError("Store not found")
+            raise StoreError("Store not found", StoreErrorTypes.store_not_found)
 
         self.__shopping_baskets[store_id].subtract_product(product_id, quantity)
 
@@ -128,34 +129,34 @@ class State(ABC):
 
 class Guest(State):
     def get_password(self):
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
     def get_notifications(self):
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
     def add_notification(self, notification: Notification):
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
     def clear_notifications(self):
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
     def get_email(self):
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
     def get_username(self):
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
     def get_birthdate(self) -> Optional[datetime]:
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
     def get_phone(self):
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
     
     def is_suspended(self):
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
     def set_suspense(self, value: bool, suspended_until:Optional[datetime]):
-        raise ValueError("User is not registered")
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
 class Member(State):
     def __init__(self, email: str, username, password: str, year: int, month: int, day: int,
@@ -216,7 +217,7 @@ class Member(State):
 class User:
     def __init__(self, user_id: int, currency: str = 'USD') -> None:
         if currency not in c.currencies:
-            raise ValueError("Currency not supported")
+            raise UserError("Currency not supported", UserErrorTypes.currency_not_supported)
 
         self.__id: int = user_id
         self.__currency: str = currency
@@ -241,7 +242,7 @@ class User:
     def register(self, email: str, username: str, password: str, year: int, month: int, day: int,
                  phone: str) -> None:
         if isinstance(self.__member, Member):
-            raise ValueError("User is already registered")
+            raise UserError("User is already registered", UserErrorTypes.user_already_registered)
         self.__member = Member(email, username, password, year, month, day, phone)
 
     def remove_product_from_basket(self, store_id: int, product_id: int, quantity: int):
@@ -350,7 +351,7 @@ class UserFacade:
 
     def __get_user(self, user_id: int) -> User:
         if user_id not in self.__users:
-            raise ValueError("User not found")
+            raise UserError("User not found", UserErrorTypes.user_not_found)
         return self.__users[user_id]
 
     def get_userDTO(self, user_id: int, role: str = None) -> UserDTO:
@@ -369,9 +370,9 @@ class UserFacade:
                       year: int, month: int, day: int, phone: str) -> None:
         with UserFacade.__register_lock:
             if username in self.__usernames:
-                raise ValueError("Username already exists")
+                raise UserError("Username already exists", UserErrorTypes.username_already_exists)
             if user_id not in self.__users:
-                raise ValueError("User not found")
+                raise UserError("User not found", UserErrorTypes.user_not_found)
             # "False" is for is_suspended field
             self.__get_user(user_id).register(email, username, password, year, month, day, phone)
             self.__usernames[username] = user_id
@@ -379,8 +380,8 @@ class UserFacade:
     def get_user_id_from_username(self, username: str) -> int:
         if username in self.__usernames.keys():
             return self.__usernames[username]
-        raise ValueError("Username not found")
-
+        raise UserError("Username not found", UserErrorTypes.username_not_found)
+    
     def get_notifications(self, user_id: int) -> List[NotificationDTO]:
         with UserFacade.__notification_lock:
             notifications = self.__get_user(user_id).get_notifications()
@@ -392,7 +393,7 @@ class UserFacade:
 
     def get_userid(self, username: str) -> int:
         if username not in self.__usernames:
-            raise ValueError("User not found")
+            raise UserError("User not found", UserErrorTypes.user_not_found)
         return self.__usernames[username]
 
     def clear_notifications(self, user_id: int) -> None:
@@ -407,27 +408,27 @@ class UserFacade:
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
         if self.suspended(user_id):
-            raise ValueError("User is suspended")
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.__get_user(user_id).add_product_to_basket(store_id, product_id, quantity)
 
     def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
         if self.suspended(user_id):
-            raise ValueError("User is suspended")
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         return self.__get_user(user_id).get_shopping_cart()
 
     def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
         if self.suspended(user_id):
-            raise ValueError("User is suspended")
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.__get_user(user_id).remove_product_from_basket(store_id, product_id, quantity)
 
     def clear_basket(self, user_id: int) -> None:
         if self.suspended(user_id):
-            raise ValueError("User is suspended")
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.__get_user(user_id).clear_basket()
 
     def get_password(self, username: str) -> Tuple[int, str]:
         if username not in self.__usernames:
-            raise ValueError("User not found")
+            raise UserError("User not found", UserErrorTypes.user_not_found)
         user_id = self.__usernames.get(username)
         return user_id, self.__get_user(user_id).get_password()
 
@@ -435,7 +436,7 @@ class UserFacade:
         if user_id in self.__users:
             del self.__users[user_id]
         else:
-            raise ValueError("User not found")
+            raise UserError("User not found", UserErrorTypes.user_not_found)
         for username, u_id in self.__usernames.items():
             if u_id == user_id:
                 del self.__usernames[username]

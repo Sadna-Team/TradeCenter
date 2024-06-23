@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 from threading import Lock
 from backend.business.notifier.notifier import Notifier
+from backend.error_types import *
 
 import logging
+
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
                      format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Roles Logger")
@@ -234,7 +236,7 @@ class RolesFacade:
         Called in the market facade
         """
         if store_id in self.__stores_to_roles:
-            raise ValueError("Store already exists")
+            raise RoleError("Store already exists",RoleErrorTypes.store_already_exists)
         self.__stores_to_roles[store_id] = {owner_id: StoreOwner()}
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
         self.__stores_locks[store_id] = Lock()
@@ -243,11 +245,11 @@ class RolesFacade:
 
     def remove_store(self, store_id: int, actor_id: int) -> None:
         if store_id not in self.__stores_to_roles:
-            raise ValueError("Store does not exist")
+            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
         if actor_id not in self.__stores_to_roles[store_id]:
-            raise ValueError("Actor is not a member of the store")
+            raise RoleError('Actor is not a member of the store',RoleErrorTypes.user_not_member_of_store)
         if not self.__stores_to_role_tree[store_id].is_root(actor_id):
-            raise ValueError("Actor is not the root owner of the store")
+            raise RoleError('Actor is not the root owner of the store',RoleErrorTypes.actor_not_founder)
         del self.__stores_to_roles[store_id]
         del self.__stores_to_role_tree[store_id]
         # remove all nominations in closed store
@@ -262,7 +264,7 @@ class RolesFacade:
             self.__check_nomination_validation(store_id, nominator_id, nominee_id)
             # check that nominator is an owner
             if not isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner):
-                raise ValueError("Nominator is not an owner")
+                raise RoleError("Nominator is not an owner",RoleErrorTypes.nominator_not_owner)
             nomination = Nomination(store_id, nominator_id, nominee_id, StoreOwner())
             self.__systems_nominations[nomination.nomination_id] = nomination
             return nomination.nomination_id
@@ -272,7 +274,7 @@ class RolesFacade:
             self.__check_nomination_validation(store_id, nominator_id, nominee_id)
             # check that nominator is an owner or that he is a manager with permissions to add a manager
             if not self.__authorized_to_add_manager(store_id, nominator_id):
-                raise ValueError("Nominator is not authorized to nominate a manager")
+                raise RoleError("Nominator is not authorized to nominate a manager",RoleErrorTypes.nominator_cant_nominate_manager)
             nomination = Nomination(store_id, nominator_id, nominee_id, StoreManager())
             self.__systems_nominations[nomination.nomination_id] = nomination
             return nomination.nomination_id
@@ -284,18 +286,18 @@ class RolesFacade:
 
     def __check_nomination_validation(self, store_id: int, nominator_id: int, nominee_id: int) -> None:
         if store_id not in self.__stores_to_roles:
-            raise ValueError("Store does not exist")
+            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
         if nominator_id not in self.__stores_to_roles[store_id]:
-            raise ValueError("Nominator is not a member of the store")
+            raise RoleError("Nominator is not a member of the store",RoleErrorTypes.nominator_not_member_of_store)
         if nominee_id in self.__stores_to_roles[store_id]:
-            raise ValueError("Nominee is already a member of the store")
+            raise RoleError("Nominee is already a member of the store",RoleErrorTypes.nominee_already_exists_in_store)
 
     def accept_nomination(self, nomination_id: int, nominee_id: int) -> None:
         if nomination_id not in self.__systems_nominations.keys():
-            raise ValueError(f"Nomination does not exist - given id - {nomination_id}, {type(nomination_id)}")
+            raise RoleError(f"Nomination does not exist - given id - {nomination_id}, {type(nomination_id)}",RoleErrorTypes.nomination_does_not_exist)
         nomination = self.__systems_nominations[nomination_id]
         if nominee_id != nomination.nominee_id:
-            raise ValueError("Nominee id does not match the nomination")
+            raise RoleError("Nominee id does not match the nomination",RoleErrorTypes.nominee_id_error)
         self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
         self.__stores_to_role_tree[nomination.store_id].add_child_to_father(nomination.nominator_id, nominee_id)
         # add role to the store
@@ -311,10 +313,10 @@ class RolesFacade:
 
     def decline_nomination(self, nomination_id: int, nominee_id) -> None:
         if nomination_id not in self.__systems_nominations:
-            raise ValueError("Nomination does not exist")
+            raise RoleError("Nomination does not exist",RoleErrorTypes.nomination_does_not_exist)
         nomination = self.__systems_nominations[nomination_id]
         if nominee_id != nomination.nominee_id:
-            raise ValueError("Nominee id does not match the nomination")
+            raise RoleError("Nominee id does not match the nomination",RoleErrorTypes.nominee_id_error)
         del self.__systems_nominations[nomination_id]
         logger.info(f"User {nominee_id} declined the nomination {nomination_id} in store {nomination.store_id}")
 
@@ -326,13 +328,13 @@ class RolesFacade:
 
         with self.__stores_locks[store_id]:
             if store_id not in self.__stores_to_roles:
-                raise ValueError("Store does not exist")
+                raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
             if manager_id not in self.__stores_to_roles[store_id]:
-                raise ValueError("Manager is not a member of the store")
+                raise RoleError("Manager is not a member of the store",RoleErrorTypes.manager_not_member_of_store)
             if not isinstance(self.__stores_to_roles[store_id][manager_id], StoreManager):
-                raise ValueError("User is not a manager")
+                raise RoleError("User is not a manager",RoleErrorTypes.user_not_manager)
             if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, manager_id):
-                raise ValueError("Actor is not a owner/manager of the manager")
+                raise RoleError("Actor is not an owner of the manager",RoleErrorTypes.actor_is_not_owner_of_manager)
             (self.__stores_to_roles[store_id][manager_id].permissions
              .set_permissions(add_product, change_purchase_policy, change_purchase_types, change_discount_policy,
                               change_discount_types, add_manager, get_bid))
@@ -340,15 +342,15 @@ class RolesFacade:
     def remove_role(self, store_id: int, actor_id: int, removed_id: int) -> None:
         with self.__stores_locks[store_id]:
             if store_id not in self.__stores_to_roles:
-                raise ValueError("Store does not exist")
+                raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
             if removed_id not in self.__stores_to_roles[store_id]:
-                raise ValueError("Removed user is not a member of the store")
+                raise RoleError("Removed user is not a member of the store",RoleErrorTypes.user_not_member_of_store)
             if not self.__authorized_to_add_manager(store_id, actor_id):
-                raise ValueError("Actor is not authorized to remove a role")
+                raise RoleError("Actor is not authorized to remove a role",RoleErrorTypes.actor_not_authorized_to_remove_role)
             if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, removed_id):
-                raise ValueError("Actor is not an ancestor of the removed user")
+                raise RoleError("Actor is not an ancestor of the removed user",RoleErrorTypes.actor_not_ancestor_of_role)
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
-                raise ValueError("Cannot remove the root owner of the store")
+                raise RoleError("Cannot remove the root owner of the store",RoleErrorTypes.cant_remove_founder)
             self.__notifier.notify_removed_management_position(store_id, removed_id)
             removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
 
@@ -360,9 +362,9 @@ class RolesFacade:
     def get_employees_info(self, store_id: int, actor_id: int) -> Dict[int, str]:  # Dict[user_id, role]
         with self.__stores_locks[store_id]:
             if store_id not in self.__stores_to_roles:
-                raise ValueError("Store does not exist")
+                raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
             if actor_id not in self.__stores_to_roles[store_id]:
-                raise ValueError("Actor is not a member of the store")
+                raise RoleError("Actor is not a member of the store",RoleErrorTypes.actor_not_member_of_store)
             employees = {}
             for user_id, role in self.__stores_to_roles[store_id].items():
                 employees[user_id] = role.__str__()
@@ -378,17 +380,17 @@ class RolesFacade:
         """
         with self.__system_managers_lock:
             if not self.is_system_manager(actor):
-                raise ValueError("Actor is not a system manager")
+                raise RoleError("Actor is not a system manager",RoleErrorTypes.actor_not_system_manager)
             self.__system_managers.append(user_id)
 
     def remove_system_manager(self, actor: int, user_id: int) -> None:
         with self.__system_managers_lock:
             if user_id == self.__system_admin:
-                raise ValueError("Cannot remove the system admin")
+                raise RoleError("Cannot remove the system admin",RoleErrorTypes.cant_remove_system_admin)
             if not self.is_system_manager(actor):
-                raise ValueError("Actor is not a system manager")
+                raise RoleError("Actor is not a system manager",RoleErrorTypes.actor_not_system_manager)
             if user_id not in self.__system_managers:
-                raise ValueError("User is not a system manager")
+                raise RoleError("User is not a system manager",RoleErrorTypes.user_not_system_manager)
             self.__system_managers.remove(user_id)
 
     def add_admin(self, user_id: int) -> None:
@@ -407,7 +409,7 @@ class RolesFacade:
             return False
         if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
             return True
-        raise ValueError("User is a manager")
+        raise RoleError("User is a manager",RoleErrorTypes.user_is_manager)
 
     def has_add_product_permission(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:

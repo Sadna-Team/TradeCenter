@@ -70,6 +70,7 @@ class RoleErrorTypes(Enum):
     user_not_system_manager = 18
     user_is_manager = 19
     store_already_exists = 20
+    actor_not_founder = 21
 
 
 class PurchaseErrorTypes(Enum):
@@ -78,6 +79,9 @@ class PurchaseErrorTypes(Enum):
     invalid_total_price = 3
     purchase_already_accepted_or_completed = 4
     invalid_purchase_id = 5
+    product_not_in_basket = 6
+    category_not_in_basket = 7
+    invalid_country_code = 8
 
 class ThirdPartyHandlerErrorTypes(Enum):
     payment_method_not_supported = 1

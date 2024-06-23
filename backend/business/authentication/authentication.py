@@ -1,6 +1,8 @@
 from datetime import timedelta
 from .. import UserFacade
 from flask_jwt_extended import create_access_token, decode_token, get_jwt_identity
+from backend.error_types import *
+
 
 
 # from backend import bcrypt, jwt
@@ -66,7 +68,7 @@ class Authentication:
                 or 'month' not in user_credentials
                 or 'day' not in user_credentials
                 or 'phone' not in user_credentials):
-            raise ValueError("Some credentials are missing")
+            raise UserError("Some credentials are missing", UserErrorTypes.missing_credentials)
         hashed_password = self.hash_password(user_credentials['password'])
         email = user_credentials['email']
         username = user_credentials['username']
@@ -88,9 +90,9 @@ class Authentication:
     def login_user(self, username: str, password: str):
         user_id, hashed_password = self.user_facade.get_password(username)
         if not self.verify_password(password, hashed_password):
-            raise ValueError("Invalid credentials")
+            raise UserError("Invalid credentials", UserErrorTypes.invalid_credentials)
         elif user_id in self.logged_in:
-            raise ValueError("User is already logged in")
+            raise UserError("User is already logged in", UserErrorTypes.user_logged_in)
         else:
             token = self.generate_token(user_id)
             notification = self.user_facade.get_notifications(user_id)
@@ -99,7 +101,7 @@ class Authentication:
 
     def logout_user(self, jti, user_id):
         if user_id not in self.logged_in:
-            raise ValueError("User is not logged in")
+            raise UserError("User is not logged in", UserErrorTypes.user_not_logged_in)
         else:
             self.blacklist.add(jti)
             self.logged_in.remove(user_id)
@@ -107,7 +109,7 @@ class Authentication:
 
     def logout_guest(self, jti, user_id):
         if user_id not in self.guests:
-            raise ValueError("User is not a guest")
+            raise UserError("User is not a guest", UserErrorTypes.user_is_not_guest)
         else:
             self.blacklist.add(jti)
             self.guests.remove(user_id)

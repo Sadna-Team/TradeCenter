@@ -5,6 +5,7 @@ from enum import Enum
 from typing import List, Tuple, Optional, Dict
 from backend.business.DTOs import PurchaseProductDTO, PurchaseDTO
 import threading
+from backend.error_types import *
 
 # -------------logging configuration----------------
 import logging
@@ -150,13 +151,13 @@ class ImmediateSubPurchase(Purchase):
     def accept(self):
         with self._status_lock:
             if self._status != PurchaseStatus.onGoing:
-                raise ValueError("Purchase is not on going")
+                raise PurchaseError("Purchase is not on going", PurchaseErrorTypes.purchase_not_ongoing)
             self._status = PurchaseStatus.accepted
 
     def complete(self):
         with self._status_lock:
             if self._status != PurchaseStatus.accepted:
-                raise ValueError("Purchase is not accepted")
+                raise PurchaseError("Purchase is not accepted", PurchaseErrorTypes.purchase_not_accepted)
             self._status = PurchaseStatus.completed
 
     # ---------------------------------Getters and Setters---------------------------------#
@@ -215,14 +216,14 @@ class ImmediatePurchase(Purchase):
 
     def accept(self):
         if self._status != PurchaseStatus.onGoing:
-            raise ValueError("Purchase is not on going")
+            raise PurchaseError("Purchase is not on going", PurchaseErrorTypes.purchase_not_ongoing)
         self._status = PurchaseStatus.accepted
         for sub_purchase in self._immediate_sub_purchases:
             sub_purchase.accept()
 
     def complete(self):
         if self._status != PurchaseStatus.accepted:
-            raise ValueError("Purchase is not accepted")
+            raise PurchaseError("Purchase is not accepted", PurchaseErrorTypes.purchase_not_accepted)
         self._status = PurchaseStatus.completed
         for sub_purchase in self._immediate_sub_purchases:
             sub_purchase.complete()
@@ -734,7 +735,7 @@ class PurchaseFacade:
         * Returns: bool
         """
         if total_price < 0 or total_price_after_discounts < 0:
-            raise ValueError("Total price must be a positive float")
+            raise PurchaseError("Total price must be a positive float", PurchaseErrorTypes.invalid_total_price)
         with self._purchases_id_counter_lock:
             pur = ImmediatePurchase(self.__get_new_purchase_id(), user_id, total_price, shopping_cart,
                                     total_price_after_discounts)
@@ -806,7 +807,7 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] attempting to reject purchase with purchase id: %s', purchase_id)
         purchase = self.__get_purchase_by_id(purchase_id)
         if purchase.status == PurchaseStatus.accepted or purchase.status == PurchaseStatus.completed:
-            raise ValueError("Purchase already accepted or completed")
+            raise PurchaseError("Purchase already accepted or completed", PurchaseErrorTypes.purchase_already_accepted_or_completed)
         del self._purchases[purchase_id]
 
     def cancel_accepted_purchase(self, purchase_id: int) -> None:
@@ -819,7 +820,7 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] attempting to cancel accepted purchase with purchase id: %s', purchase_id)
         purchase = self.__get_purchase_by_id(purchase_id)
         if purchase.status != PurchaseStatus.accepted:
-            raise ValueError("Purchase is not accepted")
+            raise PurchaseError("Purchase is not accepted", PurchaseErrorTypes.purchase_not_accepted)
         del self._purchases[purchase_id]
 
     def complete_purchase(self, purchase_id: int):
@@ -845,7 +846,7 @@ class PurchaseFacade:
     def __get_purchase_by_id(self, purchase_id: int) -> Purchase:
         if self.__check_if_purchase_exists(purchase_id):
             return self._purchases[purchase_id]
-        raise ValueError("Purchase id is invalid")
+        raise PurchaseError("Purchase id is invalid", PurchaseErrorTypes.invalid_purchase_id)
 
     def __check_if_purchase_exists(self, purchase_id: int) -> bool:
         return purchase_id in self._purchases
