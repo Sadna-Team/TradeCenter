@@ -368,12 +368,6 @@ def test_edit_supply_method():
 def test_remove_supply_method():
     pass
 
-def test_add_purchase_policy():
-    pass
-
-def test_remove_purchase_policy():
-    pass
-
 
 
 #-----------------------------------------------------------
@@ -513,6 +507,82 @@ def test_change_discount_description_no_permission(default_set_up):
 
 
 #-----------------------------------------------------------
+
+
+
+def test_add_purchase_policy(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    assert len(market_facade.store_facade.get_store_by_id(store_id1).purchase_policy)==0
+    policy_id1 = market_facade.add_purchase_policy(user_id1, store_id1, 'policy1', None, None)
+    assert policy_id1 in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+
+def test_add_purchase_policy_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    with pytest.raises(ValueError):
+        market_facade.add_purchase_policy(user_id1+1, store_id1, 'policy1', None, None)
+    assert len(market_facade.store_facade.get_store_by_id(store_id1).purchase_policy)==0
+
+
+def test_remove_purchase_policy(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    policy_id1 = market_facade.add_purchase_policy(user_id1, store_id1, 'policy1', None, None)
+    market_facade.remove_purchase_policy(user_id1, store_id1, policy_id1)
+    assert policy_id1 not in market_facade.store_facade._StoreFacade__get_store_by_id(store_id1).purchase_policy
+
+def test_remove_purchase_policy_no_permission(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    policy_id1 = market_facade.add_purchase_policy(user_id1, store_id1, 'policy1', None, None)
+    with pytest.raises(ValueError):
+        market_facade.remove_purchase_policy(user_id1+1, store_id1, policy_id1)
+    assert policy_id1 in market_facade.store_facade._StoreFacade__get_store_by_id(store_id1).purchase_policy
+
+
+
+def test_create_purchase_policy(default_set_up): 
+    #test specific product policy
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    assert len(market_facade.store_facade.get_store_by_id(store_id1).purchase_policy) == 0
+    policy_a =market_facade.add_purchase_policy(user_id1, store_id1, 'policy1', None, None)
+    policy_b = market_facade.add_purchase_policy(user_id1, store_id1, 'policy2', None, None)
+    policy_id1 = market_facade.create_composite_purchase_policy(user_id1, store_id1, 'or policy',policy_a ,policy_b , 2)
+    assert policy_id1 in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    
+    
+def test_create_purchase_policy_no_permission(default_set_up):
+    #test specific product policy
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    with pytest.raises(ValueError):
+        policy_a =market_facade.add_purchase_policy(user_id1, store_id1, 'policy1', None, None)
+        policy_b = market_facade.add_purchase_policy(user_id1, store_id1, 'policy2', None, None)
+        policy_id1 = market_facade.create_composite_purchase_policy(user_id1+1, store_id1, 'or policy',policy_a ,policy_b , 2)
+        assert policy_id1 not in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    
+   
+
+def test_assign_predicate_to_purchase_policy(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    policy_a =market_facade.add_purchase_policy(user_id1, store_id1, 'policy1', None, None)
+    market_facade.assign_predicate_to_purchase_policy(user_id1,store_id1, policy_a,('age',21))
+    assert isinstance(market_facade.store_facade.get_store_by_id(store_id1).get_policy_by_id(policy_a).predicate, AgeConstraint)
+    
+    
 
 def test_add_product(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up

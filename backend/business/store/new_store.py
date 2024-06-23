@@ -877,6 +877,17 @@ class Store:
             logger.info('Successfully removed tag  {tag} from product with id: {product_id} in store with id: {self.__store_id}')
         else:
             raise ValueError('Product is not found')
+        
+    def get_policy_by_id(self, policy_id: int) -> PurchasePolicy:
+        """
+        * Parameters: policyId
+        * This function gets a purchase policy by its ID
+        * Returns: the purchase policy with the given ID
+        """
+        try:
+            return self.__purchase_policy[policy_id]
+        except KeyError:
+            raise ValueError('Purchase policy is not found')
 
     def get_tags_of_product(self, product_id: int) -> List[str]:
         """
