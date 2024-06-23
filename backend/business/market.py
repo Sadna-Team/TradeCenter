@@ -593,7 +593,7 @@ class MarketFacade:
         if self.roles_facade.has_change_purchase_policy_permission(policy_id, user_id) or self.roles_facade.is_owner(store_id, user_id):
             self.store_facade.assign_predicate_to_purchase_policy(store_id, policy_id, predicate_properties)
         else:
-            raise ValueError("User does not have the necessary permissions to assign a predicate to a policy in the store")
+            raise UserError("User does not have the necessary permissions to assign a predicate to a policy in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
 
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
@@ -746,7 +746,7 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
-            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+            raise UserError("User does not have the necessary permissions to change the price of a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.change_description_of_product(store_id, product_id, description)
 
     def change_product_weight(self, user_id: int, store_id: int, product_id: int, weight: float):
@@ -756,7 +756,7 @@ class MarketFacade:
         * Returns None
         """
         if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
-            raise UserError("User is not an owner of the store", UserErrorTypes.user_not_a_manager_or_owner)
+            raise UserError("User does not have the necessary permissions to change the price of a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.change_weight_of_product(store_id, product_id, weight)
 
     # -------------Category related methods-------------------#

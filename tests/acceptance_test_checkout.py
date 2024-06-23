@@ -105,9 +105,6 @@ def init_store(client1, owner_token):
     
     response = client1.post('store/add_product', headers=headers, json=data)
 
-    data = {"store_id": 0, "policy_name": "no_funny_name"}
-    response = client1.post('store/add_purchase_policy', headers=headers, json=data)
-
     data = {"store_id": 0, 
         "product_name": "funny", 
         "description": "test_description",
@@ -178,10 +175,22 @@ def test_checkout_fail_product_unavailable(client2, client3, user_token, guest_t
     assert response.status_code == 400
 
 
-def test_checkout_failed_policy_not_met(client2, user_token, init_store, clean):
-    data = {"store_id": 0, "product_id": 1, "quantity": 1}
+def test_checkout_failed_policy_not_met(client1, client2, user_token, owner_token, init_store, clean):
+
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    data = {"store_id": 0, "policy_name": "name", "category_id": None, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client1.post('store/add_purchase_policy', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    data = {"store_id": 0, "policy_id": 0, 'predicate_builder': ("amount_product", 2,0,0)}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client1.post('store/assign_predicate_to_purchase_policy', headers=headers, json=data)
+    assert response.status_code == 200
     
     data = {"payment_details": default_payment_method,
             "supply_method": default_supply_method,

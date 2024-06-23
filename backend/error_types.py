@@ -114,6 +114,8 @@ class DiscountAndConstraintsErrorTypes(Enum):
     predicate_creation_error = 6
     missing_predicate_builder = 7
     no_predicate_found = 8
+    invalid_season = 9
+    invalid_date = 10
 
 class ServiceLayerErrorTypes(Enum):
     payment_details_not_dict = 1

@@ -888,7 +888,7 @@ class Store:
         try:
             return self.__purchase_policy[policy_id]
         except KeyError:
-            raise ValueError('Purchase policy is not found')
+            raise StoreError("purchase policy is not found", StoreErrorTypes.policy_not_found)
 
     def get_tags_of_product(self, product_id: int) -> List[str]:
         """
@@ -1491,7 +1491,7 @@ class StoreFacade:
                 return predicate_type(predicate_properties[1])
             else:
                 logger.warning('[StoreFacade] season is not an integer')
-                raise ValueError('Season is not an integer')
+                raise DiscountAndConstraintsError('Season is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == HolidaysOfCountryConstraint:
             if isinstance(predicate_properties[1], str):
                 return predicate_type(predicate_properties[1])

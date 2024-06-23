@@ -31,7 +31,7 @@ default_predicate: Optional[Constraint] = None
 #-----------------------------------
     
 #Constraints:
-default_min_amount: int = 5
+default_min_amount: int = 2
 default_product_id: int = 0
 default_store_id: int = 0
 default_age_limit: int = 18

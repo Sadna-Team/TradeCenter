@@ -137,7 +137,7 @@ class DayOfWeekConstraint(Constraint):
 class SeasonConstraint(Constraint):
     def __init__(self, season: str):
         if season not in seasons.keys():
-            raise ValueError("Season is not valid")
+            raise DiscountAndConstraintsError("Season is not valid", DiscountAndConstraintsErrorTypes.invalid_season)
         
         self.__start_month = seasons[season][1]
         self.__start_day_of_month = seasons[season][0]

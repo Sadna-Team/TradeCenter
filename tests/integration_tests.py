@@ -7,6 +7,8 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 from time import sleep
+from backend.error_types import *
+
 
 from backend.business.store.constraints import AgeConstraint
 
@@ -248,8 +250,9 @@ def test_checkout(default_user_cart):
 def test_checkout_failed_shopping_cart_empty(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(StoreError) as e:
         market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout)
+    assert e.value.store_error_type == StoreErrorTypes.cart_is_empty
 
 
 def test_checkout_failed_payment_method(default_user_cart):
@@ -258,9 +261,10 @@ def test_checkout_failed_payment_method(default_user_cart):
     store_id1 = store_ids[0]
     quantity_before = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
         products[0][0]].amount
-    with pytest.raises(ValueError):
+    with pytest.raises(ThirdPartyHandlerError) as e:
         market_facade.checkout(user_id1, {}, default_supply_method, default_address_checkout)
-
+    assert e.value.third_party_handler_error_type == ThirdPartyHandlerErrorTypes.payment_not_specified
+    
     assert (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
             ._ShoppingCart__shopping_baskets)
     assert len(purchase_facade.get_purchases_of_user(user_id1)) == 0
@@ -275,8 +279,9 @@ def test_checkout_failed_no_products(default_user_cart):
     store_id1 = store_ids[0]
     store_id5 = store_ids[4]
     market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products = {}
-    with pytest.raises(ValueError):
+    with pytest.raises(StoreError) as e:
         market_facade.checkout(user_id1, default_payment_method, default_supply_method, default_address_checkout)
+    assert e.value.store_error_type == StoreErrorTypes.product_not_found
     assert (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
             ._ShoppingCart__shopping_baskets)
     assert len(purchase_facade.get_purchases_of_store(user_id1)) == 0
@@ -298,17 +303,19 @@ def test_nominate_store_owner_failed_user_not_owner(default_set_up):
     user_id2 = user_ids[1]
     user2_username = market_facade.user_facade.get_userDTO(user_id2).username
     store_id1 = store_ids[1]
-    with pytest.raises(ValueError):
+    with pytest.raises(RoleError) as e:
         market_facade.nominate_store_owner(store_id1, user_id1, user2_username)
+    assert e.value.role_error_type == RoleErrorTypes.nominator_not_member_of_store
     
 def test_nominate_store_owner_failed_user_already_owner(default_set_up):
     user_ids, store_ids, products, _ = default_set_up
     user_id1 = user_ids[0]
     user1_username = market_facade.user_facade.get_userDTO(user_id1).username
     store_id1 = store_ids[1]
-    with pytest.raises(ValueError):
+    with pytest.raises(RoleError) as e:
         market_facade.nominate_store_owner(store_id1, user_id1, user1_username)
-
+    assert e.value.role_error_type == RoleErrorTypes.nominator_not_member_of_store
+    
 def test_nominate_store_manager(default_set_up):
     user_ids, store_ids, products, _ = default_set_up
     user_id1 = user_ids[0]
@@ -324,16 +331,18 @@ def test_nominate_store_manager_failed_user_not_owner(default_set_up):
     user_id2 = user_ids[1]
     user2_username = market_facade.user_facade.get_userDTO(user_id2).username
     store_id1 = store_ids[1]
-    with pytest.raises(ValueError):
+    with pytest.raises(RoleError) as e:
         market_facade.nominate_store_manager(store_id1, user_id1, user2_username)
+    assert e.value.role_error_type == RoleErrorTypes.nominator_not_member_of_store
 
 def test_nominate_store_manager_failed_user_already_owner(default_set_up):
     user_ids, store_ids, products, _ = default_set_up
     user_id1 = user_ids[0]
     user1_username = market_facade.user_facade.get_userDTO(user_id1).username
     store_id1 = store_ids[1]
-    with pytest.raises(ValueError):
+    with pytest.raises(RoleError) as e:
         market_facade.nominate_store_manager(store_id1, user_id1, user1_username)
+    assert e.value.role_error_type == RoleErrorTypes.nominator_not_member_of_store
 
 def test_accept_nomination():
     pass
@@ -389,9 +398,9 @@ def test_add_discount_no_permission(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.add_discount(user_id1+1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31), 0.3, store_id1, None, None, None)
-        
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager   
 
 
 def test_remove_discount(default_set_up):
@@ -405,8 +414,9 @@ def test_remove_discount_no_permission(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.remove_discount(user_id1+1, discount_id1)
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
         
 
 def test_create_logical_composite_discount(default_set_up):
@@ -427,9 +437,9 @@ def test_create_logical_composite_discount_no_permission(default_set_up):
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
     discount_id2 = discount_ids[1]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.create_logical_composite_discount(user_id1+1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
-        
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager    
 
 def test_create_numerical_composite_discount(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
@@ -450,9 +460,9 @@ def test_create_numerical_composite_discount_no_permission(default_set_up):
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
     discount_id2 = discount_ids[1]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.create_numerical_composite_discount(user_id1+1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [discount_id1, discount_id2], 1)
-        
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager    
 
 def test_assign_predicate_to_discount(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
@@ -467,8 +477,9 @@ def test_assign_predicate_to_discount_no_permission(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id2 = user_ids[1]
     discount_id1 = discount_ids[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.assign_predicate_to_discount(user_id2, discount_id1,('age',21))
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
     assert market_facade.store_facade.discounts.get(discount_id1).predicate == None
 
 
@@ -485,8 +496,9 @@ def test_change_discount_percentage_no_permission(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.change_discount_percentage(user_id1+1, discount_id1, 0.5)
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager 
     assert market_facade.store_facade.discounts.get(discount_id1).percentage != 0.5
 
 def test_change_discount_description(default_set_up):
@@ -500,8 +512,9 @@ def test_change_discount_description_no_permission(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.change_discount_description(user_id1+1, discount_id1, 'new description')
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
     assert market_facade.store_facade.discounts.get(discount_id1).discount_description != 'new description'
     
 
@@ -522,8 +535,9 @@ def test_add_purchase_policy_no_permission(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.add_purchase_policy(user_id1+1, store_id1, 'policy1', None, None)
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     assert len(market_facade.store_facade.get_store_by_id(store_id1).purchase_policy)==0
 
 
@@ -540,8 +554,9 @@ def test_remove_purchase_policy_no_permission(default_set_up):
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
     policy_id1 = market_facade.add_purchase_policy(user_id1, store_id1, 'policy1', None, None)
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.remove_purchase_policy(user_id1+1, store_id1, policy_id1)
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     assert policy_id1 in market_facade.store_facade._StoreFacade__get_store_by_id(store_id1).purchase_policy
 
 
@@ -565,11 +580,12 @@ def test_create_purchase_policy_no_permission(default_set_up):
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
     product_id11 = products[0][0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         policy_a =market_facade.add_purchase_policy(user_id1, store_id1, 'policy1', None, None)
         policy_b = market_facade.add_purchase_policy(user_id1, store_id1, 'policy2', None, None)
         policy_id1 = market_facade.create_composite_purchase_policy(user_id1+1, store_id1, 'or policy',policy_a ,policy_b , 2)
         assert policy_id1 not in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     
    
 
@@ -630,8 +646,9 @@ def test_remove_store(default_set_up):
 def test_remove_store_bad_id(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(StoreError) as e:
         market_facade.close_store(user_id1, 6)
+    assert e.value.store_error_type == StoreErrorTypes.store_not_found
 
 
 def test_add_tag_to_product(default_set_up):
@@ -666,8 +683,9 @@ def test_change_product_price_no_permission(default_set_up):
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
     product_id11 = products[0][0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.change_product_price(user_id1+1, store_id1, product_id11, 14)
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].price != 14
 
     
@@ -685,8 +703,9 @@ def test_change_product_description_no_permission(default_set_up):
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
     product_id11 = products[0][0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.change_product_description(user_id1+1, store_id1, product_id11, 'd14')
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].description != 'd14'
 
 def test_change_product_weight(default_set_up):
@@ -702,8 +721,9 @@ def test_change_product_weight_no_permission(default_set_up):
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
     product_id11 = products[0][0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.change_product_weight(user_id1+1, store_id1, product_id11, 0.5)
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[product_id11].weight != 0.5
 
 def test_add_category(default_set_up):
@@ -717,8 +737,9 @@ def test_add_category_no_permission(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         category_id=market_facade.add_category(user_id1+1, 'category1')
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
     
 
 def test_remove_category(default_set_up):
@@ -734,8 +755,9 @@ def test_remove_category_no_permission(default_set_up):
     user_id1 = user_ids[0]
     store_id1 = store_ids[0]
     category_id=market_facade.add_category(user_id1, 'category1')
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.remove_category(user_id1+1, category_id)   
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
         
 
 def test_add_sub_category_to_category(default_set_up):
@@ -755,8 +777,9 @@ def test_add_sub_category_to_category_no_permission(default_set_up):
     category_id = market_facade.add_category(user_id1, 'category1')
     sub_category_id = market_facade.add_category(user_id1, 'sub_category1')
     sub_category_id 
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.add_sub_category_to_category(user_id2, sub_category_id ,category_id)
+    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
     
 
 def test_remove_sub_category_from_category(default_set_up):
@@ -787,8 +810,9 @@ def test_assign_product_to_category_no_permission(default_set_up):
     store_id1 = store_ids[0]
     category_id=market_facade.add_category(user_id1, 'category1')
     product_id11 = products[0][0]
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.assign_product_to_category(user_id2, store_id1, product_id11, category_id)
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
     product_ids = [product_id for store_id, product_id in category_products_tuples]
     assert product_id11 not in product_ids
@@ -821,8 +845,9 @@ def test_remove_product_from_category_no_permission(default_set_up):
     category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
     product_ids = [product_id for store_id, product_id in category_products_tuples]
     assert product_id11 in product_ids
-    with pytest.raises(ValueError):
+    with pytest.raises(UserError) as e:
         market_facade.remove_product_from_category(user_id2, store_id1, product_id11, category_id)
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
     product_ids = [product_id for store_id, product_id in category_products_tuples]
     assert product_id11 in product_ids
