@@ -5,10 +5,9 @@ import secrets
 from backend.business.market import MarketFacade
 from backend.business.authentication.authentication import Authentication
 from backend.business.notifier.notifier import Notifier
-from flask_socketio import SocketIO, join_room, leave_room, send
 from backend.business.DTOs import NotificationDTO
 from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
-
+from flask_socketio import SocketIO, join_room, leave_room, send
 
 # -------------logging configuration----------------
 import logging
@@ -25,9 +24,11 @@ socketio_manager = SocketIO()
 def handle_connect(id):
     logger.info(f"Client {id} connected")
 
+
 # @socketio.on('disconnect')
 def handle_disconnect(id):
     logger.info(f"Client {id} disconnected")
+
 
 @socketio_manager.on('join')
 @jwt_required()
@@ -36,6 +37,7 @@ def handle_join():
     handle_connect(room)
     logger.info(f'Client joining room {room}')
     join_room(room=room)
+
 
 @socketio_manager.on('leave')
 @jwt_required()
@@ -50,8 +52,6 @@ class Config:
     SECRET_KEY = secrets.token_urlsafe(32)  # Generate a random secret key
     JWT_SECRET_KEY = SECRET_KEY  # Use the same key for JWT if preferred
     JWT_TOKEN_LOCATION = ['headers']
-
-
 
 
 def create_app():
@@ -83,6 +83,7 @@ def create_app():
     @jwt.token_in_blocklist_loader
     def check_if_token_in_blacklist(jwt_header, jwt_payload):
         return authentication.check_if_token_in_blacklist(jwt_header, jwt_payload)
+
     return app
 
 
