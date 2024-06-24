@@ -7,6 +7,7 @@ from flask_socketio import join_room
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import jsonify
 from backend.business.authentication.authentication import Authentication
+from backend.error_types import *
 
 # -------------logging configuration----------------
 import logging
@@ -83,7 +84,7 @@ class Notifier:
         * This function sends a message to multiple users.
         """
         if store_id not in self._listeners:
-            raise ValueError("No listeners for the store with ID:", store_id)
+            raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
 
         for owner in self._listeners[store_id]:
             if self._authentication.is_logged_in(owner):
@@ -141,7 +142,8 @@ class Notifier:
         """
 
         if store_id not in self._listeners:
-            raise ValueError("No listeners for the store with ID:", store_id)
+            
+            raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
 
         msg = "your position in store: " + str(store_id) + " has been terminated."
         if self._authentication.is_logged_in(user_id):
@@ -178,7 +180,7 @@ class Notifier:
             if user_id not in self._listeners[store_id]:
                 self._listeners[store_id].append(user_id)
             else:
-                raise ValueError("User is already a listener for the store with ID:", store_id)
+                raise UserError(f"User is already a listener for the store with ID: {store_id}", UserErrorTypes.user_already_listener_for_store)
 
     def unsign_listener(self, user_id: int, store_id: int) -> None:
         """
@@ -191,4 +193,4 @@ class Notifier:
                 if not self._listeners[store_id]:
                     self._listeners.pop(store_id)
             else:
-                raise ValueError("No listeners for the store with ID:", store_id)
+                raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)

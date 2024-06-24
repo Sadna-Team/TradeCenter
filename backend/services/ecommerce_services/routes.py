@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from backend.services.ecommerce_services.controllers import PurchaseService
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from backend.error_types import *
 
 # -------------logging configuration----------------
 import logging

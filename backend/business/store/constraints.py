@@ -5,7 +5,8 @@ from datetime import datetime, time
 import holidays
 
 from backend.business.DTOs import AddressDTO, BasketInformationForConstraintDTO, CategoryForConstraintDTO #maybe timezone constraints :O
-
+from backend.error_types import *
+ 
 # -------------logging configuration----------------
 import logging
 
@@ -136,7 +137,7 @@ class DayOfWeekConstraint(Constraint):
 class SeasonConstraint(Constraint):
     def __init__(self, season: str):
         if season not in seasons.keys():
-            raise ValueError("Season is not valid")
+            raise DiscountAndConstraintsError("Season is not valid", DiscountAndConstraintsErrorTypes.invalid_season)
         
         self.__start_month = seasons[season][1]
         self.__start_day_of_month = seasons[season][0]
@@ -181,7 +182,7 @@ class SeasonConstraint(Constraint):
 class HolidaysOfCountryConstraint(Constraint):
     def __init__(self, country_code: str):
         if country_code not in holidays.list_supported_countries().keys():
-            raise ValueError("Country code is not valid")
+            raise PurchaseError("Country code is not valid", PurchaseErrorTypes.invalid_country_code)
         self.__country_code = country_code
         logger.info("[HolidaysOfCountryConstraint]: Holidays of country constraint created with country code: " + str(country_code))
 
@@ -249,7 +250,9 @@ class PriceProductConstraint(Constraint):
                 if self.__max_price == -1:
                     return self.__min_price <= product.price * product.amount
                 return self.__min_price <= product.price * product.amount <= self.__max_price
-        raise ValueError("Product not found in basket")
+                
+        logger.warn("[WeightProductConstraint]: Product not found in basket")
+        return False
         
     @property
     def min_price(self):
@@ -293,9 +296,8 @@ class PriceCategoryConstraint(Constraint):
                 logger.info("[PriceCategoryConstraint]: Checking if the price of the products of the categpry is between " + str(self.__min_price) + " and " + str(self.__max_price) + " dollars")
                 return self.__min_price <= category_total_price <= self.__max_price
         
-        logger.error("[PriceCategoryConstraint]: Category not found in basket")
-        raise ValueError("Category not found in basket")
-    
+        logger.warn("[PriceCategoryConstraint]: Category not found in basket")
+        return False    
     @property
     def min_price(self):
         return self.__min_price
@@ -355,7 +357,8 @@ class AmountProductConstraint(Constraint):
             if product.product_id == self.__product_id:
                 logger.info("[AmountProductConstraint]: Checking if the amount of the product fulfills the constraint")
                 return self.__min_amount <= product.amount
-            
+        
+        logger.warn("[WeightProductConstraint]: Product not found in basket")
         return False
         
     @property
@@ -391,9 +394,8 @@ class AmountCategoryConstraint(Constraint):
                 logger.info("[AmountCategoryConstraint]: Checking if the amount of products in the category fulfills the constraint")
                 return self.__min_amount <= category_total_amount
             
-        logger.error("[AmountCategoryConstraint]: Category not found in basket")
-        raise ValueError("Category not found in basket")
-    
+        logger.warn("[AmountCategoryConstraint]: Category not found in basket")
+        return False    
     @property
     def min_amount(self):
         return self.__min_amount
@@ -461,8 +463,8 @@ class WeightProductConstraint(Constraint):
                 logger.info("[WeightProductConstraint]: Checking if the weight of the product is between " + str(self.__min_weight) + " and " + str(self.__max_weight) + " kg")
                 return self.__min_weight <= product.weight <= self.__max_weight
             
-        logger.error("[WeightProductConstraint]: Product not found in basket")
-        raise ValueError("Product not found in basket")
+        logger.warn("[WeightProductConstraint]: Product not found in basket")
+        return False
     
     @property
     def min_weight(self):
@@ -505,9 +507,9 @@ class WeightCategoryConstraint(Constraint):
                 logger.info("[WeightCategoryConstraint]: Checking if the weight of the products of the categpry is between " + str(self.__min_weight) + " and " + str(self.__max_weight) + " kg")
                 return self.__min_weight <= category_total_weight <= self.__max_weight
             
-        logger.error("[WeightCategoryConstraint]: Category not found in basket")
-        raise ValueError("Category not found in basket")
-
+        logger.warn("[WeightCategoryConstraint]: Category not found in basket")
+        return False
+    
     @property
     def min_weight(self):
         return self.__min_weight

@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
 from backend.business.roles.roles import RolesFacade, StoreOwner, StoreManager, Nomination, Permissions
+from backend.error_types import *
+
 
 
 class TestRolesFacade(unittest.TestCase):
@@ -17,8 +19,9 @@ class TestRolesFacade(unittest.TestCase):
 
     def test_add_store_existing(self):
         self.facade.add_store(1, 1)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(RoleError) as e:
             self.facade.add_store(1, 2)
+        assert e.exception.role_error_type == RoleErrorTypes.store_already_exists
 
     def test_close_store(self):
         self.facade.add_store(1, 2)
@@ -27,9 +30,10 @@ class TestRolesFacade(unittest.TestCase):
         self.assertNotIn(1, self.facade._RolesFacade__stores_to_role_tree)
 
     def test_close_store_nonexistent(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(StoreError) as e:
             self.facade.remove_store(1, 1)
-
+        assert e.exception.store_error_type == StoreErrorTypes.store_not_found
+        
     def test_nominate_owner(self):
         self.facade.add_store(1, 2)
         nomination_id = self.facade.nominate_owner(1, 2, 3)
@@ -70,9 +74,10 @@ class TestRolesFacade(unittest.TestCase):
         self.assertNotIn(3, self.facade._RolesFacade__stores_to_roles[1])
 
     def test_remove_role_nonexistent_store(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(StoreError) as e:
             self.facade.remove_role(1, 1, 2)
-
+        assert e.exception.store_error_type == StoreErrorTypes.store_not_found
+        
     def test_is_system_manager(self):
         self.facade.add_system_manager(0, 1)
         self.assertTrue(self.facade.is_system_manager(1))

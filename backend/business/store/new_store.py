@@ -84,7 +84,7 @@ class Product:
         * Returns: True if the price is changed successfully
         """
         if new_price < 0:
-            raise ValueError('New price is a negative value')
+            raise StoreError('New price is a negative value', StoreErrorTypes.invalid_price)
         with self.__product_lock:
             self.__price = new_price
         logger.info('[Product] successfully changed price of product with id: ' + str(self.__product_id))
@@ -96,7 +96,7 @@ class Product:
         * Returns: none
         """
         if new_description is None:
-            raise ValueError('New description is not a valid string')
+            raise StoreError('New description is not a valid string', StoreErrorTypes.invalid_description)
         with self.__product_lock:
             self.__description = new_description
         logger.info(
@@ -110,9 +110,9 @@ class Product:
         * Returns: true if successfully added tag
         """
         if tag is None:
-            raise ValueError('Tag is not a valid string')
+            raise StoreError('Tag is not a valid string', StoreErrorTypes.invalid_tag)
         if tag in self.__tags:
-            raise ValueError('Tag is already in the list of tags')
+            raise StoreError('Tag is already in the list of tags', StoreErrorTypes.tag_already_exists)
         with self.__product_lock:
             self.__tags.append(tag)
         logger.info('[Product] successfully added tag to product with id: ' + str(self.__product_id))
@@ -125,9 +125,9 @@ class Product:
         * Returns: none
         """
         if tag is None:
-            raise ValueError('Tag is not a valid string')
+            raise StoreError('Tag is not a valid string', StoreErrorTypes.invalid_tag)
         if tag not in self.__tags:
-            raise ValueError('Tag is not in the list of tags')
+            raise StoreError('Tag is not in the list of tags', StoreErrorTypes.tag_not_found)
         with self.__product_lock:
             self.__tags.remove(tag)
         logger.info(
@@ -151,7 +151,7 @@ class Product:
         * Returns: none
         """
         if new_weight < 0:
-            raise ValueError('New weight is a negative value')
+            raise StoreError('New weight is a negative value', StoreErrorTypes.invalid_weight)
         with self.__product_lock:
             self.__weight = new_weight
         logger.info('[Product] successfully changed weight of product with id: ' + str(self.__product_id))
@@ -159,13 +159,13 @@ class Product:
 
     def restock(self, amount) -> None:
         if amount < 0:
-            raise ValueError('Amount is a negative value')
+            raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
         with self.__product_lock:
             self.__amount += amount
 
     def remove_amount(self, amount) -> None:
         if self.__amount < amount:
-            raise ValueError('Amount is greater than the available amount of the product')
+            raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
         with self.__product_lock:
             self.__amount -= amount
 
@@ -220,7 +220,7 @@ class Category:
         * Returns: none
         """
         if self.__parent_category_id != -1:
-            raise ValueError('Category already has a parent category')
+            raise StoreError('Category already has a parent category', StoreErrorTypes.parent_category_already_exists)
         self.__parent_category_id = parent_category_id
         logger.info('[Category] successfully added parent category to category with id: ' + str(self.__category_id))
 
@@ -232,7 +232,7 @@ class Category:
         * Returns: none
         """
         if self.__parent_category_id == -1:
-            raise ValueError('Category does not have a parent category')    
+            raise StoreError('Category does not have a parent category', StoreErrorTypes.parent_category_not_found)
         self.__parent_category_id = -1
         logger.info(
             '[Category] successfully removed parent category from category with id: ' + str(self.__category_id))
@@ -246,13 +246,13 @@ class Category:
         * Returns: None
         """
         if sub_category is None:
-            raise ValueError('Sub category is not a valid category')
+            raise StoreError('Sub category is not a valid category', StoreErrorTypes.sub_category_error)
         elif self.is_sub_category(sub_category):
-            raise ValueError('Sub category is already a sub category of the current category')
+            raise StoreError('Sub category is already a sub category of the current category', StoreErrorTypes.sub_category_error)
         elif sub_category.has_parent_category():
-            raise ValueError('Sub category already has a parent category')
+            raise StoreError('Sub category already has a parent category', StoreErrorTypes.parent_category_already_exists)
         elif sub_category.__category_id == self.__category_id:
-            raise ValueError('Sub category cannot be the same as the current category')
+            raise StoreError('Sub category cannot be the same as the current category', StoreErrorTypes.sub_category_error)
         sub_category.add_parent_category(self.__category_id)
         self.__sub_categories.append(sub_category)
         logger.info('[Category] successfully added sub category to category with id: ' + str(self.__category_id))
@@ -265,11 +265,11 @@ class Category:
         * Returns: None
         """
         if sub_category is None:
-            raise ValueError('Sub category is not a valid category')
+            raise StoreError('Sub category is not a valid category', StoreErrorTypes.sub_category_error)
         elif sub_category not in self.__sub_categories:
-            raise ValueError('Sub category is not in the list of sub categories')
+            raise StoreError('Sub category is not in the list of sub categories', StoreErrorTypes.sub_category_error)
         elif not sub_category.is_parent_category(self.__category_id):
-            raise ValueError('Sub category is not a sub category of the current category')
+            raise StoreError('Sub category is not a sub category of the current category', StoreErrorTypes.sub_category_error)
         sub_category.remove_parent_category()
         self.__sub_categories.remove(sub_category)
         logger.info(
@@ -310,7 +310,7 @@ class Category:
         """
         with self.__category_lock:
             if (store_id, product_id) in self.get_all_products_recursively():
-                raise ValueError('Product is already in the list of products')
+                raise StoreError('Product is already in the list of products', StoreErrorTypes.product_already_exists)
             self.__category_products.append((store_id, product_id))
         logger.info('[Category] successfully added product to category with id: ' + str(self.__category_id))
 
@@ -322,7 +322,7 @@ class Category:
         """
         with self.__category_lock:
             if (store_id, product_id) not in self.__category_products:
-                raise ValueError('Product is not in the list of products')
+                raise StoreError('Product is not in the list of products', StoreErrorTypes.product_not_found)
             self.__category_products.remove((store_id, product_id))
         logger.info('[Category] successfully removed product from category with id: ' + str(self.__category_id))
 
@@ -531,9 +531,9 @@ class Store:
         * Returns: none
         """
         if not user_id == self.__store_founder_id:
-            raise ValueError('User is not the founder of the store')
+            raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
         if not self.__is_active:
-            raise ValueError('Store is already closed')
+            raise StoreError('Store is already closed', StoreErrorTypes.store_not_active)
         with self.__checkout_lock:
             self.__is_active = False
             logger.info('[Store] successfully closed store with id: ' + str(self.__store_id))
@@ -546,9 +546,9 @@ class Store:
         * Returns: none
         """
         if not user_id == self.__store_founder_id:
-            raise ValueError('User is not the founder of the store')
+            raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
         if self.__is_active:
-            raise ValueError('Store is already open')
+            raise StoreError('Store is already open', StoreErrorTypes.store_already_open)
         with self.__checkout_lock:
             self.__is_active = True
             logger.info('[Store] successfully opened store with id: ' + str(self.__store_id))
@@ -586,7 +586,7 @@ class Store:
             self.__store_products.pop(product_id)
             logger.info('Successfully removed product from store with id: {self.__store_id}')
         except KeyError:
-            raise ValueError('Product is not found')
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
     def get_product_by_id(self, product_id: int) -> Product:
         """
@@ -597,7 +597,7 @@ class Store:
         try:
             return self.__store_products[product_id]
         except KeyError:
-            raise ValueError('Product is not found')
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
     def get_product_dto_by_id(self, product_id: int) -> ProductDTO:
         """
@@ -615,7 +615,7 @@ class Store:
         """
         policy_id: int = -1
         if policy_name is None or policy_name == '':
-            raise ValueError('Policy name is not a valid string')
+            raise StoreError('Policy name is not a valid string', StoreErrorTypes.invalid_policy_name)
         if category_id is None and product_id is None:
             basket_policy_to_add = BasketSpecificPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name)
             self.__purchase_policy[self.__purchase_policy_id_counter] = basket_policy_to_add
@@ -631,7 +631,7 @@ class Store:
         elif category_id is None and product_id is not None:
             if product_id not in self.__store_products:
                 logger.warn('[Store] Product is not found in the store with id: {self.__store_id}')
-                raise ValueError('Product is not found')
+                raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
             product_policy_to_add = ProductSpecificPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, product_id)
             policy_id = product_policy_to_add.purchase_policy_id
             self.__purchase_policy[self.__purchase_policy_id_counter] = product_policy_to_add
@@ -639,10 +639,10 @@ class Store:
         
         else:
             logger.warn('[Store] Invalid input when trying to add a purchase policy to store with id: {self.__store_id}')
-            raise ValueError('Invalid input')
+            raise StoreError('Invalid purchase policy input', StoreErrorTypes.invalid_purchase_policy_input)
 
         if policy_id == -1:
-            raise ValueError('Something unexpected happened when adding the purchase policy to the store with id: {self.__store_id}')
+            raise StoreError('Something unexpected happened when adding the purchase policy to the store with id: {self.__store_id}', StoreErrorTypes.unexpected_error)
 
         logger.info('[Store] successfully added purchase policy to store with id: {self.__store_id}')
         return policy_id
@@ -654,7 +654,7 @@ class Store:
         * Returns: none
         """
         if policy_id not in self.__purchase_policy:
-            raise ValueError('Purchase policy is not found')
+            raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
         self.__purchase_policy.pop(policy_id)
         logger.info('[Store] successfully removed purchase policy from store with id: {self.__store_id}')
         
@@ -668,7 +668,7 @@ class Store:
         new_policy_id: int = -1
         if policy_id_left not in self.__purchase_policy or policy_id_right not in self.__purchase_policy:
             logger.error('[Store] Purchase policy components of new composite policy are not found in store with id: {self.__store_id}')
-            raise ValueError('Failed to create composite policy due to having atleast one of the policies missing')
+            raise StoreError('Failed to create composite policy due to having atleast one of the policies missing', StoreErrorTypes.policy_not_satisfied)
         
         
         left_policy = self.__purchase_policy[policy_id_left]
@@ -703,10 +703,10 @@ class Store:
             self.__purchase_policy.pop(policy_id_left)
             self.__purchase_policy.pop(policy_id_right)
         else:
-            raise ValueError('Invalid type of composite')
+            raise StoreError('Invalid type of composite', StoreErrorTypes.invalid_purchase_policy_input)
         
         if new_policy_id == -1:
-            raise ValueError('Failed to create composite policy')
+            raise StoreError('Failed to create composite policy in store with id: {self.__store_id}', StoreErrorTypes.unexpected_error)
         
         logger.info('[Store] successfully created composite purchase policy in store with id: {self.__store_id}')
         return new_policy_id
@@ -718,7 +718,7 @@ class Store:
         * Returns: none
         """
         if policy_id not in self.__purchase_policy:
-            raise ValueError('Purchase policy is not found')
+            raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
         self.__purchase_policy[policy_id].set_predicate(predicate)
 
     def check_purchase_policies_of_store(self, basket: BasketInformationForConstraintDTO) -> bool:
@@ -728,9 +728,9 @@ class Store:
         * Returns: true if the purchase policy is satisfied
         """
         if basket is None:
-            raise ValueError('Basket is not a valid basket')
+            raise PurchaseError('Basket is not a valid basket', PurchaseErrorTypes.invalid_basket)
         if basket.store_id != self.__store_id:
-            raise ValueError('Basket is not from the same store')
+            raise PurchaseError('Basket is not from the same store', PurchaseErrorTypes.basket_not_for_store)
 
         for policy in self.__purchase_policy.values():
             if not policy.check_constraint(basket):
@@ -774,7 +774,7 @@ class Store:
                     total_price += product.price * amount
                 else:
                     self.release_products_lock(list(basket.keys()))
-                    raise ValueError('Product is not found')
+                    raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
             self.release_products_lock(list(basket.keys()))
         except Exception as e:
             self.release_products_lock(list(basket.keys()))
@@ -811,7 +811,7 @@ class Store:
             self.__store_products[product_id].restock(amount)
             logger.info('[Store] successfully restocked product with id: ' + str(product_id))
         else:
-            raise ValueError('Product is not found')
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
     def remove_product_amount(self, product_id: int, amount: int) -> None:
         """
@@ -820,9 +820,9 @@ class Store:
         * Returns: none
         """
         if product_id not in self.__store_products:
-            raise ValueError('Product is not found')
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
         if self.__store_products[product_id].amount < amount:
-            raise ValueError('Amount is greater than the available amount of the product')
+            raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
         self.__store_products[product_id].remove_amount(amount)
         logger.info('Successfully removed product amount with id: {product_id}')
 
@@ -837,7 +837,7 @@ class Store:
             product.change_description(new_description)
             logger.info('Successfully changed description of product with id: {product_id}')
         else:
-            raise ValueError('Product is not found')
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
     def change_price_of_product(self, product_id: int, new_price: float) -> None:
         """
@@ -850,7 +850,7 @@ class Store:
             product.change_price(new_price)
             logger.info('Successfully changed price of product with id: {product_id} to {new_price}')
         else:
-            raise ValueError('Product is not found')
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
     def add_tag_to_product(self, product_id: int, tag: str) -> None:
         """
@@ -863,7 +863,7 @@ class Store:
             product.add_tag(tag)
             logger.info('Successfully added tag: {tag} to product with id: {product_id} in store with id: {self.__store_id}')
         else:
-            raise ValueError('Product is not found')
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
     def remove_tag_from_product(self, product_id: int, tag: str) -> None:
         """
@@ -876,8 +876,9 @@ class Store:
             product.remove_tag(tag)
             logger.info('Successfully removed tag  {tag} from product with id: {product_id} in store with id: {self.__store_id}')
         else:
-            raise ValueError('Product is not found')
-        
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
+
+         
     def get_policy_by_id(self, policy_id: int) -> PurchasePolicy:
         """
         * Parameters: policyId
@@ -887,7 +888,7 @@ class Store:
         try:
             return self.__purchase_policy[policy_id]
         except KeyError:
-            raise ValueError('Purchase policy is not found')
+            raise StoreError("purchase policy is not found", StoreErrorTypes.policy_not_found)
 
     def get_tags_of_product(self, product_id: int) -> List[str]:
         """
@@ -899,7 +900,7 @@ class Store:
         if product is not None:
             return product.tags
         else:
-            raise ValueError('Product is not found')
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
     def has_amount_of_product(self, product_id: int, amount: int) -> bool:
         """
@@ -1009,8 +1010,8 @@ class StoreFacade:
         try:
             return self.__categories[category_id]
         except KeyError:
-            raise ValueError('Category is not found')
-
+            raise StoreError('Category is not found', StoreErrorTypes.category_not_found)
+        
     def add_category(self, category_name: str) -> int:
         """
         * Parameters: categoryName, parentCategoryId
@@ -1025,7 +1026,7 @@ class StoreFacade:
             logger.info(f'[StoreFacade] successfully added category: {category_name}')
             return category.category_id
         else:
-            raise ValueError('Category name is not a valid string')
+            raise StoreError('Category name is not a valid string', StoreErrorTypes.invalid_category_name)
 
     def remove_category(self, category_id: int) -> None:
         """
@@ -1102,19 +1103,19 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
 
         if product_name is None or product_name == "":
-            raise ValueError('Product name missing / empty')
+            raise StoreError('Product name is missing', StoreErrorTypes.invalid_product_name)
         if description is None:
-            raise ValueError('Description is missing')
+            raise StoreError('Description is missing', StoreErrorTypes.invalid_description)
         if price < 0:
-            raise ValueError('Price is a negative value')
+            raise StoreError('Price is a negative value', StoreErrorTypes.invalid_price)
         if amount is not None and amount < 0:
-            raise ValueError('Amount is a negative value')
+            raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
         
         if tags is None:
             tags = []
             
         if weight < 0 :
-            raise ValueError('Weight is a negative value')
+            raise StoreError('Weight is a negative value', StoreErrorTypes.invalid_weight)
         logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
         if amount is None:
             amount = 0
@@ -1205,7 +1206,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         if store is None:
-            raise ValueError('Store is not found')
+            raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         store.remove_tag_from_product(product_id, tag)
 
     def get_tags_of_product(self, store_id: int, product_id: int) -> List[str]:
@@ -1225,9 +1226,9 @@ class StoreFacade:
         * Returns: the id of the store
         """
         if store_name is None:
-            raise ValueError('Store name is missing')
+            raise StoreError('Store name is missing', StoreErrorTypes.invalid_store_name)
         if store_name == "":
-            raise ValueError('Store name is an empty string')
+            raise StoreError('Store name is an empty string', StoreErrorTypes.invalid_store_name)
         with self.__store_id_lock:
             store = Store(self.__store_id_counter, location_id, store_name, store_founder_id)
             self.__stores[self.__store_id_counter] = store
@@ -1264,8 +1265,8 @@ class StoreFacade:
         """
         if store_id in self.__stores:
             return self.__stores[store_id]
-        raise ValueError('Store not found')
-    
+        raise StoreError('Store not found', StoreErrorTypes.store_not_found)
+        
     #For Testing
     def get_store_by_id(self, store_id: int) -> Store:
         """
@@ -1275,7 +1276,7 @@ class StoreFacade:
         """
         if store_id in self.__stores:
             return self.__stores[store_id]
-        raise ValueError('Store not found')
+        raise StoreError('Store not found', StoreErrorTypes.store_not_found)
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
     def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
@@ -1290,10 +1291,10 @@ class StoreFacade:
         if category_id is not None:
             if category_id not in self.__categories:
                 logger.warning('[StoreFacade] category the discount is applied to is not found')
-                raise ValueError('Category the discount is applied to is not found')
+                raise DiscountAndConstraintsError('Category is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
             if applied_to_sub is None:
                 logger.warning('[StoreFacade] applied to subcategories is missing')
-                raise ValueError('Applied to subcategories is missing')
+                raise DiscountAndConstraintsError('Applied to subcategories is missing', DiscountAndConstraintsErrorTypes.discount_creation_error)
             logger.info('[StoreFacade] successfully added category discount to store')
             new_category_discount = CategoryDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
             self.__discounts[self.__discount_id_counter] = new_category_discount
@@ -1302,11 +1303,11 @@ class StoreFacade:
         elif store_id is not None:
             if store_id not in self.__stores:
                 logger.warning('[StoreFacade] store the discount is applied to is not found')
-                raise ValueError('Store the discount is applied to is not found')
+                raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
             if product_id is not None: 
                 if product_id not in self.__stores[store_id].store_products:
                     logger.warning('[StoreFacade] product the discount is applied to is not found')
-                    raise ValueError('Product the discount is applied to is not found')
+                    raise DiscountAndConstraintsError('Product is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
                 logger.info('[StoreFacade] successfully added product discount to store')
                 new_product_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
                 self.__discounts[self.__discount_id_counter] = new_product_discount
@@ -1329,11 +1330,11 @@ class StoreFacade:
         logger.info('[StoreFacade] attempting to create logical composite discount')
         if discount_id1 not in self.__discounts or discount_id2 not in self.__discounts:
             logger.warning('[StoreFacade] one of the discounts is not found')
-            raise ValueError('One of the discounts is not found')
+            raise DiscountAndConstraintsError('One of the discounts is not found', DiscountAndConstraintsErrorTypes.discount_not_found)
         
         if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_LOGICAL_DISCOUNT_TYPES:
             logger.warning('[StoreFacade] type of connection is not valid')
-            raise ValueError('Type of connection is not valid')
+            raise DiscountAndConstraintsError('Type of connection is not valid', DiscountAndConstraintsErrorTypes.invalid_type_of_composite_discount)
         
         discount1 = self.__discounts[discount_id1]
         discount2 = self.__discounts[discount_id2]
@@ -1377,17 +1378,17 @@ class StoreFacade:
         logger.info('[StoreFacade] attempting to create numerical composite discount')
         if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_NUMERICAL_DISCOUNT_TYPES:
             logger.warning('[StoreFacade] type of connection is not valid')
-            raise ValueError('Type of connection is not valid')
+            raise DiscountAndConstraintsError('Type of connection is not valid', DiscountAndConstraintsErrorTypes.invalid_type_of_composite_discount)
         
         if len(discount_ids) < 2:
             logger.warning('[StoreFacade] not enough discounts to create a composite discount')
-            raise ValueError('Not enough discounts to create a composite discount')
+            raise DiscountAndConstraintsError('Not enough discounts to create a composite discount', DiscountAndConstraintsErrorTypes.not_enough_discounts)
         
         discounts = []
         for discount_id in discount_ids:
             if discount_id not in self.__discounts:
                 logger.warning('[StoreFacade] one of the discounts is not found')
-                raise ValueError('One of the discounts is not found')
+                raise DiscountAndConstraintsError('One of the discounts is not found', DiscountAndConstraintsErrorTypes.discount_not_found)
             discounts.append(self.__discounts[discount_id])
             
         if type_of_connection == 1:
@@ -1424,7 +1425,7 @@ class StoreFacade:
         """
         if predicate_properties[0] not in self.constraint_types:
             logger.warning('[StoreFacade] invalid predicate type')
-            raise ValueError('Invalid predicate type')
+            raise DiscountAndConstraintsError('Invalid predicate type', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         
         predicate_type = self.constraint_types[predicate_properties[0]]
     
@@ -1434,7 +1435,7 @@ class StoreFacade:
         if predicate_type == AndConstraint or predicate_type == OrConstraint or predicate_type == XorConstraint or predicate_type == ImpliesConstraint:
             if len(predicate_properties) < 3 and not isinstance(predicate_properties[1], tuple) and not isinstance(predicate_properties[2], tuple):
                 logger.warning('[StoreFacade] not enough sub predicates to create a composite predicate')
-                raise ValueError('Not enough sub predicates to create a composite predicate')
+                raise DiscountAndConstraintsError('Not enough sub predicates to create a composite predicate', DiscountAndConstraintsErrorTypes.predicate_creation_error)
             predicate_left = self.assign_predicate_helper(predicate_properties[1])
             predicate_right = self.assign_predicate_helper(predicate_properties[2])
             return predicate_type(predicate_left, predicate_right)
@@ -1443,141 +1444,141 @@ class StoreFacade:
             if isinstance(predicate_properties[1], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] age is a negative value')
-                    raise ValueError('Age is a negative value')
+                    raise DiscountAndConstraintsError('Age is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1])
             else:
                 logger.warning('[StoreFacade] age is not an integer')
-                raise ValueError('Age is not an integer')
+                raise DiscountAndConstraintsError('Age is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == LocationConstraint:
             if isinstance(predicate_properties[1], Dict):
                 if 'address_id' not in predicate_properties[1] or 'address' not in predicate_properties[1] or 'city' not in predicate_properties[1] or 'state' not in predicate_properties[1] or 'country' not in predicate_properties[1] or 'postal_code' not in predicate_properties[1]:
                     logger.warning('[StoreFacade] location is missing fields')
-                    raise ValueError('Location is missing fields')
+                    raise DiscountAndConstraintsError('Location is missing fields', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 address = AddressDTO(predicate_properties[1]['address_id'], predicate_properties[1]['address'], predicate_properties[1]['city'], predicate_properties[1]['state'], predicate_properties[1]['country'], predicate_properties[1]['postal_code'])
                 return predicate_type(address)
             else:
                 logger.warning('[StoreFacade] location is not a dictionary')
-                raise ValueError('Location is not a dictionary')
+                raise DiscountAndConstraintsError('Location is not a dictionary', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == TimeConstraint:
             if isinstance(predicate_properties[1], time) and isinstance(predicate_properties[2], time):
                 if predicate_properties[1] > predicate_properties[2]:
                     logger.warning('[StoreFacade] starting time is greater than ending time')
-                    raise ValueError('Starting time is greater than ending time')
+                    raise DiscountAndConstraintsError('Starting time is greater than ending time', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2])
             else:
                 logger.warning('[StoreFacade] starting time or ending time is not a datetime.time')
-                raise ValueError('Starting time or ending time is not a datetime.time')
+                raise DiscountAndConstraintsError('Starting time or ending time is not a datetime.time', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == DayOfMonthConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
                 if predicate_properties[1] < 1 or predicate_properties[1] > 31 or predicate_properties[2] < 1 or predicate_properties[2] > 31:
                     logger.warning('[StoreFacade] day of month is not valid')
-                    raise ValueError('Day of month is not valid')
+                    raise DiscountAndConstraintsError('Day of month is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2])
             else:
                 logger.warning('[StoreFacade] day of month is not an integer')
-                raise ValueError('Day of month is not an integer')
+                raise DiscountAndConstraintsError('Day of month is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == DayOfWeekConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
                 if predicate_properties[1] < 1 or predicate_properties[1] > 7 or predicate_properties[2] < 1 or predicate_properties[2] > 7:
                     logger.warning('[StoreFacade] day of week is not valid')
-                    raise ValueError('Day of week is not valid')
+                    raise DiscountAndConstraintsError('Day of week is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2])
             else:
                 logger.warning('[StoreFacade] day of week is not an integer')
-                raise ValueError('Day of week is not an integer')
+                raise DiscountAndConstraintsError('Day of week is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == SeasonConstraint:
             if isinstance(predicate_properties[1], str):
                 return predicate_type(predicate_properties[1])
             else:
                 logger.warning('[StoreFacade] season is not an integer')
-                raise ValueError('Season is not an integer')
+                raise DiscountAndConstraintsError('Season is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == HolidaysOfCountryConstraint:
             if isinstance(predicate_properties[1], str):
                 return predicate_type(predicate_properties[1])
             else:
                 logger.warning('[StoreFacade] country is not a string')
-                raise ValueError('Country is not a string')
+                raise DiscountAndConstraintsError('Country is not a string', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == PriceCategoryConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise ValueError('Min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min price, max price or category id is not valid')
-                raise ValueError('Min price, max price or category id is not valid')
+                raise DiscountAndConstraintsError('Min price, max price or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == PriceProductConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise ValueError('Min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min price, max price, product id or store id is not valid')
-                raise ValueError('Min price, max price, product id or store id is not valid')
+                raise DiscountAndConstraintsError('Min price, max price, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == PriceBasketConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise ValueError('Min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min price, max price or store id is not valid')
-                raise ValueError('Min price, max price or store id is not valid')
+                raise DiscountAndConstraintsError('Min price, max price or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == WeightCategoryConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise ValueError('Min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min weight, max weight or category id is not valid')
-                raise ValueError('Min weight, max weight or category id is not valid')
+                raise DiscountAndConstraintsError('Min weight, max weight or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == WeightProductConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise ValueError('Min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min weight, max weight, product id or store id is not valid')
-                raise ValueError('Min weight, max weight, product id or store id is not valid')
+                raise DiscountAndConstraintsError('Min weight, max weight, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == WeightBasketConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise ValueError('Min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min weight, max weight or store id is not valid')
-                raise ValueError('Min weight, max weight or store id is not valid')
+                raise DiscountAndConstraintsError('Min weight, max weight or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == AmountCategoryConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
-                    raise ValueError('Min amount is a negative value')
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2])
             else:
                 logger.warning('[StoreFacade] min amount or category id is not valid')
-                raise ValueError('Min amount or category id is not valid')
+                raise DiscountAndConstraintsError('Min amount or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == AmountProductConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
-                    raise ValueError('Min amount is a negative value')
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min amount, product id or store id is not valid')
-                raise ValueError('Min amount, product id or store id is not valid')
+                raise DiscountAndConstraintsError('Min amount, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == AmountBasketConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
-                    raise ValueError('Min amount is a negative value')
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2])
             else:
                 logger.warning('[StoreFacade] min amount or store id is not valid')
-                raise ValueError('Min amount or store id is not valid')
+                raise DiscountAndConstraintsError('Min amount or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         return None
 
 
@@ -1592,18 +1593,18 @@ class StoreFacade:
         """        
         if discount_id not in self.__discounts:
             logger.error('[StoreFacade] discount is not found')
-            raise ValueError('Discount is not found')
+            raise DiscountAndConstraintsError('Discount is not found',DiscountAndConstraintsErrorTypes.discount_not_found)
         
         discount = self.__discounts[discount_id]
         if predicate_builder is None:
             logger.error('[StoreFacade] predicate builder is missing')
-            raise ValueError('Predicate builder is missing')
+            raise DiscountAndConstraintsError('Predicate builder is missing',DiscountAndConstraintsErrorTypes.missing_predicate_builder)
         
         predicate = self.assign_predicate_helper(predicate_builder)
 
         if predicate is None:
             logger.error('[StoreFacade] no valid predicate found')
-            raise ValueError('No valid predicate found')
+            raise DiscountAndConstraintsError('No valid predicate found',DiscountAndConstraintsErrorTypes.no_predicate_found)
         
         discount.change_predicate(predicate)
 
@@ -1620,7 +1621,7 @@ class StoreFacade:
             self.__discounts.pop(discount_id)
         else:
             logger.error('[StoreFacade] discount is not found')
-            raise ValueError('Discount is not found')
+            raise DiscountAndConstraintsError('Discount is not found',DiscountAndConstraintsErrorTypes.discount_not_found)
 
     def change_discount_percentage(self, discount_id: int, new_percentage: float) -> None:
         """
@@ -1631,7 +1632,7 @@ class StoreFacade:
         """
         if discount_id not in self.__discounts:
             logger.error('[StoreFacade] discount is not found')
-            raise ValueError('Discount is not found')
+            raise DiscountAndConstraintsError('Discount is not found',DiscountAndConstraintsErrorTypes.discount_not_found)
         logger.info('[StoreFacade] successfully changed discount percentage')
         discount = self.__discounts[discount_id]
         discount.change_discount_percentage(new_percentage)
@@ -1645,7 +1646,7 @@ class StoreFacade:
         """
         if discount_id not in self.__discounts:
             logger.error('[StoreFacade] discount is not found')
-            raise ValueError('Discount is not found')
+            raise DiscountAndConstraintsError('Discount is not found',DiscountAndConstraintsErrorTypes.discount_not_found)
         logger.info('[StoreFacade] successfully changed discount description')
         discount = self.__discounts[discount_id]
         discount.change_discount_description(new_description)
@@ -1680,10 +1681,10 @@ class StoreFacade:
             if product_id in shopping_basket:
                 if store_id not in self.__stores:
                     logger.warning('[StoreFacade] store is not found')
-                    raise ValueError('Store is not found')
+                    raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
                 if product_id not in self.__stores[store_id].store_products:
                     logger.warning('[StoreFacade] product is not found in the store')
-                    raise ValueError('Product is not found in the store')
+                    raise StoreError('Product is not found in the store',StoreErrorTypes.product_not_found)
                 
                 product = self.__stores[store_id].get_product_by_id(product_id)
                 
@@ -1707,7 +1708,7 @@ class StoreFacade:
         
         if store_id not in self.__stores:
             logger.error('[StoreFacade] store is not found')
-            raise ValueError('Store is not found')
+            raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         
         categories: List[CategoryForConstraintDTO] = []
         for category_id in self.__categories:
@@ -1719,7 +1720,7 @@ class StoreFacade:
         products: List[ProductForConstraintDTO] = []
         for product_id in shopping_basket:
             if product_id not in self.__stores[store_id].store_products:
-                raise ValueError('Product is not found in the store')
+                raise StoreError('Product is not found in the store',StoreErrorTypes.product_not_found)
             
             product = self.__stores[store_id].get_product_by_id(product_id)
             productDTO = ProductForConstraintDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
@@ -1741,7 +1742,7 @@ class StoreFacade:
             return 0.0
         if discount_id not in self.__discounts:
             logger.error('[StoreFacade] discount is not found')
-            raise ValueError('Discount is not found')
+            raise DiscountAndConstraintsError('Discount is not found',DiscountAndConstraintsErrorTypes.discount_not_found)
         discount = self.__discounts[discount_id]
 
         basket_info: BasketInformationForConstraintDTO = self.creating_basket_info_for_constraints(store_id, total_price_of_basket, shopping_basket, user_info)
@@ -1797,7 +1798,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         if category_id is not None: 
             if category_id not in self.__categories:
-                raise ValueError('Category is not found')
+                raise StoreError("Category is not found", StoreErrorTypes.category_not_found)
         
         return store.add_purchase_policy(policy_name, category_id, product_id)
 
@@ -1828,19 +1829,19 @@ class StoreFacade:
         """
         if store_id not in self.__stores:
             logger.error('[StoreFacade] store is not found')
-            raise ValueError('Store is not found')
+            raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         
         store = self.__stores[store_id]
 
         if predicate_builder is None:
             logger.error('[StoreFacade] predicate builder is missing')
-            raise ValueError('Predicate builder is missing')
+            raise DiscountAndConstraintsError('Predicate builder is missing',DiscountAndConstraintsErrorTypes.missing_predicate_builder)
         
         predicate = self.assign_predicate_helper(predicate_builder)
 
         if predicate is None:
             logger.error('[StoreFacade] no valid predicate found')
-            raise ValueError('No valid predicate found')
+            raise DiscountAndConstraintsError('No valid predicate found',DiscountAndConstraintsErrorTypes.no_predicate_found)
         
         store.assign_predicate_to_purchase_policy(policy_id,predicate)
         
@@ -1853,7 +1854,7 @@ class StoreFacade:
         """
         if store_id not in self.__stores:
             logger.error('[StoreFacade] store is not found')
-            raise ValueError('Store is not found')
+            raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         
         store = self.__stores[store_id]
 
@@ -1929,11 +1930,11 @@ class StoreFacade:
             for store_id, products in shopping_cart.items():
                 store = self.__get_store_by_id(store_id)
                 if not store.is_active:
-                    raise ValueError('Store is not active')
+                    raise StoreError('Store is not active', StoreErrorTypes.store_not_active)
                 for product_id, amount in products.items():
                     if not store.has_amount_of_product(product_id, amount):
                         self.__release_store_locks(list(shopping_cart.keys()))
-                        raise ValueError('Store does not have the given amount of the product')
+                        raise StoreError('Store does not have the given amount of the product', StoreErrorTypes.product_not_available)
 
             for store_id, products in shopping_cart.items():
                 for product_id, amount in products.items():

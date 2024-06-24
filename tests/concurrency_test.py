@@ -117,9 +117,6 @@ def init_store(client1, owner_token):
     
     response = client1.post('store/add_product', headers=headers, json=data)
 
-    data = {"store_id": 0, "policy_name": "no_funny_name"}
-    response = client1.post('store/add_purchase_policy', headers=headers, json=data)
-
 
     data = {"store_id": 0, 
         "product_name": "funny", 

@@ -3,6 +3,8 @@ from typing import Dict, Tuple, Callable
 from datetime import datetime, timedelta
 import time
 import threading
+from backend.error_types import *
+
 
 import logging
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
@@ -59,11 +61,11 @@ class PaymentHandler:
         """
         method = payment_details.get("payment method")  # NOTE: << should make the requested value a constant >>
         if method not in self.payment_config:
-            raise ValueError("payment method not supported")
+            raise ThirdPartyHandlerError("payment method not supported", ThirdPartyHandlerErrorTypes.payment_method_not_supported)
         elif method == "bogo":  # NOTE: << should make the requested value a constant >>
             return BogoPayment()
         else:
-            raise ValueError("Invalid payment method")
+            raise ThirdPartyHandlerError("Invalid payment method", ThirdPartyHandlerErrorTypes.invalid_payment_method)
 
     def process_payment(self, amount: float, payment_details: Dict) -> bool:
         """
@@ -83,7 +85,7 @@ class PaymentHandler:
         """
 
         if method_name not in self.payment_config:
-            raise ValueError("payment method not supported")
+            raise ThirdPartyHandlerError("payment method not supported", ThirdPartyHandlerErrorTypes.payment_method_not_supported)
         self.payment_config[method_name] = editing_data
         logger.info(f"Edited payment method {method_name}") 
 
@@ -92,7 +94,7 @@ class PaymentHandler:
             * add_payment_method is a method that marks a user's payment method as fully supported in the system.
         """
         if method_name in self.payment_config:
-            raise ValueError("payment method already supported")
+            raise ThirdPartyHandlerError("payment method already supported", ThirdPartyHandlerErrorTypes.payment_method_already_supported)
         self.payment_config[method_name] = config
         logger.info(f"Added payment method {method_name}")
 
@@ -102,7 +104,7 @@ class PaymentHandler:
         """
         
         if method_name not in self.payment_config:
-            raise ValueError("payment method not supported")
+            raise ThirdPartyHandlerError("payment method not supported", ThirdPartyHandlerErrorTypes.payment_method_not_supported)
         del self.payment_config[method_name]
         logger.info(f"Removed payment method {method_name}")
 
@@ -179,7 +181,7 @@ class SupplyHandler:
             * get_delivery_time is a method that returns the estimated delivery time for a package.
         """
         if not self._validate_supply_method(package_details.get("supply method"), address):
-            raise ValueError(f"supply method not supported for address: {address}")
+            raise ThirdPartyHandlerError(f"supply method not supported for address: {address}", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         time = datetime.now() + timedelta(seconds=5)
         logger.info(f"Estimated delivery time: {time} - for package {package_details} to address {address}")
         return time
@@ -191,17 +193,17 @@ class SupplyHandler:
         """
         method = package_details.get("supply method")
         if method not in self.supply_config:
-            raise ValueError("supply method not supported")
+            raise ThirdPartyHandlerError("supply method not supported", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         if "arrival time" not in package_details:
-            raise ValueError("Missing arrival time in package details")
+            raise ThirdPartyHandlerError("Missing arrival time in package details", ThirdPartyHandlerErrorTypes.missing_arrival_time)
         date: datetime = package_details.get("arrival time")
         date_now = datetime.now()
         if date < date_now:
-            raise ValueError("arrival time cannot be in the past")
+            raise ThirdPartyHandlerError("arrival time cannot be in the past", ThirdPartyHandlerErrorTypes.invalid_arrival_time)
         if method == "bogo":
             return BogoSupply()
         else:
-            raise ValueError("Invalid supply method")
+            raise ThirdPartyHandlerError("Invalid supply method", ThirdPartyHandlerErrorTypes.invalid_supply_method)
 
     def process_supply(self, package_details: Dict, user_id: int, on_arrival: Callable[[int], None]) -> None:
         """
@@ -209,15 +211,15 @@ class SupplyHandler:
             * process_supply should return True if the supply was successful, and False / raise exception otherwise.
         """
         if "supply method" not in package_details:
-            raise ValueError("Missing supply method in package details")
+            raise ThirdPartyHandlerError("Missing supply method in package details", ThirdPartyHandlerErrorTypes.missing_supply_method)
         if "address" not in package_details:
-            raise ValueError("Missing address in package details")
+            raise ThirdPartyHandlerError("Missing address in package details", ThirdPartyHandlerErrorTypes.missing_address)
         if not self._validate_supply_method(package_details.get("supply method"), package_details.get("address")):
-            raise ValueError("supply method not supported for address")
+            raise ThirdPartyHandlerError("supply method not supported for address", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         if "arrival time" not in package_details:
-            raise ValueError("Missing arrival time in package details")
+            raise ThirdPartyHandlerError("Missing arrival time in package details", ThirdPartyHandlerErrorTypes.missing_arrival_time)
         if "purchase id" not in package_details:
-            raise ValueError("Missing purchase id in package details")
+            raise ThirdPartyHandlerError("Missing purchase id in package details" , ThirdPartyHandlerErrorTypes.missing_purchase_id)
         (self._resolve_supply_strategy(package_details)
          .order(package_details, user_id, self.supply_config[package_details.get("supply method")], on_arrival))
         logger.info(f"Processed supply for package {package_details} to user {user_id}")
@@ -229,7 +231,7 @@ class SupplyHandler:
             exception otherwise.
         """
         if method_name not in self.supply_config:
-            raise ValueError("supply method not supported")
+            raise ThirdPartyHandlerError("supply method not supported", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         self.supply_config[method_name] = editing_data
         logger.info(f"Edited supply method {method_name}")
 
@@ -238,7 +240,7 @@ class SupplyHandler:
             * add_supply_method is a method that marks a user's supply method as fully supported in the system.
         """
         if method_name in self.supply_config:
-            raise ValueError("supply method already supported")
+            raise ThirdPartyHandlerError("supply method already supported", ThirdPartyHandlerErrorTypes.supply_method_already_supported)
         self.supply_config[method_name] = config
         logger.info(f"Added supply method {method_name}")
 
@@ -247,6 +249,6 @@ class SupplyHandler:
             * remove_supply_method is a method that marks a user's supply method as unsupported in the system.
         """
         if method_name not in self.supply_config:
-            raise ValueError("supply method not supported")
+            raise ThirdPartyHandlerError("supply method not supported", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         del self.supply_config[method_name]
         logger.info(f"Removed supply method {method_name}")
