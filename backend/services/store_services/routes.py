@@ -706,7 +706,7 @@ def add_store_owner():
     except Exception as e:
         logger.error('add_store_owner - ', str(e))
         return jsonify({'message': str(e)}), 400
-    store_service.add_store_owner(user_id, store_id, username)
+    return store_service.add_store_owner(user_id, store_id, username)
 
 
 @store_bp.route('/add_store_manager', methods=['POST'])
