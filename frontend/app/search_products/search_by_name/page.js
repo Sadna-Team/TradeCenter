@@ -1,31 +1,35 @@
-"use client"; // Add this at the top of the file
+"use client";
 
-import React, { useState } from 'react';
-import SearchForm from '../../components/SearchForm';
+import SearchForm from "@/components/NameSearchBar";
 
-const SearchPage = () => {
+import React, { useState } from "react";
+
+export default function SearchByName() {
+
     const [results, setResults] = useState([]);
     const [error, setError] = useState(null);
 
-    const handleSearch = async (productName, storeName) => {
-        // handle search logic here
-        console.log('Searching for:', productName, storeName);
+    const handleSearch = (productName, storeName) => {
+        // Handle search logic here
+        console.log('Product Name:', productName);
+        console.log('Store Name:', storeName);
+        setError("Connect API to search for products by name");
     };
 
     return (
-        <div>
-            <h1>Search Products</h1>
-            <SearchForm onSearch={handleSearch} />
+        <>
+            <SearchForm onSearch={ handleSearch }/>
             {error && <div className="error">{error}</div>}
             {results.length > 0 && (
+            <div className="results">
+                <h2>Results</h2>
                 <ul>
-                    {results.map((product) => (
-                        <li key={product.id}>{product.name}</li>
-                    ))}
+                {results.map((result) => (
+                    <li key={result.id}>{result.name}</li>
+                ))}
                 </ul>
-            )}
-        </div>
-    );
-};
-
-export default SearchPage;
+            </div>
+        )}
+        </>
+      );
+}
