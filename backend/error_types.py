@@ -87,6 +87,11 @@ class PurchaseErrorTypes(Enum):
     invalid_country_code = 8
     invalid_basket = 9
     basket_not_for_store = 10
+    store_owner_manager_already_accepted_offer = 11
+    offer_not_to_store = 12
+    invalid_proposed_price = 13
+    invalid_user_id = 14
+    offer_to_store = 15
 
 
 class ThirdPartyHandlerErrorTypes(Enum):
