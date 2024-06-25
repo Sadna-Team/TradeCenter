@@ -13,7 +13,7 @@ const SearchForm = ({ onSearch, categories }) => {
     return (
         <div className="flex items-start justify-center min-h-screen bg-gray-100">
             <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-4 text-center">Search By Product Name</h1>
+                <h1 className="text-2xl font-bold mb-4 text-center">Search By Category</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
                         <label className="block text-gray-700">Category</label>
