@@ -157,6 +157,249 @@ def search_products_by_name():
     return purchase_service.search_products_by_name(name, store_id)
 
 
+@market_bp.route('/bid_checkout', methods=['POST'])
+@jwt_required()
+def bid_checkout():
+    """
+        Use Case
+        Checkout the bid
+    """
+    logger.info('recieved request to checkout the bid')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        bid_id = int(data['bid_id'])
+
+        payment_details_helper = data['payment_details']
+        if not isinstance(payment_details_helper, dict):
+            raise Exception('payment details must be a dictionary')
+        payment_details = {str(key): str(value) for key, value in payment_details_helper.items()}
+
+        supply_method = str(data['supply_method'])
+
+        address_helper = data['address']
+        if not isinstance(address_helper, dict):
+            raise Exception('address must be a dictionary')
+        address = {str(key): str(value) for key, value in address_helper.items()}
+    except Exception as e:
+        logger.error('bid_checkout - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.bid_checkout(user_id, bid_id, payment_details, supply_method, address)
+    
+    
+@market_bp.route('/user_bid_offer', methods=['POST'])
+@jwt_required()
+def user_bid_offer():
+    """
+        Use Case:
+        User bid offer
+
+        Data:
+            user_id (int): id of the user
+            proposed_price (int): proposed price of the bid
+            store_id (int): id of the store
+            product_id (int): id of the product
+    """
+    logger.info('recieved request for a user to bid offer')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        proposed_price = int(data['proposed_price'])
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+    except Exception as e:
+        logger.error('user_bid_offer - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.user_bid_offer(user_id, proposed_price, store_id, product_id)
+
+@market_bp.route('/store_worker_accept_bid', methods=['POST'])
+@jwt_required()
+def store_worker_accept_bid():
+    """
+        Use Case:
+        Store worker accept bid
+
+        Data:
+            store_id (int): id of the store
+            user_id (int): id of the user
+            bid_id (int): id of the bid
+    """
+    logger.info('recieved request for a store worker to accept bid')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        bid_id = int(data['bid_id'])
+    except Exception as e:
+        logger.error('store_worker_accept_bid - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.store_worker_accept_bid(store_id, user_id, bid_id)
+
+
+@market_bp.route('/store_worker_decline_bid', methods=['POST'])
+@jwt_required()
+def store_worker_decline_bid():
+    """
+        Use Case:
+        Store worker decline bid
+
+        Data:
+            store_id (int): id of the store
+            user_id (int): id of the user
+            bid_id (int): id of the bid
+    """
+    logger.info('recieved request for a store worker to decline bid')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        bid_id = int(data['bid_id'])
+    except Exception as e:
+        logger.error('store_worker_decline_bid - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.store_worker_decline_bid(store_id, user_id, bid_id)
+
+
+@market_bp.route('/store_worker_counter_bid', methods=['POST'])
+@jwt_required()
+def store_worker_counter_bid():
+    """
+        Use Case:
+        Store worker counter bid
+
+        Data:
+            store_id (int): id of the store
+            user_id (int): id of the user
+            bid_id (int): id of the bid
+            proposed_price (int): proposed price of the counter bid
+    """
+    logger.info('recieved request for a store worker to counter bid')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        bid_id = int(data['bid_id'])
+        proposed_price = int(data['proposed_price'])
+    except Exception as e:
+        logger.error('store_worker_counter_bid - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.store_worker_counter_bid(store_id, user_id, bid_id, proposed_price)
+
+@market_bp.route('/user_counter_bid_accept', methods=['POST'])
+@jwt_required()
+def user_counter_bid_accept():
+    """
+        Use Case:
+        User counter bid accept
+
+        Data:
+            user_id (int): id of the user
+            bid_id (int): id of the bid
+    """
+    logger.info('recieved request for a user to counter bid accept')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        bid_id = int(data['bid_id'])
+    except Exception as e:
+        logger.error('user_counter_bid_accept - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.user_counter_bid_accept(user_id, bid_id)
+
+@market_bp.route('/user_counter_bid_decline', methods=['POST'])
+@jwt_required()
+def user_counter_bid_decline():
+    """
+        Use Case:
+        User counter bid decline
+
+        Data:
+            user_id (int): id of the user
+            bid_id (int): id of the bid
+    """
+    logger.info('recieved request for a user to counter bid decline')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        bid_id = int(data['bid_id'])
+    except Exception as e:
+        logger.error('user_counter_bid_decline - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.user_counter_bid_decline(user_id, bid_id)
+
+@market_bp.route('/user_counter_bid', methods=['POST'])
+@jwt_required()
+def user_counter_bid():
+    """
+        Use Case:
+        User counter bid
+
+        Data:
+            user_id (int): id of the user
+            bid_id (int): id of the bid
+            proposed_price (int): proposed price of the counter bid
+    """
+    logger.info('recieved request for a user to counter bid')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        bid_id = int(data['bid_id'])
+        proposed_price = int(data['proposed_price'])
+    except Exception as e:
+        logger.error('user_counter_bid - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.user_counter_bid(user_id, bid_id, proposed_price)
+
+@market_bp.route('/show_user_bids', methods=['GET'])
+@jwt_required()
+def show_user_bids():
+    """
+        Use Case:
+        Show user bids
+
+        Data:
+            user_id (int): id of the user
+    """
+    logger.info('recieved request to show user bids')
+    try:
+        system_manager_id = get_jwt_identity()
+        data = request.get_json()
+        user_id = int(data['user_id'])
+    except Exception as e:
+        logger.error('show_user_bids - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.show_user_bids(system_manager_id, user_id)
+
+@market_bp.route('/show_store_bids', methods=['GET'])
+@jwt_required()
+def show_store_bids():
+    """
+        Use Case:
+        Show store bids
+
+        Data:
+            store_id (int): id of the store
+    """
+    logger.info('recieved request to show store bids')
+    try:
+        store_owner_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('show_store_bids - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.show_store_bids(store_owner_id, store_id)
+
 '''@market_bp.route('/search_store_products', methods=['GET'])
 @jwt_required()
 def search_store_products():
