@@ -62,6 +62,11 @@ export default function Navbar() {
             Register
           </Button>
         </Link>
+        <Link href="/search_products">
+          <Button>
+            Search Products
+          </Button>
+        </Link>
       </div>
     </nav>
   );
