@@ -1,5 +1,7 @@
+"use client";
 import {useState, useEffect, useRef} from 'react';
-import socket from "@/app/socket";
+import {buildSocket} from "@/app/socket";
+
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -14,27 +16,33 @@ export default function Login() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'authorization' : 'Bearer ' + localStorage.getItem('token')
+        'Authorization': 'Bearer ' + localStorage.getItem('token')
       },
-      body: JSON.stringify({username, password}),
+      body: JSON.stringify({ username, password }),
     })
-      .then((response) => {
+    .then((response) => {
         if (response.ok) {
-          // Redirect to dashboard
-          window.location.href = '/dashboard';
+            return response.json(); // Parse the JSON from the response
         } else {
-          // Display error message
-          console.error('Failed to login:', response.statusText);
+            throw new Error('Network response was not ok ' + response.statusText);
         }
-      })
-      .catch((error) => {
-        // Display error message
-        console.error('Error logging in:', error);
-      });
-  }
+    })
+    .then((data) => {
+        const token = data.token; // Extract the token from the response data
+        localStorage.setItem('token', token); // Store the token in localStorage
+        console.log('Token:', token); // Optional: log the token for debugging
+
+        // Open a WebSocket connection and emit join
+        const socket = buildSocket(token);
+    })
+    .catch((error) => {
+        console.error('There was a problem with the fetch operation:', error);
+    });
+};
 
 
-  return (
+
+   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold mb-4 text-center">Login</h1>
@@ -59,8 +67,8 @@ export default function Login() {
               placeholder="Enter your password"
             />
           </div>
-          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded" disabled={loading}>
-            {loading ? 'Logging in...' : 'Login'}
+          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
+            Login
           </button>
         </form>
       </div>

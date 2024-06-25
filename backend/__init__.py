@@ -7,7 +7,7 @@ from backend.business.authentication.authentication import Authentication
 from backend.business.notifier.notifier import Notifier
 from backend.business.DTOs import NotificationDTO
 from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
-from flask_socketio import SocketIO, join_room, leave_room, send
+from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask_cors import CORS
 
 # -------------logging configuration----------------
@@ -21,9 +21,11 @@ jwt = JWTManager()
 socketio_manager = SocketIO()
 cors = CORS(origin='http://localhost:3000', supports_credentials=True)
 
-# @socketio.on('connect')
-def handle_connect(id):
-    logger.info(f"Client {id} connected")
+@socketio_manager.on('connect')
+@jwt_required()
+def handle_connect(data):
+    logger.info(f"Connect data: {data}")
+    logger.info(f"Client {get_jwt_identity()} connected")
 
 
 # @socketio.on('disconnect')
@@ -38,6 +40,9 @@ def handle_join():
     handle_connect(room)
     logger.info(f'Client joining room {room}')
     join_room(room=room)
+
+    # Send a message to the client
+    emit('message', {'data': 'Connected', 'room': room})
 
 
 @socketio_manager.on('leave')
