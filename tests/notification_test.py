@@ -17,12 +17,11 @@ default_payment_method = {'payment method': 'bogo'}
 
 default_supply_method = "bogo"
 
-default_address_checkout = {'address_id': 0, 
-                            'address': 'randomstreet 34th', 
-                            'city': 'arkham', 
+default_address_checkout = { 'address': 'randomstreet 34th', 
+                            'city': 'arkham',
+                            'state': 'gotham', 
                             'country': 'Wakanda', 
-                            'state': 'Utopia', 
-                            'postal_code': '12345'}
+                            'zip_code': '12345'}
 
 
 @pytest.fixture

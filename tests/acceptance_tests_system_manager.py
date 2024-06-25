@@ -17,12 +17,11 @@ default_payment_method = {'payment method': 'bogo'}
 
 default_supply_method = "bogo"
 
-default_address = {'address_id': 0, 
-                            'address': 'randomstreet 34th', 
-                            'city': 'arkham', 
-                            'country': 'Wakanda', 
-                            'state': 'Utopia', 
-                            'postal_code': '12345'}
+default_address = { 'address': 'randomstreet 34th', 
+                    'city': 'arkham',
+                    'state': 'Utopia', 
+                    'country': 'Wakanda', 
+                    'zip_code': '12345'}
 
 
 
