@@ -234,7 +234,7 @@ def test_checkout_failed_address_invalid(client2, user_token, init_store, clean)
 
     data = {"payment_details": default_payment_method,
             "supply_method": default_supply_method,
-            "address": {'address_id': 0}}
+            "address": {'address': "missing_address"}}
     response = client2.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 400
 

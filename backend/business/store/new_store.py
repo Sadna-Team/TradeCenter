@@ -1451,7 +1451,7 @@ class StoreFacade:
                 raise DiscountAndConstraintsError('Age is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == LocationConstraint:
             if isinstance(predicate_properties[1], Dict):
-                if 'address_id' not in predicate_properties[1] or 'address' not in predicate_properties[1] or 'city' not in predicate_properties[1] or 'state' not in predicate_properties[1] or 'country' not in predicate_properties[1] or 'postal_code' not in predicate_properties[1]:
+                if 'address' not in predicate_properties[1] or 'city' not in predicate_properties[1] or 'state' not in predicate_properties[1] or 'country' not in predicate_properties[1] or 'zip_code' not in predicate_properties[1]:
                     logger.warning('[StoreFacade] location is missing fields')
                     raise DiscountAndConstraintsError('Location is missing fields', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 address = AddressDTO(predicate_properties[1]['address'], predicate_properties[1]['city'], predicate_properties[1]['state'], predicate_properties[1]['country'], predicate_properties[1]['zip_code'])
