@@ -1417,7 +1417,7 @@ class StoreFacade:
         * NOTE: the following are examples: (and, 
                                                 (age, 18), 
                                                 (or 
-                                                    (location, {address_id: 1, address: "bla", city: "bla", state: "bla", country: "bla", postal_code: "bla"}),
+                                                    (location, {address: "bla", city: "bla", state: "bla", country: "bla", zip_code: "bla"}),
                                                     (time, 10:00, 20:00)
                                                 ) 
                                             )
@@ -1454,7 +1454,7 @@ class StoreFacade:
                 if 'address_id' not in predicate_properties[1] or 'address' not in predicate_properties[1] or 'city' not in predicate_properties[1] or 'state' not in predicate_properties[1] or 'country' not in predicate_properties[1] or 'postal_code' not in predicate_properties[1]:
                     logger.warning('[StoreFacade] location is missing fields')
                     raise DiscountAndConstraintsError('Location is missing fields', DiscountAndConstraintsErrorTypes.predicate_creation_error)
-                address = AddressDTO(predicate_properties[1]['address_id'], predicate_properties[1]['address'], predicate_properties[1]['city'], predicate_properties[1]['state'], predicate_properties[1]['country'], predicate_properties[1]['postal_code'])
+                address = AddressDTO(predicate_properties[1]['address'], predicate_properties[1]['city'], predicate_properties[1]['state'], predicate_properties[1]['country'], predicate_properties[1]['zip_code'])
                 return predicate_type(address)
             else:
                 logger.warning('[StoreFacade] location is not a dictionary')
@@ -1587,7 +1587,7 @@ class StoreFacade:
         * Parameters: discountId, predicateBuilder
         * This function assigns a predicate to a discount
         * NOTE: for now subdiscounts are inaccessible to be changed
-        * NOTE: address would be a dict of address_id, address, city, state, country, postal_code
+        * NOTE: address would be a dict of address, city, state, country, zip_code
         * NOTE: component_constraint would have two tuples in the second value.
         * Returns: none
         """        

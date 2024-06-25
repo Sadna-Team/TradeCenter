@@ -105,11 +105,11 @@ class MarketFacade:
                 birthdate = date(user_dto.year, user_dto.month, user_dto.day)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, birthdate)
 
-            if 'address_id' not in address or 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'postal_code' not in address:
+            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip_code' not in address:
                 raise ThirdPartyHandlerError("Address information is missing", ThirdPartyHandlerErrorTypes.missing_address)
-            address_of_user_for_discount: AddressDTO = AddressDTO(address['address_id'], address['address'],
+            address_of_user_for_discount: AddressDTO = AddressDTO(address['address'],
                                                                   address['city'], address['state'],
-                                                                  address['country'], address['postal_code'])
+                                                                  address['country'], address['zip_code'])
 
 
             user_info_for_constraint_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
