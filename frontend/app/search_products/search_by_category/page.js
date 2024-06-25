@@ -1,33 +1,44 @@
 "use client";
 
+import React, { useState } from "react";
+import SearchForm from "@/components/CategorySearchBar";
+
 export default function SearchByCategory() {
+
+    const [results, setResults] = useState([]);
+    const [errorMessage, setErrorMessage] = useState(null);
+
+    const handleSearch = (selectedCategory, storeName) => {
+        // Handle search logic here
+        console.log('Category:', selectedCategory);
+        console.log('Store Name:', storeName);
+        setErrorMessage("Connect API to search for products by category");
+        setResults([]);
+    };
+
+    // get categories from the server (category id -> category name)
+    const categories = [
+        {id: 1, name: 'category1'}, 
+        {id: 2, name: 'category2'}, 
+        {id: 3, name: 'category3'}, 
+        {id: 4, name: 'category4'}, 
+        {id: 5, name: 'category5'}
+    ];
+
     return (
-        <div className="flex items-start justify-center min-h-screen bg-gray-100">
-          <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-            <h1 className="text-2xl font-bold mb-4 text-center">Search By Category</h1>
-            <form>
-              <div className="mb-4">
-                <label className="block text-gray-700">Category</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded mt-1"
-                  placeholder="Enter category"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700">Store Name(Optional)</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded mt-1"
-                  placeholder="Enter store name"
-                />
-              </div>
-              <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
-                Search
-              </button>
-            </form>
-          </div>
+        <div>
+            <SearchForm onSearch={handleSearch} categories={categories}/>
+            {errorMessage && <div className="error">{errorMessage}</div>}
+            {results.length > 0 && (
+                <div className="results">
+                    <h2>Results</h2>
+                    <ul>
+                        {results.map((result) => (
+                            <li key={result.id}>{result.name}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
         </div>
       );
 }
