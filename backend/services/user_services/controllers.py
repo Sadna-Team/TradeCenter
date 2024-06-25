@@ -3,6 +3,7 @@ from backend.business.authentication.authentication import Authentication
 from backend.business.user import UserFacade
 from backend.business.roles.roles import RolesFacade
 from backend.business.market import MarketFacade
+from backend.error_types import *
 from flask import jsonify
 import logging
 
@@ -418,6 +419,9 @@ class AuthenticationService:
             logger.info('User logged in successfully')
             return jsonify({'token': user_token, 'notification': notification}), 200
 
+        except UserError as e:
+            logger.error(f"login - {str(e.user_error_type)} , {str(e.message)}")
+            return jsonify({'message': str(e)}), 401
 
         except Exception as e:
             logger.error('login - ' + str(e))

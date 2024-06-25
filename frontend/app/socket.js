@@ -14,6 +14,7 @@ export function buildSocket(token) {
     // Connect the socket instance when created
     socketInstance.connect();
     socketInstance.emit('join');
+    console.log('Socket connected:', socketInstance.connected);
 
     // Listen for incoming messages and show notifications
     socketInstance.on('message', (data) => {
