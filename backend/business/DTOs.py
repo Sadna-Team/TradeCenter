@@ -130,6 +130,76 @@ class PurchaseDTO:
                 "status": self.__status, "products": [product.get() for product in self.__products]}
 
 
+class BidPurchaseDTO:
+    def __init__(self, purchase_id: int, user_id: int, proposed_price: float, store_id: int, product_id: int, date_of_purchase: Optional[datetime],
+                 delivery_date: Optional[datetime], is_offer_to_store: bool, total_price: float, status: int, list_of_store_owners_managers_that_accepted_offer: List[int], user_who_rejected_id: int):
+        self.__purchase_id: int = purchase_id
+        self.__user_id: int = user_id
+        self.__proposed_price: float = proposed_price
+        self.__store_id: int = store_id
+        self.__product_id: int = product_id
+        self.__delivery_date: Optional[datetime] = delivery_date
+        self.__date_of_purchase: Optional[datetime] = date_of_purchase
+        self.__is_offer_to_store: bool = is_offer_to_store
+        self.__total_price: float = total_price
+        self.__status: int = status
+        self.__list_of_store_owners_managers_that_accepted_offer: List[int] = list_of_store_owners_managers_that_accepted_offer
+        self.__user_who_rejected_id: int = user_who_rejected_id
+        
+    @property
+    def purchase_id(self) -> int:
+        return self.__purchase_id
+    
+    @property
+    def user_id(self) -> int:
+        return self.__user_id
+    
+    @property
+    def proposed_price(self) -> float:
+        return self.__proposed_price
+    
+    @property
+    def store_id(self) -> int:
+        return self.__store_id
+    
+    @property
+    def product_id(self) -> int:
+        return self.__product_id
+    
+    @property
+    def date_of_purchase(self) -> Optional[datetime]:
+        return self.__date_of_purchase
+    
+    @property
+    def delivery_date(self) -> Optional[datetime]:
+        return self.__delivery_date
+    
+    @property
+    def is_offer_to_store(self) -> bool:
+        return self.__is_offer_to_store
+    
+    @property
+    def total_price(self) -> float:
+        return self.__total_price
+    
+    @property
+    def status(self) -> int:
+        return self.__status
+    
+    @property
+    def list_of_store_owners_managers_that_accepted_offer(self) -> List[int]:
+        return self.__list_of_store_owners_managers_that_accepted_offer
+    
+    @property
+    def user_who_rejected_id(self) -> int:
+        return self.__user_who_rejected_id
+    
+    def get(self) -> dict:
+        return {"purchase_id": self.__purchase_id, "user_id": self.__user_id,
+                "proposed_price": self.__proposed_price, "store_id": self.__store_id, "product_id": self.__product_id,
+                "date_of_purchase": self.__date_of_purchase, "delivery_date": self.__delivery_date, "is_offer_to_store": self.__is_offer_to_store, "total_price": self.__total_price, 
+                "status": self.__status, "list_of_store_owners_managers_that_accepted_offer": self.__list_of_store_owners_managers_that_accepted_offer}
+
 class ProductDTO:
     def __init__(self, product_id: int, name: str, description: str, price: float, tags: list[str], weight: float,
                  amount: int):

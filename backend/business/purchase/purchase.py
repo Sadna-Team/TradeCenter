@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from typing import List, Tuple, Optional, Dict
-from backend.business.DTOs import PurchaseProductDTO, PurchaseDTO
+from backend.business.DTOs import BidPurchaseDTO, PurchaseProductDTO, PurchaseDTO
 import threading
 from backend.error_types import *
 
@@ -241,6 +241,7 @@ class BidPurchase(Purchase):
             raise PurchaseError("Proposed price is invalid", PurchaseErrorTypes.invalid_proposed_price)
         self._proposed_price: float = proposed_price
         self._product_id: int = product_id
+        self._store_id: int = store_id
         self._delivery_date: Optional[datetime] = None
         self._is_offer_to_store: bool = True
         self._list_of_store_owners_managers_that_accepted_offer: List[int] = []
@@ -257,6 +258,10 @@ class BidPurchase(Purchase):
     @property
     def product_id(self):
         return self._product_id
+    
+    @property 
+    def store_id(self):
+        return self._store_id
 
     @property
     def delivery_date(self):
@@ -344,7 +349,7 @@ class BidPurchase(Purchase):
             return True
             
             
-    def store_counter_offer(self, store_id: int, user_who_counter_offer: int, proposed_price: float) -> None:
+    def store_counter_offer(self, user_who_counter_offer: int, proposed_price: float) -> None:
         """
         Parameters: storeId, userWhoCounterOffer, proposedPrice
         This function is responsible for the store countering the offer
@@ -445,6 +450,7 @@ class BidPurchase(Purchase):
         self._status = PurchaseStatus.accepted
         self._total_price = self._proposed_price
         self._total_price_after_discounts = self._proposed_price
+        self._date_of_purchase = datetime.now()
     
     def complete(self):
         if self._status != PurchaseStatus.accepted:
@@ -818,7 +824,7 @@ class PurchaseFacade:
             # self._rating_id_counter = 0
             logger.info('[PurchaseFacade] successfully created purchase facade object')
 
-    # -----------------Purchases in general-----------------#
+    # -----------------Immediate Purchase Class related methods-----------------#
     def create_immediate_purchase(self, user_id: int, total_price: float, total_price_after_discounts: float,
                                   shopping_cart: Dict[int, Tuple[List[PurchaseProductDTO], float, float]]) -> int:
         """
@@ -879,6 +885,146 @@ class PurchaseFacade:
                                                      sub_purchase.status.value, sub_purchase.products))
         return purchases
 
+
+    # -----------------BidPurchase class related methods-----------------#
+    def create_bid_purchase(self, user_id: int, proposed_price: float, store_id: int, product_id: int) -> None:
+        """
+        Parameters: userId, proposedPrice, storeId, productId
+        This function is responsible for creating a bid purchase
+        Returns: none
+        """
+        if proposed_price < 0:
+            raise PurchaseError("Proposed price is invalid", PurchaseErrorTypes.invalid_proposed_price)
+        with self._purchases_id_counter_lock:
+            pur = BidPurchase(self.__get_new_purchase_id(), user_id, proposed_price, store_id, product_id)
+            self._purchases[pur.purchase_id] = pur
+
+            return pur.purchase_id
+        
+    def store_owner_manager_accept_offer(self, purchase_id: int, store_worker_id: int) -> None:
+        """
+        Parameters: purchaseId, storeWorkerId
+        This function is responsible for the store owner/manager accepting the offer
+        NOTE: the store owner/manager can only accept the offer if the purchase is ongoing, and the store owner/manager is validated if they are connected to store in marketfacade
+        Returns: none
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            purchase.store_owner_manager_accept_offer(store_worker_id)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+        
+        
+    def store_reject_offer(self, purchase_id: int, store_worker_id: int) -> int:
+        """
+        Parameters: purchaseId, storeWorkerId
+        This function is responsible for the store rejecting the offer
+        NOTE: the store owner/manager can only reject the offer if the purchase is ongoing, and the store owner/manager is validated if they are connected to store in marketfacade
+        Returns: the id of the user who rejected the offer
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            return purchase.store_reject_offer(store_worker_id)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+        
+    def store_accept_offer(self, purchase_id: int, store_workers_ids: List[int]) -> bool:
+        """
+        Parameters: purchaseId, storeWorkersIds
+        This function is responsible for the store accepting the offer
+        NOTE: the store can only accept the offer if the purchase is ongoing and all store owners/managers accepted the offer
+        Returns: true if the store accepted the offer
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            return purchase.store_accept_offer(store_workers_ids)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+        
+    def store_counter_offer(self, purchase_id: int, user_who_counter_offer: int, proposed_price: float) -> None:
+        """
+        Parameters: purchaseId, storeId, userWhoCounterOffer, proposedPrice
+        This function is responsible for the store countering the offer
+        NOTE: the store can only counter the offer if the purchase is ongoing, and the store is validated if they are connected to store in marketfacade
+        Returns: none
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            purchase.store_counter_offer(user_who_counter_offer, proposed_price)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+        
+    def user_accept_counter_offer(self, purchase_id: int, user_id: int) -> None:
+        """
+        Parameters: purchaseId, userId
+        This function is responsible for the user accepting the counter offer
+        NOTE: the user can only accept the counter offer if the purchase is ongoing
+        Returns: none
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            purchase.user_accept_counter_offer(user_id)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+         
+    def user_reject_counter_offer(self, purchase_id: int, user_id: int) -> None:
+        """
+        Parameters: purchaseId, userId
+        This function is responsible for the user rejecting the offer
+        NOTE: the user can only reject the offer if the purchase is ongoing
+        Returns: none
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            purchase.user_reject_counter_offer(user_id)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+        
+    def user_counter_offer(self, purchase_id: int, user_id: int, proposed_price: float) -> None:
+        """
+        Parameters: purchaseId, userId, proposedPrice
+        This function is responsible for the user countering the offer
+        NOTE: the user can only counter the offer if the purchase is ongoing
+        Returns: none
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            purchase.user_counter_offer(user_id, proposed_price)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+        
+    def get_bid_purchases_of_user(self, user_id: int) -> List[BidPurchaseDTO]:
+        """
+        Parameters: userId
+        This function is responsible for returning the bid purchases of the user
+        Returns: list of BidPurchase objects
+        """
+        purchases: List[BidPurchaseDTO] = []
+        for purchase in self._purchases.values():
+            if isinstance(purchase, BidPurchase):
+                if purchase.user_id == user_id:
+                    purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,
+                                                    purchase.store_id, purchase.product_id, purchase._date_of_purchase, purchase._delivery_date, purchase.is_offer_to_store, 
+                                                    purchase.total_price, purchase.status.value, purchase.list_of_store_owners_managers_that_accepted_offer, purchase.user_who_rejected_id))
+        return purchases
+        
+    def get_bid_purchases_of_store(self, store_id: int) -> List[BidPurchaseDTO]:
+        """
+        Parameters: storeId
+        This function is responsible for returning the bid purchases of the store
+        Returns: list of BidPurchase objects
+        """
+        purchases: List[BidPurchaseDTO] = []
+        for purchase in self._purchases.values():
+            if isinstance(purchase, BidPurchase):
+                if purchase.store_id == store_id:
+                    purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,
+                                                    purchase.store_id, purchase.product_id, purchase._date_of_purchase, purchase._delivery_date, purchase.is_offer_to_store, 
+                                                    purchase.total_price, purchase.status.value, purchase.list_of_store_owners_managers_that_accepted_offer, purchase.user_who_rejected_id))
+        return purchases
+    
+    
+    # -----------------General Purchase class related methods-----------------#
     def accept_purchase(self, purchase_id: int, delivery_date: datetime) -> None:
         """
         * Parameters: purchaseId
@@ -888,7 +1034,7 @@ class PurchaseFacade:
         logger.info('[PurchaseFacade] attempting to accept purchase with purchase id: %s', purchase_id)
         purchase = self.__get_purchase_by_id(purchase_id)
         purchase.accept()
-        if isinstance(purchase, ImmediatePurchase):
+        if isinstance(purchase, ImmediatePurchase) or isinstance(purchase, BidPurchase):
             purchase.delivery_date = delivery_date
 
     def reject_purchase(self, purchase_id: int) -> None:
@@ -949,7 +1095,6 @@ class PurchaseFacade:
         self._purchases_id_counter = 0
 
     
-    store_owner_manager_accept_offer, store_reject_offer, store_accept_offer, store_counter_offer, user_accept_counter_offer, user_reject_counter_offer, user_counter_offer
     '''def create_bid_purchase(self, user_id: int, proposed_price: float, product_id: int, product_spec_id: int,
                             store_id: int,
                             is_offer_to_store: bool = True) -> bool:
