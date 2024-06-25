@@ -1,17 +1,38 @@
-"use client"; // Add this at the top of the file
-
-import { useState } from 'react';
+import {useState, useEffect, useRef} from 'react';
+import socket from "@/app/socket";
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const renderAfter = useRef(false);
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Username:', username);
-    console.log('Password:', password);
-  };
+    // Send POST request to authenticate user
+    fetch('http://localhost:5000/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'authorization' : 'Bearer ' + localStorage.getItem('token')
+      },
+      body: JSON.stringify({username, password}),
+    })
+      .then((response) => {
+        if (response.ok) {
+          // Redirect to dashboard
+          window.location.href = '/dashboard';
+        } else {
+          // Display error message
+          console.error('Failed to login:', response.statusText);
+        }
+      })
+      .catch((error) => {
+        // Display error message
+        console.error('Error logging in:', error);
+      });
+  }
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -38,8 +59,8 @@ export default function Login() {
               placeholder="Enter your password"
             />
           </div>
-          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
-            Login
+          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>

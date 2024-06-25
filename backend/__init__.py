@@ -8,6 +8,7 @@ from backend.business.notifier.notifier import Notifier
 from backend.business.DTOs import NotificationDTO
 from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
 from flask_socketio import SocketIO, join_room, leave_room, send
+from flask_cors import CORS
 
 # -------------logging configuration----------------
 import logging
@@ -18,7 +19,7 @@ logger = logging.getLogger('myapp')
 bcrypt = Bcrypt()
 jwt = JWTManager()
 socketio_manager = SocketIO()
-
+cors = CORS(origin='http://localhost:3000', supports_credentials=True)
 
 # @socketio.on('connect')
 def handle_connect(id):
@@ -59,8 +60,9 @@ def create_app():
     app.config.from_object(Config)
     bcrypt.init_app(app)
     jwt.init_app(app)
-    socketio_manager.init_app(app)
-
+    cors.init_app(app)
+    cors.origins = ['http://localhost:3000']
+    socketio_manager.init_app(app, cors_allowed_origins="*")
     authentication = Authentication()
     authentication.set_jwt(jwt, bcrypt)
 
