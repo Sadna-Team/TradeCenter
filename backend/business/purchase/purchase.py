@@ -887,7 +887,7 @@ class PurchaseFacade:
 
 
     # -----------------BidPurchase class related methods-----------------#
-    def create_bid_purchase(self, user_id: int, proposed_price: float, store_id: int, product_id: int) -> None:
+    def create_bid_purchase(self, user_id: int, proposed_price: float, store_id: int, product_id: int) -> int:
         """
         Parameters: userId, proposedPrice, storeId, productId
         This function is responsible for creating a bid purchase
