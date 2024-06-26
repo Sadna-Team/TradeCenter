@@ -27,7 +27,7 @@ default_address_checkout = { 'address': 'randomstreet 34th',
 
 @pytest.fixture
 def app():
-    app = create_app()
+    app = create_app(mode='testing')
     return app
 
 @pytest.fixture

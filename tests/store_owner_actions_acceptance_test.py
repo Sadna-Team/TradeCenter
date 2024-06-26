@@ -16,7 +16,7 @@ register_credentials = {
         'day': 1,
         'phone': '054-1234567' }
     
-app = create_app()
+app = create_app(mode='testing')
 
 client = app.test_client()
 client2 = app.test_client()
