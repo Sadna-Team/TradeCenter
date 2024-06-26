@@ -6,18 +6,57 @@ Market logger - INFO - Admin was created
 werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
 werkzeug - INFO - [33mPress CTRL+C to quit[0m
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:36:36] "OPTIONS /auth/ HTTP/1.1" 200 -
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 1
-werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 16:29:19] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:36:36] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:43:03] "OPTIONS /auth/ HTTP/1.1" 200 -
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 2
-werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 16:48:55] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:43:03] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:45:40] "OPTIONS /auth/ HTTP/1.1" 200 -
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 3
-werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 16:52:26] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:45:40] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:45:46] "OPTIONS /auth/ HTTP/1.1" 200 -
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 4
-werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 16:52:31] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:45:46] "GET /auth/ HTTP/1.1" 200 -
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 5
-werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 17:02:54] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:45:47] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:45:54] "OPTIONS /auth/ HTTP/1.1" 200 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 6
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:45:54] "GET /auth/ HTTP/1.1" 200 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 7
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:46:29] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:47:33] "OPTIONS /auth/ HTTP/1.1" 200 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 8
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:47:33] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:55:46] "OPTIONS /auth/ HTTP/1.1" 200 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 9
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:55:46] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:56:18] "OPTIONS /auth/ HTTP/1.1" 200 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 10
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 18:56:18] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 19:05:13] "OPTIONS /auth/ HTTP/1.1" 200 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 11
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 19:05:13] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 19:05:31] "OPTIONS /auth/ HTTP/1.1" 200 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 12
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 19:05:31] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 19:08:16] "OPTIONS /auth/ HTTP/1.1" 200 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 13
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 19:08:16] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 19:08:40] "OPTIONS /auth/register HTTP/1.1" 200 -
+myapp - INFO - received request to register a new user
+myapp - ERROR - register - argument of type 'NoneType' is not iterable
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 19:08:40] "[31m[1mPOST /auth/register HTTP/1.1[0m" 400 -
