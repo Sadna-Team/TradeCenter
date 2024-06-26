@@ -4,7 +4,16 @@ import React, { useState } from 'react';
 import SearchForm from '@/components/TagSearchBar';
 
 export default function SearchByTags() {
-    //get tags from the server
+    
+    // get store names from the server
+    const storeNames = [
+        {id: 1, name: 'Store 1'},
+        {id: 2, name: 'Store 2'},
+        {id: 3, name: 'Store 3'},
+        {id: 4, name: 'Store 4'},
+        {id: 5, name: 'Store 5'},
+    ];
+    // get tags from the server
     const tags = ['tag1', 'tag2', 'tag3', 'tag4', 'tag5'];
 
     const [results, setResults] = useState([]);
@@ -20,7 +29,7 @@ export default function SearchByTags() {
   
     return (
         <div>
-            <SearchForm onSearch={handleSearch} tags={tags}/>
+            <SearchForm onSearch={handleSearch} tags={tags} stores={storeNames}/>
             {errorMessage && <div className="error">{errorMessage}</div>}
             {results.length > 0 && (
                 <div className="results">

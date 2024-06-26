@@ -25,9 +25,18 @@ export default function SearchByCategory() {
         {id: 5, name: 'category5'}
     ];
 
+    // get store names from the server
+    const storeNames = [
+        {id: 1, name: 'Store 1'},
+        {id: 2, name: 'Store 2'},
+        {id: 3, name: 'Store 3'},
+        {id: 4, name: 'Store 4'},
+        {id: 5, name: 'Store 5'},
+    ];
+
     return (
         <div>
-            <SearchForm onSearch={handleSearch} categories={categories}/>
+            <SearchForm onSearch={handleSearch} categories={categories} stores={storeNames}/>
             {errorMessage && <div className="error">{errorMessage}</div>}
             {results.length > 0 && (
                 <div className="results">

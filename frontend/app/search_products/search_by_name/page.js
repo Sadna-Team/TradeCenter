@@ -7,6 +7,15 @@ export default function SearchByName() {
     const [results, setResults] = useState([]);
     const [errorMessage, setErrorMessage] = useState(null);
 
+    // get store names from the server
+    const storeNames = [
+        {id: 1, name: 'Store 1'},
+        {id: 2, name: 'Store 2'},
+        {id: 3, name: 'Store 3'},
+        {id: 4, name: 'Store 4'},
+        {id: 5, name: 'Store 5'},
+    ];
+
     const handleSearch = (productName, storeName) => {
         // Handle search logic here
         console.log('Product Name:', productName);
@@ -17,7 +26,7 @@ export default function SearchByName() {
 
     return (
         <div>
-            <SearchForm onSearch={handleSearch} />
+            <SearchForm onSearch={handleSearch} stores={storeNames} />
             {errorMessage && <div className="error">{errorMessage}</div>}
             {results.length > 0 && (
                 <div className="results">

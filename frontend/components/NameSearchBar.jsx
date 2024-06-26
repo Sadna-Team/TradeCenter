@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const SearchForm = ({ onSearch }) => {
+const SearchForm = ({ onSearch, stores }) => {
     const [productName, setProductName] = useState('');
     const [storeName, setStoreName] = useState('');
 
@@ -28,13 +28,16 @@ const SearchForm = ({ onSearch }) => {
                     </div>
                     <div className="mb-4">
                         <label className="block text-gray-700">Store Name (Optional)</label>
-                        <input
-                            type="text"
-                            className="w-full p-2 border border-gray-300 rounded mt-1"
-                            placeholder="Enter store name"
-                            value={storeName}
-                            onChange={(e) => setStoreName(e.target.value)}
-                        />
+                        <select 
+                            className="w-full p-2 border border-gray-300 rounded mt-1" 
+                            onChange={(e) => setStoreName(e.target.value)}>
+                                <option value="">Select store</option>
+                                {stores.map((store) => (
+                                    <option key={store.id} value={store.name}>
+                                        {store.name}
+                                    </option>
+                                ))}
+                        </select>
                     </div>
                     <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
                         Search
