@@ -67,7 +67,13 @@ def create_app():
     notifier = Notifier()
     notifier.set_socketio_manager(socketio_manager)
 
+    # initialize default market data(for tests)
+    default_setup = input("Do you want to setup default data? (y/n): ")
+    default_setup = default_setup.lower()
+    default_setup = True if default_setup == 'y' else False
     MarketFacade()
+    if default_setup:
+        MarketFacade().default_setup()
 
     from backend.services.user_services.routes import auth_bp, user_bp
     from backend.services.ecommerce_services.routes import market_bp

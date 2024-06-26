@@ -46,6 +46,7 @@ class MarketFacade:
             # create the admin?
             self.__create_admin()
 
+
     def __create_admin(self, currency: str = "USD") -> None:
         man_id = self.user_facade.create_user(currency)
         hashed_password = self.auth_facade.hash_password("admin")
@@ -68,6 +69,21 @@ class MarketFacade:
 
         # create the admin?
         self.__create_admin()
+
+    def default_setup(self):
+        self.clean_data()
+        # users:
+        uid1 = self.user_facade.create_user("USD")
+        uid2 = self.user_facade.create_user("USD")
+        self.user_facade.register_user(uid1, "example1@gmail.com", "user1", "1234", 2001, 2, 2, "0522222222")
+        self.user_facade.register_user(uid2, "example2@gmail.com", "user2", "5678", 2002, 2, 2, "0522222222")
+        
+        # stores:
+        store_id = self.add_store(uid1, 1, "store1")
+        self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
+        self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
+        self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
+        self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
