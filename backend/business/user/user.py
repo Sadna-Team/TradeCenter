@@ -159,14 +159,14 @@ class Guest(State):
         raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
 class Member(State):
-    def __init__(self, email: str, username, password: str, year: int, month: int, day: int,
+    def __init__(self, email: str, username, password: str, year: str, month: str, day: str,
                  phone: str) -> None:
         #  try to convert the birth
 
         self.__email: str = email
         self.__username: str = username
         self.__password: str = password
-        self.__birthdate: datetime = datetime(year, month, day)
+        self.__birthdate: datetime = datetime(int(year), int(month), int(day))
         self.__phone: str = phone
         self.__notifications: List[Notification] = []
         self.__is_suspended: bool = False
