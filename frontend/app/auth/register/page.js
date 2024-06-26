@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import api from '@/lib/api';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -39,7 +40,7 @@ export default function Register() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -47,36 +48,30 @@ export default function Register() {
       return;
     }
 
-    // post a request to the server
+    // Post a request to the server
     const register_credentials = {
-        'email': email,
-        'username': username,
-        'password': password,
-        'day': day,
-        'month': month,
-        'year': year,
-        'phone': phone,
+      email,
+      username,
+      password,
+      day,
+      month,
+      year,
+      phone,
+    };
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await api.post('/auth/register', { register_credentials });
+      if (response.status === 201) {
+        alert('Registration successful');
+        window.location.href = '/auth/login';
+      } else {
+        alert('Registration failed');
+      }
+    } catch (error) {
+      console.error('Error during registration:', error.response ? error.response.data : error.message);
+      alert('Registration failed');
     }
-    const token = sessionStorage.getItem('token');
-    fetch('http://localhost:5000/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({'register_credentials': register_credentials}),
-    })
-      .then((res) => {
-        if (res.status === 201) {
-          alert('Registration successful');
-          window.location.href = '/auth/login';
-        } else {
-          alert('Registration failed');
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-      });
   };
 
   const handleKeyPress = (e) => {
