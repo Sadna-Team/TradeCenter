@@ -1,6 +1,7 @@
 // Import React and other necessary modules
 "use client";
 import Popup from '@/components/Popup';
+import { Router } from 'next/router';
 import React, { useEffect, useRef, useState } from 'react';
 import api from '@/lib/api';
 // import { AuthContext } from '@/app/AuthContext';
@@ -10,7 +11,6 @@ import api from '@/lib/api';
 export default function Home() {
   const [errorMessage, setErrorMessage] = useState(null);
   const renderAfter = useRef(false);
-
 
   useEffect(() => {
     if (!renderAfter.current) {
@@ -34,14 +34,14 @@ export default function Home() {
       };
 
       renderAfter.current = true;
-      fetchToken();
+      if(sessionStorage.getItem('token') === null) fetchToken();
     }
   }, []); // Empty dependency array to run the effect only once after mount
 
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold text-blue-500">Welcome to the Home Page</h1>
+      <h1 className="text-4xl font-bold text-red-600">Welcome to Abu Ali Home Page</h1>
       
       {errorMessage && (
         <Popup initialMessage={errorMessage} is_closable={false} onClose={() => setErrorMessage(null)} />

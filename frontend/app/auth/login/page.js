@@ -1,8 +1,10 @@
 "use client";
+
 import { useState } from 'react';
 import { buildSocket } from "@/app/socket";
 import Modal from '@/components/Modal'; // Import the Modal component
 import api from '@/lib/api';
+import Popup from '@/components/Popup';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -20,20 +22,27 @@ export default function Login() {
 
       const data = response.data;
       const token = data.token; // Extract the token from the response data
-      localStorage.setItem('token', token); // Store the token in localStorage
+      sessionStorage.setItem('token', token); // Store the token in sessionStorage
       console.log('Token:', token); // Optional: log the token for debugging
 
       // Open a WebSocket connection and emit join
       const socket = buildSocket(token);
 
-      // Show success modal
-      setShowModal(true);
+      sessionStorage.setItem('isConnected', true); // Set the isConnected flag to true
+
+      // Redirect to the home page
+      window.location.href = '/'; // Redirect to the home page
 
       // Optionally, redirect to another page or perform other actions after successful login
     } catch (error) {
       console.error('There was a problem with the axios operation:', error.response ? error.response.data : error.message);
       setError(error.response?.data?.message || error.message); // Set the error message for display
     }
+  };
+
+  // Function to check if both username and password are filled
+  const isFormValid = () => {
+    return username.trim() !== '' && password.trim() !== '';
   };
 
   return (
@@ -62,13 +71,13 @@ export default function Login() {
             />
           </div>
           <div className="flex justify-center">
-            {error && (
-              <div className="text-red-500 mb-4 text-center">
-                {error}
-              </div>
-            )}
+            {error && <Popup initialMessage={error} is_closable={true} onClose={() => setError('')} />}
           </div>
-          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
+          <button
+            type="submit"
+            className={`w-full bg-blue-500 text-white py-2 rounded ${!isFormValid() && 'opacity-50 cursor-not-allowed'}`}
+            disabled={!isFormValid()}
+          >
             Login
           </button>
         </form>
