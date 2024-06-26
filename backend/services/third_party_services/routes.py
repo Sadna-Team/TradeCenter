@@ -2,6 +2,7 @@
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from backend.error_types import *
 from backend.services.third_party_services.controllers import PaymentService, SupplyService
 from typing import Dict
 
@@ -27,7 +28,7 @@ def add_third_party_payment_service():
         method_name: str = str(data.get('method_name'))
         config_helper = data.get('config')
         if not isinstance(config_helper, dict):
-            raise Exception('config must be a dictionary')
+            raise ServiceLayerError('config must be a dictionary', ServiceLayerErrorTypes.config_not_dict)
         config = {key: str(value) for key, value in config_helper.items()}
     except Exception as e:
         return jsonify({'message': str(e)}), 400
@@ -53,7 +54,7 @@ def edit_third_party_payment_service():
         method_name = str(data.get('method_name'))
         editing_data_helper = data.get('editing_data')
         if not isinstance(editing_data_helper, dict):
-            raise Exception('config must be a dictionary')
+            raise ServiceLayerError('config must be a dictionary', ServiceLayerErrorTypes.config_not_dict)
         editing_data = {key: str(value) for key, value in editing_data_helper.items()}
     except Exception as e:
         return jsonify({'message': str(e)}), 400
@@ -99,7 +100,7 @@ def add_third_party_delivery_service():
         method_name = str(data.get('method_name'))
         config_helper = data.get('config')
         if not isinstance(config_helper, dict):
-            raise Exception('config must be a dictionary')
+            raise ServiceLayerError('config must be a dictionary', ServiceLayerErrorTypes.config_not_dict)
         config = {key: str(value) for key, value in config_helper.items()}
     except Exception as e:
         return jsonify({'message': str(e)}), 400
@@ -125,7 +126,7 @@ def edit_third_party_delivery_service():
         method_name = str(data.get('method_name'))
         editing_data_helper = data.get('editing_data')
         if not isinstance(editing_data_helper, dict):
-            raise Exception('config must be a dictionary')
+            raise ServiceLayerError('config must be a dictionary', ServiceLayerErrorTypes.config_not_dict)
         editing_data = {key: str(value) for key, value in editing_data_helper.items()}
     except Exception as e:
         return jsonify({'message': str(e)}), 400

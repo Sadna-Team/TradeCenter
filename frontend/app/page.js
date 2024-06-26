@@ -52,6 +52,7 @@ export default function Home() {
           </div>
         </div>
       )}
+
       <h1 className="text-4xl font-bold text-blue-500">Welcome to the Home Page</h1>
     </div>
   );
