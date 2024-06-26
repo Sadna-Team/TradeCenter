@@ -3,8 +3,9 @@ from backend.business.authentication.authentication import Authentication
 from backend.business.user import UserFacade
 from backend.business.roles.roles import RolesFacade
 from backend.business.market import MarketFacade
-import logging
+from backend.error_types import *
 from flask import jsonify
+import logging
 
 logger = logging.getLogger('myapp')
 
@@ -429,7 +430,6 @@ class AuthenticationService:
         """
         try:
             user_token = self.authentication.start_guest()
-            logger.info('guest entered the app successfully')
             return jsonify({'token': user_token}), 200
 
         except Exception as e:
@@ -475,6 +475,9 @@ class AuthenticationService:
             logger.info('User logged in successfully')
             return jsonify({'token': user_token, 'notification': notification}), 200
 
+        except UserError as e:
+            logger.error(f"login - {str(e.user_error_type)} , {str(e.message)}")
+            return jsonify({'message': str(e)}), 401
 
         except Exception as e:
             logger.error('login - ' + str(e))
