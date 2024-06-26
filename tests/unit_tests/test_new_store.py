@@ -57,13 +57,12 @@ def store_facade():
     return StoreFacade()
 
 #Address default vars:     
-default_address_id: int = 0
+default_address: str ="address"
 default_city: str = "city"
+default_state: str = "state"
 default_country: str = "country"
-default_street: str = "street"
 default_zip_code: str = "zip_code"
-default_house_number: str = "house_number"
-default_location: AddressDTO = AddressDTO(default_address_id, default_city, default_country, default_street, default_zip_code, default_house_number)
+default_location: AddressDTO = AddressDTO(default_address, default_city, default_state, default_country, default_zip_code)
 user_information_dto1=  UserInformationForConstraintDTO(0, date(1990, 1, 1), default_location)
 user_information_dto2=  UserInformationForConstraintDTO(1, date(2009, 1, 1), default_location)
 
@@ -196,7 +195,7 @@ def test_assign_predicate_to_discount(store_facade):
 def test_assign_predicate_to_discount2(store_facade):
     store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
     discount_id1 = store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
-    locations: Dict = {'address_id': 1, 'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'postal_code': 'postal_code'}
+    locations: Dict = {'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'zip_code': 'zip_code'}
     store_facade.assign_predicate_to_discount(discount_id1,('and', ('location',locations) , ('time', time(10, 0), time(12, 0))))
     assert isinstance(store_facade.discounts[0].predicate, AndConstraint)
     

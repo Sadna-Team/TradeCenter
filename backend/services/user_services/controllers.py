@@ -3,8 +3,9 @@ from backend.business.authentication.authentication import Authentication
 from backend.business.user import UserFacade
 from backend.business.roles.roles import RolesFacade
 from backend.business.market import MarketFacade
-import logging
+from backend.error_types import *
 from flask import jsonify
+import logging
 
 logger = logging.getLogger('myapp')
 
@@ -349,6 +350,62 @@ class UserService:
             logger.error('add_system_manager - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
+    def suspend_user(self, user_id: int, username: str, date: dict[str, int]):
+        """
+            Suspend a user
+
+            Args:
+                user_id (int): id of the user
+                username (str): username of the user to be suspended
+                date (dict): date to end the suspension(if empty the suspension is indefinite)
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            if date:
+                self.market_facade.suspend_user_temporarily(user_id, username, date)
+            else:
+                self.market_facade.suspend_user_permanently(user_id, username)
+            return jsonify({'message': 'user suspended successfully'}), 200
+        except Exception as e:
+            logger.error('suspend_user - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+    
+    def unsuspend_user(self, user_id: int, username: str):
+        """
+            Unsuspend a user
+
+            Args:
+                user_id (int): id of the user
+                username (str): username of the user to be unsuspended
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            self.market_facade.unsuspend_user(user_id, username)
+            return jsonify({'message': 'user unsuspended successfully'}), 200
+        except Exception as e:
+            logger.error('unsuspend_user - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+    
+    def view_suspended_users(self, user_id: int):
+        """
+            View suspended users
+
+            Args:
+                user_id (int): id of the user
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            suspended_users = self.market_facade.show_suspended_users(user_id)
+            return jsonify({'suspended_users': suspended_users}), 200
+        except Exception as e:
+            logger.error('view_suspended_users - ' + str(e))
+            return jsonify({'message': str(e)}), 400
 
 class AuthenticationService:
     # singleton
@@ -373,7 +430,6 @@ class AuthenticationService:
         """
         try:
             user_token = self.authentication.start_guest()
-            logger.info('guest entered the app successfully')
             return jsonify({'token': user_token}), 200
 
         except Exception as e:
@@ -419,6 +475,9 @@ class AuthenticationService:
             logger.info('User logged in successfully')
             return jsonify({'token': user_token, 'notification': notification}), 200
 
+        except UserError as e:
+            logger.error(f"login - {str(e.user_error_type)} , {str(e.message)}")
+            return jsonify({'message': str(e)}), 401
 
         except Exception as e:
             logger.error('login - ' + str(e))

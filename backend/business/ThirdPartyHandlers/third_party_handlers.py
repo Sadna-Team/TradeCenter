@@ -144,7 +144,7 @@ class BogoSupply(SupplyAdapter):
         thread.start()
 
 
-
+# ----------------------------------------- Will be used for address validation using Google Maps API later on ----------------------------------------- #
 class SupplyHandler:
     __instance = None
 

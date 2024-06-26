@@ -18,17 +18,16 @@ default_payment_method = {'payment method': 'bogo'}
 
 default_supply_method = "bogo"
 
-default_address_checkout = {'address_id': 0, 
-                            'address': 'randomstreet 34th', 
+default_address_checkout = { 'address': 'randomstreet 34th', 
                             'city': 'arkham', 
+                            'state': 'gotham',
                             'country': 'Wakanda', 
-                            'state': 'Utopia', 
-                            'postal_code': '12345'}
+                            'zip_code': '12345'}
 
 
 @pytest.fixture
 def app():
-    app = create_app()
+    app = create_app(mode='testing')
     return app
 
 @pytest.fixture
@@ -235,7 +234,7 @@ def test_checkout_failed_address_invalid(client2, user_token, init_store, clean)
 
     data = {"payment_details": default_payment_method,
             "supply_method": default_supply_method,
-            "address": {'address_id': 0}}
+            "address": {'address': "missing_address"}}
     response = client2.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 400
 

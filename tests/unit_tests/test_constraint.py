@@ -11,16 +11,15 @@ from datetime import time
 default_age_limit: int = 18
 
 #Address default vars:     
-default_address_id: int = 0
+default_address: str = "address"
 default_city: str = "city"
+default_state: str = "state"
 default_country: str = "country"
-default_street: str = "street"
 default_zip_code: str = "zip_code"
-default_house_number: str = "house_number"
 
 
 #locationConstraint default vars:
-default_location: AddressDTO = AddressDTO(default_address_id, default_city, default_country, default_street, default_zip_code, default_house_number)
+default_location: AddressDTO = AddressDTO(default_address, default_city, default_state, default_country,default_zip_code)
 
 #timeConstraint default vars:
 default_start_time: time = time(0, 0, 0)
@@ -75,8 +74,8 @@ default_user_id2: int = 1
 default_user_id3: int = 2
 default_birthdate1: date = date(1990, 1, 1)
 default_birthdate2: date = date(2009, 1, 1)
-default_user_address: AddressDTO = AddressDTO(default_address_id, default_city, default_country, default_street, default_zip_code, default_house_number)
-default_bad_user_address: AddressDTO = AddressDTO(1, "bad_city", "bad_country", default_street, default_zip_code, default_house_number)
+default_user_address: AddressDTO = AddressDTO(default_address, default_city, default_state, default_country, default_zip_code)
+default_bad_user_address: AddressDTO = AddressDTO("bad_address", "bad_city", "bade_state", "bad_country", default_zip_code)
 
 
 user_information_dto1=  UserInformationForConstraintDTO(default_user_id1, default_birthdate1, default_user_address)

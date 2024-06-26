@@ -28,14 +28,14 @@ def checkout():
 
         payment_details_helper = data['payment_details']
         if not isinstance(payment_details_helper, dict):
-            raise Exception('payment details must be a dictionary')
+            raise ServiceLayerError('payment details must be a dictionary', ServiceLayerErrorTypes.payment_details_not_dict)
         payment_details = {str(key): str(value) for key, value in payment_details_helper.items()}
 
         supply_method = str(data['supply_method'])
 
         address_helper = data['address']
         if not isinstance(address_helper, dict):
-            raise Exception('address must be a dictionary')
+            raise ServiceLayerError('address must be a dictionary', ServiceLayerErrorTypes.address_not_dict)
         address = {str(key): str(value) for key, value in address_helper.items()}
     except Exception as e:
         logger.error('checkout - ', str(e))
@@ -120,7 +120,7 @@ def search_products_by_tags():
         data = request.get_json()
         tags_helper = data['tags']
         if not isinstance(tags_helper, list):
-            raise Exception('tags must be a list')
+            raise ServiceLayerError('tags must be a list', ServiceLayerErrorTypes.tags_not_list)
         tags = [str(tag) for tag in tags_helper]
         # check if store_id is provided
         if 'store_id' in data:

@@ -7,24 +7,41 @@ from datetime import date, datetime
 
 
 class AddressDTO:
-    def __init__(self, address_id: int, address: str, city: str, state: str, country: str, postal_code: str):
-        self.address_id = address_id
-        self.address = address
-        self.city = city
-        self.state = state
-        self.country = country
-        self.postal_code = postal_code
+    def __init__(self, address: str, city: str, state: str, country: str, zip_code: str):
+        self.__address = address
+        self.__city = city
+        self.__state = state
+        self.__country = country
+        self.__zip_code = zip_code
 
     def to_dict(self):
         return {
-            'address_id': self.address_id,
-            'address': self.address,
-            'city': self.city,
-            'state': self.state,
-            'country': self.country,
-            'postal_code': self.postal_code
+            'address': self.__address,
+            'city': self.__city,
+            'state': self.__state,
+            'country': self.__country,
+            'zip_code': self.__zip_code
         }
 
+    @property
+    def address(self):
+        return self.__address
+    
+    @property
+    def city(self):
+        return self.__city
+    
+    @property
+    def state(self):
+        return self.__state
+    
+    @property
+    def country(self):
+        return self.__country
+    
+    @property
+    def zip_code(self):
+        return self.__zip_code
 
 class NotificationDTO:
     def __init__(self, notification_id: int, message: str, date: datetime) -> None:

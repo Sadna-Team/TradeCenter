@@ -3,7 +3,7 @@ from flask import json
 
 global token1, token2, token3
 
-app = create_app()
+app = create_app(mode='testing')
 client = app.test_client()
 
 
