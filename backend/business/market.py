@@ -75,8 +75,29 @@ class MarketFacade:
         # users:
         uid1 = self.user_facade.create_user("USD")
         uid2 = self.user_facade.create_user("USD")
-        self.user_facade.register_user(uid1, "example1@gmail.com", "user1", "1234", 2001, 2, 2, "0522222222")
-        self.user_facade.register_user(uid2, "example2@gmail.com", "user2", "5678", 2002, 2, 2, "0522222222")
+
+        uc1 = {
+            "username": "user1",
+            "password": "1234",
+            "email": "example1@gmail.com",
+            "year": 2001,
+            "month": 2,
+            "day": 2,
+            "phone": "0522222222"
+        }
+
+        uc2 = {
+            "username": "user2",
+            "password": "5678",
+            "email": "example2@gmail.com",
+            "year": 2002,
+            "month": 2,
+            "day": 2,
+            "phone": "0522222222"
+        }
+
+        self.auth_facade.register_user(uid1,uc1)
+        self.auth_facade.register_user(uid2, uc2)
         
         # stores:
         store_id = self.add_store(uid1, 1, "store1")
