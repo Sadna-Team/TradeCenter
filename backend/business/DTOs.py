@@ -5,7 +5,6 @@ from typing import List, Optional
 from datetime import date, datetime
 
 
-
 class AddressDTO:
     def __init__(self, address: str, city: str, state: str, country: str, zip_code: str):
         self.__address = address
@@ -26,22 +25,23 @@ class AddressDTO:
     @property
     def address(self):
         return self.__address
-    
+
     @property
     def city(self):
         return self.__city
-    
+
     @property
     def state(self):
         return self.__state
-    
+
     @property
     def country(self):
         return self.__country
-    
+
     @property
     def zip_code(self):
         return self.__zip_code
+
 
 class NotificationDTO:
     def __init__(self, notification_id: int, message: str, date: datetime) -> None:
@@ -60,7 +60,7 @@ class NotificationDTO:
 
     def get(self) -> dict:
         return {"notification_id": self.__notification_id, "message": self.__message, "date": self.__date}
-    
+
     def to_json(self):
         return {
             'notification_id': self.__notification_id,
@@ -250,17 +250,18 @@ class UserInformationForConstraintDTO:
     @property
     def user_id(self):
         return self.__user_id
-    
+
     @property
     def birthdate(self):
         return self.__birthdate
-    
+
     @property
     def address(self):
         return self.__address
-    
+
     def get(self):
         return {"user_id": self.__user_id, "birthdate": self.__birthdate, "address": self.__address.to_dict()}
+
 
 class ProductForConstraintDTO:
     def __init__(self, product_id: int, store_id: int, price: float, weight: float, amount: int):
@@ -281,7 +282,7 @@ class ProductForConstraintDTO:
     @property
     def price(self) -> float:
         return self.__price
-    
+
     @property
     def weight(self) -> float:
         return self.__weight
@@ -289,14 +290,15 @@ class ProductForConstraintDTO:
     @property
     def amount(self) -> int:
         return self.__amount
-    
-    def get(self) -> dict:
-        return {"product_id": self.__product_id, "store_id": self.__store_id, "price": self.__price, "weight": self.__weight, "amount": self.__amount}
 
+    def get(self) -> dict:
+        return {"product_id": self.__product_id, "store_id": self.__store_id, "price": self.__price,
+                "weight": self.__weight, "amount": self.__amount}
 
 
 class CategoryForConstraintDTO:
-    def __init__(self, category_id: int, category_name: str, parent_category_id: int, sub_categories: List['CategoryForConstraintDTO'], products: List[ProductForConstraintDTO]):
+    def __init__(self, category_id: int, category_name: str, parent_category_id: int,
+                 sub_categories: List['CategoryForConstraintDTO'], products: List[ProductForConstraintDTO]):
         self.__category_id: int = category_id
         self.__category_name: str = category_name
         self.__parent_category_id: int = parent_category_id
@@ -318,15 +320,16 @@ class CategoryForConstraintDTO:
     @property
     def sub_categories(self) -> List['CategoryForConstraintDTO']:
         return self.__sub_categories
-    
+
     @property
     def products(self) -> List[ProductForConstraintDTO]:
         return self.__products
 
 
-
 class BasketInformationForConstraintDTO:
-    def __init__(self, store_id: int, products: List[ProductForConstraintDTO], total_price_of_basket: float, time_of_purchase: datetime, user_info: UserInformationForConstraintDTO, categories: List[CategoryForConstraintDTO]):
+    def __init__(self, store_id: int, products: List[ProductForConstraintDTO], total_price_of_basket: float,
+                 time_of_purchase: datetime, user_info: UserInformationForConstraintDTO,
+                 categories: List[CategoryForConstraintDTO]):
         self.__store_id: int = store_id
         self.__products: List[ProductForConstraintDTO] = products
         self.__total_price_of_basket: float = total_price_of_basket
@@ -337,31 +340,33 @@ class BasketInformationForConstraintDTO:
     @property
     def store_id(self) -> int:
         return self.__store_id
-    
+
     @property
     def products(self) -> List[ProductForConstraintDTO]:
         return self.__products
-    
+
     @property
     def total_price_of_basket(self) -> float:
         return self.__total_price_of_basket
-    
+
     @property
     def time_of_purchase(self) -> datetime:
         return self.__time_of_purchase
-    
+
     @property
     def user_info(self) -> UserInformationForConstraintDTO:
         return self.__user_info
-    
+
     @property
     def categories(self) -> List[CategoryForConstraintDTO]:
         return self.__categories
 
     def get(self) -> dict:
-        return {"store_id": self.__store_id, "products": [product.get() for product in self.__products], "total_price_of_basket": self.__total_price_of_basket,
-                "time_of_purchase": self.__time_of_purchase, "user_info": self.__user_info.get(), "categories": [category.__dict__ for category in self.__categories]}
-    
+        return {"store_id": self.__store_id, "products": [product.get() for product in self.__products],
+                "total_price_of_basket": self.__total_price_of_basket,
+                "time_of_purchase": self.__time_of_purchase, "user_info": self.__user_info.get(),
+                "categories": [category.__dict__ for category in self.__categories]}
+
 
 class TransactionException(Exception):
     pass
@@ -391,8 +396,8 @@ class CategoryDTO:
 
 
 class UserDTO:
-    def __init__(self, user_id: int, email: Optional[str]=None, username: Optional[str]=None, year: 
-                 Optional[int]=None, month: Optional[int]=None, day: Optional[int]=None, phone: Optional[str]=None,
+    def __init__(self, user_id: int, email: Optional[str] = None, username: Optional[str] = None, year:
+    Optional[int] = None, month: Optional[int] = None, day: Optional[int] = None, phone: Optional[str] = None,
                  role: Optional[str] = None):
         self.__user_id: int = user_id
         self.__email: Optional[str] = email
@@ -451,3 +456,82 @@ class PurchaseUserDTO:
 
     def get(self) -> dict:
         return {"user_id": self.__user_id, "birthdate": self.__birthdate}
+
+
+class RoleNominationDTO:
+    def __init__(self, nomination_id: int, store_id: int, nominator_id: int, nominee_id: int, role: str):
+        self.__nomination_id: int = nomination_id
+        self.__store_id: int = store_id
+        self.__nominator_id: int = nominator_id
+        self.__nominee_id: int = nominee_id
+        self.__role: str = role
+
+    @property
+    def nomination_id(self):
+        return self.__nomination_id
+
+    @property
+    def store_id(self):
+        return self.__store_id
+
+    @property
+    def nominator_id(self):
+        return self.__nominator_id
+
+    @property
+    def nominee_id(self):
+        return self.__nominee_id
+
+    @property
+    def role(self):
+        return self.__role
+
+    def get(self) -> dict:
+        return {"nomination_id": self.__nomination_id, "store_id": self.__store_id, "nominator_id": self.__nominator_id,
+                "nominee_id": self.__nominee_id, "role": self.__role}
+
+
+class NominationDTO:
+    def __init__(self, nomination_id: int, store_id: int, store_name: str, nominator_id: int, nominator_name: str,
+                 nominee_id: int, role: str):
+        self.__nomination_id: int = nomination_id
+        self.__store_id: int = store_id
+        self.__store_name: str = store_name
+        self.__nominator_id: int = nominator_id
+        self.__nominator_name: str = nominator_name
+        self.__nominee_id: int = nominee_id
+        self.__role: str = role
+
+    @property
+    def nomination_id(self):
+        return self.__nomination_id
+
+    @property
+    def store_id(self):
+        return self.__store_id
+
+    @property
+    def store_name(self):
+        return self.__store_name
+
+    @property
+    def nominator_id(self):
+        return self.__nominator_id
+
+    @property
+    def nominator_name(self):
+        return self.__nominator_name
+
+    @property
+    def nominee_id(self):
+        return self.__nominee_id
+
+    @property
+    def role(self):
+        return self.__role
+
+    def get(self) -> dict:
+        return {"nomination_id": self.__nomination_id, "store_id": self.__store_id, "store_name": self.__store_name,
+                "nominator_id": self.__nominator_id, "nominator_name": self.__nominator_name,
+                "nominee_id": self.__nominee_id,
+                "role": self.__role}

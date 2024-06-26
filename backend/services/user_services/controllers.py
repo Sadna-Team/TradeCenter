@@ -407,6 +407,23 @@ class UserService:
             logger.error('view_suspended_users - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
+    def get_user_nominations(self, user_id: int):
+        """
+            Get user nominations
+
+            Args:
+                user_id (int): id of the user
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            nominations = self.roles_facade.get_user_nominations(user_id)
+            return jsonify({'nominations': nominations}), 200
+        except Exception as e:
+            logger.error('get_user_nominations - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
 class AuthenticationService:
     # singleton
     instance = None

@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 from threading import Lock
 from backend.business.notifier.notifier import Notifier
 from backend.error_types import *
+from backend.business.DTOs import RoleNominationDTO
 
 import logging
 
@@ -495,3 +496,12 @@ class RolesFacade:
             for user_id, role in self.__stores_to_roles[store_id].items():
                 owners[user_id] = role.__str__()
             return owners
+
+    def get_user_nominations(self, user_id: int) -> Dict[int, RoleNominationDTO]:
+        nominations = {}
+        for nomination_id, nomination in self.__systems_nominations.items():
+            if nomination.nominee_id == user_id:
+                nominations[nomination_id] = RoleNominationDTO(nomination_id, nomination.store_id,
+                                                               nomination.nominator_id, nomination.nominee_id,
+                                                               nomination.role.__str__())
+        return nominations
