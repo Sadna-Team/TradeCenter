@@ -1,5 +1,0 @@
-flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
-flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
-New Store Logger - INFO - successfully created storeFacade
-myapp - INFO - [PurchaseFacade] successfully created purchase facade object
-Market logger - INFO - Admin was created
