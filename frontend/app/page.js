@@ -1,6 +1,7 @@
 // Import React and other necessary modules
 "use client";
 import Popup from '@/components/Popup';
+import { Router } from 'next/router';
 import React, { useEffect, useRef, useState } from 'react';
 // import { AuthContext } from '@/app/AuthContext';
 
@@ -9,7 +10,6 @@ import React, { useEffect, useRef, useState } from 'react';
 export default function Home() {
   const [errorMessage, setErrorMessage] = useState(null);
   const renderAfter = useRef(false);
-
 
   useEffect(() => {
     if (!renderAfter.current) {
@@ -25,7 +25,8 @@ export default function Home() {
             console.log('Token:', token);
 
             // Save the token to local storage
-            localStorage.setItem('token', token);
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('isConnected', false);
           } else {
             // Display error message
             setErrorMessage('Failed to fetch token');
@@ -39,7 +40,7 @@ export default function Home() {
       };
 
       renderAfter.current = true;
-      fetchToken();
+      if(sessionStorage.getItem('token') === null) fetchToken();
     }
   }, []); // Empty dependency array to run the effect only once after mount
 
