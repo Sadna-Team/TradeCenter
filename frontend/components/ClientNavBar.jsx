@@ -13,40 +13,34 @@ const ClientNavBar = ({ onToggleSidebar }) => {
     setShowNotifications(!showNotifications);
   };
 
-  const handleLogout = () => {    
-      // send a POST request to logout
-      fetch('http://localhost:5000/auth/logout', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json', // Specify the content type
-              'Authorization': 'Bearer ' + sessionStorage.getItem('token')
-            },
-            body: JSON.stringify(), // logout does not require any data
-        })
-        .then((response) => {
-            // setError(response['token']); // Clear previous errors
-            if (!response.ok) {
-                return response.json().then((data) => {
-                    throw new Error(data.message); // Throw an error with the message from the server
-                });
-            }
-        }
-    )
+  async function handleLogout() {
+    setError(null); // Clear previous errors
+
+    // Send POST request to logout user
+    await fetch('http://localhost:5000/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      },
+    })
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((data) => {
+          throw new Error(data); // Throw an error with the message from the server
+        });
+      }
+    })
     .catch((error) => {
-        console.error('There was a problem with the fetch operation:', error);
-        setError(error.message); // Set the error message for display
+      console.error('There was a problem with the fetch operation:', error);
+      setError(error.message); // Set the error message for display
     });
 
-    // Close the WebSocket connection
     closeSocket();
-
-    // Clear the isConnected flag from sessionStorage
-    sessionStorage.setItem('isConnected', 'false');
-    
-    // Redirect to the home page
-    window.location.href = '/'; // Redirect to the home page
-    // window.location.reload(); // Reload to update the navbar state
-};
+    sessionStorage.removeItem('token');
+    sessionStorage.setItem('isConnected', false);
+    window.location.href = '/';
+  };
 
 return (
     <nav className="flex justify-between items-center p-4 bg-gray-800 text-white">

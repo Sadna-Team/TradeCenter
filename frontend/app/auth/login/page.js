@@ -13,7 +13,7 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError(null); // Clear previous errors
 
     // Send POST request to authenticate user
     fetch('http://localhost:5000/auth/login', {
@@ -39,7 +39,7 @@ export default function Login() {
       console.log('Token:', token); // Optional: log the token for debugging
 
       // Open a WebSocket connection and emit join
-      const socket = buildSocket(token);
+      const socket = buildSocket(token, false);
       sessionStorage.setItem('isConnected', true); // Set the isConnected flag to true
 
       // Redirect to the home page
@@ -51,6 +51,7 @@ export default function Login() {
       setError(error.message); // Set the error message for display
     });
   };
+
 
   // Function to check if both username and password are filled
   const isFormValid = () => {
@@ -83,7 +84,7 @@ export default function Login() {
             />
           </div>
           <div className="flex justify-center">
-            {error && <Popup initialMessage={error} is_closable={true} onClose={() => setError('')} />}
+            {error && <Popup initialMessage={error} is_closable={true} onClose={() => setError(null)} />}
           </div>
           <button
             type="submit"

@@ -3,7 +3,6 @@
 import Popup from '@/components/Popup';
 import { Router } from 'next/router';
 import React, { useEffect, useRef, useState } from 'react';
-// import { AuthContext } from '@/app/AuthContext';
 
 // Mark the component to run on the client side
 

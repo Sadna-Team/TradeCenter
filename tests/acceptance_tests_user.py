@@ -188,7 +188,7 @@ def test_login_failed_user_doesnt_exist():
     }
 
     response = client.post('/auth/login', headers=headers, json=data)
-    assert response.status_code == 400
+    assert response.status_code == 401
 
 
 def test_login_failed_wrong_password():
@@ -202,7 +202,7 @@ def test_login_failed_wrong_password():
     }
 
     response = client.post('/auth/login', headers=headers, json=data)
-    assert response.status_code == 400
+    assert response.status_code == 401
 
 
 def test_login_failed_already_logged_in():
@@ -216,7 +216,7 @@ def test_login_failed_already_logged_in():
     }
 
     response = client.post('/auth/login', headers=headers, json=data)
-    assert response.status_code == 400
+    assert response.status_code == 401
 
 
 def test_logout():
@@ -228,6 +228,10 @@ def test_logout():
     assert response.status_code == 200
     token = response.json['token']
 
+def test_login_then_logout():
+    global token
+    test_login()
+    test_logout()
 
 def test_logout_failed_not_logged_in():
     global token
