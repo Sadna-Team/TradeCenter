@@ -5,34 +5,34 @@ import ClientNavBar from './ClientNavBar';
 
 const NavbarWrapper = ({ onToggleSidebar }) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Ensure this runs only on the client side
     if (typeof window !== 'undefined') {
-      const storedIsConnected = localStorage.getItem('isConnected') === 'true';
+      const storedIsConnected = sessionStorage.getItem('isConnected') === 'true';
       setIsConnected(storedIsConnected);
+      setIsHydrated(true); // Mark hydration complete
 
       const handleRouteChange = () => {
-        const storedIsConnected = localStorage.getItem('isConnected') === 'true';
+        const storedIsConnected = sessionStorage.getItem('isConnected') === 'true';
         setIsConnected(storedIsConnected);
       };
 
-      if (router?.events?.on) {
+      if (router.events?.on) {
         router.events.on('routeChangeComplete', handleRouteChange);
       }
 
-      // Cleanup listener on unmount
       return () => {
-        if (router?.events?.off) {
+        if (router.events?.off) {
           router.events.off('routeChangeComplete', handleRouteChange);
         }
       };
     }
-  }, [router?.events]);
+  }, [router.events]);
 
-  if (typeof window === 'undefined') {
-    return null; // Prevent server-side rendering issues
+  if (!isHydrated) {
+    return null; // Prevent mismatched render on the server
   }
 
   return isConnected ? (

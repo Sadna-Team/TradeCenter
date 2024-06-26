@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
+import Button from './Button';
 import socketInstance from '@/app/socket';
 
 const ClientNavBar = ({ onToggleSidebar }) => {
@@ -86,6 +87,11 @@ const ClientNavBar = ({ onToggleSidebar }) => {
         <Link href="/search_products">
           <Button>
             Search Products
+          </Button>
+        </Link>
+        <Link href="/auth/logout">
+          <Button className="bg-red-500 text-white py-2 px-4 rounded">
+            Logout
           </Button>
         </Link>
       </div>
