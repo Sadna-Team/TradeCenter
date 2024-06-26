@@ -18,7 +18,7 @@ export default function Login() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + localStorage.getItem('token')
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
       },
       body: JSON.stringify({ username, password }),
     })
@@ -34,11 +34,13 @@ export default function Login() {
     })
     .then((data) => {
       const token = data.token; // Extract the token from the response data
-      localStorage.setItem('token', token); // Store the token in localStorage
+      sessionStorage.setItem('token', token); // Store the token in sessionStorage
       console.log('Token:', token); // Optional: log the token for debugging
 
       // Open a WebSocket connection and emit join
       const socket = buildSocket(token);
+
+      sessionStorage.setItem('isConnected', true); // Set the isConnected flag to true
 
       // Show success modal
       setShowModal(true);

@@ -20,15 +20,6 @@ export function buildSocket(token) {
     socketInstance.emit('join');
     console.log('Socket connected:', socketInstance.connected);
 
-    // Listen for incoming messages and show notifications
-    socketInstance.on('message', (data) => {
-      console.log('Message received:', data);
-      
-      //save message to local storage
-      localStorage.setItem('notification', data['data']);
-    });
-
-
   return socketInstance; // Return the socket instance
 }
 

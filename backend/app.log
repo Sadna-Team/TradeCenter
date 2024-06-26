@@ -3,3 +3,27 @@ flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 New Store Logger - INFO - successfully created storeFacade
 myapp - INFO - [PurchaseFacade] successfully created purchase facade object
 Market logger - INFO - Admin was created
+Market logger - INFO - Admin was created
+New Store Logger - INFO - [Store] successfully created store with id: 0
+New Store Logger - INFO - Successfully added store: store1
+New Store Logger - INFO - Successfully added product: product1 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 0
+New Store Logger - INFO - [Product] successfully added tag to product with id: 0
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product2 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 1
+New Store Logger - INFO - [Product] successfully added tag to product with id: 1
+New Store Logger - INFO - [Product] successfully added tag to product with id: 1
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product3 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 2
+New Store Logger - INFO - [Product] successfully added tag to product with id: 2
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product4 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 3
+New Store Logger - INFO - [Product] successfully added tag to product with id: 3
+New Store Logger - INFO - [Product] successfully added tag to product with id: 3
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+werkzeug - INFO - [33mPress CTRL+C to quit[0m

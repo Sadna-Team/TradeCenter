@@ -57,7 +57,7 @@ export default function Register() {
         'year': year,
         'phone': phone,
     }
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     fetch('http://localhost:5000/auth/register', {
       method: 'POST',
       headers: {
