@@ -1,7 +1,7 @@
 from backend import create_app
 from flask import json
 
-app = create_app()
+app = create_app(mode='testing')
 client = app.test_client()
 
 

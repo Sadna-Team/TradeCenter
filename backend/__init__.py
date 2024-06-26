@@ -54,7 +54,7 @@ class Config:
     JWT_TOKEN_LOCATION = ['headers']
 
 
-def create_app():
+def create_app(mode='development'):
     app = Flask(__name__)
     app.config.from_object(Config)
     bcrypt.init_app(app)
@@ -67,13 +67,15 @@ def create_app():
     notifier = Notifier()
     notifier.set_socketio_manager(socketio_manager)
 
-    # initialize default market data(for tests)
-    default_setup = input("Do you want to setup default data? (y/n): ")
-    default_setup = default_setup.lower()
-    default_setup = True if default_setup == 'y' else False
     MarketFacade()
-    if default_setup:
-        MarketFacade().default_setup()
+
+    if mode == 'development':
+        # initialize default market data(for tests)
+        default_setup = input("Do you want to setup default data? (y/n): ")
+        default_setup = default_setup.lower()
+        default_setup = True if default_setup == 'y' else False
+        if default_setup:
+            MarketFacade().default_setup()
 
     from backend.services.user_services.routes import auth_bp, user_bp
     from backend.services.ecommerce_services.routes import market_bp
