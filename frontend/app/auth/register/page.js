@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import api from '@/lib/api';
 
 export default function Register() {
   const [email, setEmail] = useState('');

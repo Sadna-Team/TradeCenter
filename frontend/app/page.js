@@ -3,6 +3,7 @@
 import Popup from '@/components/Popup';
 import { Router } from 'next/router';
 import React, { useEffect, useRef, useState } from 'react';
+import api from '@/lib/api';
 // import { AuthContext } from '@/app/AuthContext';
 
 // Mark the component to run on the client side
@@ -16,8 +17,8 @@ export default function Home() {
       const fetchToken = async () => {
         try {
           // Send GET request to obtain token
-          const response = await fetch('http://localhost:5000/auth/');
-          const data = await response.json();
+          const response = await api.get('/auth/');
+          const data = response.data;
 
           if (response.ok) {
           const token = data.token; // Assuming the response contains the token
@@ -35,7 +36,7 @@ export default function Home() {
         } catch (error) {
           // Display error message
           setErrorMessage('Error fetching token');
-          console.error('Error fetching token:', error);
+          console.error('Error fetching token:', error.response ? error.response.data : error.message);
         }
       };
 

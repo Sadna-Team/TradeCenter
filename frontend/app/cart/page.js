@@ -17,7 +17,6 @@ const Cart = () => {
   // Calculate total sum of prices in the cart
   const totalPrice = cart.reduce((total, product) => total + (product.price * product.amount), 0);
 
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
@@ -30,16 +29,20 @@ const Cart = () => {
               <CartProduct key={product.id} product={product} storeName={product.store_name} />
             ))}
             <div className="cart-summary mt-4">
-              <p className="text-lg">Total Price: -NOT WORKING-  ${totalPrice.toFixed(2)}</p>
+              <p className="text-lg">Total Price: ${totalPrice.toFixed(2)}</p>
             </div>
-            <Link href={{
-                          pathname:`/checkout`, 
-                          }}>
-              
-              <div className="bg-red-600 hover:bg-red-800 text-white font-bold py-2 px-4 rounded mt-4 w-full block text-center">
+            <div className="flex justify-between mt-4">
+              <Link href="/checkout">
+                <div className="bg-red-600 hover:bg-red-800 text-white font-bold py-2 px-4 rounded inline-block text-center">
                   Checkout
                 </div>
               </Link>
+              <Link href="/bid">
+                <div className="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded inline-block text-center">
+                  Bid
+                </div>
+              </Link>
+            </div>
           </>
         )}
       </div>
