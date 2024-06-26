@@ -1,3 +1,4 @@
+
 flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 New Store Logger - INFO - successfully created storeFacade
@@ -35,3 +36,4 @@ myapp - INFO - received request to login a user
 myapp - INFO - User logged in successfully
 werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 01:16:33] "POST /auth/login HTTP/1.1" 200 -
 werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 01:16:33] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1MdpON HTTP/1.1" 200 -
+

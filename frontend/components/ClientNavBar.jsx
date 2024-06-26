@@ -2,16 +2,47 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
 import Button from './Button';
-import socketInstance from '@/app/socket';
+import { closeSocket } from '@/app/socket';
+import Popup from './Popup';
 
 const ClientNavBar = ({ onToggleSidebar }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [error, setError] = useState(null);
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
 
-  return (
+  async function handleLogout() {
+    setError(null); // Clear previous errors
+
+    // Send POST request to logout user
+    await fetch('http://localhost:5000/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+      },
+    })
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((data) => {
+          throw new Error(data); // Throw an error with the message from the server
+        });
+      }
+    })
+    .catch((error) => {
+      console.error('There was a problem with the fetch operation:', error);
+      setError(error.message); // Set the error message for display
+    });
+
+    closeSocket();
+    sessionStorage.removeItem('token');
+    sessionStorage.setItem('isConnected', false);
+    window.location.href = '/';
+  };
+
+return (
     <nav className="flex justify-between items-center p-4 bg-gray-800 text-white">
       <div className="flex items-center">
         <button onClick={onToggleSidebar} className="mr-4">
@@ -89,11 +120,10 @@ const ClientNavBar = ({ onToggleSidebar }) => {
             Search Products
           </Button>
         </Link>
-        <Link href="/auth/logout">
-          <Button className="bg-red-500 text-white py-2 px-4 rounded">
-            Logout
-          </Button>
-        </Link>
+        <Button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded">
+          Logout
+        </Button>
+        {error && <Popup initialMessage={error} is_closable={true} onClose={() => setError(null)} />}
       </div>
     </nav>
   );
