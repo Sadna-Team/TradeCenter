@@ -1,3 +1,5 @@
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 New Store Logger - INFO - successfully created storeFacade
 myapp - INFO - [PurchaseFacade] successfully created purchase facade object
 Market logger - INFO - Admin was created
@@ -25,3 +27,26 @@ New Store Logger - INFO - [Store] successfully added product to store with id: 0
 werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
 werkzeug - INFO - [33mPress CTRL+C to quit[0m
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 3
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:54:04] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:54:46] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - ERROR - login - Invalid salt
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:54:47] "[31m[1mPOST /auth/login HTTP/1.1[0m" 400 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:55:04] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:55:05] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:55:05] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1JmNBz HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:55:05] "GET /socket.io/?EIO=4&transport=polling&t=P1JmNBz HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:55:05] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1JmNHC&sid=cWOhclHPc3XeANqiAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:55:05] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1JmNHD&sid=cWOhclHPc3XeANqiAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:55:05] "POST /socket.io/?EIO=4&transport=polling&t=P1JmNHC&sid=cWOhclHPc3XeANqiAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:55:06] "GET /socket.io/?EIO=4&transport=polling&t=P1JmNHD&sid=cWOhclHPc3XeANqiAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 11:55:58] "GET /socket.io/?EIO=4&transport=websocket&sid=cWOhclHPc3XeANqiAAAA HTTP/1.1" 200 -
