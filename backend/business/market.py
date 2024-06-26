@@ -949,6 +949,9 @@ class MarketFacade:
             raise UserError("User is not a store owner or manager", UserErrorTypes.user_not_a_manager_or_owner)
         return self.purchase_facade.get_purchases_of_store(store_id)
 
+
+    
+
     '''def view_purchases_of_user_in_store(self, user_id: int, store_id: int) -> str:
         """
         * Parameters: userId, store_id

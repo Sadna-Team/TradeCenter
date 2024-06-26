@@ -480,6 +480,7 @@ class RolesFacade:
                 if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
                     return True
             return False
+       
 
     def is_manager(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
