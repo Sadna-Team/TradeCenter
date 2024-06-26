@@ -9,6 +9,8 @@ const MyStores = () => {
     { id: 3, title: 'Store Three' },
   ];
 
+
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
       <div className="w-full max-w-4xl p-6 bg-white rounded-lg shadow-lg">
@@ -17,10 +19,12 @@ const MyStores = () => {
           <div className="space-y-4">
             {stores.map(store => (
               <div key={store.id} className="p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-                <Link href={`/stores/${store.id}`} legacyBehavior>
-                  <a className="text-lg text-blue-600 hover:text-blue-800 hover:underline">
-                    {store.title}
-                  </a>
+                <Link 
+                    href={{
+                          pathname:`/stores/${store.id}`, 
+                          query: { id: store.id },
+                          }}>
+                  <div className="text-lg font-semibold">{store.title}</div>
                 </Link>
               </div>
             ))}

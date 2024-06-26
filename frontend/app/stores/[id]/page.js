@@ -1,11 +1,11 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useSearchParams  } from 'next/navigation';
 
 const StoreDetail = () => {
-  const router = useRouter();
-  const { id } = router.query;
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
 
   // Mock data for demonstration purposes
   const storeData = {
@@ -17,8 +17,10 @@ const StoreDetail = () => {
   const [store, setStore] = useState(null);
 
   useEffect(() => {
-    if (id) {
+    if (id && storeData[id]) {
       setStore(storeData[id]);
+    } else {
+      setStore(null); // Handle case where store is not found
     }
   }, [id]);
 
