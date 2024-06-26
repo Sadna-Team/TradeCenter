@@ -1,12 +1,13 @@
 // Import React and other necessary modules
 "use client";
+import Popup from '@/components/Popup';
 import React, { useEffect, useRef, useState } from 'react';
 // import { AuthContext } from '@/app/AuthContext';
 
 // Mark the component to run on the client side
 
 export default function Home() {
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState(null);
   const renderAfter = useRef(false);
 
 
@@ -45,15 +46,11 @@ export default function Home() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      {errorMessage && (
-        <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-4 rounded shadow-md">
-            <p className="text-red-500">{errorMessage}</p>
-          </div>
-        </div>
-      )}
-
       <h1 className="text-4xl font-bold text-blue-500">Welcome to the Home Page</h1>
+      
+      {errorMessage && (
+        <Popup initialMessage={errorMessage} is_closable={false} onClose={() => setErrorMessage(null)} />
+      )}
     </div>
   );
 }
