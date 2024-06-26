@@ -40,7 +40,6 @@ export default function Login() {
 
       // Open a WebSocket connection and emit join
       const socket = buildSocket(token);
-
       sessionStorage.setItem('isConnected', true); // Set the isConnected flag to true
 
       // Redirect to the home page

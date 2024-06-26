@@ -2,16 +2,53 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
 import Button from './Button';
-import socketInstance from '@/app/socket';
+import { closeSocket } from '@/app/socket';
+import Popup from './Popup';
 
 const ClientNavBar = ({ onToggleSidebar }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [error, setError] = useState(null);
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
 
-  return (
+  const handleLogout = () => {    
+      // send a POST request to logout
+      fetch('http://localhost:5000/auth/logout', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json', // Specify the content type
+              'Authorization': 'Bearer ' + sessionStorage.getItem('token')
+            },
+            body: JSON.stringify(), // logout does not require any data
+        })
+        .then((response) => {
+            // setError(response['token']); // Clear previous errors
+            if (!response.ok) {
+                return response.json().then((data) => {
+                    throw new Error(data.message); // Throw an error with the message from the server
+                });
+            }
+        }
+    )
+    .catch((error) => {
+        console.error('There was a problem with the fetch operation:', error);
+        setError(error.message); // Set the error message for display
+    });
+
+    // Close the WebSocket connection
+    closeSocket();
+
+    // Clear the isConnected flag from sessionStorage
+    sessionStorage.setItem('isConnected', 'false');
+    
+    // Redirect to the home page
+    window.location.href = '/'; // Redirect to the home page
+    // window.location.reload(); // Reload to update the navbar state
+};
+
+return (
     <nav className="flex justify-between items-center p-4 bg-gray-800 text-white">
       <div className="flex items-center">
         <button onClick={onToggleSidebar} className="mr-4">
@@ -89,11 +126,10 @@ const ClientNavBar = ({ onToggleSidebar }) => {
             Search Products
           </Button>
         </Link>
-        <Link href="/auth/logout">
-          <Button className="bg-red-500 text-white py-2 px-4 rounded">
-            Logout
-          </Button>
-        </Link>
+        <Button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded">
+          Logout
+        </Button>
+        {error && <Popup initialMessage={error} is_closable={true} onClose={() => setError(null)} />}
       </div>
     </nav>
   );

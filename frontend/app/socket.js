@@ -23,4 +23,11 @@ export function buildSocket(token) {
   return socketInstance; // Return the socket instance
 }
 
+export function closeSocket() {
+  if (socketInstance) {
+    socketInstance.disconnect(); // Disconnect the socket instance
+    console.log('Socket disconnected:', socketInstance.connected);
+  }
+}
+
 export default socketInstance; // Export the global socket instance
