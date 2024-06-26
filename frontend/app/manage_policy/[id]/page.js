@@ -10,6 +10,7 @@ const ManagePolicy = () => {
     return (
         <div>
           <h1>manage_policy {id}</h1>
+          
         </div>
       );
 }
