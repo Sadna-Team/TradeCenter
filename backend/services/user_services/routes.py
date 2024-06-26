@@ -49,7 +49,6 @@ def register():
     try:
         data = request.get_json()
         register_credentials = data.get('register_credentials')
-        logger.info('register credentials: ' + str(register_credentials))
         userid = get_jwt_identity()
 
     except Exception as e:
