@@ -37,9 +37,9 @@ const Cart = () => {
                           }}>
               
               <div className="bg-red-600 hover:bg-red-800 text-white font-bold py-2 px-4 rounded mt-4 w-full block text-center">
-                Checkout
-              </div>
-            </Link>
+                  Checkout
+                </div>
+              </Link>
           </>
         )}
       </div>

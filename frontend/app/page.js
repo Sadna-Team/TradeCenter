@@ -20,11 +20,11 @@ export default function Home() {
           const data = await response.json();
 
           if (response.ok) {
-            const token = data.token; // Assuming the response contains the token
-            // Do something with the token (e.g., store it globally)
-            console.log('Token:', token);
+          const token = data.token; // Assuming the response contains the token
+          // Do something with the token (e.g., store it globally)
+          console.log('Token:', token);
 
-            // Save the token to local storage
+          // Save the token to local storage
             sessionStorage.setItem('token', token);
             sessionStorage.setItem('isConnected', false);
           } else {
