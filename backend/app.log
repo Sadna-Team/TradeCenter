@@ -21,3 +21,4 @@ werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 16:52:31] "GET /auth/ HTTP/1.1" 200
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 5
 werkzeug - INFO - 127.0.0.1 - - [26/Jun/2024 17:02:54] "GET /auth/ HTTP/1.1" 200 -
+
