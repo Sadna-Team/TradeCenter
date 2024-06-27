@@ -9,12 +9,12 @@ import Popup from '@/components/Popup';
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false); // State to control the modal visibility
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError(null); // Clear previous errors
 
     try {
       // Send POST request to authenticate user
@@ -26,8 +26,7 @@ export default function Login() {
       console.log('Token:', token); // Optional: log the token for debugging
 
       // Open a WebSocket connection and emit join
-      const socket = buildSocket(token);
-
+      const socket = buildSocket(token, false);
       sessionStorage.setItem('isConnected', true); // Set the isConnected flag to true
 
       // Redirect to the home page
@@ -39,6 +38,7 @@ export default function Login() {
       setError(error.response?.data?.message || error.message); // Set the error message for display
     }
   };
+
 
   // Function to check if both username and password are filled
   const isFormValid = () => {
@@ -71,7 +71,7 @@ export default function Login() {
             />
           </div>
           <div className="flex justify-center">
-            {error && <Popup initialMessage={error} is_closable={true} onClose={() => setError('')} />}
+            {error && <Popup initialMessage={error} is_closable={true} onClose={() => setError(null)} />}
           </div>
           <button
             type="submit"
