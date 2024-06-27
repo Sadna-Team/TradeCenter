@@ -77,6 +77,18 @@ class Product:
     def release_lock(self):
         self.__product_lock.release()
 
+    def change_name(self, new_name: str) -> None:
+        """
+        * Parameters: newName
+        * This function changes the name of the product
+        * Returns: none
+        """
+        if new_name is None:
+            raise StoreError('New name is not a valid string', StoreErrorTypes.invalid_name)
+        with self.__product_lock:
+            self.__product_name = new_name
+        logger.info('[Product] successfully changed name of product with id: ' + str(self.__product_id))
+
     def change_price(self, new_price: float) -> None:
         """
         * Parameters: newPrice
@@ -155,6 +167,28 @@ class Product:
         with self.__product_lock:
             self.__weight = new_weight
         logger.info('[Product] successfully changed weight of product with id: ' + str(self.__product_id))
+
+    def change_tags(self, new_tags: List[str]) -> None:
+        """
+        * Parameters: newTags
+        * This function changes the tags of the product
+        * Returns: none
+        """
+        with self.__product_lock:
+            self.__tags = new_tags
+        logger.info('[Product] successfully changed tags of product with id: ' + str(self.__product_id))
+
+    def change_amount(self, new_amount: int) -> None:
+        """
+        * Parameters: newAmount
+        * This function changes the amount of the product
+        * Returns: none
+        """
+        if new_amount < 0:
+            raise StoreError('New amount is a negative value', StoreErrorTypes.invalid_amount)
+        with self.__product_lock:
+            self.__amount = new_amount
+        logger.info('[Product] successfully changed amount of product with id: ' + str(self.__product_id))
 
 
     def restock(self, amount) -> None:
@@ -574,6 +608,24 @@ class Store:
             self.__product_id_counter += 1
         logger.info('[Store] successfully added product to store with id: ' + str(self.__store_id))
         return product.product_id
+    
+    def edit_product(self, product_id: int, name: str, description: str, price: float, tags: List[str], weight: float, amount: Optional[int]=None) -> None:
+        """
+        * Parameters: productId, name, description, price, tags, weight
+        * This function edits a product in the store
+        * Returns: none
+        """
+        if product_id not in self.__store_products:
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
+        product = self.__store_products[product_id]
+        product.change_name(name)
+        product.change_description(description)
+        product.change_price(price)
+        product.change_weight(weight)
+        product.change_tags(tags)
+        if amount is not None:
+            product.change_amount(amount)
+        logger.info('[Store] successfully edited product in store with id: ' + str(self.__store_id))
 
     # We assume that the marketFacade verified that the user attempting to remove the product is a store owner/purchased
     def remove_product(self, product_id: int) -> None:
@@ -1120,6 +1172,16 @@ class StoreFacade:
         if amount is None:
             amount = 0
         return store.add_product(product_name, description, price, tags, weight, amount)
+    
+    def edit_product_in_store(self, store_id: int, product_id: int, product_name: str, description: str, price: float, weight: float, tags: List[str],
+                              amount: Optional[int]) -> None:
+        """
+        * Parameters: store_id, product_id, product_name, description, price, weight, tags
+        * This function edits a product in the store
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        store.edit_product(product_id, product_name, description, price, weight, tags, amount)
 
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:

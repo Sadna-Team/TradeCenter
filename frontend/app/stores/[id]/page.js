@@ -89,7 +89,7 @@ const StoreDetail = () => {
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {store.products.map((product) => (
-            <ManagerProduct key={product.id} product={product} />
+            <ManagerProduct key={product.id} product={product} storeId={id} />
           ))}
         </div>
 

@@ -1,14 +1,12 @@
 import React from 'react';
+import Link from 'next/link';
 
-const ManagerProduct = ({ product }) => {
+const ManagerProduct = ({ product, currStoreId }) => {
   // Static amount from props
   const amount = product.amount;
 
-  // Function to handle editing fields (you can implement your specific edit logic here)
-  const handleEditFields = () => {
-    // Implement edit functionality
-    console.log(`Editing fields for ${product.product_name}`);
-  };
+  console.log('Product:', product);
+  console.log('Current Store ID:', currStoreId);
 
   // Function to handle deleting all (you can implement your specific delete logic here)
   const handleDeleteAll = () => {
@@ -28,7 +26,9 @@ const ManagerProduct = ({ product }) => {
       </div>
     
       <div className="button-container" style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <button className="edit-fields-btn" style={{ backgroundColor: '#3498db', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }} onClick={handleEditFields}>Edit Fields</button>
+        <Link href={{pathname:`/edit-product/${product.id}`, query: {id: product.id, storeId: currStoreId}}}>
+          <button className="edit-fields-btn" style={{ backgroundColor: '#3498db', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>Edit Fields</button>
+        </Link>
         <button className="delete-all-btn" style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }} onClick={handleDeleteAll}>Delete All</button>
       </div>
       <h3> The buttons don't work</h3>

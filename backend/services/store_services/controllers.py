@@ -187,6 +187,19 @@ class StoreService:
         except Exception as e:
             logger.error('product was not added')
             return jsonify({'message': str(e)}), 400
+        
+    def edit_product_in_store(self, user_id: int, store_id: int, product_id: int,  product_name: str, description: str, price: float,
+                             weight: float, tags: list[str], amount: Optional[int]=None):
+        """
+            Edit a product in a store
+        """
+        try:
+            self.__market_facade.edit_product(user_id, store_id, product_id, product_name, description, price, weight, tags, amount)
+            logger.info('product was edited successfully')
+            return jsonify({'message': 'product was edited successfully'}), 200
+        except Exception as e:
+            logger.error('product was not edited')
+            return jsonify({'message': str(e)}), 400
 
     def remove_product_from_store(self, user_id: int, store_id: int, product_id: int):
         """
@@ -236,7 +249,7 @@ class StoreService:
         except Exception as e:
             logger.error('product weight was not changed')
             return jsonify({'message': str(e)}), 400
-        
+
     def add_tag_to_product(self, user_id: int, store_id: int, product_id: int, tag: str):
         """
             Add a tag to a product
