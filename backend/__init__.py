@@ -9,7 +9,7 @@ from backend.business.DTOs import NotificationDTO
 from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask_cors import CORS
-
+import threading
 # -------------logging configuration----------------
 import logging
 
@@ -33,6 +33,7 @@ def handle_disconnect(id):
     logger.info(f"Client {id} disconnected")
 
 
+
 @socketio_manager.on('join')
 @jwt_required()
 def handle_join():
@@ -42,7 +43,13 @@ def handle_join():
     join_room(room=room)
 
     # Send a message to the client
-    emit('message', {'data': 'Connected', 'room': room})
+    emit('connected', {'data': 'Connected to the server'}, room=room)
+
+
+
+
+
+
 
 
 @socketio_manager.on('leave')

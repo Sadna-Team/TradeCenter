@@ -1,33 +1,28 @@
+// ClientNavBar.jsx
+
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
 import Button from './Button';
-import { closeSocket, getSocket } from '@/app/socket';
 import Popup from './Popup';
 import NotificationPopup from './NotificationPopup';
+import { closeSocket, getSocket } from "@/app/socket";
 
-const ClientNavBar = ({ onToggleSidebar }) => {
+const ClientNavBar = ({ onToggleSidebar, isConnected }) => {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState(null);
+
+  // register listener for notifications
+
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
 
-  useEffect(() => { 
-    const socket = getSocket();
-    if (socket) {
-      socket.on('message', (data) => { // Listen for messages from the server
-        // console.log('Message:', data); // Log the message
-        
-      }), [socket];
-    }
-  });
-
-  async function handleLogout() {
+  const handleLogout = async () => {
     setError(null); // Clear previous errors
 
-    // Send POST request to logout user
     await fetch('http://localhost:5000/auth/logout', {
       method: 'POST',
       headers: {
@@ -53,7 +48,7 @@ const ClientNavBar = ({ onToggleSidebar }) => {
     window.location.href = '/';
   };
 
-return (
+  return (
     <nav className="flex justify-between items-center p-4 bg-gray-800 text-white">
       <div className="flex items-center">
         <button onClick={onToggleSidebar} className="mr-4">
@@ -78,7 +73,7 @@ return (
       </div>
       <div className="flex space-x-4 items-center">
         <div className="relative">
-          <button /*onClick={toggleNotifications}*/ className="relative">
+          <button onClick={toggleNotifications} className="relative">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-7 w-7"
@@ -135,8 +130,8 @@ return (
           Logout
         </Button>
         {showNotifications && (
-          <NotificationPopup 
-            notifications={notifications} 
+          <NotificationPopup
+            notifications={notifications}
             onClose={() => setShowNotifications(false)} />
         )}
         {error && <Popup initialMessage={error} is_closable={true} onClose={() => setError(null)} />}

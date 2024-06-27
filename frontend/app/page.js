@@ -35,6 +35,16 @@ export default function Home() {
 
       renderAfter.current = true;
       if(sessionStorage.getItem('token') === null) fetchToken();
+      if (sessionStorage.getItem('isConnected') === 'true') {
+        // get req from the server
+        api.get('/market/test')
+          .then((response) => {
+            console.log('Response:', response.data);
+          })
+          .catch((error) => {
+            console.error('Error fetching data:', error.response ? error.response.data : error.message);
+          });
+      }
     }
   }, []); // Empty dependency array to run the effect only once after mount
 

@@ -13,6 +13,9 @@ class PurchaseService:
     def __init__(self):
         self.__market_facade = MarketFacade()
 
+    def test(self):
+        self.__market_facade.test()
+
     def checkout(self, user_id: int, payment_details: dict, supply_method: str, address: dict):
         """
             Checkout the shopping cart

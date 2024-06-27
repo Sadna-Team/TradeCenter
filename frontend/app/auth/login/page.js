@@ -5,6 +5,7 @@ import { buildSocket } from "@/app/socket";
 import Modal from '@/components/Modal'; // Import the Modal component
 import api from '@/lib/api';
 import Popup from '@/components/Popup';
+import {Router} from "next/router";
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -26,11 +27,10 @@ export default function Login() {
       console.log('Token:', token); // Optional: log the token for debugging
 
       // Open a WebSocket connection and emit join
-      const socket = buildSocket(token, false);
+      const socket = buildSocket(token);
       sessionStorage.setItem('isConnected', true); // Set the isConnected flag to true
 
-      // Redirect to the home page
-      window.location.href = '/'; // Redirect to the home page
+        // Redirect to the home page
 
       // Optionally, redirect to another page or perform other actions after successful login
     } catch (error) {
