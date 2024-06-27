@@ -9,7 +9,7 @@ const api = axios.create({
 api.interceptors.request.use(
   function (config) {
     // Do something before request is sent
-    const token = localStorage.getItem('token'); // Example of getting a token from localStorage
+    const token = sessionStorage.getItem('token'); // Example of getting a token from localStorage
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -33,7 +33,6 @@ api.interceptors.response.use(
     // Do something with response error
     if (error.response.status === 401) {
       // Handle unauthorized access, for example, by redirecting to the login page
-      window.location = '/auth/login';
     }
     return Promise.reject(error);
   }

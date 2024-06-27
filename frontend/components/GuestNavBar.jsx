@@ -3,11 +3,6 @@ import Logo from './Logo';
 import Button from './Button';
 
 const GuestNavBar = () => {
-  const handleLogout = () => {
-    localStorage.setItem('isConnected', 'false');
-    window.location.reload(); // Reload to update the navbar state
-  };
-
   return (
     <nav className="flex justify-between items-center p-4 bg-gray-800 text-white">
       <div className="flex items-center">

@@ -221,6 +221,7 @@ def accept_promotion():
         return jsonify({'message': str(e)}), 400
     return user_service.accept_promotion(user_id, promotion_id, accept)
 
+
 @user_bp.route('/is_system_manager', methods=['GET'])
 @jwt_required()
 def is_system_manager():
@@ -382,7 +383,7 @@ def add_system_manager():
         return jsonify({'message': str(e)}), 400
 
     return user_service.add_system_manager(user_id, username)
-  
+
 
 @user_bp.route('/suspend_user', methods=['POST'])
 @jwt_required()
@@ -398,6 +399,7 @@ def suspend_user():
 
     return user_service.suspend_user(user_id, suspended_user_id, date)
 
+
 @user_bp.route('/unsuspend_user', methods=['POST'])
 @jwt_required()
 def unsuspend_user():
@@ -411,6 +413,7 @@ def unsuspend_user():
 
     return user_service.unsuspend_user(user_id, suspended_user_id)
 
+
 @user_bp.route('/view_suspended_users', methods=['GET'])
 @jwt_required()
 def view_suspended_users():
@@ -421,3 +424,15 @@ def view_suspended_users():
         return jsonify({'message': str(e)}), 400
 
     return user_service.view_suspended_users(user_id)
+
+
+@user_bp.route('/get_user_nominations', methods=['GET'])
+@jwt_required()
+def get_user_nominations():
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_user_nominations - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return user_service.get_user_nominations(user_id)

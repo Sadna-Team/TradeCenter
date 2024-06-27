@@ -19,13 +19,13 @@ export default function Home() {
           // Send GET request to obtain token
           const response = await api.get('/auth/');
           const data = response.data;
-
           const token = data.token; // Assuming the response contains the token
           // Do something with the token (e.g., store it globally)
           console.log('Token:', token);
 
           // Save the token to local storage
-          localStorage.setItem('token', token);
+          sessionStorage.setItem('token', token);
+          sessionStorage.setItem('isConnected', false);
         } catch (error) {
           // Display error message
           setErrorMessage('Error fetching token');
