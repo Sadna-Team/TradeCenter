@@ -418,8 +418,8 @@ class UserService:
                 response (str): response of the operation
         """
         try:
-            nominations = self.roles_facade.get_user_nominations(user_id)
-            return jsonify({'nominations': nominations}), 200
+            nominations = self.market_facade.get_user_nominations(user_id)
+            return jsonify({'nominations': {nid: nomination.get() for nid, nomination in nominations.items()}}), 200
         except Exception as e:
             logger.error('get_user_nominations - ' + str(e))
             return jsonify({'message': str(e)}), 400
