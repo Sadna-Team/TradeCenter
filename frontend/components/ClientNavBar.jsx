@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
 import Button from './Button';
-import { closeSocket } from '@/app/socket';
+import { closeSocket, getSocket } from '@/app/socket';
 import Popup from './Popup';
+import NotificationPopup from './NotificationPopup';
 
 const ClientNavBar = ({ onToggleSidebar }) => {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -12,6 +13,16 @@ const ClientNavBar = ({ onToggleSidebar }) => {
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
+
+  useEffect(() => { 
+    const socket = getSocket();
+    if (socket) {
+      socket.on('message', (data) => { // Listen for messages from the server
+        // console.log('Message:', data); // Log the message
+        
+      }), [socket];
+    }
+  });
 
   async function handleLogout() {
     setError(null); // Clear previous errors
@@ -67,7 +78,7 @@ return (
       </div>
       <div className="flex space-x-4 items-center">
         <div className="relative">
-          <button onClick={toggleNotifications} className="relative">
+          <button /*onClick={toggleNotifications}*/ className="relative">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-7 w-7"
@@ -123,6 +134,11 @@ return (
         <Button onClick={handleLogout} className="bg-red-500 text-white py-2 px-4 rounded">
           Logout
         </Button>
+        {showNotifications && (
+          <NotificationPopup 
+            notifications={notifications} 
+            onClose={() => setShowNotifications(false)} />
+        )}
         {error && <Popup initialMessage={error} is_closable={true} onClose={() => setError(null)} />}
       </div>
     </nav>

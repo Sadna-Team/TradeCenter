@@ -30,4 +30,6 @@ export function closeSocket() {
   buildSocket(0, true); // Rebuild the socket instance to disconnect
 }
 
-export default socketInstance; // Export the global socket instance
+export const getSocket = () => {
+  return socketInstance;
+};

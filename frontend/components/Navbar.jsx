@@ -31,9 +31,10 @@ const NavbarWrapper = ({ onToggleSidebar }) => {
     }
   }, [router.events]);
 
-  if (!isHydrated) {
-    return null; // Prevent mismatched render on the server
-  }
+  // might be the fix to the navbar not rendering on first entry
+  // if (!isHydrated) {
+  //   return null; // Prevent mismatched render on the server
+  // }
 
   return isConnected ? (
     <ClientNavBar onToggleSidebar={onToggleSidebar} />
