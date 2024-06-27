@@ -9,7 +9,7 @@ import Popup from '@/components/Popup';
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false); // State to control the modal visibility
 
   const handleSubmit = async (e) => {
