@@ -1,38 +1,52 @@
+// app/socket.js
+
+import React, { createContext, useState } from 'react';
 import { io } from 'socket.io-client';
 
-let socketInstance = null; // Global variable to store the socket instance
+const socketContext = createContext(null);
 
-// close socket
-export function closeSocket() {
-  if (socketInstance) {
-    socketInstance.disconnect();
-    console.log('Socket disconnected:', socketInstance.connected);
+export const SocketProvider = ({ children }) => {
+  const [socket, setSocket] = useState(null);
+
+  const buildSocket = (token) => {
+    const socketInstance = io('http://localhost:5000', {
+      autoConnect: false,
+      extraHeaders: {
+        Authorization: 'Bearer ' + token,
+      },
+    });
+
+    socketInstance.connect();
+    socketInstance.emit('join');
+
+    socketInstance.on('connected', () => {
+      console.log('Socket connected:', socketInstance.connected);
+      window.location.href = '/';
+    });
+
+    setSocket(socketInstance);
+
+    return socketInstance;
+  };
+
+  const closeSocket = () => {
+    if (socket) {
+      socket.disconnect();
+      console.log('Socket disconnected');
+    }
+  };
+
+  return (
+    <socketContext.Provider value={{ socket, buildSocket, closeSocket }}>
+      {children}
+    </socketContext.Provider>
+  );
+};
+
+export const useSocket = () => {
+  const context = React.useContext(socketContext);
+  if (!context) {
+    throw new Error('useSocket must be used within a SocketProvider');
   }
-}
-
-export function buildSocket(token) {
-  if (socketInstance) {
-    closeSocket();
-  }
-  socketInstance = io('http://localhost:5000', {
-    autoConnect: false,  // Prevent auto connection to ensure headers can be set first
-    extraHeaders: {
-      Authorization: 'Bearer ' + token,  // Set the Authorization header with the token
-    },
-  });
-
-  socketInstance.connect();
-  socketInstance.emit('join');
-
-  socketInstance.on('connected', () => {
-    console.log('Socket connected:', socketInstance.connected);
-    sessionStorage.setItem('socket', socketInstance);
-    window.location.href = '/';
-  });
-
-  return socketInstance; // Return the socket instance
-}
-
-export function getSocket() {
-  return socketInstance;
-}
+  return context;
+};

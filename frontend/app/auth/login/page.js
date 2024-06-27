@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { buildSocket } from "@/app/socket";
+import { useSocket } from "@/app/socket";
 import Modal from '@/components/Modal'; // Import the Modal component
 import api from '@/lib/api';
 import Popup from '@/components/Popup';
@@ -11,7 +11,8 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false); // State to control the modal visibility
+  const [showModal, setShowModal] = useState(false); // State to control the modal visibility;
+    const { buildSocket } = useSocket();
 
   const handleSubmit = async (e) => {
     e.preventDefault();

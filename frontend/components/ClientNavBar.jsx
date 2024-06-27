@@ -6,15 +6,33 @@ import Logo from './Logo';
 import Button from './Button';
 import Popup from './Popup';
 import NotificationPopup from './NotificationPopup';
-import { closeSocket, getSocket } from "@/app/socket";
+import {  useSocket } from "@/app/socket"; // Use the custom hook
 
 const ClientNavBar = ({ onToggleSidebar, isConnected }) => {
+  const { socket, closeSocket } = useSocket(); // Get the socket instance and close function
+
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState(null);
 
-  // register listener for notifications
+  useEffect(() => {
+    if (socket && !sessionStorage.getItem('listener')) {
+      sessionStorage.setItem('listener', true); // Set the listener flag to true
+      socket.on('message', (data) => {
+        sessionStorage.setItem('received', true);
+      } );
 
+      console.log('Socket listener added');
+
+      return () => {
+        socket.off('message'); // Clean up socket listener on unmount
+      };
+    }
+  }, [socket]);
+
+  const handleMessages = (data) => {
+    setNotifications((prev) => [...prev, data]);
+  }
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
@@ -45,6 +63,7 @@ const ClientNavBar = ({ onToggleSidebar, isConnected }) => {
     closeSocket();
     sessionStorage.removeItem('token');
     sessionStorage.setItem('isConnected', false);
+    sessionStorage.setItem('listener', false);
     window.location.href = '/';
   };
 
