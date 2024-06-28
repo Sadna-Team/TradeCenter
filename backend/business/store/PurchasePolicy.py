@@ -47,6 +47,9 @@ class PurchasePolicy(ABC):
     def set_predicate(self, predicate: Constraint):
         pass
 
+    @abstractmethod
+    def get_policy_info_as_dict(self):
+        pass
 # --------------- ProductPolicy class ---------------#
 class ProductSpecificPurchasePolicy(PurchasePolicy):
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, product_id: int, predicate: Optional[Constraint] = None):
@@ -70,6 +73,16 @@ class ProductSpecificPurchasePolicy(PurchasePolicy):
     
     def set_predicate(self, predicate: Constraint):
         self._predicate = predicate
+
+    def get_policy_info_as_dict(self):
+        return {
+            "purchase_policy_type": "ProductSpecificPurchasePolicy",
+            "purchase_policy_id": self.purchase_policy_id,
+            "store_id": self.store_id,
+            "policy_name": self.policy_name,
+            "product_id": self.product_id,
+            "predicate": self.predicate.get_constraint_info_as_dict() if self.predicate is not None else "None"
+        }
     
 # --------------- CategoryPolicy class ---------------#
 class CategorySpecificPurchasePolicy(PurchasePolicy):
@@ -100,6 +113,16 @@ class CategorySpecificPurchasePolicy(PurchasePolicy):
     def set_predicate(self, predicate: Constraint):
         self._predicate = predicate
     
+    def get_policy_info_as_dict(self):
+        return {
+            "purchase_policy_type": "CategorySpecificPurchasePolicy",
+            "purchase_policy_id": self.purchase_policy_id,
+            "store_id": self.store_id,
+            "policy_name": self.policy_name,
+            "category_id": self.category_id,
+            "predicate": self.predicate.get_constraint_info_as_dict() if self.predicate is not None else "None"
+        }
+    
 
 # --------------- StorePolicy class ---------------#
 class BasketSpecificPurchasePolicy(PurchasePolicy):
@@ -119,10 +142,21 @@ class BasketSpecificPurchasePolicy(PurchasePolicy):
     def set_predicate(self, predicate: Constraint):
         self._predicate = predicate
 
+
+    def get_policy_info_as_dict(self):
+        return {
+            "purchase_policy_type": "BasketSpecificPurchasePolicy",
+            "purchase_policy_id": self.purchase_policy_id,
+            "store_id": self.store_id,
+            "policy_name": self.policy_name,
+            "predicate": self.predicate.get_constraint_info_as_dict() if self.predicate is not None else "None"
+        }
+    
+
 # --------------- CompositePolicy class ---------------#
 class AndPurchasePolicy(PurchasePolicy):
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
-        super().__init__(purchase_policy_id, store_id, policy_name, predicate)
+        super().__init__(purchase_policy_id, store_id, policy_name, None)
         self._policy_left = policy_left
         self._policy_right = policy_right
         logger.info("[AndPurchasePolicy] And Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
@@ -147,12 +181,24 @@ class AndPurchasePolicy(PurchasePolicy):
     def set_predicate(self, predicate: Constraint):
         logger.info("[AndPurchasePolicy] Unable to set predicate for AndPurchasePolicy")
         pass 
-
+    
+    def get_policy_info_as_dict(self):
+        policy_left = self.policy_left.get_policy_info_as_dict()
+        policy_right = self.policy_right.get_policy_info_as_dict()
+        return {
+            "purchase_policy_type": "AndPurchasePolicy",
+            "purchase_policy_id": self.purchase_policy_id,
+            "store_id": self.store_id,
+            "policy_name": self.policy_name,
+            "policy_left": policy_left,
+            "policy_right": policy_right,
+            "predicate": "None"
+        }
 
 # --------------- CompositePolicy class ---------------#
 class OrPurchasePolicy(PurchasePolicy):
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
-        super().__init__(purchase_policy_id, store_id, policy_name, predicate)
+        super().__init__(purchase_policy_id, store_id, policy_name, None)
         self._policy_left = policy_left
         self._policy_right = policy_right
         logger.info("[OrPurchasePolicy] Or Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
@@ -176,12 +222,24 @@ class OrPurchasePolicy(PurchasePolicy):
     def set_predicate(self, predicate: Constraint):
         logger.info("[OrPurchasePolicy] Unable to set predicate for OrPurchasePolicy")
         pass
-
+    
+    def get_policy_info_as_dict(self):
+        policy_left = self.policy_left.get_policy_info_as_dict()
+        policy_right = self.policy_right.get_policy_info_as_dict()
+        return {
+            "purchase_policy_type": "OrPurchasePolicy",
+            "purchase_policy_id": self.purchase_policy_id,
+            "store_id": self.store_id,
+            "policy_name": self.policy_name,
+            "policy_left": policy_left,
+            "policy_right": policy_right,
+            "predicate": "None"
+        }
 
 # --------------- CompositePolicy class ---------------#
 class ConditioningPurchasePolicy(PurchasePolicy):
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
-        super().__init__(purchase_policy_id, store_id, policy_name, predicate)
+        super().__init__(purchase_policy_id, store_id, policy_name, None)
         self._policy_left = policy_left
         self._policy_right = policy_right
         logger.info("[ConditioningPurchasePolicy] Conditioning Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
@@ -208,3 +266,16 @@ class ConditioningPurchasePolicy(PurchasePolicy):
     def set_predicate(self, predicate: Constraint):
         logger.info("[ConditioningPurchasePolicy] Unable to set predicate for ConditioningPurchasePolicy")
         pass
+
+    def get_policy_info_as_dict(self):
+        policy_left = self.policy_left.get_policy_info_as_dict()
+        policy_right = self.policy_right.get_policy_info_as_dict()
+        return {
+            "purchase_policy_type": "ConditioningPurchasePolicy",
+            "purchase_policy_id": self.purchase_policy_id,
+            "store_id": self.store_id,
+            "policy_name": self.policy_name,
+            "policy_left": policy_left,
+            "policy_right": policy_right,
+            "predicate": "None"
+        }
