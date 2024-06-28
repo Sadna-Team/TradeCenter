@@ -1,7 +1,7 @@
 from backend import create_app
 from flask import json
 
-app = create_app()
+app = create_app(mode='testing')
 client = app.test_client()
 
 
@@ -188,7 +188,7 @@ def test_login_failed_user_doesnt_exist():
     }
 
     response = client.post('/auth/login', headers=headers, json=data)
-    assert response.status_code == 400
+    assert response.status_code == 401
 
 
 def test_login_failed_wrong_password():
@@ -202,7 +202,7 @@ def test_login_failed_wrong_password():
     }
 
     response = client.post('/auth/login', headers=headers, json=data)
-    assert response.status_code == 400
+    assert response.status_code == 401
 
 
 def test_login_failed_already_logged_in():
@@ -216,7 +216,7 @@ def test_login_failed_already_logged_in():
     }
 
     response = client.post('/auth/login', headers=headers, json=data)
-    assert response.status_code == 400
+    assert response.status_code == 401
 
 
 def test_logout():
@@ -228,6 +228,10 @@ def test_logout():
     assert response.status_code == 200
     token = response.json['token']
 
+def test_login_then_logout():
+    global token
+    test_login()
+    test_logout()
 
 def test_logout_failed_not_logged_in():
     global token
@@ -498,12 +502,11 @@ default_payment_method = {'payment method': 'bogo'}
 
 default_supply_method = "bogo"
 
-default_address_checkout = {'address_id': 0, 
-                            'address': 'randomstreet 34th', 
-                            'city': 'arkham', 
+default_address_checkout = {'address': 'randomstreet 34th', 
+                            'city': 'arkham',
+                            'state': 'gotham', 
                             'country': 'Wakanda', 
-                            'state': 'Utopia', 
-                            'postal_code': '12345'}
+                            'zip_code': '12345'}
 
 def test_show_purchase_history_of_user():
     global token 

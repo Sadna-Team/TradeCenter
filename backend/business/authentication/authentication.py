@@ -2,8 +2,9 @@ from datetime import timedelta
 from .. import UserFacade
 from flask_jwt_extended import create_access_token, decode_token, get_jwt_identity
 from backend.error_types import *
+import logging
 
-
+logger = logging.getLogger('myapp')
 
 # from backend import bcrypt, jwt
 
@@ -84,6 +85,7 @@ class Authentication:
         new_user_id = self.user_facade.create_user()
         token = self.generate_token(new_user_id)
         self.guests.add(new_user_id)
+        logger.info('guest entered the app successfully - user_id: ' + str(new_user_id))
         return token
 
     # @jwt_required()

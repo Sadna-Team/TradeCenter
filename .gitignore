@@ -1,5 +1,6 @@
 .vscode/
 .backendvenv/
+.frontendvenv/
 .pytest_cache/
 tests/__pycache__/
 tests/unit_tests/__pycache__/
@@ -18,3 +19,4 @@ backend/services/ecommerce_services/__pycache__/
 backend/services/store_services/__pycache__/
 backend/services/user_services/__pycache__/
 backend/services/third_party_services/__pycache__/
+backend/app.log

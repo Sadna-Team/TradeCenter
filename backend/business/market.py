@@ -2,7 +2,7 @@ from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
 from .DTOs import AddressDTO, BidPurchaseDTO, NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO, \
-    PurchaseUserDTO, UserInformationForConstraintDTO
+    PurchaseUserDTO, UserInformationForConstraintDTO, RoleNominationDTO, NominationDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
@@ -46,6 +46,7 @@ class MarketFacade:
             # create the admin?
             self.__create_admin()
 
+
     def __create_admin(self, currency: str = "USD") -> None:
         man_id = self.user_facade.create_user(currency)
         hashed_password = self.auth_facade.hash_password("admin")
@@ -68,6 +69,44 @@ class MarketFacade:
 
         # create the admin?
         self.__create_admin()
+
+    def default_setup(self):
+        self.clean_data()
+        # users:
+        uid1 = self.user_facade.create_user("USD")
+        uid2 = self.user_facade.create_user("USD")
+
+        uc1 = {
+            "username": "user1",
+            "password": "1234",
+            "email": "example1@gmail.com",
+            "year": 2001,
+            "month": 2,
+            "day": 2,
+            "phone": "0522222222"
+        }
+
+        uc2 = {
+            "username": "user2",
+            "password": "5678",
+            "email": "example2@gmail.com",
+            "year": 2002,
+            "month": 2,
+            "day": 2,
+            "phone": "0522222222"
+        }
+
+        self.auth_facade.register_user(uid1,uc1)
+        self.auth_facade.register_user(uid2, uc2)
+        
+        # stores:
+        store_id = self.add_store(uid1, 1, "store1")
+        self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
+        self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
+        self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
+        self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
+
+        self.nominate_store_owner(store_id, uid1, "user2")
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
@@ -105,11 +144,11 @@ class MarketFacade:
                 birthdate = date(user_dto.year, user_dto.month, user_dto.day)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, birthdate)
 
-            if 'address_id' not in address or 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'postal_code' not in address:
+            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip_code' not in address:
                 raise ThirdPartyHandlerError("Address information is missing", ThirdPartyHandlerErrorTypes.missing_address)
-            address_of_user_for_discount: AddressDTO = AddressDTO(address['address_id'], address['address'],
+            address_of_user_for_discount: AddressDTO = AddressDTO(address['address'],
                                                                   address['city'], address['state'],
-                                                                  address['country'], address['postal_code'])
+                                                                  address['country'], address['zip_code'])
 
 
             user_info_for_constraint_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
@@ -314,6 +353,18 @@ class MarketFacade:
             
         self.roles_facade.add_system_manager(actor, user_id)
         logger.info(f"User {actor} has added user {user_id} as a system manager")
+
+    def get_user_nominations(self, user_id: int):
+        nominations = self.roles_facade.get_user_nominations(user_id)
+        ret = {}
+        for nid, nomination in nominations.items():
+            ret[nid] = NominationDTO(nid, nomination.store_id,
+                                     self.store_facade.get_store_info(nomination.store_id).store_name,
+                                     nomination.nominator_id,
+                                     self.user_facade.get_userDTO(nomination.nominator_id, "").username,
+                                     user_id, nomination.role)
+        return ret
+
 
     def add_payment_method(self, user_id: int, method_name: str, payment_config: Dict):
         if self.user_facade.suspended(user_id):
@@ -1045,6 +1096,9 @@ class MarketFacade:
             user_id):
             raise UserError("User is not a store owner or manager", UserErrorTypes.user_not_a_manager_or_owner)
         return self.purchase_facade.get_purchases_of_store(store_id)
+
+
+    
 
     '''def view_purchases_of_user_in_store(self, user_id: int, store_id: int) -> str:
         """
