@@ -21,6 +21,7 @@ const SearchForm = ({ onSearch, categories, stores }) => {
                             value={selectedCategory}
                             className="w-full p-2 border border-gray-300 rounded mt-1"
                             onChange={(e) => setSelectedCategory(e.target.value)}
+                            required
                         >
                             <option value="">Select category</option>
                             {categories.map((category) => (

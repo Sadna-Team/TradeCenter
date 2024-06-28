@@ -11,7 +11,15 @@ export default function SearchByTags() {
     const [allTags, setAllTags] = useState([]);
     const [storeIdToName, setStoreIdToName] = useState({});
 
+    const validate = (tags, storeName) => {
+      return tags !== null && tags.length !== undefined && tags.length > 0;
+    };
+
     const handleSearch = async (tags, storeName) => {
+        if (!validate(tags, storeName)) {
+          setErrorMessage('Please select at least one tag');
+          return;
+        }
         const store_id = Object.keys(storeIdToName).find((key) => storeIdToName[key] === storeName);
         
         console.log("tags: ", tags);
@@ -108,7 +116,7 @@ export default function SearchByTags() {
     return (
         <div>
             <SearchForm onSearch={handleSearch} tags={allTags} stores={Object.values(storeIdToName)}/>
-            {errorMessage && <div className="error">{errorMessage}</div>}
+            {errorMessage && <span className="text-red-500 text-sm">{errorMessage}</span>}
             {Object.keys(results).length > 0 && (
                 <div>
                     {renderResults()}
