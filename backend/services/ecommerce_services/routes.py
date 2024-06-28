@@ -117,7 +117,9 @@ def search_products_by_tags():
     """
     logger.info('recieved request to search for products')
     try:
+        logger.info('checkpoint 1')
         data = request.get_json()
+        logger.info('data- ', data)
         tags_helper = data['tags']
         if not isinstance(tags_helper, list):
             raise ServiceLayerError('tags must be a list', ServiceLayerErrorTypes.tags_not_list)

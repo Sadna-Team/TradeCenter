@@ -950,6 +950,8 @@ class StoreFacade:
             self.__store_id_counter = 0  # Counter for store IDs
             self.__store_id_lock = threading.Lock() # lock for store id
             self.__discount_id_counter = 0  # Counter for discount IDs
+            self.__discount_id_lock = threading.Lock() # lock for discount id
+            self.__tags: Dict[str, int] = {} # existing product tags for fast access (tagname -> count)
             logger.info('successfully created storeFacade')
 
     def clean_data(self):
@@ -962,6 +964,7 @@ class StoreFacade:
         self.__category_id_counter = 0
         self.__store_id_counter = 0
         self.__discount_id_counter = 0
+        self.__tags = {}
 
     # ---------------------getters and setters---------------------
     @property
@@ -1119,7 +1122,14 @@ class StoreFacade:
         logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
         if amount is None:
             amount = 0
-        return store.add_product(product_name, description, price, tags, weight, amount)
+        product_id =  store.add_product(product_name, description, price, tags, weight, amount)
+        for tag in tags:
+            if tag not in self.__tags:
+                self.__tags[tag] = 1
+            else:
+                self.__tags[tag] += 1
+
+        return product_id
 
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
@@ -1131,8 +1141,13 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         store.acquire_lock()
         try:
+            tags = store.get_product_by_id(product_id).tags
             store.remove_product(product_id)
             store.release_lock()
+            for tag in tags:
+                self.__tags[tag] -= 1
+                if self.__tags[tag] == 0:
+                    self.__tags.pop(tag)
         except Exception as e:
             store.release_lock()
             raise e
@@ -1197,6 +1212,10 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.add_tag_to_product(product_id, tag)
+        if tag not in self.__tags:
+            self.__tags[tag] = 1
+        else:
+            self.__tags[tag] += 1
 
     def remove_tag_from_product(self, store_id: int, product_id: int, tag: str) -> None:
         """
@@ -1208,6 +1227,9 @@ class StoreFacade:
         if store is None:
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         store.remove_tag_from_product(product_id, tag)
+        self.__tags[tag] -= 1
+        if self.__tags[tag] == 0:
+            self.__tags.pop(tag)
 
     def get_tags_of_product(self, store_id: int, product_id: int) -> List[str]:
         """
@@ -2063,3 +2085,17 @@ class StoreFacade:
                             products[store.store_id] = []
                         products[store.store_id].append(product)
         return products
+    
+    def get_all_tags(self) -> List[str]:
+        """
+        * This function gets all the tags in the system
+        * Returns: a list of tags
+        """
+        return list(self.__tags.keys())
+    
+    def get_all_store_names(self) -> Dict[int, str]:
+        """
+        * This function gets all the store names in the system
+        * Returns: a dict from store_id to store_name
+        """
+        return {store_id: store.store_name for store_id, store in self.__stores.items()}

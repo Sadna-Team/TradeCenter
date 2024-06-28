@@ -928,3 +928,35 @@ def assign_predicate_to_purchase_policy():
         return jsonify({'message': str(e)}), 400
 
     return store_service.assign_predicate_to_purchase_policy(user_id, store_id, policy_id, predicate_builder)
+
+@store_bp.route('/tags', methods=['GET'])
+@jwt_required()
+def get_all_product_tags():
+    """
+        Helper for search by tags
+        Get all the tags of a product
+    """
+    logger.info('received request to get all product tags')
+    try:
+        _ = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_product_tags - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_product_tags()
+
+@store_bp.route('/store_ids_to_names', methods=['GET'])
+@jwt_required()
+def get_all_store_names():
+    """
+        Helper for search by store
+        Get all the names of the stores
+    """
+    logger.info('received request to get all store names')
+    try:
+        _ = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_store_names - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_store_names()
