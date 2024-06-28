@@ -86,7 +86,7 @@ def show_user_purchase_history():
     return purchase_service.show_purchase_history_of_user(user_id, requested_id, store_id)
 
 
-@market_bp.route('/search_products_by_category', methods=['GET'])
+@market_bp.route('/search_products_by_category', methods=['POST'])
 @jwt_required()
 def search_products_by_category():
     """

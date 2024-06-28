@@ -488,3 +488,15 @@ class StoreService:
             logger.error('store ids to names were not sent')
             return jsonify({'message': str(e)}), 400
         
+    def get_all_categories(self):
+        """
+            Get all the categories in the system
+        """
+        try:
+            categories = self.__market_facade.get_all_categories()
+            logger.info('categories were sent successfully')
+            return jsonify({'message': categories}), 200
+        except Exception as e:
+            logger.error('categories were not sent')
+            return jsonify({'message': str(e)}), 400
+        

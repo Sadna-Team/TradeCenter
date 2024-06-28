@@ -2099,3 +2099,10 @@ class StoreFacade:
         * Returns: a dict from store_id to store_name
         """
         return {store_id: store.store_name for store_id, store in self.__stores.items()}
+    
+    def get_all_categories(self) -> Dict[int, str]:
+        """
+        * This function gets all the category names in the system
+        * Returns: a dict from category_id to category_name
+        """
+        return {category_id: category.category_name for category_id, category in self.__categories.items()}

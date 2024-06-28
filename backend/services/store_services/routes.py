@@ -960,3 +960,19 @@ def get_all_store_names():
         return jsonify({'message': str(e)}), 400
 
     return store_service.get_all_store_names()
+
+@store_bp.route('/category_ids_to_names', methods=['GET'])
+@jwt_required()
+def get_all_category_names():
+    """
+        Helper for search by category
+        Get all the names of the categories
+    """
+    logger.info('received request to get all category names')
+    try:
+        _ = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_category_names - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_categories()
