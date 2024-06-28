@@ -889,6 +889,17 @@ class Store:
             return self.__purchase_policy[policy_id]
         except KeyError:
             raise StoreError("purchase policy is not found", StoreErrorTypes.policy_not_found)
+        
+    def view_all_purchase_policies(self) -> List[dict]:
+        """
+        * Parameters: none
+        * This function gets all the purchase policies of the store
+        * Returns: all the purchase policies of the store
+        """
+        policies = []
+        for policy in self.__purchase_policy.values():
+            policies.append(policy.get_policy_info_as_dict())
+        return policies
 
     def get_tags_of_product(self, product_id: int) -> List[str]:
         """
@@ -1863,6 +1874,14 @@ class StoreFacade:
         logger.info('[StoreFacade] successfully applied discount')
         return store.check_purchase_policies_of_store(basket_info)
             
+    def view_all_purchase_policies_of_store(self, store_id: int) -> List[dict]:
+        """
+        * Parameters: store_id
+        * This function returns all the purchase policies of the store
+        * Returns: the list of purchase policies
+        """
+        store = self.__get_store_by_id(store_id)
+        return store.view_all_purchase_policies()
     
 
     def validate_purchase_policies(self, shopping_cart: Dict[int, Dict[int, int]], user_info: UserInformationForConstraintDTO) -> bool:

@@ -645,7 +645,21 @@ class MarketFacade:
             self.store_facade.assign_predicate_to_purchase_policy(store_id, policy_id, predicate_properties)
         else:
             raise UserError("User does not have the necessary permissions to assign a predicate to a policy in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
+        
 
+    def view_all_policies_of_store(self, user_id: int , store_id:int) -> dict:
+        """
+        * Parameters: user_id, store_id
+        * This function returns all the purchase policies of a store
+        * Returns a dict of policies
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id) or self.roles_facade.is_owner(store_id, user_id):
+            return self.store_facade.view_all_policies_of_store(store_id)
+        else:
+            raise UserError("User does not have the necessary permissions to view the policies of the store", UserErrorTypes.user_does_not_have_necessary_permissions)
+       
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
                     weight: float, tags: List[str], amount: Optional[int] = 0) -> int:

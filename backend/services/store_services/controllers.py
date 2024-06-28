@@ -137,6 +137,15 @@ class StoreService:
         except Exception as e:
             logger.error('predicate was not assigned')
             return jsonify({'message': str(e)}), 400
+    
+    def view_all_policies_of_store(self, user_id: int, store_id: int):
+        try:
+            info = self.__market_facade.view_all_policies_of_store(user_id, store_id)
+            logger.info('policies info was sent successfully')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('policies info was not sent')
+            return jsonify({'message': str(e)}), 400
 
 
     def show_store_info(self, store_id: int):

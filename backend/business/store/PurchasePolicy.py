@@ -48,7 +48,7 @@ class PurchasePolicy(ABC):
         pass
 
     @abstractmethod
-    def get_policy_info_as_dict(self):
+    def get_policy_info_as_dict(self) -> dict:
         pass
 # --------------- ProductPolicy class ---------------#
 class ProductSpecificPurchasePolicy(PurchasePolicy):
@@ -74,7 +74,7 @@ class ProductSpecificPurchasePolicy(PurchasePolicy):
     def set_predicate(self, predicate: Constraint):
         self._predicate = predicate
 
-    def get_policy_info_as_dict(self):
+    def get_policy_info_as_dict(self) -> dict:
         return {
             "purchase_policy_type": "ProductSpecificPurchasePolicy",
             "purchase_policy_id": self.purchase_policy_id,
@@ -113,7 +113,7 @@ class CategorySpecificPurchasePolicy(PurchasePolicy):
     def set_predicate(self, predicate: Constraint):
         self._predicate = predicate
     
-    def get_policy_info_as_dict(self):
+    def get_policy_info_as_dict(self) -> dict:
         return {
             "purchase_policy_type": "CategorySpecificPurchasePolicy",
             "purchase_policy_id": self.purchase_policy_id,
@@ -143,7 +143,7 @@ class BasketSpecificPurchasePolicy(PurchasePolicy):
         self._predicate = predicate
 
 
-    def get_policy_info_as_dict(self):
+    def get_policy_info_as_dict(self) -> dict:
         return {
             "purchase_policy_type": "BasketSpecificPurchasePolicy",
             "purchase_policy_id": self.purchase_policy_id,
@@ -182,7 +182,7 @@ class AndPurchasePolicy(PurchasePolicy):
         logger.info("[AndPurchasePolicy] Unable to set predicate for AndPurchasePolicy")
         pass 
     
-    def get_policy_info_as_dict(self):
+    def get_policy_info_as_dict(self) -> dict:
         policy_left = self.policy_left.get_policy_info_as_dict()
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {
@@ -223,7 +223,7 @@ class OrPurchasePolicy(PurchasePolicy):
         logger.info("[OrPurchasePolicy] Unable to set predicate for OrPurchasePolicy")
         pass
     
-    def get_policy_info_as_dict(self):
+    def get_policy_info_as_dict(self) -> dict:
         policy_left = self.policy_left.get_policy_info_as_dict()
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {
@@ -267,7 +267,7 @@ class ConditioningPurchasePolicy(PurchasePolicy):
         logger.info("[ConditioningPurchasePolicy] Unable to set predicate for ConditioningPurchasePolicy")
         pass
 
-    def get_policy_info_as_dict(self):
+    def get_policy_info_as_dict(self) -> dict:
         policy_left = self.policy_left.get_policy_info_as_dict()
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {

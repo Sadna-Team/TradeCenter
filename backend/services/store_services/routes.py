@@ -928,3 +928,22 @@ def assign_predicate_to_purchase_policy():
         return jsonify({'message': str(e)}), 400
 
     return store_service.assign_predicate_to_purchase_policy(user_id, store_id, policy_id, predicate_builder)
+
+
+@store_bp.route('/view_all_policies_of_store', methods=['GET'])
+@jwt_required()
+def view_all_policies_of_store():
+    """
+        Use Case ____(idk I need to check)
+        View all the policies of a store
+    """
+    logger.info('received request to view all policies of store')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('view_all_policies_of_store - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.view_all_policies_of_store(user_id, store_id)
