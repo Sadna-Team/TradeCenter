@@ -99,7 +99,7 @@ class Authentication:
             token = self.generate_token(user_id)
             notification = self.user_facade.get_notifications(user_id)
             self.logged_in.add(user_id)
-            return token, notification
+            return token, notification, user_id
 
     def logout_user(self, jti, user_id):
         if user_id not in self.logged_in:

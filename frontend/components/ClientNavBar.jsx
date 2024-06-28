@@ -70,6 +70,7 @@ const ClientNavBar = ({ onToggleSidebar }) => {
     sessionStorage.removeItem('token');
     sessionStorage.setItem('isConnected', false);
     sessionStorage.setItem('listener', false);
+    sessionStorage.removeItem('admin')
     window.location.href = '/';
   };
 

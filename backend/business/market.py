@@ -46,8 +46,8 @@ class MarketFacade:
             # create the admin?
             self.__create_admin()
 
-    def test(self):
-        self.notifier.send_real_time_notification(0, NotificationDTO(-1, "test", datetime.now()))
+    def test(self,user_id):
+        self.notifier.send_real_time_notification(user_id, NotificationDTO(-1, "test", datetime.now()))
         logger.info("test notification sent")
 
 

@@ -26,7 +26,12 @@ export default function Login() {
       const data = response.data;
       const token = data.token; // Extract the token from the response data
       sessionStorage.setItem('token', token); // Store the token in sessionStorage
+      const admin = data.admin;
+      sessionStorage.setItem('admin', admin);
       console.log('Token:', token); // Optional: log the token for debugging
+      console.log('Admin:', admin); // Optional: log the admin status for debugging
+
+      const notifications = data.notification;
 
       // Open a WebSocket connection and emit join
       sessionStorage.setItem('token', token);
