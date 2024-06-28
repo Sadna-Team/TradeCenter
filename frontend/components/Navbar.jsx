@@ -1,7 +1,7 @@
-// frontend/components/NavbarWrapper.jsx
+// NavbarWrapper.jsx
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import GuestNavBar from './GuestNavBar';
 import ClientNavBar from './ClientNavBar';
 

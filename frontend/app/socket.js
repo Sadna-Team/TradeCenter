@@ -1,48 +1,59 @@
-// app/socket.js
-
-import React, { createContext, useState } from 'react';
+// SocketSingleton.js
+import { useRouter } from 'next/navigation';
 import { io } from 'socket.io-client';
 
-const socketContext = createContext(null);
+class SocketSingleton {
+    static instance = null;
+  constructor(token) {
+    if (!SocketSingleton.instance) {
+      this.socket = io('http://localhost:5000', {
+        autoConnect: false,
+        extraHeaders: {
+          Authorization: 'Bearer ' + token,
+        },
+      });
 
-export const SocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState(null);
+      this.socket.connect();
+      this.socket.emit('join');
 
-  const buildSocket = (token) => {
-    const socketInstance = io('http://localhost:5000', {
-      autoConnect: false,
-      extraHeaders: {
-        Authorization: 'Bearer ' + token,
-      },
-    });
+      this.socket.on('connected', () => {
+        if (sessionStorage.getItem('isConnected') !== 'true') {
+          console.log('Socket connected:', this.socket.connected);
+          sessionStorage.setItem('isConnected', true);
+          // sessionStorage.setItem('listener', false);
+        }
+      });
 
-    socketInstance.connect();
-    socketInstance.emit('join');
 
-    socketInstance.on('connected', () => {
-      console.log('Socket connected:', socketInstance.connected);
-    });
+      this.socket.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
+        sessionStorage.setItem('isConnected', false);
+        sessionStorage.setItem('listener', false);
+        if ((reason === 'io server disconnect' || reason === 'io client disconnect') && sessionStorage.getItem('isConnected') === 'true') {
+          // Reconnect logic
+          setTimeout(() => {
+            this.socket.connect();
+          }, 1000); // Retry connection after 1 second
+      }
+});
 
-    setSocket(socketInstance);
-
-    return socketInstance;
-  };
-
-  const closeSocket = () => {
-    if (socket) {
-      socket.disconnect();
-      console.log('Socket disconnected');
+      SocketSingleton.instance = this;
     }
-  };
 
-  // Provide socket and functions through context
-  return (
-    <socketContext.Provider value={{ socket, buildSocket, closeSocket }}>
-      {children}
-    </socketContext.Provider>
-  );
-};
+    return SocketSingleton.instance;
+  }
 
-export const useSocket = () => {
-  return React.useContext(socketContext);
-};
+  getInstance() {
+    return this.socket;
+  }
+
+  static closeSocket() {
+    if (SocketSingleton.instance) {
+      SocketSingleton.instance.socket.disconnect();
+      console.log('Socket disconnected');
+      SocketSingleton.instance = null;
+    }
+  }
+}
+
+export default SocketSingleton;

@@ -28,11 +28,9 @@ def handle_connect(data):
     logger.info(f"Client {get_jwt_identity()} connected")
 
 
-# @socketio.on('disconnect')
-def handle_disconnect(id):
+@socketio_manager.on('disconnect')
+def handle_disconnect(id = None):
     logger.info(f"Client {id} disconnected")
-
-
 
 @socketio_manager.on('join')
 @jwt_required()
@@ -46,12 +44,6 @@ def handle_join():
     emit('connected', {'data': 'Connected to the server'}, room=room)
 
 
-
-
-
-
-
-
 @socketio_manager.on('leave')
 @jwt_required()
 def handle_leave():
@@ -59,7 +51,6 @@ def handle_leave():
     logger.info(f'Client leaving room {room}')
     leave_room(room)
     handle_disconnect(room)
-
 
 class Config:
     SECRET_KEY = secrets.token_urlsafe(32)  # Generate a random secret key

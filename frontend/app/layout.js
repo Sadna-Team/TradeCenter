@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import { useState } from 'react';
-import {SocketProvider} from './socket';
+import { SocketProvider } from './socketContext';
 
 export default function RootLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
