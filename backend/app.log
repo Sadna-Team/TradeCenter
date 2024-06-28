@@ -31,26 +31,3 @@ werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it 
  * Running on http://127.0.0.1:5000
  * Running on http://192.168.7.11:5000
 werkzeug - INFO - [33mPress CTRL+C to quit[0m
-myapp - INFO - recieved request from a guest to enter the app
-myapp - INFO - guest entered the app successfully - user_id: 3
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:22] "GET /auth/ HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:25] "OPTIONS /auth/login HTTP/1.1" 200 -
-myapp - INFO - received request to login a user
-myapp - INFO - User logged in successfully
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:25] "POST /auth/login HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:25] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1R09-i HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:26] "GET /socket.io/?EIO=4&transport=polling&t=P1R09-i HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:26] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1R0A3j&sid=KBgkSHvg_SXokgJVAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:26] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1R0A3k&sid=KBgkSHvg_SXokgJVAAAA HTTP/1.1" 200 -
-myapp - INFO - Connect data: None
-myapp - INFO - Client 0 connected
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:26] "POST /socket.io/?EIO=4&transport=polling&t=P1R0A3j&sid=KBgkSHvg_SXokgJVAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:26] "GET /socket.io/?EIO=4&transport=polling&t=P1R0A3k&sid=KBgkSHvg_SXokgJVAAAA HTTP/1.1" 200 -
-myapp - INFO - Connect data: 0
-myapp - INFO - Client 0 connected
-myapp - INFO - Client joining room 0
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:26] "GET /socket.io/?EIO=4&transport=websocket&sid=KBgkSHvg_SXokgJVAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:27] "OPTIONS /market/test HTTP/1.1" 200 -
-myapp - INFO - sent message to user 0
-Market logger - INFO - test notification sent
-werkzeug - INFO - 127.0.0.1 - - [27/Jun/2024 21:41:28] "GET /market/test HTTP/1.1" 200 -

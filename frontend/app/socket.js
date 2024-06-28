@@ -21,7 +21,6 @@ export const SocketProvider = ({ children }) => {
 
     socketInstance.on('connected', () => {
       console.log('Socket connected:', socketInstance.connected);
-      window.location.href = '/';
     });
 
     setSocket(socketInstance);
@@ -36,6 +35,7 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
+  // Provide socket and functions through context
   return (
     <socketContext.Provider value={{ socket, buildSocket, closeSocket }}>
       {children}
@@ -44,9 +44,5 @@ export const SocketProvider = ({ children }) => {
 };
 
 export const useSocket = () => {
-  const context = React.useContext(socketContext);
-  if (!context) {
-    throw new Error('useSocket must be used within a SocketProvider');
-  }
-  return context;
+  return React.useContext(socketContext);
 };

@@ -1,6 +1,7 @@
 // frontend/components/NavbarWrapper.jsx
+
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import GuestNavBar from './GuestNavBar';
 import ClientNavBar from './ClientNavBar';
 
@@ -34,7 +35,7 @@ const NavbarWrapper = ({ onToggleSidebar }) => {
 
   return isHydrated ? (
     isConnected ? (
-        <ClientNavBar onToggleSidebar={onToggleSidebar} isConnected={isConnected} />
+      <ClientNavBar onToggleSidebar={onToggleSidebar} isConnected={isConnected} />
     ) : (
       <GuestNavBar />
     )

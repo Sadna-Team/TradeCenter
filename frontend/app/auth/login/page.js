@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { useSocket } from "@/app/socket";
+import { useSocket } from '@/app/socket'; // Import the useSocket hook
 import Modal from '@/components/Modal'; // Import the Modal component
 import api from '@/lib/api';
 import Popup from '@/components/Popup';

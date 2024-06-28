@@ -6,26 +6,27 @@ import Logo from './Logo';
 import Button from './Button';
 import Popup from './Popup';
 import NotificationPopup from './NotificationPopup';
-import {  useSocket } from "@/app/socket"; // Use the custom hook
+import {useSocket } from "@/app/socket"; // Use the custom hook
 
-const ClientNavBar = ({ onToggleSidebar, isConnected }) => {
-  const { socket, closeSocket } = useSocket(); // Get the socket instance and close function
+const ClientNavBar = ({ onToggleSidebar }) => {
+  const { socket, buildSocket, closeSocket } = useSocket(); // Get socket instance and functions
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (socket && !sessionStorage.getItem('listener')) {
-      sessionStorage.setItem('listener', true); // Set the listener flag to true
+    if (socket) {
+      // Example: Listen for incoming messages
       socket.on('message', (data) => {
-        sessionStorage.setItem('received', true);
-      } );
+        console.log('Received message:', data);
+        // Handle notifications or other logic here
+        setNotifications(prevNotifications => [...prevNotifications, data.message]);
+      });
 
-      console.log('Socket listener added');
-
+      // Example: Cleanup on unmount
       return () => {
-        socket.off('message'); // Clean up socket listener on unmount
+        socket.off('message');
       };
     }
   }, [socket]);
