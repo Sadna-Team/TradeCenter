@@ -53,7 +53,8 @@ class Notifier:
 
     def send_real_time_notification(self, user_id, notification: NotificationDTO):
         message = jsonify({'message': notification.to_json()})
-        self.socketio_manager.send(notification.to_json(), json=True, to=user_id)
+        # self.socketio_manager.send(notification.to_json(), json=True, to=user_id)
+        self.socketio_manager.emit('message', notification.to_json(), room=user_id)
         # self.socketio_manager.send(message, json=True, to=user_id)
         logger.info(f"sent message to user {user_id}")
 

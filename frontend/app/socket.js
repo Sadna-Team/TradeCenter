@@ -1,33 +1,59 @@
+// SocketSingleton.js
+import { useRouter } from 'next/navigation';
 import { io } from 'socket.io-client';
 
-let socketInstance = null; // Global variable to store the socket instance
+class SocketSingleton {
+    static instance = null;
+  constructor(token) {
+    if (!SocketSingleton.instance) {
+      this.socket = io('http://localhost:5000', {
+        autoConnect: false,
+        extraHeaders: {
+          Authorization: 'Bearer ' + token,
+        },
+      });
 
-export function buildSocket(token, close) {
-  if (socketInstance) { // Disconnect the socket instance if it exists
-    socketInstance.disconnect();
-    console.log('Socket disconnected:', socketInstance.connected);
+      this.socket.connect();
+      this.socket.emit('join');
+
+      this.socket.on('connected', () => {
+        if (sessionStorage.getItem('isConnected') !== 'true') {
+          console.log('Socket connected:', this.socket.connected);
+          sessionStorage.setItem('isConnected', true);
+          // sessionStorage.setItem('listener', false);
+        }
+      });
+
+
+      this.socket.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
+        sessionStorage.setItem('isConnected', false);
+        sessionStorage.setItem('listener', false);
+        if ((reason === 'io server disconnect' || reason === 'io client disconnect') && sessionStorage.getItem('isConnected') === 'true') {
+          // Reconnect logic
+          setTimeout(() => {
+            this.socket.connect();
+          }, 1000); // Retry connection after 1 second
+      }
+});
+
+      SocketSingleton.instance = this;
+    }
+
+    return SocketSingleton.instance;
   }
-  
-  if (close) return; // Return if the close flag is set
 
-  // Create a new socket instance
-  socketInstance = io('http://localhost:5000', {
-    autoConnect: false,  // Prevent auto connection to ensure headers can be set first
-    extraHeaders: {
-      Authorization: 'Bearer ' + token,  // Set the Authorization header with the token
-    },
-  });
+  getInstance() {
+    return this.socket;
+  }
 
-  // Connect the socket instance when created
-  socketInstance.connect();
-  socketInstance.emit('join');
-  console.log('Socket connected:', socketInstance.connected);
-
-  return socketInstance; // Return the socket instance
+  static closeSocket() {
+    if (SocketSingleton.instance) {
+      SocketSingleton.instance.socket.disconnect();
+      console.log('Socket disconnected');
+      SocketSingleton.instance = null;
+    }
+  }
 }
 
-export function closeSocket() {
-  buildSocket(0, true); // Rebuild the socket instance to disconnect
-}
-
-export default socketInstance; // Export the global socket instance
+export default SocketSingleton;
