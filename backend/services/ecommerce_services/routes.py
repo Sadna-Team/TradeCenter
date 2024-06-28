@@ -14,6 +14,12 @@ market_bp = Blueprint('market', __name__)
 
 purchase_service = PurchaseService()
 
+@market_bp.route('/test', methods=['GET'])
+@jwt_required()
+def test():
+    purchase_service.test()
+    return jsonify({'message': 'test'}), 200
+
 @market_bp.route('/checkout', methods=['POST'])
 @jwt_required()
 def checkout():

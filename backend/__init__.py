@@ -9,7 +9,7 @@ from backend.business.DTOs import NotificationDTO
 from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from flask_cors import CORS
-
+import threading
 # -------------logging configuration----------------
 import logging
 
@@ -28,10 +28,9 @@ def handle_connect(data):
     logger.info(f"Client {get_jwt_identity()} connected")
 
 
-# @socketio.on('disconnect')
-def handle_disconnect(id):
+@socketio_manager.on('disconnect')
+def handle_disconnect(id = None):
     logger.info(f"Client {id} disconnected")
-
 
 @socketio_manager.on('join')
 @jwt_required()
@@ -42,7 +41,7 @@ def handle_join():
     join_room(room=room)
 
     # Send a message to the client
-    emit('message', {'data': 'Connected', 'room': room})
+    emit('connected', {'data': 'Connected to the server'}, room=room)
 
 
 @socketio_manager.on('leave')
@@ -52,7 +51,6 @@ def handle_leave():
     logger.info(f'Client leaving room {room}')
     leave_room(room)
     handle_disconnect(room)
-
 
 class Config:
     SECRET_KEY = secrets.token_urlsafe(32)  # Generate a random secret key
@@ -78,11 +76,11 @@ def create_app(mode='development'):
 
     if mode == 'development':
         # initialize default market data(for tests)
-        default_setup = input("Do you want to setup default data? (y/n): ")
-        default_setup = default_setup.lower()
-        default_setup = True if default_setup == 'y' else False
-        if default_setup:
-            MarketFacade().default_setup()
+        # default_setup = input("Do you want to setup default data? (y/n): ")
+        # default_setup = default_setup.lower()
+        # default_setup = True if default_setup == 'y' else False
+        # if default_setup:
+        MarketFacade().default_setup()
 
     from backend.services.user_services.routes import auth_bp, user_bp
     from backend.services.ecommerce_services.routes import market_bp

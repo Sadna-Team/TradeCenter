@@ -46,6 +46,10 @@ class MarketFacade:
             # create the admin?
             self.__create_admin()
 
+    def test(self):
+        self.notifier.send_real_time_notification(0, NotificationDTO(-1, "test", datetime.now()))
+        logger.info("test notification sent")
+
 
     def __create_admin(self, currency: str = "USD") -> None:
         man_id = self.user_facade.create_user(currency)
