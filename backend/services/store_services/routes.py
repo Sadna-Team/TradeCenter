@@ -311,6 +311,23 @@ def change_discount_description():
 
     return store_service.change_discount_description(user_id, discount_id, description)
 
+@store_bp.route('/view_discounts_info', methods=['GET'])
+@jwt_required()
+def view_discounts_info():
+    """
+        Use Case 2.4.2
+        View information about the discounts of the system
+    """
+    logger.info('received request to view discounts info')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+    except Exception as e:
+        logger.error('view_discounts_info - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.view_all_discount_info(user_id)
+
 @store_bp.route('/store_info', methods=['GET'])
 @jwt_required()
 def show_store_info():

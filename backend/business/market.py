@@ -561,6 +561,16 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to remove a discount")
 
+    def view_all_discount_information(self, user_id: int) -> List[Dict]:
+        """
+        * This function returns all the discount information
+        * Returns a list of dictionaries
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if not self.roles_facade.is_system_manager(user_id):
+            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        return self.store_facade.view_all_discount_information()
     # -------------Rating related methods-------------------#
     '''def add_store_rating(self, user_id: int, purchase_id: int, description: str, rating: float):
         """
