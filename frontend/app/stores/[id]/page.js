@@ -75,15 +75,32 @@ const StoreDetail = () => {
         
         {/* Management Buttons */}
         <div className="mb-6 flex justify-center">
-          <Link href="/manage_employee">
-            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Employees Management</div>
+        <Link 
+            href={{
+                  pathname:`/manage_employee/id`, 
+                  query: { id: id },
+                  }}>
+          <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Employees Management</div>
           </Link>
-          <Link href="/manage_discount">
-            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Discounts Management</div>
+          
+
+          <Link 
+            href={{
+                  pathname:`/manage_discount/id`, 
+                  query: { id: id },
+                  }}>
+          <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Discounts Management</div>
           </Link>
-          <Link href="/manage_policy">
-            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">Policy Management</div>
+        
+
+          <Link 
+            href={{
+                  pathname:`/manage_policy/id`, 
+                  query: { id: id },
+                  }}>
+          <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Policy Management</div>
           </Link>
+
         </div>
 
         {/* Products */}

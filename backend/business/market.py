@@ -110,6 +110,8 @@ class MarketFacade:
         self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
         self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
+        self.nominate_store_owner(store_id, uid1, "user2")
+
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
 
