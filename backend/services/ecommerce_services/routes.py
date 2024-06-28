@@ -136,7 +136,7 @@ def search_products_by_tags():
     return purchase_service.search_products_by_tags(tags, store_id)
 
 
-@market_bp.route('/search_products_by_name', methods=['GET'])
+@market_bp.route('/search_products_by_name', methods=['POST'])
 @jwt_required()
 def search_products_by_name():
     """

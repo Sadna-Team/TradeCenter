@@ -22,7 +22,6 @@ export default function SearchByTags() {
             return response;
         };
 
-        console.log("store name: ", storeName);
         const response = (storeName ? await makeCall({ tags, store_id }) : await makeCall({ tags }));
         if (response.status === 200) {
             setResults(response.data.message);
