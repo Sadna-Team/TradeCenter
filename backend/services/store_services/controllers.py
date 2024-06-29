@@ -99,6 +99,18 @@ class StoreService:
         except Exception as e:
             logger.error('discount description was not changed')
             return jsonify({'message': str(e)}), 400
+        
+    def view_all_discount_info(self, user_id: int):
+        """
+            View information about all discounts in the system
+        """
+        try:
+            info = self.__market_facade.get_all_discount_info(user_id)
+            logger.info('discount info was sent successfully')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('discount info was not sent')
+            return jsonify({'message': str(e)}), 400
 
     def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None):
         try:
@@ -144,11 +156,27 @@ class StoreService:
             Show information about the stores in the system
         """
         try:
-            info = self.__market_facade.get_store_info(store_id).get()
+            info = self.__market_facade.get_store_info(store_id) # storeDTO
+
+            # convert DTO to dict
+            info = info.get()
+
             logger.info('store info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:
             logger.error('store info was not sent')
+            return jsonify({'message': str(e)}), 400
+
+    def get_stores(self, page: int, limit: int):
+        """
+            Get a list of stores
+        """
+        try:
+            stores = {sid: s.get() for sid, s in self.__market_facade.get_stores(page, limit).items()}
+            logger.info('stores were sent successfully')
+            return jsonify({'message': stores}), 200
+        except Exception as e:
+            logger.error('stores were not sent')
             return jsonify({'message': str(e)}), 400
 
     def show_store_products(self, store_id: int):
@@ -161,6 +189,18 @@ class StoreService:
             return jsonify({'message': info}), 200
         except Exception as e:
             logger.error('store products info was not sent')
+            return jsonify({'message': str(e)}), 400
+
+    def get_product_info(self, store_id, product_id: int):
+        """
+            Show information about a product
+        """
+        try:
+            info = self.__market_facade.get_product_info(store_id, product_id).get()
+            logger.info('product info was sent successfully')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('product info was not sent')
             return jsonify({'message': str(e)}), 400
 
     def add_new_store(self, user_id: int, location_id: int, store_name: str):
@@ -463,4 +503,52 @@ class StoreService:
         except Exception as e:
             logger.error('employees info was not sent')
             return jsonify({'message': str(e)}), 400
+          
+    def my_stores(self, user_id):
+        """
+            Get the stores of a user
+        """
+        try:
+            stores = self.__market_facade.get_my_stores(user_id)
+            logger.info('my stores were sent successfully')
+            return jsonify({'message': stores}), 200
+        except Exception as e:
+            logger.error('my stores were not sent')
+            return jsonify({'message': str(e)}), 400
         
+    def get_all_product_tags(self):
+        """
+            Get all the tags of the products in the system
+        """
+        try:
+            tags = self.__market_facade.get_all_product_tags()
+            logger.info('tags were sent successfully')
+            return jsonify({'message': tags}), 200
+        except Exception as e:
+            logger.error('tags were not sent')
+            return jsonify({'message': str(e)}), 400
+        
+    def get_all_store_names(self):
+        """
+            Get all the names of the stores in the system
+        """
+        try:
+            names = self.__market_facade.get_all_store_names()
+            logger.info('store ids to names were sent successfully')
+            return jsonify({'message': names}), 200
+        except Exception as e:
+            logger.error('store ids to names were not sent')
+            return jsonify({'message': str(e)}), 400
+        
+    def get_all_categories(self):
+        """
+            Get all the categories in the system
+        """
+        try:
+            categories = self.__market_facade.get_all_categories()
+            logger.info('categories were sent successfully')
+            return jsonify({'message': categories}), 200
+        except Exception as e:
+            logger.error('categories were not sent')
+            return jsonify({'message': str(e)}), 400
+      
