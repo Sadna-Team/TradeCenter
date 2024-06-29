@@ -75,7 +75,7 @@ def login():
         username = data.get('username')
         password = data.get('password')
     except Exception as e:
-        logger.error('login - ' + str(e))
+        logger.error(('login - ' + str(e)))
         return jsonify({'message': str(e)}), 400
     return authentication_service.login(username, password)
 

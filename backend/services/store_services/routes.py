@@ -306,12 +306,12 @@ def change_discount_description():
         discount_id = int(data['discount_id'])
         description = str(data['description'])
     except Exception as e:
-        logger.error('change_discount_description - ', str(e))
+        logger.error(('change_discount_description - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return store_service.change_discount_description(user_id, discount_id, description)
 
-@store_bp.route('/store_info', methods=['GET'])
+@store_bp.route('/store_info', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_info():
     """
@@ -321,9 +321,10 @@ def show_store_info():
     logger.info('received request to send store info')
     try:
         data = request.get_json()
-        store_id = int(data['store_id'])
+        print(data)
+        store_id = 0 #int(data['store_id'])
     except Exception as e:
-        logger.error('show_store_info - ', str(e))
+        logger.error(('show_store_info - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return store_service.show_store_info(store_id)
@@ -928,3 +929,18 @@ def assign_predicate_to_purchase_policy():
         return jsonify({'message': str(e)}), 400
 
     return store_service.assign_predicate_to_purchase_policy(user_id, store_id, policy_id, predicate_builder)
+
+@store_bp.route('/my_stores', methods=['GET'])
+@jwt_required()
+def my_stores():
+    """
+        Use Case
+        Get all the stores that user is a part of
+    """
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error(('my_stores - ', str(e)))
+        return jsonify({'message': str(e)}), 400
+    
+    return store_service.my_stores(user_id)

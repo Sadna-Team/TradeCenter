@@ -1271,3 +1271,6 @@ class MarketFacade:
     def get_usersDTO_by_store(self, store_id: int) -> Dict[int, UserDTO]:
         roles = self.roles_facade.get_store_owners(store_id)
         return self.user_facade.get_users_dto(roles)
+
+    def get_my_stores(self, user_id):
+        return self.roles_facade.get_my_stores(user_id)
