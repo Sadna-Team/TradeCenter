@@ -43,17 +43,14 @@ export default function Home() {
         limit,
       });
       const data = response.data;
-      console.log('Data:', data);
       const formattedStores = Object.entries(data.message).map(([id, store]) => ({
         id,
         ...store,
       }));
-      console.log('Stores:', formattedStores);
       if (formattedStores.length < limit) {
         setHasMore(false);
       }
       setStores((prevStores) => [...prevStores, ...formattedStores]);
-      console.log('Stores:', stores);
       sessionStorage.setItem('stores', JSON.stringify(stores));
     } catch (error) {
       setErrorMessage('Error fetching stores');

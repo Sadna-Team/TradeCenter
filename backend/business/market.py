@@ -100,7 +100,17 @@ class MarketFacade:
             "phone": "0522222222"
         }
 
-        self.auth_facade.register_user(uid1,uc1)
+        default_payment_method = {'payment method': 'bogo'}
+
+        default_supply_method = "bogo"
+
+        default_address_checkout = { 'address': 'randomstreet 34th', 
+                                    'city': 'arkham', 
+                                    'state': 'gotham',
+                                    'country': 'Wakanda', 
+                                    'zip_code': '12345'}
+
+        self.auth_facade.register_user(uid1, uc1)
         self.auth_facade.register_user(uid2, uc2)
         
         # stores:
@@ -125,6 +135,12 @@ class MarketFacade:
         self.store_facade.assign_product_to_category(0, 0, 1)
         self.store_facade.assign_product_to_category(1, 0, 2)
         self.store_facade.assign_product_to_category(2, 0, 3)
+
+        # user 2 adds product 1 to basket
+        self.add_product_to_basket(uid2, 0, 0, 1)
+
+        # user 2 checks out
+        self.checkout(uid2, default_payment_method, default_supply_method, default_address_checkout)
         
          # add test notifications to admin
         self.notifier.notify_general_message(0, "test notification 1")

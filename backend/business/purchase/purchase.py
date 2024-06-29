@@ -190,7 +190,7 @@ class ImmediatePurchase(Purchase):
             price = shopping_cart[store_id][1]
             price_after_discounts = shopping_cart[store_id][2]
             immediate_sub_purchase = ImmediateSubPurchase(self.__get_new_sub_purchase_id(), store_id, user_id,
-                                                          None, price, price_after_discounts, PurchaseStatus.onGoing,
+                                                          self.date_of_purchase, price, price_after_discounts, PurchaseStatus.onGoing,
                                                           products)
             self._immediate_sub_purchases.append(immediate_sub_purchase)
         logger.info('[ImmediatePurchase] successfully created immediate purchase object with purchase id: %s',
@@ -741,7 +741,6 @@ class PurchaseFacade:
                                     total_price_after_discounts)
 
             self._purchases[pur.purchase_id] = pur
-
             return pur.purchase_id
 
     def __get_new_purchase_id(self) -> int:
@@ -757,6 +756,7 @@ class PurchaseFacade:
         """
         purchases: List[PurchaseDTO] = []
         for purchase in self._purchases.values():
+
             if purchase.user_id == user_id:
                 if isinstance(purchase, ImmediatePurchase):
                     for sub_purchase in purchase.immediate_sub_purchases:
@@ -766,7 +766,6 @@ class PurchaseFacade:
                                                         sub_purchase.total_price_after_discounts,
                                                         sub_purchase.status.value, sub_purchase.products))
                     # if another type of purchase
-
         return purchases
 
     def get_purchases_of_store(self, store_id: int) -> List[PurchaseDTO]:
