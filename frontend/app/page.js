@@ -62,7 +62,7 @@ export default function Home() {
     if (tokenFetched) {
       fetchStores(page);
     }
-  }, [page, tokenFetched]);
+  }, [page, tokenFetched]); // Dependency array to run the effect whenever page or tokenFetched changes
 
   const loadMoreStores = () => {
     setPage((prevPage) => prevPage + 1);

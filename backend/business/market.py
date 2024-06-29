@@ -104,13 +104,13 @@ class MarketFacade:
         self.auth_facade.register_user(uid2, uc2)
         
         # stores:
-        store_id = self.add_store(uid1, 1, "store1")
+        store_id = self.add_store(uid1, "","","","","","store1")
         self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
         self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
         self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
         self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
-        store_id = self.add_store(uid1, 2, "store2")
+        store_id = self.add_store(uid1, "","","","","","store2")
 
         self.nominate_store_owner(store_id, uid1, "user2")
 
