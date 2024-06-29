@@ -1317,8 +1317,10 @@ class MarketFacade:
         roles = self.roles_facade.get_store_owners(store_id)
         return self.user_facade.get_users_dto(roles)
       
-    def get_my_stores(self, user_id) -> List[int]:
-        return self.roles_facade.get_my_stores(user_id)
+    def get_my_stores(self, user_id) -> Dict[int, StoreDTO]:
+        store_ids = self.roles_facade.get_my_stores(user_id)
+        stores = {store_id: self.store_facade.get_store_info(store_id) for store_id in store_ids}
+        return stores
     
     def get_all_product_tags(self) -> List[str]:
         return self.store_facade.get_all_tags()

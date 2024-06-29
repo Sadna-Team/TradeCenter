@@ -510,6 +510,7 @@ class StoreService:
         """
         try:
             stores = self.__market_facade.get_my_stores(user_id)
+            stores = {sid: s.get() for sid, s in stores.items()}
             logger.info('my stores were sent successfully')
             return jsonify({'message': stores}), 200
         except Exception as e:

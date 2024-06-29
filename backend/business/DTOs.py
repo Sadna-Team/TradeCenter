@@ -188,7 +188,7 @@ class ProductDTO:
 
     def get(self) -> dict:
         return {"product_id": self.__product_id, "name": self.__name, "description": self.__description,
-                "price": self.__price, "amount": self.__amount}
+                "price": self.__price, "amount": self.__amount, "weight": self.__weight}
 
 
 class StoreDTO:
