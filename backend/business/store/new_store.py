@@ -1690,6 +1690,17 @@ class StoreFacade:
         # TODO: implement this function
         return None
     '''
+    def view_all_discount_information(self) -> List[Dict]:
+        """
+        * Parameters: none
+        * This function is used for converting all the discounts into a List of dictionaries for our frontend to manage the discounts
+        * Returns: a list of dictionaries
+        """
+        discount_info = []
+        for discount_id in self.__discounts:
+            discount = self.__discounts[discount_id]
+            discount_info.append(discount.get_discount_info_as_dict())
+        return discount_info
 
 
     def get_category_as_dto_for_discount(self, category: Category, shopping_basket: Dict[int,int]) -> CategoryForConstraintDTO:

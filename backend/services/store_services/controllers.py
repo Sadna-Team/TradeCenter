@@ -99,6 +99,18 @@ class StoreService:
         except Exception as e:
             logger.error('discount description was not changed')
             return jsonify({'message': str(e)}), 400
+        
+    def view_all_discount_info(self, user_id: int):
+        """
+            View information about all discounts in the system
+        """
+        try:
+            info = self.__market_facade.get_all_discount_info(user_id)
+            logger.info('discount info was sent successfully')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('discount info was not sent')
+            return jsonify({'message': str(e)}), 400
 
     def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None):
         try:

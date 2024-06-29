@@ -78,9 +78,6 @@ const StoreDetail = () => {
           <Link href="/manage_employee">
             <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Employees Management</div>
           </Link>
-          <Link href="/manage_discount">
-            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Discounts Management</div>
-          </Link>
           <Link href="/manage_policy">
             <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">Policy Management</div>
           </Link>
