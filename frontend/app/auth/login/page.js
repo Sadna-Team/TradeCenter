@@ -25,20 +25,21 @@ export default function Login() {
 
       const data = response.data;
       const token = data.token; // Extract the token from the response data
-      sessionStorage.setItem('token', token); // Store the token in sessionStorage
-      console.log('Token:', token); // Optional: log the token for debugging
+      const admin = data.admin; // Extract the admin status from the response data
+      const notifications = data.notification;
 
-      // Open a WebSocket connection and emit join
-      sessionStorage.setItem('token', token);
+      sessionStorage.setItem('token', token); // Store the token in sessionStorage
+      sessionStorage.setItem('admin', admin);
+      sessionStorage.setItem('notifications', JSON.stringify(notifications));
+      console.log('Token:', token); // Optional: log the token for debugging
+      console.log('Admin:', admin); // Optional: log the admin status for debugging
+      console.log('Notifications:', notifications); // Optional: log the notifications for debugging
+
       const socket = new SocketSingleton(token);
       socket.getInstance().on('connected', () => {
         window.location.href = '/';
       });
 
-
-        // Redirect to the home page
-
-      // Optionally, redirect to another page or perform other actions after successful login
     } catch (error) {
       console.error('There was a problem with the axios operation:', error.response ? error.response.data : error.message);
       setError(error.response?.data?.message || error.message); // Set the error message for display
