@@ -1263,6 +1263,7 @@ class StoreFacade:
         * This function gets a store by its ID
         * Returns: the store with the given ID
         """
+        print(str(store_id in self.__stores))
         if store_id in self.__stores:
             return self.__stores[store_id]
         raise StoreError('Store not found', StoreErrorTypes.store_not_found)
@@ -2063,3 +2064,16 @@ class StoreFacade:
                             products[store.store_id] = []
                         products[store.store_id].append(product)
         return products
+
+    def get_stores(self, page: int, limit: int) -> Dict[int, StoreDTO]:
+        start = (page - 1) * limit
+        end = start + limit
+        stores = {}
+        store_keys = list(self.__stores.keys())
+        store_keys.sort()
+        store_keys = store_keys[start:end]
+        for store_id in store_keys:
+            store = self.__stores[store_id]
+            stores[store_id] = store.create_store_dto()
+
+        return stores
