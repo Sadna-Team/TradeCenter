@@ -17,7 +17,8 @@ purchase_service = PurchaseService()
 @market_bp.route('/test', methods=['GET'])
 @jwt_required()
 def test():
-    purchase_service.test()
+    user_id = get_jwt_identity()
+    purchase_service.test(user_id)
     return jsonify({'message': 'test'}), 200
 
 @market_bp.route('/checkout', methods=['POST'])

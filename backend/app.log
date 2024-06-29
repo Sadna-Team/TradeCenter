@@ -1,0 +1,123 @@
+
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
+New Store Logger - INFO - successfully created storeFacade
+myapp - INFO - [PurchaseFacade] successfully created purchase facade object
+Market logger - INFO - Admin was created
+Market logger - INFO - Admin was created
+New Store Logger - INFO - [Store] successfully created store with id: 0
+New Store Logger - INFO - Successfully added store: store1
+New Store Logger - INFO - Successfully added product: product1 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 0
+New Store Logger - INFO - [Product] successfully added tag to product with id: 0
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product2 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 1
+New Store Logger - INFO - [Product] successfully added tag to product with id: 1
+New Store Logger - INFO - [Product] successfully added tag to product with id: 1
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product3 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 2
+New Store Logger - INFO - [Product] successfully added tag to product with id: 2
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product4 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 3
+New Store Logger - INFO - [Product] successfully added tag to product with id: 3
+New Store Logger - INFO - [Product] successfully added tag to product with id: 3
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+Market logger - INFO - User 1 has nominated user 2 to be the owner of store 0
+backend - INFO - Starting app...
+werkzeug - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.249:5000
+werkzeug - INFO - [33mPress CTRL+C to quit[0m
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 3
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:04] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:08] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:09] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:09] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA1sQ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:09] "GET /socket.io/?EIO=4&transport=polling&t=P1aA1sQ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:09] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA1_9&sid=prjcnEhUs43KLVgjAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:09] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA1_9.0&sid=prjcnEhUs43KLVgjAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:09] "POST /socket.io/?EIO=4&transport=polling&t=P1aA1_9&sid=prjcnEhUs43KLVgjAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:09] "GET /socket.io/?EIO=4&transport=polling&t=P1aA1_9.0&sid=prjcnEhUs43KLVgjAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:09] "GET /socket.io/?EIO=4&transport=websocket&sid=prjcnEhUs43KLVgjAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:10] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA2An HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:10] "GET /socket.io/?EIO=4&transport=polling&t=P1aA2An HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:10] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA2Fb&sid=wIF9K33zgtoRrlkBAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:10] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA2Fc&sid=wIF9K33zgtoRrlkBAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:10] "POST /socket.io/?EIO=4&transport=polling&t=P1aA2Fb&sid=wIF9K33zgtoRrlkBAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:11] "GET /socket.io/?EIO=4&transport=polling&t=P1aA2Fc&sid=wIF9K33zgtoRrlkBAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:16] "OPTIONS /auth/logout HTTP/1.1" 200 -
+myapp - INFO - recieved request to logout a user
+myapp - INFO - guest entered the app successfully - user_id: 4
+myapp - INFO - User logged out successfully
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:16] "POST /auth/logout HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:22] "GET /socket.io/?EIO=4&transport=websocket&sid=wIF9K33zgtoRrlkBAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:22] "[31m[1mPOST /auth/logout HTTP/1.1[0m" 401 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 5
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:23] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:39] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:40] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:40] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA9S7 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:40] "GET /socket.io/?EIO=4&transport=polling&t=P1aA9S7 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:40] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA9Wz&sid=Gww5Wp5kkz0kag2AAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:40] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA9W-&sid=Gww5Wp5kkz0kag2AAAAE HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:40] "POST /socket.io/?EIO=4&transport=polling&t=P1aA9Wz&sid=Gww5Wp5kkz0kag2AAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:40] "GET /socket.io/?EIO=4&transport=polling&t=P1aA9W-&sid=Gww5Wp5kkz0kag2AAAAE HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:40] "GET /socket.io/?EIO=4&transport=websocket&sid=Gww5Wp5kkz0kag2AAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:41] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA9nz HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:41] "GET /socket.io/?EIO=4&transport=polling&t=P1aA9nz HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:42] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA9sp&sid=cp1-KFGI_EDzz36LAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:42] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1aA9sr&sid=cp1-KFGI_EDzz36LAAAG HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:42] "POST /socket.io/?EIO=4&transport=polling&t=P1aA9sp&sid=cp1-KFGI_EDzz36LAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:42] "GET /socket.io/?EIO=4&transport=polling&t=P1aA9sr&sid=cp1-KFGI_EDzz36LAAAG HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:44] "OPTIONS /market/test HTTP/1.1" 200 -
+myapp - INFO - sent message to user 0
+Market logger - INFO - test notification sent
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:44] "GET /market/test HTTP/1.1" 200 -
+myapp - INFO - sent message to user 0
+Market logger - INFO - test notification sent
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:44] "GET /market/test HTTP/1.1" 200 -
+myapp - INFO - sent message to user 0
+Market logger - INFO - test notification sent
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:45] "GET /market/test HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:49] "OPTIONS /auth/logout HTTP/1.1" 200 -
+myapp - INFO - recieved request to logout a user
+myapp - INFO - guest entered the app successfully - user_id: 6
+myapp - INFO - User logged out successfully
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:49] "POST /auth/logout HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 16:21:50] "GET /socket.io/?EIO=4&transport=websocket&sid=cp1-KFGI_EDzz36LAAAG HTTP/1.1" 200 -
+

@@ -436,6 +436,7 @@ class AuthenticationService:
 
     def __init__(self):
         self.authentication = Authentication()
+        self.roles_facade = RolesFacade()
 
     def start_guest(self):
         """
@@ -474,7 +475,7 @@ class AuthenticationService:
             logger.error('register - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def login(self, username: str, password: str):
+    def login(self,username: str, password: str):
         """
             Use Case 2.1.4:
             Login a user
@@ -488,9 +489,10 @@ class AuthenticationService:
                 notification (list[str]): list of delayed notifications
         """
         try:
-            user_token, notification = self.authentication.login_user(username, password)
+            user_token, notification, user_id = self.authentication.login_user(username, password)
             logger.info('User logged in successfully')
-            return jsonify({'token': user_token, 'notification': notification}), 200
+            user_admin = self.roles_facade.is_system_manager(user_id)
+            return jsonify({'token': user_token, 'notification': notification, 'admin': user_admin}), 200
 
         except UserError as e:
             logger.error(f"login - {str(e.user_error_type)} , {str(e.message)}")
