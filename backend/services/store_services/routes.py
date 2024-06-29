@@ -311,6 +311,23 @@ def change_discount_description():
 
     return store_service.change_discount_description(user_id, discount_id, description)
 
+@store_bp.route('/view_discounts_info', methods=['GET'])
+@jwt_required()
+def view_discounts_info():
+    """
+        Use Case 2.4.2
+        View information about the discounts of the system
+    """
+    logger.info('received request to view discounts info')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+    except Exception as e:
+        logger.error('view_discounts_info - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.view_all_discount_info(user_id)
+
 @store_bp.route('/store_info', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_info():
@@ -963,3 +980,51 @@ def assign_predicate_to_purchase_policy():
         return jsonify({'message': str(e)}), 400
 
     return store_service.assign_predicate_to_purchase_policy(user_id, store_id, policy_id, predicate_builder)
+
+@store_bp.route('/tags', methods=['GET'])
+@jwt_required()
+def get_all_product_tags():
+    """
+        Helper for search by tags
+        Get all the tags of a product
+    """
+    logger.info('received request to get all product tags')
+    try:
+        _ = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_product_tags - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_product_tags()
+
+@store_bp.route('/store_ids_to_names', methods=['GET'])
+@jwt_required()
+def get_all_store_names():
+    """
+        Helper for search by store
+        Get all the names of the stores
+    """
+    logger.info('received request to get all store names')
+    try:
+        _ = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_store_names - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_store_names()
+
+@store_bp.route('/category_ids_to_names', methods=['GET'])
+@jwt_required()
+def get_all_category_names():
+    """
+        Helper for search by category
+        Get all the names of the categories
+    """
+    logger.info('received request to get all category names')
+    try:
+        _ = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_category_names - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_categories()
