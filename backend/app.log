@@ -40,3 +40,60 @@ New Store Logger - INFO - [Category] successfully added product to category with
 werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
 werkzeug - INFO - [33mPress CTRL+C to quit[0m
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 3
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:42] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:57] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:58] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:58] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b2-hF HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:58] "GET /socket.io/?EIO=4&transport=polling&t=P1b2-hF HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:58] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b2-mM&sid=QAA_N33Qf9bhClg5AAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:58] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b2-mO&sid=QAA_N33Qf9bhClg5AAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:58] "POST /socket.io/?EIO=4&transport=polling&t=P1b2-mM&sid=QAA_N33Qf9bhClg5AAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:59] "GET /socket.io/?EIO=4&transport=polling&t=P1b2-mO&sid=QAA_N33Qf9bhClg5AAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:59] "GET /socket.io/?EIO=4&transport=websocket&sid=QAA_N33Qf9bhClg5AAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:29:59] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b2_5d HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:30:00] "GET /socket.io/?EIO=4&transport=polling&t=P1b2_5d HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:30:00] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b2_Af&sid=H8_SLQyDL3YO6-9jAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:30:00] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b2_Ag&sid=H8_SLQyDL3YO6-9jAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:30:00] "POST /socket.io/?EIO=4&transport=polling&t=P1b2_Af&sid=H8_SLQyDL3YO6-9jAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:30:00] "GET /socket.io/?EIO=4&transport=polling&t=P1b2_Ag&sid=H8_SLQyDL3YO6-9jAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:33:07] "GET /socket.io/?EIO=4&transport=websocket&sid=H8_SLQyDL3YO6-9jAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:33:08] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b3j4L HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:33:08] "GET /socket.io/?EIO=4&transport=polling&t=P1b3j4L HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:33:08] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b3jDU&sid=fkvKJlvKRRtHMj1IAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:33:09] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b3jDW&sid=fkvKJlvKRRtHMj1IAAAE HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:33:09] "POST /socket.io/?EIO=4&transport=polling&t=P1b3jDU&sid=fkvKJlvKRRtHMj1IAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:33:09] "GET /socket.io/?EIO=4&transport=polling&t=P1b3jDW&sid=fkvKJlvKRRtHMj1IAAAE HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:46:09] "GET /socket.io/?EIO=4&transport=websocket&sid=fkvKJlvKRRtHMj1IAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:48:12] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b79pA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:48:12] "GET /socket.io/?EIO=4&transport=polling&t=P1b79pA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:48:12] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b79yF&sid=sJVUf7iH50pwniEhAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:48:13] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b79yH&sid=sJVUf7iH50pwniEhAAAG HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:48:13] "POST /socket.io/?EIO=4&transport=polling&t=P1b79yF&sid=sJVUf7iH50pwniEhAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:48:13] "GET /socket.io/?EIO=4&transport=polling&t=P1b79yH&sid=sJVUf7iH50pwniEhAAAG HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0

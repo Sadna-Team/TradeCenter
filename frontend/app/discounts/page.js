@@ -4,11 +4,18 @@ import api from '@/lib/api';
 
 const fetchDiscounts = async (setDiscounts, setError) => {
   try {
-    const response = await api.get('/store/view_all_discounts');
-    setDiscounts(response.data.message);
+    const response = await api.get('/store/view_discounts_info', {});
+    if (response.status === 200) {
+      setDiscounts(response.data.message);
+    } else {
+      setError(`Unexpected response status: ${response.status}`);
+    }
   } catch (error) {
-    console.error('Failed to fetch discounts', error);
-    setError('Failed to fetch discounts');
+    if (error.response) {
+      setError(`Failed to fetch discounts: ${error.response.data.message || error.response.status}`);
+    } else {
+      setError('Failed to fetch discounts');
+    }
   }
 };
 
