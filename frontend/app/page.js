@@ -7,37 +7,34 @@ import api from '@/lib/api';
 
 export default function Home() {
   const [errorMessage, setErrorMessage] = useState(null);
+  const [stores, setStores] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [tokenFetched, setTokenFetched] = useState(false);
+  const renderAfter = useRef(false);
 
-  // const renderAfter = useRef(false);
-  //
-  // useEffect(() => {
-  //   if (!renderAfter.current) {
-  //     const fetchToken = async () => {
-  //       try {
-  //         const response = await api.get('/auth/');
-  //         const data = response.data;
-  //         const token = data.token; // Assuming the response contains the token
-  //         console.log('Token:', token);
-  //
-  //         sessionStorage.setItem('token', token);
-  //         sessionStorage.setItem('isConnected', false);
-  //       } catch (error) {
-  //         setErrorMessage('Error fetching token');
-  //         console.error('Error fetching token:', error.response ? error.response.data : error.message);
-  //       }
-  //     };
-  //
-  //     renderAfter.current = true;
-  //     if(sessionStorage.getItem('token') === null) fetchToken();
-  //   }
-  // }, []); // Empty dependency array to run the effect only once after mount
+  useEffect(() => {
 
+    if (sessionStorage.getItem('token') !== null) {
+        setTokenFetched(true);
+    }
+    const handleTokenFetched = (event) => {
+      console.log('Token fetched:', event.detail);
+      setTokenFetched(true);
+    };
+
+    window.addEventListener('tokenFetched', handleTokenFetched);
+
+    return () => {
+      window.removeEventListener('tokenFetched', handleTokenFetched);
+    };
+  }, []);
 
   const fetchStores = async (page) => {
     try {
       const limit = 4;
       const response = await api.post('/store/get_stores', {
-        page, 
+        page,
         limit,
       });
       const data = response.data;
@@ -52,6 +49,7 @@ export default function Home() {
       }
       setStores((prevStores) => [...prevStores, ...formattedStores]);
       console.log('Stores:', stores);
+      sessionStorage.setItem('stores', JSON.stringify(stores));
     } catch (error) {
       setErrorMessage('Error fetching stores');
       console.error('Error fetching stores:', error.response ? error.response.data : error.message);
@@ -62,7 +60,7 @@ export default function Home() {
     if (tokenFetched) {
       fetchStores(page);
     }
-  }, [page, tokenFetched]); // Dependency array to run the effect whenever page or tokenFetched changes
+  }, [page, tokenFetched]);
 
   const loadMoreStores = () => {
     setPage((prevPage) => prevPage + 1);
@@ -71,7 +69,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-4xl font-bold text-red-600 mb-8">Welcome to Abu Ali Home Page</h1>
-      
+
       {errorMessage && (
         <Popup initialMessage={errorMessage} is_closable={false} onClose={() => setErrorMessage(null)} />
       )}
