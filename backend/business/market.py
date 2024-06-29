@@ -167,11 +167,11 @@ class MarketFacade:
                 birthdate = date(user_dto.year, user_dto.month, user_dto.day)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, birthdate)
 
-            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip_code' not in address:
+            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip' not in address:
                 raise ThirdPartyHandlerError("Address information is missing", ThirdPartyHandlerErrorTypes.missing_address)
             address_of_user_for_discount: AddressDTO = AddressDTO(address['address'],
                                                                   address['city'], address['state'],
-                                                                  address['country'], address['zip_code'])
+                                                                  address['country'], address['zip'])
 
 
             user_info_for_constraint_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
@@ -488,16 +488,17 @@ class MarketFacade:
         """
         return self.get_store_info(store_id).products
 
-    def get_product_info(self, store_id: int, product_id: int) -> ProductDTO:
+    def get_product_info(self, store_id: int, product_id: int) -> Tuple[ProductDTO, str]:
         """
         * Parameters: storeId, productId
         * This function returns the product information
         * Returns the product information
         """
         products = self.get_store_product_info(store_id)
+        store_name = self.get_store_info(store_id).store_name
         for product in products:
             if product.product_id == product_id:
-                return product
+                return product, store_name
         raise StoreError("Product not found", StoreErrorTypes.product_not_found)
 
 
