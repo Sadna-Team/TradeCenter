@@ -82,6 +82,11 @@ default_supply_method = "bogo"
 
 default_address_checkout = {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
 
+default_store_address =  'elven street 420'
+default_store_state = 'gothic'
+default_store_city = 'Shiganshina'
+default_store_country = 'paradis island'
+default_store_zip_code = '139'
 
 @pytest.fixture(scope='session', autouse=True)
 def app():
@@ -140,11 +145,11 @@ def default_set_up():
     user_facade.register_user(user_id5, default_emails[4], default_usernames[4], default_passwords[4], default_years[4],
                                 default_months[4], default_days[4], default_phones[4])
 
-    store_id1 = market_facade.add_store(user_id1, 0, default_store_names[0])
-    store_id2 = market_facade.add_store(user_id2, 0, default_store_names[1])
-    store_id3 = market_facade.add_store(user_id3, 0, default_store_names[2])
-    store_id4 = market_facade.add_store(user_id4, 0, default_store_names[3])
-    store_id5 = market_facade.add_store(user_id5, 0, default_store_names[4])
+    store_id1 = market_facade.add_store(user_id1, default_store_address, default_store_city, default_store_state, default_store_country, default_store_zip_code, default_store_names[0])
+    store_id2 = market_facade.add_store(user_id2, default_store_address, default_store_city, default_store_state, default_store_country, default_store_zip_code, default_store_names[1])
+    store_id3 = market_facade.add_store(user_id3, default_store_address, default_store_city, default_store_state, default_store_country, default_store_zip_code, default_store_names[2])
+    store_id4 = market_facade.add_store(user_id4, default_store_address, default_store_city, default_store_state, default_store_country, default_store_zip_code, default_store_names[3])
+    store_id5 = market_facade.add_store(user_id5, default_store_address, default_store_city, default_store_state, default_store_country, default_store_zip_code, default_store_names[4])
 
     store_ids = [store_id1, store_id2, store_id3, store_id4, store_id5]
 
@@ -631,7 +636,7 @@ def test_add_product_amount(default_set_up):
 def test_add_store(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
-    store_id6 = market_facade.add_store(user_id1, 0, 'store6')
+    store_id6 = market_facade.add_store(user_id1, 'address', 'fiji', 'fiji', 'fiji', '00000', 'store6')
     assert store_id6 in market_facade.store_facade._StoreFacade__stores
     assert market_facade.store_facade._StoreFacade__get_store_by_id(store_id6).store_name == 'store6'
     
@@ -639,7 +644,7 @@ def test_add_store(default_set_up):
 def test_remove_store(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
-    store_id6 = market_facade.add_store(user_id1, 0, 'store6')
+    store_id6 = market_facade.add_store(user_id1, 'jujutsu high', 'tokyo', 'tokyo province', 'japan', '000', 'store6')
     market_facade.close_store(user_id1, store_id6)
     assert market_facade.store_facade.get_store_by_id(store_id6).is_active == False
 

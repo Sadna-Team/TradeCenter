@@ -3,11 +3,16 @@ import pytest
 from backend import create_app, clean_data
 import json
 
+
 register_credentials = { 
         'username': 'test',
         'email': 'test@gmail.com',
         'password': 'test',
-        'location_id': 1,
+        'address': 'address',
+        'city': 'city',
+        'state': 'state',
+        'country': 'country',
+        'zip_code': '12345',
         'year': 2003,
         'month': 1,
         'day': 1,
@@ -111,10 +116,9 @@ def user_token(client2, token2):
 
 
 
-
 @pytest.fixture
 def init_store(client1, owner_token):
-    data = {'store_name': 'test_store', 'location_id': 1}
+    data = {'store_name': 'test_store', 'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'zip_code': '12345'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client1.post('store/add_store', headers=headers, json=data)
 
