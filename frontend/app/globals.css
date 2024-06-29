@@ -32,3 +32,17 @@ body {
 * {
   box-sizing: border-box;
 }
+
+
+/* Accordion styles */
+.accordion-content {
+  display: none;
+}
+
+.accordion-item.open .accordion-content {
+  display: block;
+}
+
+.accordion-trigger {
+  cursor: pointer;
+}
