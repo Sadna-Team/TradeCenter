@@ -2,47 +2,73 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 
-const fetchDiscounts = async (setDiscounts, setError) => {
-  try {
-    const response = await api.get('/store/view_all_discounts');
-    setDiscounts(response.data.message);
-  } catch (error) {
-    console.error('Failed to fetch discounts', error);
-    setError('Failed to fetch discounts');
-  }
-};
-
-const ManageDiscount = () => {
+const DataFetchingComponent = () => {
   const [discounts, setDiscounts] = useState([]);
-  const [expandedDiscount, setExpandedDiscount] = useState(null);
-  const [error, setError] = useState(null);
+  const [stores, setStores] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    fetchDiscounts(setDiscounts, setError);
+    const fetchData = async () => {
+      try {
+        // Fetch discounts
+        const discountsResponse = await axios.get('/view_discounts_info');
+        setDiscounts(discountsResponse.data);
+
+        // Fetch store information
+        const storeInfoResponse = await axios.get('/store_info');
+        setStores(storeInfoResponse.data);
+
+        // Fetch store products
+        const storeProductsResponse = await axios.get('/store_products');
+        setProducts(storeProductsResponse.data);
+
+        // Fetch category IDs to names mapping
+        const categoryMappingResponse = await axios.get('/category_ids_to_names');
+        setCategories(categoryMappingResponse.data);
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const handleToggle = (discountId) => {
-    setExpandedDiscount(expandedDiscount === discountId ? null : discountId);
+  // Functions for handling behavior-related actions (add, edit, remove discounts)
+
+  const handleAddDiscount = async (newDiscountData) => {
+    try {
+      const response = await axios.post('/add_discount', newDiscountData);
+      // Handle success (update UI, refresh data, etc.)
+    } catch (error) {
+      console.error('Error adding discount:', error);
+    }
+  };
+
+  const handleEditDiscount = async (discountId, updatedDiscountData) => {
+    try {
+      const response = await axios.post(`/change_discount_description/${discountId}`, updatedDiscountData);
+      // Handle success (update UI, refresh data, etc.)
+    } catch (error) {
+      console.error('Error editing discount:', error);
+    }
+  };
+
+  const handleRemoveDiscount = async (discountId) => {
+    try {
+      const response = await axios.post(`/remove_discount/${discountId}`);
+      // Handle success (update UI, refresh data, etc.)
+    } catch (error) {
+      console.error('Error removing discount:', error);
+    }
   };
 
   return (
     <div>
-      <h1>Discounts</h1>
-      {error && <div className="error">{error}</div>}
-      {discounts.map(discount => (
-        <div key={discount.discount_id}>
-          <button onClick={() => handleToggle(discount.discount_id)}>
-            {discount.discount_description}
-          </button>
-          {expandedDiscount === discount.discount_id && (
-            <div className="accordion-content">
-              <pre>{JSON.stringify(discount, null, 2)}</pre>
-            </div>
-          )}
-        </div>
-      ))}
+      {/* Render UI components and use state variables (discounts, stores, products, categories) */}
     </div>
   );
 };
 
-export default ManageDiscount;
+export default DataFetchingComponent;
