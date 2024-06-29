@@ -8,24 +8,6 @@ import Button from '@/components/Button';
 export default function MyStores() {
     const [stores, setStores] = useState([]);
     const [storeInfo, setStoreInfo] = useState({});
-
-    // fetch stores from server
-    useEffect(() => {
-      async function fetchStores() {
-        try {
-          const response = await api.get('/store/my_stores');
-          setStores(response.data.message);
-        } catch (error) {
-          console.error('Failed to fetch stores:', error);
-        }
-      }
-      fetchStores();
-      getStoreInfo(stores[0]);
-      // stores.forEach(store_id => {
-      //   setStoreInfo(getStoreInfo(store_id));
-      //   console.log(storeInfo);
-      // });
-    }, []);
     
     async function getStoreInfo(store_id) {
       try {

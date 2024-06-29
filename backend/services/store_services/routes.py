@@ -331,15 +331,14 @@ def view_discounts_info():
 @store_bp.route('/store_info', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_info():
-     """
+    """
         Use Case 2.2.1.1:
         Show information about the stores in the system
     """
     logger.info('received request to send store info')
     try:
         data = request.get_json()
-        print(data)
-        store_id = 0 #int(data['store_id'])
+        store_id = int(data['store_id'])
     except Exception as e:
         logger.error(('show_store_info - ', str(e)))
         return jsonify({'message': str(e)}), 400
