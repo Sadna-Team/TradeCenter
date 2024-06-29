@@ -46,8 +46,8 @@ class MarketFacade:
             # create the admin?
             self.__create_admin()
 
-    def test(self):
-        self.notifier.send_real_time_notification(0, NotificationDTO(-1, "test", datetime.now()))
+    def test(self,user_id):
+        self.notifier.send_real_time_notification(user_id, NotificationDTO(-1, "test", datetime.now()))
         logger.info("test notification sent")
 
 
@@ -126,6 +126,10 @@ class MarketFacade:
         self.store_facade.assign_product_to_category(1, 0, 2)
         self.store_facade.assign_product_to_category(2, 0, 3)
         
+         # add test notifications to admin
+        self.notifier.notify_general_message(0, "test notification 1")
+        self.notifier.notify_general_message(0, "test notification 2")
+       
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
