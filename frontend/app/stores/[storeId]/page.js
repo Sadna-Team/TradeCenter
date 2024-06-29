@@ -7,8 +7,7 @@ import Link from 'next/link';
 
 const StoreDetail = () => {
   const searchParams = useSearchParams();
-  const id = searchParams.get('id');
-  console.log('Store ID:', id);
+  const storeId = searchParams.get('storeId');
 
   // Mock data for demonstration purposes
   const storeData = {
@@ -58,12 +57,12 @@ const StoreDetail = () => {
   const [store, setStore] = useState(null);
 
   useEffect(() => {
-    if (id && storeData[id]) {
-      setStore(storeData[id]);
+    if (storeId && storeData[storeId]) {
+      setStore(storeData[storeId]);
     } else {
       setStore(null); // Handle case where store is not found
     }
-  }, [id]);
+  }, [storeId]);
 
   if (!store) {
     return <div className="min-h-screen bg-gray-100 p-4">Store not found</div>;
@@ -76,38 +75,18 @@ const StoreDetail = () => {
         
         {/* Management Buttons */}
         <div className="mb-6 flex justify-center">
-        <Link 
-            href={{
-                  pathname:`/manage_employee/id`, 
-                  query: { id: id },
-                  }}>
-          <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Employees Management</div>
+          <Link href="/manage_employee">
+            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Employees Management</div>
           </Link>
-          
-
-          <Link 
-            href={{
-                  pathname:`/manage_discount/id`, 
-                  query: { id: id },
-                  }}>
-          <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Discounts Management</div>
+          <Link href="/manage_policy">
+            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">Policy Management</div>
           </Link>
-        
-
-          <Link 
-            href={{
-                  pathname:`/manage_policy/id`, 
-                  query: { id: id },
-                  }}>
-          <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Policy Management</div>
-          </Link>
-
         </div>
 
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {store.products.map((product) => (
-            <ManagerProduct key={product.id} product={product} />
+            <ManagerProduct key={product.id} product={product} currStoreId={storeId} />
           ))}
         </div>
 

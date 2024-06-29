@@ -99,11 +99,38 @@ def test_give_up_ownership():
 
     assert response.status_code == 200
 
+    # nominate another owner
+    response = client.post('/store/add_store_owner',
+                            headers={'Authorization': 'Bearer ' + token2},
+                            json={'store_id': 0, 'username': 'test3'})
+    assert response.status_code == 200
+
+    # accept the nomination
+    response = client.post('/user/accept_promotion',
+                            headers={'Authorization': 'Bearer ' + token3},
+                            json={'promotion_id': 3, 'accept': True})
+    assert response.status_code == 200
+
     response = client.post('/store/give_up_role',
                            headers={'Authorization': 'Bearer ' + token2},
                            json={'store_id': 0})
 
     assert response.status_code == 200
+
+    # check if the user test3 is no longer an owner
+    response = client.get('/user/is_store_owner',
+                            headers={'Authorization': 'Bearer ' + token3},
+                            json={'store_id': 0})
+
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_owner'] is False
+
+    response = client.get('/user/is_store_owner',
+                            headers={'Authorization': 'Bearer ' + token2},
+                            json={'store_id': 0})
+
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_owner'] is False
 
 
 def test_is_system_manager():

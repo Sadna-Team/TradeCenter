@@ -67,6 +67,10 @@ class Discount(ABC):
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         pass
 
+    @abstractmethod
+    def get_discount_info_as_dict(self) -> dict:
+        pass
+
     def change_discount_percentage(self, new_percentage: float) -> None:
         if new_percentage < 0 or new_percentage > 1:
             logger.error("[Discount] Invalid percentage")
@@ -134,6 +138,19 @@ class CategoryDiscount(Discount):
                     discount_reduction += product.price * product.amount * self.percentage
         logger.info("[CategoryDiscount] Discount calculated to be: " + str(discount_reduction))
         return discount_reduction
+    
+    def get_discount_info_as_dict(self) -> dict:
+        return {
+            "discount_type": "Category Discount",
+            "discount_id": self.discount_id,
+            "discount_description": self.discount_description,
+            "starting_date": self.starting_date,
+            "ending_date": self.ending_date,
+            "percentage": self.percentage,
+            "predicate": self.predicate,
+            "category_id": self.category_id,
+            "applied_to_subcategories": self.applied_to_subcategories
+        }
 
 
 # --------------- Store Discount ---------------#
@@ -172,6 +189,18 @@ class StoreDiscount(Discount):
                     discount_reduction += product.price * product.amount * self.percentage
         logger.info("[StoreDiscount] Discount calculated to be: " + str(discount_reduction))
         return discount_reduction
+    
+    def get_discount_info_as_dict(self) -> dict:
+        return {
+            "discount_type": "Store Discount",
+            "discount_id": self.discount_id,
+            "discount_description": self.discount_description,
+            "starting_date": self.starting_date,
+            "ending_date": self.ending_date,
+            "percentage": self.percentage,
+            "predicate": self.predicate,
+            "store_id": self.store_id
+        }
 
 # --------------- Product Discount ---------------#
 class ProductDiscount(Discount):
@@ -214,6 +243,19 @@ class ProductDiscount(Discount):
                 discount_reduction += product.price * product.amount * self.percentage
         logger.info("[ProductDiscount] Discount calculated to be: " + str(discount_reduction))
         return discount_reduction
+    
+    def get_discount_info_as_dict(self) -> dict:
+        return {
+            "discount_type": "Product Discount",
+            "discount_id": self.discount_id,
+            "discount_description": self.discount_description,
+            "starting_date": self.starting_date,
+            "ending_date": self.ending_date,
+            "percentage": self.percentage,
+            "predicate": self.predicate,
+            "product_id": self.product_id,
+            "store_id": self.store_id
+        }
 
 
 # --------------- And Discount ---------------#
@@ -259,7 +301,19 @@ class AndDiscount(Discount):
     def change_predicate(self, new_predicate: Constraint) -> None:
         pass # we don't want to change the predicate of the composite discount
 
-        
+    def get_discount_info_as_dict(self) -> dict:
+        dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
+        dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
+        return {
+            "discount_type": "And Discount",
+            "discount_id": self.discount_id,
+            "discount_description": self.discount_description,
+            "starting_date": self.starting_date,
+            "ending_date": self.ending_date,
+            "discount_1_info": dict_of_disc1,
+            "discount_2_info": dict_of_disc2
+        }
+    
 
 # --------------- Or Discount ---------------#
 class OrDiscount(Discount):
@@ -312,6 +366,20 @@ class OrDiscount(Discount):
     def change_predicate(self, new_predicate: Constraint) -> None:
         pass # we don't want to change the predicate of the composite discount
 
+
+    def get_discount_info_as_dict(self) -> dict:
+        dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
+        dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
+        return {
+            "discount_type": "Or Discount",
+            "discount_id": self.discount_id,
+            "discount_description": self.discount_description,
+            "starting_date": self.starting_date,
+            "ending_date": self.ending_date,
+            "discount_1_info": dict_of_disc1,
+            "discount_2_info": dict_of_disc2
+        }
+
 # --------------- Xor Discount ---------------#
 class XorDiscount(Discount):
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
@@ -351,6 +419,18 @@ class XorDiscount(Discount):
     def change_predicate(self, new_predicate: Constraint) -> None:
         pass # we don't want to change the predicate of the composite discount
 
+    def get_discount_info_as_dict(self) -> dict:
+        dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
+        dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
+        return {
+            "discount_type": "Xor Discount",
+            "discount_id": self.discount_id,
+            "discount_description": self.discount_description,
+            "starting_date": self.starting_date,
+            "ending_date": self.ending_date,
+            "discount_1_info": dict_of_disc1,
+            "discount_2_info": dict_of_disc2
+        }
 
 # --------------- Max Discount classes ---------------#
 class MaxDiscount(Discount):
@@ -373,6 +453,19 @@ class MaxDiscount(Discount):
     
     def change_predicate(self, new_predicate: Constraint) -> None:
         pass # we don't want to change the predicate of the composite discount
+
+    def get_discount_info_as_dict(self) -> dict:
+        discounts_info = dict()
+        for discount in self.__ListDiscount:
+            discounts_info[discount.discount_id] = discount.get_discount_info_as_dict()
+        return {
+            "discount_type": "Max Discount",
+            "discount_id": self.discount_id,
+            "discount_description": self.discount_description,
+            "starting_date": self.starting_date,
+            "ending_date": self.ending_date,
+            "discounts_info": discounts_info
+        }
 
 
 # --------------- Additive Discount classes ---------------#
@@ -397,5 +490,15 @@ class AdditiveDiscount(Discount):
     def change_predicate(self, new_predicate: Constraint) -> None:
         pass # we don't want to change the predicate of the composite discount
     
-
-
+    def get_discount_info_as_dict(self) -> dict:
+        discounts_info = dict()
+        for discount in self.__ListDiscount:
+            discounts_info[discount.discount_id] = discount.get_discount_info_as_dict()
+        return {
+            "discount_type": "Additive Discount",
+            "discount_id": self.discount_id,
+            "discount_description": self.discount_description,
+            "starting_date": self.starting_date,
+            "ending_date": self.ending_date,
+            "discounts_info": discounts_info
+        }

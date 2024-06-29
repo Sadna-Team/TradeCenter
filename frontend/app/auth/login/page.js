@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from 'react';
-import { buildSocket } from "@/app/socket";
+import SocketSingleton from "@/app/socket";
 import Modal from '@/components/Modal'; // Import the Modal component
 import api from '@/lib/api';
 import Popup from '@/components/Popup';
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false); // State to control the modal visibility
+  const [showModal, setShowModal] = useState(false); // State to control the modal visibility;
+  const router = useRouter();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,11 +29,14 @@ export default function Login() {
       console.log('Token:', token); // Optional: log the token for debugging
 
       // Open a WebSocket connection and emit join
-      const socket = buildSocket(token, false);
-      sessionStorage.setItem('isConnected', true); // Set the isConnected flag to true
+      sessionStorage.setItem('token', token);
+      const socket = new SocketSingleton(token);
+      socket.getInstance().on('connected', () => {
+        window.location.href = '/';
+      });
 
-      // Redirect to the home page
-      window.location.href = '/'; // Redirect to the home page
+
+        // Redirect to the home page
 
       // Optionally, redirect to another page or perform other actions after successful login
     } catch (error) {

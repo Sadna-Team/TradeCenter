@@ -14,6 +14,12 @@ market_bp = Blueprint('market', __name__)
 
 purchase_service = PurchaseService()
 
+@market_bp.route('/test', methods=['GET'])
+@jwt_required()
+def test():
+    purchase_service.test()
+    return jsonify({'message': 'test'}), 200
+
 @market_bp.route('/checkout', methods=['POST'])
 @jwt_required()
 def checkout():
@@ -86,7 +92,7 @@ def show_user_purchase_history():
     return purchase_service.show_purchase_history_of_user(user_id, requested_id, store_id)
 
 
-@market_bp.route('/search_products_by_category', methods=['GET'])
+@market_bp.route('/search_products_by_category', methods=['POST'])
 @jwt_required()
 def search_products_by_category():
     """
@@ -108,7 +114,7 @@ def search_products_by_category():
     return purchase_service.search_products_by_category(category_id, store_id)
 
 
-@market_bp.route('/search_products_by_tags', methods=['GET'])
+@market_bp.route('/search_products_by_tags', methods=['POST'])
 @jwt_required()
 def search_products_by_tags():
     """
@@ -117,14 +123,16 @@ def search_products_by_tags():
     """
     logger.info('recieved request to search for products')
     try:
+        logger.info('checkpoint 1')
         data = request.get_json()
-        tags_helper = data['tags']
+        logger.info('data- ', data)
+        tags_helper = data.get('tags')
         if not isinstance(tags_helper, list):
             raise ServiceLayerError('tags must be a list', ServiceLayerErrorTypes.tags_not_list)
         tags = [str(tag) for tag in tags_helper]
         # check if store_id is provided
         if 'store_id' in data:
-            store_id = int(data['store_id'])
+            store_id = int(data.get('store_id'))
         else:
             store_id = None
     except Exception as e:
@@ -134,7 +142,7 @@ def search_products_by_tags():
     return purchase_service.search_products_by_tags(tags, store_id)
 
 
-@market_bp.route('/search_products_by_name', methods=['GET'])
+@market_bp.route('/search_products_by_name', methods=['POST'])
 @jwt_required()
 def search_products_by_name():
     """
