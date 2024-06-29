@@ -1,34 +1,46 @@
 "use client";
-import { useEffect, useState } from 'react';
-import api from '@/lib/api';
+import { useState, useEffect } from 'react';
+import api from '../../lib/api'; // Import the configured axios instance
 
-const DataFetchingComponent = () => {
-  const [discounts, setDiscounts] = useState([]);
+
+export default function ManageDiscountsPage() {
+  // The discounts are split into their groups in order to make it easier to manage them
+  const [productDiscounts, setProductDiscounts] = useState([]);
+  const [categoryDiscounts, setCategoryDiscounts] = useState([]);
+  const [storeDiscounts, setStoreDiscounts] = useState([]);
+  const [andDiscounts, setAndDiscounts] = useState([]); 
+  const [orDiscounts, setOrDiscounts] = useState([]);
+  const [xorDiscounts, setXorDiscounts] = useState([]);
+  const [maxDiscounts, setMaxDiscounts] = useState([]);
+  const [additiveDiscounts, setAdditiveDiscounts] = useState([]);
   const [stores, setStores] = useState([]);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [errorMessage, setErrorMessage] = useState('');
 
+  //Fetch all relevant data for discount management from the backend
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch discounts
-        const discountsResponse = await axios.get('/view_discounts_info');
-        setDiscounts(discountsResponse.data);
+        const discountsResponse = await api.get('/view_discounts_info');
+        setDiscounts(discountsResponse.data.message);
 
         // Fetch store information
-        const storeInfoResponse = await axios.get('/store_info');
+        const storeInfoResponse = await api.get('/store_info');
         setStores(storeInfoResponse.data);
 
         // Fetch store products
-        const storeProductsResponse = await axios.get('/store_products');
+        const storeProductsResponse = await api.get('/store_products');
         setProducts(storeProductsResponse.data);
 
         // Fetch category IDs to names mapping
-        const categoryMappingResponse = await axios.get('/category_ids_to_names');
+        const categoryMappingResponse = await api.get('/category_ids_to_names');
         setCategories(categoryMappingResponse.data);
 
       } catch (error) {
-        console.error('Error fetching data:', error);
+        setErrorMessage('Error fetching data');
+        console.error('Error fetching data:', error.response ? error.response.data : error.message);
       }
     };
 
@@ -71,4 +83,3 @@ const DataFetchingComponent = () => {
   );
 };
 
-export default DataFetchingComponent;
