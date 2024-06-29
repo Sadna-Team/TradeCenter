@@ -747,9 +747,9 @@ class MarketFacade:
         self.store_facade.remove_product_amount(store_id, product_id, amount)
 
     # -------------Store related methods-------------------#
-    def add_store(self, founder_id: int, location_id: int, store_name: str) -> int:
+    def add_store(self, founder_id: int, address: str, city: str, state: str, country: str, zip_code: str, store_name: str) -> int:
         """
-        * Parameters: founderId, locationId, storeName
+        * Parameters: founderId, address, storeName
         * This function adds a store to the system
         * Returns None
         """
@@ -760,7 +760,8 @@ class MarketFacade:
         if not self.user_facade.is_member(founder_id):
             raise UserError("User is not a member", UserErrorTypes.user_not_a_member)
 
-        store_id = self.store_facade.add_store(location_id, store_name, founder_id)
+        address_of_store: AddressDTO = AddressDTO(address, city, state, country, zip_code)
+        store_id = self.store_facade.add_store(address_of_store, store_name, founder_id)
         self.roles_facade.add_store(store_id, founder_id)
         # Notifier().sign_listener(founder_id, store_id) -- already happened inside roles.add_store()
 

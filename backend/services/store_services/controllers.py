@@ -202,13 +202,12 @@ class StoreService:
         except Exception as e:
             logger.error('product info was not sent')
             return jsonify({'message': str(e)}), 400
-
-    def add_new_store(self, user_id: int, location_id: int, store_name: str):
+    def add_new_store(self, user_id: int, address: str, city: str, state:str, country:str, zip_code:str, store_name: str):
         """
             Add a store to the system and set the user as the store owner
         """
         try:
-            self.__market_facade.add_store(user_id, location_id, store_name)
+            self.__market_facade.add_store(user_id, address, city, state, country, zip_code, store_name)
             logger.info('store was added successfully')
             return jsonify({'message': 'store was added successfully'}), 200
         except Exception as e:

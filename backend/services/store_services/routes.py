@@ -331,7 +331,6 @@ def view_discounts_info():
 @store_bp.route('/store_info', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_info():
-
     """
         Use Case 2.2.1.1:
         Show information about the stores in the system
@@ -411,14 +410,18 @@ def add_store():
     logger.info('received request to add store')
     try:
         user_id = get_jwt_identity()
-        data = request.get_json()
-        location_id = int(data['location_id'])
+        data = request.get_json() 
+        address = str(data['address'])
+        city = str(data['city'])
+        state = str(data['state'])
+        country = str(data['country'])
+        zip_code = str(data['zip_code'])
         store_name = str(data['store_name'])
     except Exception as e:
         logger.error('add_store - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    ret = store_service.add_new_store(user_id, location_id, store_name)
+    ret = store_service.add_new_store(user_id, address, city, state, country, zip_code, store_name)
     return ret
 
 

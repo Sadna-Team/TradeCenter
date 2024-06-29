@@ -192,10 +192,10 @@ class ProductDTO:
 
 
 class StoreDTO:
-    def __init__(self, store_id: int, location_id: int, store_name: str, store_founder_id: int, is_active: bool,
+    def __init__(self, store_id: int, address: AddressDTO, store_name: str, store_founder_id: int, is_active: bool,
                  found_date: datetime, products: List[ProductDTO] = []):
         self.__store_id: int = store_id
-        self.__location_id: int = location_id
+        self.__address: AddressDTO = address
         self.__store_name: str = store_name
         self.__store_founder_id: int = store_founder_id
         self.__is_active: bool = is_active
@@ -207,8 +207,8 @@ class StoreDTO:
         return self.__store_id
 
     @property
-    def location_id(self) -> int:
-        return self.__location_id
+    def address(self) -> AddressDTO:
+        return self.__address
 
     @property
     def store_name(self) -> str:
@@ -235,7 +235,8 @@ class StoreDTO:
         self.__products = products
 
     def get(self) -> dict:
-        return {"store_id": self.__store_id, "location_id": self.__location_id, "store_name": self.__store_name,
+        address_as_dict = self.__address.to_dict()
+        return {"store_id": self.__store_id, "address": address_as_dict, "store_name": self.__store_name,
                 "store_founder_id": self.__store_founder_id, "is_active": self.__is_active,
                 "found_date": self.__found_date,
                 "products": [product.get() for product in self.__products]}

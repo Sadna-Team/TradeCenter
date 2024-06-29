@@ -36,7 +36,8 @@ def subsub_category(sub_category):
 
 @pytest.fixture
 def store():
-    return Store(store_id=0, location_id=0, store_name='store', store_founder_id=0)
+    address = AddressDTO('address', 'city', 'state', 'country', 'zip_code')
+    return Store(store_id=0, address=address, store_name='store', store_founder_id=0)
 
 @pytest.fixture
 def product_dto():
@@ -84,7 +85,7 @@ product_per_01 : float =0.1
 
        
 def test_add_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_discount('discount', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
     assert len(store_facade.discounts) == 1
     assert store_facade.discounts[0].discount_description == 'discount'
@@ -112,7 +113,7 @@ def test_add_discount_fail_percentage_too_low(store_facade):
 
         
 def test_remove_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_discount('discount', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
     assert len(store_facade.discounts) == 1
     store_facade.remove_discount(0)
@@ -125,7 +126,7 @@ def test_remove_discount_fail(store_facade):
         
     
 def test_change_discount_description(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_discount('discount', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
     store_facade.change_discount_description(0, 'new description')
     assert store_facade.discounts[0].discount_description == 'new description'
@@ -136,7 +137,7 @@ def test_change_discount_description_fail(store_facade):
     assert e.value.discount_error_type == DiscountAndConstraintsErrorTypes.discount_not_found
         
 def test_change_discount_percentage(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_discount('discount', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
     store_facade.change_discount_percentage(0, 0.2)
     assert store_facade.discounts[0].percentage == 0.2
@@ -148,7 +149,7 @@ def test_change_discount_percentage_fail(store_facade):
         
      
 def test_create_logical_composite_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
     store_facade.add_discount('discount2', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
     assert len(store_facade.discounts) == 2
@@ -167,7 +168,7 @@ def test_create_logical_composite_discount_fail(store_facade):
  
   
 def test_create_numerical_composite_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
     store_facade.add_discount('discount2', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.4,None,store_id,None,None)
     assert len(store_facade.discounts) == 2
@@ -184,7 +185,7 @@ def test_create_numerical_composite_discount_fail(store_facade):
 
 
 def test_assign_predicate_to_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     discount_id1 = store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2025, 1, 2), 0.1,None,store_id,None,None)
     #34 euro
     assert len(store_facade.discounts) == 1
@@ -193,7 +194,7 @@ def test_assign_predicate_to_discount(store_facade):
     
     
 def test_assign_predicate_to_discount2(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     discount_id1 = store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
     locations: Dict = {'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'zip_code': 'zip_code'}
     store_facade.assign_predicate_to_discount(discount_id1,('and', ('location',locations) , ('time', time(10, 0), time(12, 0))))
@@ -202,7 +203,7 @@ def test_assign_predicate_to_discount2(store_facade):
     
         
 def test_get_total_price_before_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('product', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(0, 10)
     shopping_basket= {product_id:3}
@@ -212,7 +213,7 @@ def test_get_total_price_before_discount(store_facade):
 
    
 def test_get_total_basket_price_before_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('product', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(0, 10)
     store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2030, 1, 2), 0.5,None,store_id,None,None)
@@ -221,7 +222,7 @@ def test_get_total_basket_price_before_discount(store_facade):
     assert store_facade.get_total_basket_price_before_discount(store_id,shopping_basket)==total_before_discount
 
 def test_get_total_price_after_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('product', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(0, 10)
     store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_05,None,store_id,None,None)
@@ -241,7 +242,7 @@ def test_assign_predicate_to_discount_fail(store_facade):
 
 #1. discount of 50% on all milk category products:
 def test_apply_milk_category_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('product', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(0, 10)
     category_id = store_facade.add_category('milk')
@@ -253,7 +254,7 @@ def test_apply_milk_category_discount(store_facade):
     
 #2. discount of 20% on all products in the store:
 def test_apply_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('product', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(0, 10)
     store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_05,None,store_id,None,None)
@@ -263,7 +264,7 @@ def test_apply_discount(store_facade):
 
 #3. discount of 10% on tomatoes on a purchase that costs more than 200: (predicate)
 def test_apply_tomatoes_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(0, 50)
     discount_id = store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_01,None,store_id,None,None)
@@ -274,7 +275,7 @@ def test_apply_tomatoes_discount(store_facade):
 
 #4. discount on milk products or bread products but not on both (XOR):
 def test_apply_milk_or_bread_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id1 = store_facade.get_store_by_id(store_id).add_product('milk', 'very good product', product_price_10, ['tag'], 30.0)
     product_id2 = store_facade.get_store_by_id(store_id).add_product('bread', 'very good product', product_price_10, ['tag'], 30.0)
     category_id = store_facade.add_category('milk')
@@ -296,7 +297,7 @@ def test_apply_milk_or_bread_discount(store_facade):
 
 #4.5 same test but with AND:
 def test_apply_milk_and_bread_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id1 = store_facade.get_store_by_id(store_id).add_product('milk', 'very good product', product_price_10, ['tag'], 30.0)
     product_id2 = store_facade.get_store_by_id(store_id).add_product('bread', 'very good product', product_price_10, ['tag'], 30.0)
     category_id = store_facade.add_category('milk')
@@ -316,7 +317,7 @@ def test_apply_milk_and_bread_discount(store_facade):
 
 #4.5 same test but with OR:
 def test_apply_milk_or_bread_discount2(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id1 = store_facade.get_store_by_id(store_id).add_product('milk', 'very good product', product_price_10, ['tag'], 30.0)
     product_id2 = store_facade.get_store_by_id(store_id).add_product('bread', 'very good product', product_price_10, ['tag'], 30.0)
     category_id = store_facade.add_category('milk')
@@ -336,7 +337,7 @@ def test_apply_milk_or_bread_discount2(store_facade):
     
 #5 there is a baked goods discount of 5% on bread or baguette products only if the cart contains at least 5 bread and at least 2 cakes:
 def test_apply_baked_goods_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id1 = store_facade.get_store_by_id(store_id).add_product('bread', 'very good product', product_price_10, ['tag'], 30.0)
     product_id2 = store_facade.get_store_by_id(store_id).add_product('cake', 'very good product', product_price_10, ['tag'], 30.0)
     category_id = store_facade.add_category('baked goods')
@@ -373,7 +374,7 @@ def test_apply_baked_goods_discount(store_facade):
 
 #6. discount of 5% on milk products if the cart contains at least 3 cottege cheese products or at least 2 yugurts:
 def test_apply_milk_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id1 = store_facade.get_store_by_id(store_id).add_product('milk', 'very good product', product_price_10, ['tag'], 30.0)
     product_id2 = store_facade.get_store_by_id(store_id).add_product('cottage cheese', 'very good product', product_price_10, ['tag'], 30.0)
     product_id3 = store_facade.get_store_by_id(store_id).add_product('yogurt', 'very good product', product_price_10, ['tag'], 30.0)
@@ -413,7 +414,7 @@ def test_apply_milk_discount(store_facade):
     
 #7 if the cart total is more than 100 and the cart contains at least 3 pasts products, there is a 5% discount on milk product:
 def test_apply_milk_discount2(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id1 = store_facade.get_store_by_id(store_id).add_product('milk', 'very good product', product_price_10, ['tag'], 30.0)
     product_id2 = store_facade.get_store_by_id(store_id).add_product('pasta', 'very good product', product_price_10, ['tag'], 30.0)
     product_id3 = store_facade.get_store_by_id(store_id).add_product('fromage', 'une fromage tres jaune', product_price_20, ['tag'], 30.0)
@@ -452,7 +453,7 @@ def test_apply_milk_discount2(store_facade):
     
 #8. the discount that is given is the max between 5% of the pastas in the cart, and 20% of milk bottles in the cart:
 def test_apply_max_discount(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id1 = store_facade.get_store_by_id(store_id).add_product('milk', 'very good product', product_price_10, ['tag'], 30.0)
     product_id2 = store_facade.get_store_by_id(store_id).add_product('pasta', 'very good product', product_price_10, ['tag'], 30.0)
     category_id = store_facade.add_category('milk')
@@ -486,7 +487,7 @@ def test_apply_max_discount(store_facade):
     
 #9. there is 5% discount on milk products and there is 20% discount on each store (so 25% discount on milk products):
 def test_apply_additive_discount(store_facade):
-    store_id= store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id= store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id1 = store_facade.get_store_by_id(store_id).add_product('milk', 'very good product', product_price_10, ['tag'], 30.0)
     category_id = store_facade.add_category('milk')
     store_facade.assign_product_to_category(category_id, store_id,product_id1)
@@ -738,7 +739,7 @@ def test_create_store_dto(store):
     assert dto.store_id == store.store_id
     assert dto.store_name == store.store_name
     assert dto.store_founder_id == store.store_founder_id
-    assert dto.location_id == store.location_id
+    assert dto.address == store.address
     assert dto.is_active == store.is_active
 
 def test_get_store_information(store):
@@ -746,7 +747,7 @@ def test_get_store_information(store):
     assert dto.store_id == store.store_id
     assert dto.store_name == store.store_name
     assert dto.store_founder_id == store.store_founder_id
-    assert dto.location_id == store.location_id
+    assert dto.address == store.address
     assert dto.is_active == store.is_active
 
 def test_restock_product(store, product_dto):
@@ -894,7 +895,7 @@ def test_delete_sub_category_from_category_fail(store_facade):
 
 def test_assign_product_to_category(store_facade, category, product_dto):
     store_facade.add_category(category.category_name)
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade._StoreFacade__get_store_by_id(0).add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     store_facade.assign_product_to_category(0, 0, 0)
 
@@ -905,7 +906,7 @@ def test_assign_product_to_category_fail(store_facade):
 
 def test_remove_product_from_category2(store_facade, category, product_dto):
     store_facade.add_category(category.category_name)
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade._StoreFacade__get_store_by_id(0).add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     store_facade.assign_product_to_category(0, 0, 0)
     store_facade.remove_product_from_category(0, 0, 0)
@@ -917,7 +918,7 @@ def test_remove_product_from_category_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_add_product_to_store(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
 
     assert len(store_facade._StoreFacade__get_store_by_id(0).store_products) == 1
@@ -928,19 +929,19 @@ def test_add_product_to_store_fail_store_id(store_facade, product_dto):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
     
 def test_add_product_to_store_fail_product_name(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     with pytest.raises(StoreError) as e:
         store_facade.add_product_to_store(0, '', product_dto.description, product_dto.price, product_dto.tags)
     assert e.value.store_error_type== StoreErrorTypes.invalid_product_name
 
 def test_add_product_to_store_fail_price(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     with pytest.raises(StoreError) as e:
         store_facade.add_product_to_store(0, product_dto.name, product_dto.description, -1, 30.0, product_dto.tags)
     assert e.value.store_error_type== StoreErrorTypes.invalid_price
 
 def test_remove_product_from_store(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
     store_facade.remove_product_from_store(0, 0)
     assert len(store_facade._StoreFacade__get_store_by_id(0).store_products) == 0
@@ -951,7 +952,7 @@ def test_remove_product_from_store_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_add_product_amount(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
     store_facade.add_product_amount(0, 0, 10)
     assert store_facade._StoreFacade__get_store_by_id(0).has_amount_of_product(0, 10)
@@ -962,14 +963,14 @@ def test_add_product_amount_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_remove_product_amount2(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
     store_facade.add_product_amount(0, 0, 10)
     store_facade.remove_product_amount(0, 0, 5)
     assert store_facade._StoreFacade__get_store_by_id(0).has_amount_of_product(0, 5)
 
 def test_change_description_of_product2(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
     store_facade.change_description_of_product(0, 0, 'new description')
     assert store_facade._StoreFacade__get_store_by_id(0).get_product_by_id(0).description == 'new description'
@@ -980,7 +981,7 @@ def test_change_description_of_product_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_change_price_of_product2(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
     store_facade.change_price_of_product(0, 0, 20.0)
     assert store_facade._StoreFacade__get_store_by_id(0).get_product_by_id(0).price == 20.0
@@ -991,7 +992,7 @@ def test_change_price_of_product_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_add_tag_to_product2(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
     store_facade.add_tag_to_product(0, 0, 'tag2')
     assert 'tag2' in store_facade._StoreFacade__get_store_by_id(0).get_product_by_id(0).tags
@@ -1002,7 +1003,7 @@ def test_add_tag_to_product_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_remove_tag_from_product2(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
     store_facade.add_tag_to_product(0, 0, 'tag2')
     store_facade.remove_tag_from_product(0, 0, 'tag2')
@@ -1014,7 +1015,7 @@ def test_remove_tag_from_product_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_tags_of_product2(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
     store_facade.add_tag_to_product(0, 0, 'tag2')
     assert store_facade.get_tags_of_product(0, 0) == ['tag', 'tag2']
@@ -1025,11 +1026,11 @@ def test_get_tags_of_product_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_add_store(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     assert store_facade._StoreFacade__get_store_by_id(0).store_name == 'store'
 
 def test_close_store2(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.close_store(0, 0)
     assert not store_facade._StoreFacade__get_store_by_id(0).is_active
 
@@ -1039,7 +1040,7 @@ def test_close_store_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_store_by_id(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     assert store_facade._StoreFacade__get_store_by_id(0).store_name == 'store'
 
 def test_get_store_by_id_fail(store_facade):
@@ -1048,8 +1049,8 @@ def test_get_store_by_id_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_total_price_before_discount2(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
-    store_facade.add_store(location_id=0, store_name='store2', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store2', store_founder_id=0)
     store_facade.add_product_to_store(0, 'product', 'description', 10.0, 21.0, ['tag'])
     store_facade.add_product_to_store(0, 'product2', 'description', 20.0, 21.0, ['tag'])
     store_facade.add_product_to_store(1, 'product', 'description', 10.0, 21.0, ['tag'])
@@ -1062,7 +1063,7 @@ def test_get_total_price_before_discount_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_store_product_information(store_facade, product_dto, product_dto2):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
     store_facade.add_product_to_store(0, product_dto2.name, product_dto2.description, product_dto2.price, product_dto.weight, product_dto2.tags)
     out = store_facade.get_store_product_information(0, 0)
@@ -1079,7 +1080,7 @@ def test_get_store_product_information(store_facade, product_dto, product_dto2):
     assert out1.tags == product_dto2.tags
 
 def test_check_product_availability(store_facade, product_dto):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
     store_facade.add_product_amount(0, 0, 10)
     assert store_facade.check_product_availability(0, 0, 10)
@@ -1091,16 +1092,16 @@ def test_check_product_availability_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_store_info(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     out = store_facade.get_store_info(0)
     assert out.store_id == 0
     assert out.store_name == 'store'
     assert out.store_founder_id == 0
-    assert out.location_id == 0
+    assert out.address == default_location
     assert out.is_active
 
 def test_search_by_category(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_category('category')
     store_facade.add_category('sub_category')
     store_facade.add_category('subsub_category')
@@ -1117,19 +1118,19 @@ def test_search_by_category_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_search_by_tags(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, 'product', 'description', 10.0, 10.0, ['tag'])
     out = store_facade.search_by_tags(['tag'])
     assert out[0][0].product_id == 0
 
 def test_search_by_name(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, 'product', 'description', 10.0, 10.0, ['tag'])
     out = store_facade.search_by_name('product')
     assert out[0][0].product_id == 0
 
 def test_search_in_store_by_category(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_category('category')
     store_facade.add_category('sub_category')
     store_facade.add_category('subsub_category')
@@ -1146,13 +1147,13 @@ def test_search_in_store_by_category_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_search_in_store_by_tags(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, 'product', 'description', 10.0, 10.0, ['tag'])
     out = store_facade.search_by_tags(['tag'], 0)
     assert out[0][0].product_id == 0
 
 def test_search_in_store_by_name(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_product_to_store(0, 'product', 'description', 10.0, 10.0, ['tag'])
     out = store_facade.search_by_name('product', 0)
     assert out[0][0].product_id == 0
@@ -1178,7 +1179,7 @@ def test_remove_purchase_policy(store,category2):
 
 #test 1: policy where a basket cannot have more than 5 kg of tomatoes:
 def test_create_simple_purchase_policy_to_store(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(0, 50)
     policy_id=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes', None, product_id)
@@ -1189,7 +1190,7 @@ def test_create_simple_purchase_policy_to_store(store_facade):
     
 #test 2: policy where a user cant buy alcohol if he is under 18:
 def test_create_simple_purchase_policy_to_store2(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('alcohol', 'very good product', product_price_10, ['tag'], 30.0)
     category_id3 = store_facade.add_category('alcohol')
     store_facade.assign_product_to_category(0, store_id,product_id)
@@ -1203,7 +1204,7 @@ def test_create_simple_purchase_policy_to_store2(store_facade):
     
 #test 3: policy where a user cant buy alcohol if the hour is past 23:00:
 def test_create_simple_purchase_policy_to_store3(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('alcohol', 'very good product', product_price_10, ['tag'], 30.0)
     category_id3 = store_facade.add_category('alcohol')
     store_facade.assign_product_to_category(0, store_id,product_id)
@@ -1221,7 +1222,7 @@ def test_create_simple_purchase_policy_to_store3(store_facade):
     
 #test 4: a policy where there cannot be any ice cream sales at the beggining of the month:
 def test_create_simple_purchase_policy_to_store4(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('ice_cream', 'very good product', product_price_10, ['tag'], 30.0)
     category_id3 = store_facade.add_category('ice_cream')
     store_facade.assign_product_to_category(0, store_id,product_id)
@@ -1235,7 +1236,7 @@ def test_create_simple_purchase_policy_to_store4(store_facade):
     
 #test 5: a "AND" policy where a basket cannot have more than 5 kg of tomatoes and a basket must have at least 2 corn:
 def test_create_simple_purchase_policy_to_store5(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 30.0)
     product_id2=store_facade.get_store_by_id(store_id).add_product('corn', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
@@ -1255,7 +1256,7 @@ def test_create_simple_purchase_policy_to_store5(store_facade):
     
 #test 5.5: test 5 but it works now:
 def test_create_simple_purchase_policy_to_store5_5(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
     product_id2=store_facade.get_store_by_id(store_id).add_product('corn', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
@@ -1274,7 +1275,7 @@ def test_create_simple_purchase_policy_to_store5_5(store_facade):
     
 #test 6: a "OR" policy where a user cannot buy alcohol after 23:00 or when its a holiday:
 def test_create_simple_purchase_policy_to_store6(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('alcohol', 'very good product', product_price_10, ['tag'], 30.0)
     category_id3 = store_facade.add_category('alcohol')
     store_facade.assign_product_to_category(0, store_id,product_id)
@@ -1297,7 +1298,7 @@ def test_create_simple_purchase_policy_to_store6(store_facade):
     
 #test 7: a user can buy 5 kg of tomatoes only if (conditioning) there are eggplants in the basket:
 def test_create_simple_purchase_policy_to_store7(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
     product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
@@ -1315,7 +1316,7 @@ def test_create_simple_purchase_policy_to_store7(store_facade):
    
 #test 7.5: a user can buy 5 kg of tomatoes only if (conditioning) there are eggplants in the basket:
 def test_create_simple_purchase_policy_to_store75(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
     product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
@@ -1333,7 +1334,7 @@ def test_create_simple_purchase_policy_to_store75(store_facade):
      
 #test 8: a user can buy 5 kg of tomatoes only if (conditioning) there are at least 2 eggplants in the basket or its a holiday:
 def test_create_simple_purchase_policy_to_store8(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
     product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
@@ -1354,7 +1355,7 @@ def test_create_simple_purchase_policy_to_store8(store_facade):
      
 #test 9: a user can buy 5 kg of tomatoes only if (conditioning) there are at least 2 eggplants in the basket or its a holiday:
 def test_create_simple_purchase_policy_to_store9(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
     product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
@@ -1373,7 +1374,7 @@ def test_create_simple_purchase_policy_to_store9(store_facade):
      
 
 def test_create_composite_purchase_policy_to_store (store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
     product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
@@ -1393,7 +1394,7 @@ def test_create_composite_purchase_policy_to_store (store_facade):
 
 
 def test_validate_purchase_policies(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
     product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
@@ -1411,7 +1412,7 @@ def test_validate_purchase_policies(store_facade):
     assert store_facade.validate_purchase_policies({store_id:shopping_basket}, user_information_dto1)==False
     
 def test_validate_purchase_policies2(store_facade):
-    store_id = store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('tomatoes', 'very good product', product_price_10, ['tag'], 1.0)
     product_id2=store_facade.get_store_by_id(store_id).add_product('eggplants', 'very good product', product_price_10, ['tag'], 30.0)
     store_facade.get_store_by_id(store_id).restock_product(product_id, 50)
@@ -1474,7 +1475,7 @@ def test_check_purchase_policy_fail(store):
     assert e.value.store_error_type== StoreErrorTypes.policy_not_satisfied
 
 def test_add_purchase_policy_to_store(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_purchase_policy_to_store(0, "no_alcohol_and_tabbaco_bellow_18")
     assert store_facade._StoreFacade__get_store_by_id(0).purchase_policy[0] == "no_alcohol_and_tabbaco_bellow_18"
 
@@ -1484,7 +1485,7 @@ def test_add_purchase_policy_to_store_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.invalid_purchase_policy_input
 
 def test_remove_purchase_policy_from_store(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     store_facade.add_purchase_policy_to_store(0, "no_alcohol_and_tabbaco_bellow_18")
     store_facade.remove_purchase_policy_from_store(0, "no_alcohol_and_tabbaco_bellow_18")
     assert len(store_facade._StoreFacade__get_store_by_id(0).purchase_policy) == 0
@@ -1495,8 +1496,8 @@ def test_remove_purchase_policy_from_store_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.policy_not_found
 
 def test_validate_purchase_policies(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
-    store_facade.add_store(location_id=0, store_name='store2', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store2', store_founder_id=0)
     store_facade.add_purchase_policy_to_store(0, "no_alcohol_and_tabbaco_bellow_18")
     store_facade.add_purchase_policy_to_store(0, "not_too_much_gun_powder")
     store_facade.add_purchase_policy_to_store(1, "no_alcohol_and_tabbaco_bellow_18")
@@ -1512,8 +1513,8 @@ def test_validate_purchase_policies(store_facade):
     assert store_facade.validate_purchase_policies(products, user_dto) is None
 
 def test_validate_purchase_policies_fail(store_facade):
-    store_facade.add_store(location_id=0, store_name='store', store_founder_id=0)
-    store_facade.add_store(location_id=0, store_name='store2', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    store_facade.add_store(default_location, store_name='store2', store_founder_id=0)
     store_facade.add_purchase_policy_to_store(0, "no_alcohol_and_tabbaco_bellow_18")
     store_facade.add_purchase_policy_to_store(0, "not_too_much_gun_powder")
     store_facade.add_purchase_policy_to_store(1, "no_alcohol_and_tabbaco_bellow_18")

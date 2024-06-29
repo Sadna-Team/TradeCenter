@@ -476,9 +476,9 @@ class Category:
 
 class Store:
     # id of store is storeId. It is unique for each store
-    def __init__(self, store_id: int, location_id: int, store_name: str, store_founder_id: int):
+    def __init__(self, store_id: int, address: AddressDTO, store_name: str, store_founder_id: int):
         self.__store_id = store_id
-        self.__location_id = location_id
+        self.__address = address
         self.__store_name = store_name
         self.__store_founder_id = store_founder_id
         self.__is_active = True
@@ -497,8 +497,8 @@ class Store:
         return self.__store_id
 
     @property
-    def location_id(self) -> int:
-        return self.__location_id
+    def address(self) -> AddressDTO:
+        return self.__address
 
     @property
     def store_name(self) -> str:
@@ -787,7 +787,7 @@ class Store:
         * This function creates a store DTO from the store
         * Returns: the store DTO
         """
-        store_dto = StoreDTO(self.__store_id, self.__location_id, self.__store_name, self.__store_founder_id,
+        store_dto = StoreDTO(self.__store_id, self.__address, self.__store_name, self.__store_founder_id,
                              self.__is_active, self.__founded_date)
         product_dtos = [product.create_product_dto() for product in self.__store_products.values()]
         store_dto.products = product_dtos
@@ -1240,7 +1240,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         return store.get_tags_of_product(product_id)
 
-    def add_store(self, location_id: int, store_name: str, store_founder_id: int) -> int:
+    def add_store(self, address: AddressDTO, store_name: str, store_founder_id: int) -> int:
         """
         * Parameters: locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate,
          ratingsOfProduct_Id
@@ -1252,7 +1252,7 @@ class StoreFacade:
         if store_name == "":
             raise StoreError('Store name is an empty string', StoreErrorTypes.invalid_store_name)
         with self.__store_id_lock:
-            store = Store(self.__store_id_counter, location_id, store_name, store_founder_id)
+            store = Store(self.__store_id_counter, address, store_name, store_founder_id)
             self.__stores[self.__store_id_counter] = store
             self.__store_id_counter += 1
         

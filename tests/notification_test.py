@@ -7,7 +7,11 @@ register_credentials = {
         'username': 'test',
         'email': 'test@gmail.com',
         'password': 'test',
-        'location_id': 1,
+        'address': 'randomstreet 34th',
+        'city': 'arkham',
+        'state': 'gotham',
+        'country': 'Wakanda',
+        'zip_code': '12345',
         'year': 2003,
         'month': 1,
         'day': 1,
@@ -85,7 +89,7 @@ def user(client2):
 def store(client1, owner):
     # create store
     headers = {'Authorization': 'Bearer ' + owner}
-    data = {'store_name': 'store', 'location_id': 1}
+    data = {'store_name': 'store', 'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'zip_code': '12345'}
     client1.post('store/add_store', headers=headers, json=data)
 
     # add product
