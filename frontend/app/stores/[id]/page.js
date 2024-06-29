@@ -8,6 +8,7 @@ import Link from 'next/link';
 const StoreDetail = () => {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
+  console.log('Store ID:', id);
 
   // Mock data for demonstration purposes
   const storeData = {

@@ -13,7 +13,7 @@ export default function NominationsPage() {
       try {
         const response = await api.get('/user/get_user_nominations');
         const data = response.data;
-
+        console.log('Data:', data);
         const formattedNominations = Object.entries(data.nominations).map(([id, nomination]) => ({
           id,
           ...nomination,
