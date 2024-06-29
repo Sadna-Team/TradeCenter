@@ -112,6 +112,10 @@ class MarketFacade:
 
         self.nominate_store_owner(store_id, uid1, "user2")
 
+        # add test notifications to admin
+        self.notifier.notify_general_message(0, "test notification 1")
+        self.notifier.notify_general_message(0, "test notification 2")
+
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
 

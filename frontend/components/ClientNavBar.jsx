@@ -15,6 +15,15 @@ const ClientNavBar = ({ onToggleSidebar }) => {
   const [error, setError] = useState(null);
   const socket = new SocketSingleton(sessionStorage.getItem('token'));
 
+  // Load notifications from sessionStorage on initialization
+    useEffect(() => {
+      const storedNotifications = sessionStorage.getItem('notifications');
+      if (storedNotifications) {
+        setNotifications(JSON.parse(storedNotifications));
+        setShowNotifications(true)
+      }
+    }, []);
+
     useEffect(() => {
       if (socket.getInstance().connected && !sessionStorage.getItem('listener') === 'true') {
         socket.getInstance().removeAllListeners('message')
@@ -31,13 +40,34 @@ const ClientNavBar = ({ onToggleSidebar }) => {
             }
       } , [socket]);
 
+  useEffect(() => {
+     const handleBeforeUnload = async (event) => {
+      // Prevent the default action
+      event.preventDefault();
+      // Send a logout request to the server
+      try {
+        await api.post('auth/logout');
+      } catch (error) {
+        console.error('Error logging out:', error.response ? error.response.data : error.message);
+      }
+      // Set a custom message for the confirmation dialog
+      event.returnValue = ''; // Standard for most browsers
+      return ''; // For old browsers
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
 
   const handleMessages = (data) => {
     console.log('Received message:', data);
     setNotifications((prev) => [...prev, data]);
     setShowNotifications(true)
     // clear the socket
-
   }
 
   const toggleNotifications = () => {
@@ -71,6 +101,7 @@ const ClientNavBar = ({ onToggleSidebar }) => {
     sessionStorage.setItem('isConnected', false);
     sessionStorage.setItem('listener', false);
     sessionStorage.removeItem('admin')
+    sessionStorage.removeItem('notifications')
     window.location.href = '/';
   };
 
