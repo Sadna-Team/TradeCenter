@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
-const SearchForm = ({ onSearch, categories }) => {
-    const [selectedCategory, setSelectedCategory] = useState(null);
+const SearchForm = ({ onSearch, categories, stores }) => {
+    const [selectedCategory, setSelectedCategory] = useState('');
     const [storeName, setStoreName] = useState('');
 
     // Handle form submission by calling the onSearch function passed as a prop
@@ -18,26 +18,33 @@ const SearchForm = ({ onSearch, categories }) => {
                     <div className="mb-4">
                         <label className="block text-gray-700">Category</label>
                         <select
+                            value={selectedCategory}
                             className="w-full p-2 border border-gray-300 rounded mt-1"
-                            onChange={(e) => setSelectedCategory([e.target.value])}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            required
                         >
                             <option value="">Select category</option>
                             {categories.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                    {category.name}
+                                <option key={category} value={category}>
+                                    {category}
                                 </option>
                             ))}
                         </select>
                     </div>
                     <div className="mb-4">
-                        <label className="block text-gray-700">Store Name (Optional)</label>
-                        <input
-                            type="text"
-                            className="w-full p-2 border border-gray-300 rounded mt-1"
-                            placeholder="Enter store name"
-                            value={storeName}
-                            onChange={(e) => setStoreName(e.target.value)}
-                        />
+                    <label className="block text-gray-700">Store Name(Optional)</label>
+                    <select
+                        value={storeName}
+                        onChange={(e) => setStoreName(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded mt-1"
+                    >
+                        <option value="">Select store</option>
+                        {stores.map((store) => (
+                        <option key={store} value={store}>
+                            {store}
+                        </option>
+                        ))}
+                    </select>
                     </div>
                     <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
                         Search
