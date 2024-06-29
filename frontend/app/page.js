@@ -33,10 +33,10 @@ export default function Home() {
 
   const fetchStores = async (page) => {
     try {
-      if (sessionStorage.getItem('stores') !== null) {
-        setStores(JSON.parse(sessionStorage.getItem('stores')));
-        return;
-      }
+      // if (sessionStorage.getItem('stores') !== null) {
+      //   setStores(JSON.parse(sessionStorage.getItem('stores')));
+      //   return;
+      // }
       const limit = 4;
       const response = await api.post('/store/get_stores', {
         page,

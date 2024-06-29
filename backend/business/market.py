@@ -108,7 +108,7 @@ class MarketFacade:
                                     'city': 'arkham', 
                                     'state': 'gotham',
                                     'country': 'Wakanda', 
-                                    'zip_code': '12345'}
+                                    'zip': '12345'}
 
         self.auth_facade.register_user(uid1, uc1)
         self.auth_facade.register_user(uid2, uc2)
