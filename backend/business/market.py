@@ -112,6 +112,19 @@ class MarketFacade:
 
         self.nominate_store_owner(store_id, uid1, "user2")
 
+        # add 3 categories
+        self.store_facade.add_category("category1")
+        self.store_facade.add_category("category2")
+        self.store_facade.add_category("sub-category1")
+        self.store_facade.assign_sub_category_to_category(2, 0)
+        
+        # assign products to categories
+        self.store_facade.assign_product_to_category(0, 0, 0)
+        self.store_facade.assign_product_to_category(0, 0, 1)
+        self.store_facade.assign_product_to_category(1, 0, 2)
+        self.store_facade.assign_product_to_category(2, 0, 3)
+        
+
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
 
@@ -1275,3 +1288,12 @@ class MarketFacade:
     def get_usersDTO_by_store(self, store_id: int) -> Dict[int, UserDTO]:
         roles = self.roles_facade.get_store_owners(store_id)
         return self.user_facade.get_users_dto(roles)
+    
+    def get_all_product_tags(self) -> List[str]:
+        return self.store_facade.get_all_tags()
+    
+    def get_all_store_names(self) -> Dict[int, str]:
+        return self.store_facade.get_all_store_names()
+    
+    def get_all_categories(self) -> Dict[int, str]:
+        return self.store_facade.get_all_categories()
