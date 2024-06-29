@@ -505,3 +505,10 @@ class RolesFacade:
                                                                nomination.nominator_id, nomination.nominee_id,
                                                                nomination.role.__str__())
         return nominations
+
+    def get_my_stores(self, user_id) -> List[int]:
+        stores = []
+        for store_id, roles in self.__stores_to_roles.items():
+            if user_id in roles:
+                stores.append(store_id)
+        return stores

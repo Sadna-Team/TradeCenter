@@ -11,7 +11,11 @@ register_credentials1= {
         'username': 'testing',
         'email': 'testing@gmail.com',
         'password': 'test',
-        'location_id': 1,
+        'address': 'randomstreet 34th',
+        'city': 'arkham',
+        'state': 'Utopia',
+        'country': 'Wakanda',
+        'zip_code': '12345',
         'year': 2003,
         'month': 1,
         'day': 1,
@@ -121,7 +125,7 @@ def user_token(client22, token22):
 
 @pytest.fixture
 def init_store(client12, owner_token11):
-    data = {'store_name': 'test_store', 'location_id': 1}
+    data = {'store_name': 'test_store', 'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'Utopia', 'country': 'Wakanda', 'zip_code': '12345'}
     headers = {'Authorization': 'Bearer ' + owner_token11}
     response = client12.post('store/add_store', headers=headers, json=data)
 
@@ -149,7 +153,7 @@ def init_store(client12, owner_token11):
 
 @pytest.fixture
 def init_store2(client12, owner_token11):
-    data = {'store_name': 'test_store', 'location_id': 1}
+    data = {'store_name': 'test_store', 'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'Utopia', 'country': 'Wakanda', 'zip_code': '12345'}
     headers = {'Authorization': 'Bearer ' + owner_token11}
     response = client12.post('store/add_store', headers=headers, json=data)
 

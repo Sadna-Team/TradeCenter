@@ -165,11 +165,27 @@ class StoreService:
             Show information about the stores in the system
         """
         try:
-            info = self.__market_facade.get_store_info(store_id).get()
+            info = self.__market_facade.get_store_info(store_id) # storeDTO
+
+            # convert DTO to dict
+            info = info.get()
+
             logger.info('store info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:
             logger.error('store info was not sent')
+            return jsonify({'message': str(e)}), 400
+
+    def get_stores(self, page: int, limit: int):
+        """
+            Get a list of stores
+        """
+        try:
+            stores = {sid: s.get() for sid, s in self.__market_facade.get_stores(page, limit).items()}
+            logger.info('stores were sent successfully')
+            return jsonify({'message': stores}), 200
+        except Exception as e:
+            logger.error('stores were not sent')
             return jsonify({'message': str(e)}), 400
 
     def show_store_products(self, store_id: int):
@@ -184,12 +200,23 @@ class StoreService:
             logger.error('store products info was not sent')
             return jsonify({'message': str(e)}), 400
 
-    def add_new_store(self, user_id: int, location_id: int, store_name: str):
+    def get_product_info(self, store_id, product_id: int):
+        """
+            Show information about a product
+        """
+        try:
+            info = self.__market_facade.get_product_info(store_id, product_id).get()
+            logger.info('product info was sent successfully')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('product info was not sent')
+            return jsonify({'message': str(e)}), 400
+    def add_new_store(self, user_id: int, address: str, city: str, state:str, country:str, zip_code:str, store_name: str):
         """
             Add a store to the system and set the user as the store owner
         """
         try:
-            self.__market_facade.add_store(user_id, location_id, store_name)
+            self.__market_facade.add_store(user_id, address, city, state, country, zip_code, store_name)
             logger.info('store was added successfully')
             return jsonify({'message': 'store was added successfully'}), 200
         except Exception as e:
@@ -484,6 +511,18 @@ class StoreService:
         except Exception as e:
             logger.error('employees info was not sent')
             return jsonify({'message': str(e)}), 400
+          
+    def my_stores(self, user_id):
+        """
+            Get the stores of a user
+        """
+        try:
+            stores = self.__market_facade.get_my_stores(user_id)
+            logger.info('my stores were sent successfully')
+            return jsonify({'message': stores}), 200
+        except Exception as e:
+            logger.error('my stores were not sent')
+            return jsonify({'message': str(e)}), 400
         
     def get_all_product_tags(self):
         """
@@ -520,4 +559,4 @@ class StoreService:
         except Exception as e:
             logger.error('categories were not sent')
             return jsonify({'message': str(e)}), 400
-        
+      

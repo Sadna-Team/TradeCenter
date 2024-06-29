@@ -18,7 +18,11 @@ def create_and_login_user(username, password, email, phone, year, month, day):
         'username': username,
         'email': email,
         'password': password,
-        'location_id': 1,
+        'address': 'address2',
+        'city': 'city2',
+        'state': 'state2',
+        'country': 'country2',
+        'zip_code': '12345',
         'year': year,
         'month': month,
         'day': day,
@@ -41,11 +45,16 @@ def create_and_login_user(username, password, email, phone, year, month, day):
 global token
 global guest_token
 
+
 register_credentials = {
     'username': 'test',
     'email': 'test@gmail.com',
     'password': 'test',
-    'location_id': 1,
+    'address': 'address',
+    'city': 'city',
+    'state': 'state',
+    'country': 'country',
+    'zip_code': '12346',
     'year': 2003,
     'month': 1,
     'day': 1,
@@ -60,11 +69,12 @@ def test_start(first=True):
     assert 'token' in data
     token = data['token']
 
+
     if first:
         user2 = create_and_login_user('test2', 'test2', 'test2@gmail.com', '054-7654321', 2003, 1, 1)
 
         response = client.post('/store/add_store', headers={'Authorization': 'Bearer ' + user2},
-                               json={'store_name': 'test_store', 'location_id': 1})
+                               json={'store_name': 'test_store','address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'zip_code': '12346'})
         assert response.status_code == 200
 
         response = client.post('/store/add_product', headers={'Authorization': 'Bearer ' + user2},
@@ -482,7 +492,11 @@ def test_add_store():
         'Authorization': f'Bearer {token}'
     }, json={
         'store_name': 'test_store',
-        'location_id': 1
+        'address': 'address',
+        'city': 'city',
+        'state': 'state',
+        'country': 'country',
+        'zip_code': '12345'
     })
     assert response.status_code == 200
 
@@ -493,7 +507,11 @@ def test_add_store_failed_user_not_a_member():
         'Authorization': f'Bearer {guest_token}'
     }, json={
         'store_name': 'test_store',
-        'location_id': 1,
+        'address': 'address',
+        'city': 'city',
+        'state': 'state',
+        'country': 'country',
+        'zip_code': '12345'
     })
     assert response.status_code == 400
 

@@ -20,7 +20,11 @@ def create_and_login_user(username, password, email, phone, year, month, day):
         'username': username,
         'email': email,
         'password': password,
-        'location_id': 1,
+        'address': 'address',
+        'city': 'city',
+        'state': 'state',
+        'country': 'country',
+        'zip_code': '12345',
         'year': year,
         'month': month,
         'day': day,
@@ -46,7 +50,7 @@ def test_start():
     token3 = create_and_login_user('test3', 'test3', 'test3@gmail.com', '054-1234567', 2003, 1, 1)
 
     response = client.post('/store/add_store', headers={'Authorization': 'Bearer ' + token1},
-                           json={'store_name': 'test_store', 'location_id': 1})
+                           json={'store_name': 'test_store', 'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'zip_code': '12345'})
     assert response.status_code == 200
 
 

@@ -46,8 +46,8 @@ class MarketFacade:
             # create the admin?
             self.__create_admin()
 
-    def test(self):
-        self.notifier.send_real_time_notification(0, NotificationDTO(-1, "test", datetime.now()))
+    def test(self,user_id):
+        self.notifier.send_real_time_notification(user_id, NotificationDTO(-1, "test", datetime.now()))
         logger.info("test notification sent")
 
 
@@ -110,6 +110,8 @@ class MarketFacade:
         self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
         self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
+        store_id = self.add_store(uid1, 2, "store2")
+
         self.nominate_store_owner(store_id, uid1, "user2")
 
         # add 3 categories
@@ -124,6 +126,10 @@ class MarketFacade:
         self.store_facade.assign_product_to_category(1, 0, 2)
         self.store_facade.assign_product_to_category(2, 0, 3)
         
+         # add test notifications to admin
+        self.notifier.notify_general_message(0, "test notification 1")
+        self.notifier.notify_general_message(0, "test notification 2")
+       
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
@@ -240,6 +246,9 @@ class MarketFacade:
             if basket_cleared:
                 self.user_facade.restore_basket(user_id, cart)
             raise e
+
+    def get_stores(self, page: int, limit: int) -> Dict[int, StoreDTO]:
+        return self.store_facade.get_stores(page, limit)
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_username):
         if self.user_facade.suspended(owner_id):
@@ -478,6 +487,19 @@ class MarketFacade:
         * Returns the store product information
         """
         return self.get_store_info(store_id).products
+
+    def get_product_info(self, store_id: int, product_id: int) -> ProductDTO:
+        """
+        * Parameters: storeId, productId
+        * This function returns the product information
+        * Returns the product information
+        """
+        products = self.get_store_product_info(store_id)
+        for product in products:
+            if product.product_id == product_id:
+                return product
+        raise StoreError("Product not found", StoreErrorTypes.product_not_found)
+
 
     # -------------Discount related methods-------------------#
     def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float,
@@ -739,9 +761,9 @@ class MarketFacade:
         self.store_facade.remove_product_amount(store_id, product_id, amount)
 
     # -------------Store related methods-------------------#
-    def add_store(self, founder_id: int, location_id: int, store_name: str) -> int:
+    def add_store(self, founder_id: int, address: str, city: str, state: str, country: str, zip_code: str, store_name: str) -> int:
         """
-        * Parameters: founderId, locationId, storeName
+        * Parameters: founderId, address, storeName
         * This function adds a store to the system
         * Returns None
         """
@@ -752,7 +774,8 @@ class MarketFacade:
         if not self.user_facade.is_member(founder_id):
             raise UserError("User is not a member", UserErrorTypes.user_not_a_member)
 
-        store_id = self.store_facade.add_store(location_id, store_name, founder_id)
+        address_of_store: AddressDTO = AddressDTO(address, city, state, country, zip_code)
+        store_id = self.store_facade.add_store(address_of_store, store_name, founder_id)
         self.roles_facade.add_store(store_id, founder_id)
         # Notifier().sign_listener(founder_id, store_id) -- already happened inside roles.add_store()
 
@@ -1312,6 +1335,9 @@ class MarketFacade:
     def get_usersDTO_by_store(self, store_id: int) -> Dict[int, UserDTO]:
         roles = self.roles_facade.get_store_owners(store_id)
         return self.user_facade.get_users_dto(roles)
+      
+    def get_my_stores(self, user_id):
+        return self.roles_facade.get_my_stores(user_id)
     
     def get_all_product_tags(self) -> List[str]:
         return self.store_facade.get_all_tags()
