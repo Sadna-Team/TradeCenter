@@ -6,11 +6,16 @@ import queue
 
 ITERATION_NUM = 50
 
+
 register_credentials = { 
         'username': 'test',
         'email': 'test@gmail.com',
         'password': 'test',
-        'location_id': 1,
+        'address': 'regular adddress',
+        'city': 'regular city',
+        'state': 'regular state',
+        'country': 'regular country',
+        'zip_code': '12345',
         'year': 2003,
         'month': 1,
         'day': 1,
@@ -100,9 +105,10 @@ def user_token(client2, token2):
     data = json.loads(response.data)
     return data['token']
 
+
 @pytest.fixture
 def init_store(client1, owner_token):
-    data = {'store_name': 'test_store', 'location_id': 1}
+    data = {'store_name': 'test_store', 'address': 'test_address', 'city': 'test_city', 'state': 'test_state', 'country': 'test_country', 'zip_code': '12345'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client1.post('store/add_store', headers=headers, json=data)
 
