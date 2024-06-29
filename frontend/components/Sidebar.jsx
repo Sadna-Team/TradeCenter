@@ -1,7 +1,6 @@
 "use client";
 
 import Link from 'next/link';
-// import { Link } from 'next/router';
 
 export default function Sidebar({ isOpen, onClose, hasStores }) {
 
@@ -27,6 +26,9 @@ export default function Sidebar({ isOpen, onClose, hasStores }) {
           />
         </svg>
       </button>
+      <Link href="/add-store" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
+        Add Store
+      </Link>
       {hasStores &&
         <Link href="/my-stores" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
           My Stores
