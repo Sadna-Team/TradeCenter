@@ -46,6 +46,10 @@ class MarketFacade:
             # create the admin?
             self.__create_admin()
 
+    def test(self):
+        self.notifier.send_real_time_notification(0, NotificationDTO(-1, "test", datetime.now()))
+        logger.info("test notification sent")
+
 
     def __create_admin(self, currency: str = "USD") -> None:
         man_id = self.user_facade.create_user(currency)
@@ -107,6 +111,19 @@ class MarketFacade:
         self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
         self.nominate_store_owner(store_id, uid1, "user2")
+
+        # add 3 categories
+        self.store_facade.add_category("category1")
+        self.store_facade.add_category("category2")
+        self.store_facade.add_category("sub-category1")
+        self.store_facade.assign_sub_category_to_category(2, 0)
+        
+        # assign products to categories
+        self.store_facade.assign_product_to_category(0, 0, 0)
+        self.store_facade.assign_product_to_category(0, 0, 1)
+        self.store_facade.assign_product_to_category(1, 0, 2)
+        self.store_facade.assign_product_to_category(2, 0, 3)
+        
 
     def show_notifications(self, user_id: int) -> List[NotificationDTO]:
         return self.user_facade.get_notifications(user_id)
@@ -561,6 +578,16 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to remove a discount")
 
+    def view_all_discount_information(self, user_id: int) -> List[Dict]:
+        """
+        * This function returns all the discount information
+        * Returns a list of dictionaries
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if not self.roles_facade.is_system_manager(user_id):
+            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        return self.store_facade.view_all_discount_information()
     # -------------Rating related methods-------------------#
     '''def add_store_rating(self, user_id: int, purchase_id: int, description: str, rating: float):
         """
@@ -1271,6 +1298,15 @@ class MarketFacade:
     def get_usersDTO_by_store(self, store_id: int) -> Dict[int, UserDTO]:
         roles = self.roles_facade.get_store_owners(store_id)
         return self.user_facade.get_users_dto(roles)
-
+      
     def get_my_stores(self, user_id):
         return self.roles_facade.get_my_stores(user_id)
+    
+    def get_all_product_tags(self) -> List[str]:
+        return self.store_facade.get_all_tags()
+    
+    def get_all_store_names(self) -> Dict[int, str]:
+        return self.store_facade.get_all_store_names()
+    
+    def get_all_categories(self) -> Dict[int, str]:
+        return self.store_facade.get_all_categories()
