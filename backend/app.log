@@ -39,38 +39,89 @@ New Store Logger - INFO - [Category] successfully added product to category with
 New Store Logger - INFO - [Category] successfully added product to category with id: 0
 New Store Logger - INFO - [Category] successfully added product to category with id: 1
 New Store Logger - INFO - [Category] successfully added product to category with id: 2
-backend - INFO - Starting app...
-werkzeug - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+Market logger - INFO - User 2 has added 1 of product 0 to the basket
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+New Store Logger - INFO - [StoreFacade] attempting to get total price after discount
+New Store Logger - INFO - [StoreFacade] successfully calculated total price after discount to be 100.0
+myapp - INFO - [ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: 0
+myapp - INFO - [ImmediatePurchase] successfully created immediate purchase object with purchase id: 0
+New Store Logger - INFO - Successfully removed product amount with id: {product_id}
+third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+third_party_handlers logger - INFO - Estimated delivery time: 2024-06-29 23:56:57.242305 - for package {'stores': dict_keys([0]), 'supply method': 'bogo'} to address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+myapp - INFO - [PurchaseFacade] attempting to accept purchase with purchase id: 0
+third_party_handlers logger - INFO - Processing payment of 100.0 with details {'payment method': 'bogo'}
+third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+third_party_handlers logger - INFO - Processed supply for package {'shopping cart': {0: {0: 1}}, 'address': {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}, 'arrival time': datetime.datetime(2024, 6, 29, 23, 56, 57, 242305), 'purchase id': 0, 'supply method': 'bogo'} to user 2
+Market logger - INFO - User 2 has checked out
 werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5000
- * Running on http://192.168.1.249:5000
 werkzeug - INFO - [33mPress CTRL+C to quit[0m
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 3
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:23:49] "GET /auth/ HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:23:49] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:56:53] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:56:53] "OPTIONS /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - received request to get stores
 myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:23:49] "POST /store/get_stores HTTP/1.1" 200 -
-myapp - INFO - recieved request from a guest to enter the app
-myapp - INFO - guest entered the app successfully - user_id: 4
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:25:21] "GET /auth/ HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:25:21] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:56:53] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:56:54] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:56:54] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:56:54] "OPTIONS /store/my_stores HTTP/1.1" 200 -
 myapp - INFO - received request to get stores
 myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:25:21] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:56:54] "POST /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:56:55] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - [PurchaseFacade] attempting to complete purchase with purchase id: 0
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:02] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:03] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:03] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1boO7p HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:03] "GET /socket.io/?EIO=4&transport=polling&t=P1boO7p HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:03] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1boOCf&sid=44zs5i7e_aFGFSaJAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:03] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1boOCg&sid=44zs5i7e_aFGFSaJAAAA HTTP/1.1" 200 -
+myapp - INFO - Client 2 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:03] "POST /socket.io/?EIO=4&transport=polling&t=P1boOCf&sid=44zs5i7e_aFGFSaJAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "GET /socket.io/?EIO=4&transport=polling&t=P1boOCg&sid=44zs5i7e_aFGFSaJAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: 2
+myapp - INFO - Client 2 connected
+myapp - INFO - Client joining room 2
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "GET /socket.io/?EIO=4&transport=websocket&sid=44zs5i7e_aFGFSaJAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1boOPk HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
 myapp - INFO - received request to get stores
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "GET /socket.io/?EIO=4&transport=polling&t=P1boOPk HTTP/1.1" 200 -
 myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:25:25] "POST /store/get_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:25:31] "OPTIONS /store/get_stores HTTP/1.1" 200 -
-myapp - INFO - received request to get stores
-myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:25:31] "POST /store/get_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:26:29] "OPTIONS /store/get_stores HTTP/1.1" 200 -
-myapp - INFO - received request to get stores
-myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:26:29] "POST /store/get_stores HTTP/1.1" 200 -
-myapp - INFO - received request to get stores
-myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 21:26:33] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:04] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:05] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1boOZO&sid=yWOv7r3Z1reTZ53wAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:05] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1boOZO.0&sid=yWOv7r3Z1reTZ53wAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 2 connected
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:05] "POST /socket.io/?EIO=4&transport=polling&t=P1boOZO&sid=yWOv7r3Z1reTZ53wAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:05] "GET /socket.io/?EIO=4&transport=polling&t=P1boOZO.0&sid=yWOv7r3Z1reTZ53wAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:05] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1boOkB&sid=yWOv7r3Z1reTZ53wAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:05] "GET /socket.io/?EIO=4&transport=polling&t=P1boOkB&sid=yWOv7r3Z1reTZ53wAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: 2
+myapp - INFO - Client 2 connected
+myapp - INFO - Client joining room 2
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:08] "OPTIONS /market/show_purchase_history HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:08] "OPTIONS /market/show_purchase_history HTTP/1.1" 200 -
+myapp - INFO - recieved request to show the purchase history of a user
+myapp - INFO - show_purchase_history_of_user was successful
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:08] "GET /market/show_purchase_history HTTP/1.1" 200 -
+myapp - INFO - recieved request to show the purchase history of a user
+myapp - INFO - show_purchase_history_of_user was successful
+werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:57:09] "GET /market/show_purchase_history HTTP/1.1" 200 -
