@@ -328,7 +328,7 @@ def view_discounts_info():
 
     return store_service.view_all_discount_info(user_id)
 
-@store_bp.route('/store_info', methods=['GET'])
+@store_bp.route('/store_info', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_info():
     """
@@ -345,6 +345,23 @@ def show_store_info():
 
     return store_service.show_store_info(store_id)
 
+@store_bp.route('/get_stores', methods=['GET', 'POST'])
+@jwt_required()
+def get_stores():
+    """
+        Get stores
+        get page and limit from request
+    """
+    logger.info('received request to get stores')
+    try:
+        data = request.get_json()
+        page = int(data['page'])
+        limit = int(data['limit'])
+    except Exception as e:
+        logger.error('show_store_products - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_stores(page, limit)
 
 @store_bp.route('/store_products', methods=['GET'])
 @jwt_required()
@@ -362,6 +379,24 @@ def show_store_products():
         return jsonify({'message': str(e)}), 400
 
     return store_service.show_store_products(store_id)
+
+@store_bp.route('/get_product_info', methods=['GET', 'POST'])
+@jwt_required()
+def get_product_info():
+    """
+        Use Case
+        Get product info
+    """
+    logger.info('received request to get product info')
+    try:
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+    except Exception as e:
+        logger.error('get_product_info - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_product_info(store_id, product_id)
 
 
 @store_bp.route('/add_store', methods=['POST'])

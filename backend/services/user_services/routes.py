@@ -149,9 +149,9 @@ def add_product_to_basket():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        store_id = data['store_id']
-        product_id = data['product_id']
-        quantity = data['quantity']
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        quantity = int(data['quantity'])
 
     except Exception as e:
         logger.error('add_product_to_basket - ' + str(e))
@@ -174,9 +174,9 @@ def remove_product_from_basket():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        store_id = data['store_id']
-        product_id = data['product_id']
-        quantity = data['quantity']
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        quantity = int(data['quantity'])
     except Exception as e:
         logger.error('remove_product_from_basket - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -377,7 +377,7 @@ def add_system_manager():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        username = data['username']
+        username = str(data['username'])
     except Exception as e:
         logger.error('add_system_manager - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -391,7 +391,7 @@ def suspend_user():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        suspended_user_id = data['suspended_user_id']
+        suspended_user_id = str(data['suspended_user_id'])
         date = data['date']
     except Exception as e:
         logger.error('suspend_user - ', str(e))
@@ -406,7 +406,7 @@ def unsuspend_user():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        suspended_user_id = data['suspended_user_id']
+        suspended_user_id = str(data['suspended_user_id'])
     except Exception as e:
         logger.error('unsuspend_user - ', str(e))
         return jsonify({'message': str(e)}), 400

@@ -163,6 +163,18 @@ class StoreService:
             logger.error('store info was not sent')
             return jsonify({'message': str(e)}), 400
 
+    def get_stores(self, page: int, limit: int):
+        """
+            Get a list of stores
+        """
+        try:
+            stores = {sid: s.get() for sid, s in self.__market_facade.get_stores(page, limit).items()}
+            logger.info('stores were sent successfully')
+            return jsonify({'message': stores}), 200
+        except Exception as e:
+            logger.error('stores were not sent')
+            return jsonify({'message': str(e)}), 400
+
     def show_store_products(self, store_id: int):
         """
             Show products of a store
@@ -173,6 +185,18 @@ class StoreService:
             return jsonify({'message': info}), 200
         except Exception as e:
             logger.error('store products info was not sent')
+            return jsonify({'message': str(e)}), 400
+
+    def get_product_info(self, store_id, product_id: int):
+        """
+            Show information about a product
+        """
+        try:
+            info = self.__market_facade.get_product_info(store_id, product_id).get()
+            logger.info('product info was sent successfully')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('product info was not sent')
             return jsonify({'message': str(e)}), 400
 
     def add_new_store(self, user_id: int, location_id: int, store_name: str):

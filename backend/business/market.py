@@ -110,6 +110,8 @@ class MarketFacade:
         self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
         self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
+        store_id = self.add_store(uid1, 2, "store2")
+
         self.nominate_store_owner(store_id, uid1, "user2")
 
         # add 3 categories
@@ -240,6 +242,9 @@ class MarketFacade:
             if basket_cleared:
                 self.user_facade.restore_basket(user_id, cart)
             raise e
+
+    def get_stores(self, page: int, limit: int) -> Dict[int, StoreDTO]:
+        return self.store_facade.get_stores(page, limit)
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_username):
         if self.user_facade.suspended(owner_id):
@@ -478,6 +483,19 @@ class MarketFacade:
         * Returns the store product information
         """
         return self.get_store_info(store_id).products
+
+    def get_product_info(self, store_id: int, product_id: int) -> ProductDTO:
+        """
+        * Parameters: storeId, productId
+        * This function returns the product information
+        * Returns the product information
+        """
+        products = self.get_store_product_info(store_id)
+        for product in products:
+            if product.product_id == product_id:
+                return product
+        raise StoreError("Product not found", StoreErrorTypes.product_not_found)
+
 
     # -------------Discount related methods-------------------#
     def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float,
