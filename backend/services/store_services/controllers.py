@@ -156,7 +156,11 @@ class StoreService:
             Show information about the stores in the system
         """
         try:
-            info = self.__market_facade.get_store_info(store_id).get()
+            info = self.__market_facade.get_store_info(store_id) # storeDTO
+
+            # convert DTO to dict
+            info = info.get()
+
             logger.info('store info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:
@@ -499,6 +503,18 @@ class StoreService:
         except Exception as e:
             logger.error('employees info was not sent')
             return jsonify({'message': str(e)}), 400
+          
+    def my_stores(self, user_id):
+        """
+            Get the stores of a user
+        """
+        try:
+            stores = self.__market_facade.get_my_stores(user_id)
+            logger.info('my stores were sent successfully')
+            return jsonify({'message': stores}), 200
+        except Exception as e:
+            logger.error('my stores were not sent')
+            return jsonify({'message': str(e)}), 400
         
     def get_all_product_tags(self):
         """
@@ -535,4 +551,4 @@ class StoreService:
         except Exception as e:
             logger.error('categories were not sent')
             return jsonify({'message': str(e)}), 400
-        
+      
