@@ -1330,3 +1330,16 @@ class MarketFacade:
     
     def get_all_categories(self) -> Dict[int, str]:
         return self.store_facade.get_all_categories()
+    
+    def edit_product(self, user_id: int, store_id: int, product_id: int, product_name: str, description: str, price: float,
+                    weight: float, tags: List[str], amount: Optional[int] = None) -> None:
+        """
+        * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
+        * This function adds a product to the store
+        * Returns None
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+            raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
+        self.store_facade.edit_product_in_store(store_id, product_id, product_name, description, price, weight, tags, amount)

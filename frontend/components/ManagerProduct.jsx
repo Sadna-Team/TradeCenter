@@ -16,8 +16,8 @@ const ManagerProduct = ({ product, store_id }) => {
       <div className="button-container" style={{ display: 'flex', justifyContent: 'space-between' }}>
         <Link
             href={{
-              pathname: `/stores/${store_id}/edit-product/${product.id}`,
-              query: { storeId: store_id, productId: product.id },
+              pathname: `/stores/${store_id}/edit-product/${product.product_id}`,
+              query: { storeId: store_id, productId: product.product_id },
             }}
           >
           <button className="edit-fields-btn" style={{ backgroundColor: '#3498db', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>Edit Fields</button>

@@ -77,6 +77,18 @@ class Product:
     def release_lock(self):
         self.__product_lock.release()
 
+    def change_name(self, new_name: str) -> None:
+        """
+        * Parameters: newName
+        * This function changes the name of the product
+        * Returns: none
+        """
+        if new_name is None:
+            raise StoreError('New name is not a valid string', StoreErrorTypes.invalid_name)
+        with self.__product_lock:
+            self.__product_name = new_name
+        logger.info('[Product] successfully changed name of product with id: ' + str(self.__product_id))
+
     def change_price(self, new_price: float) -> None:
         """
         * Parameters: newPrice
@@ -101,6 +113,28 @@ class Product:
             self.__description = new_description
         logger.info(
             '[Product] successfully changed description of product with id: ' + str(self.__product_id))
+        
+    def change_tags(self, new_tags: List[str]) -> None:
+        """
+        * Parameters: newTags
+        * This function changes the tags of the product
+        * Returns: none
+        """
+        with self.__product_lock:
+            self.__tags = new_tags
+        logger.info('[Product] successfully changed tags of product with id: ' + str(self.__product_id))
+
+    def change_amount(self, new_amount: int) -> None:
+        """
+        * Parameters: newAmount
+        * This function changes the amount of the product
+        * Returns: none
+        """
+        if new_amount < 0:
+            raise StoreError('New amount is a negative value', StoreErrorTypes.invalid_amount)
+        with self.__product_lock:
+            self.__amount = new_amount
+        logger.info('[Product] successfully changed amount of product with id: ' + str(self.__product_id))
 
 
     def add_tag(self, tag: str) -> None:
@@ -150,6 +184,7 @@ class Product:
         * This function changes the weight of the product
         * Returns: none
         """
+        logger.info('[Product] weight is being changed to: ' + str(new_weight))
         if new_weight < 0:
             raise StoreError('New weight is a negative value', StoreErrorTypes.invalid_weight)
         with self.__product_lock:
@@ -927,6 +962,25 @@ class Store:
         """
         product = self.get_product_by_id(product_id)
         product.change_weight(new_weight)
+
+    
+    def edit_product(self, product_id: int, name: str, description: str, price: float, tags: List[str], weight: float, amount: Optional[int]=None) -> None:
+        """
+        * Parameters: productId, name, description, price, tags, weight
+        * This function edits a product in the store
+        * Returns: none
+        """
+        if product_id not in self.__store_products:
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
+        product = self.__store_products[product_id]
+        product.change_name(name)
+        product.change_description(description)
+        product.change_price(price)
+        product.change_weight(weight)
+        product.change_tags(tags)
+        if amount is not None:
+            product.change_amount(amount)
+        logger.info('[Store] successfully edited product in store with id: ' + str(self.__store_id))
 # ---------------------end of classes---------------------#
 
 # ---------------------storeFacade class---------------------#
@@ -2130,3 +2184,13 @@ class StoreFacade:
         * Returns: a dict from category_id to category_name
         """
         return {category_id: category.category_name for category_id, category in self.__categories.items()}
+    
+    def edit_product_in_store(self, store_id: int, product_id: int, product_name: str, description: str, price: float, weight: float, tags: List[str],
+                              amount: Optional[int]) -> None:
+        """
+        * Parameters: store_id, product_id, product_name, description, price, weight, tags
+        * This function edits a product in the store
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        store.edit_product(product_id, product_name, description, price, tags, weight, amount)

@@ -27,6 +27,7 @@ const ProductPage = ( { onSave, existingData } ) => {
 
   useEffect(() => {
     if (existingData) {
+      console.log('Existing data:', existingData);
       setName(existingData.name);
       setDescription(existingData.description);
       setPrice(existingData.price);

@@ -5,36 +5,19 @@ import ProductPage from '@/components/ProductEditable';
 import { useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 
-export default function EditProduct() {
+export default function AddProduct() {
     const [errorMessage, setErrorMessage] = useState(null);
     const searchParams = useSearchParams();
     
-    const product_id = searchParams.get('productId');
     const store_id = searchParams.get('storeId');
 
-    const [product, setProduct] = useState({});
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                console.log("store_id", store_id);
-                console.log("product_id", product_id);
-                const response = await api.post(`/store/get_product_info`, {store_id, product_id});
-                setProduct(response.data.message);
-            } catch (error) {
-                setErrorMessage("Failed to fetch product data");
-            }
-        };
-        fetchData();
-    }, []);
-    
+    const [product, setProduct] = useState({});    
 
     const handleSave = (name, description, price, weight, amount, selectedTags) => {
         const product_name = name;
         const tags = selectedTags;
         const data = {
             store_id,
-            product_id,
             product_name,
             description,
             price,
@@ -46,7 +29,7 @@ export default function EditProduct() {
         const saveData = async () => {
             try {
                 console.log("data: ", data);
-                const response = await api.post(`/store/edit_product`, data);
+                const response = await api.post(`/store/add_product`, data);
                 if(response.status !== 200) {
                     setErrorMessage("Failed to save product data");
                     return;
@@ -63,7 +46,7 @@ export default function EditProduct() {
 
     return (
         <div>
-            <ProductPage onSave={handleSave} existingData={product}/>
+            <ProductPage onSave={handleSave} />
             {errorMessage && <div className="error">{errorMessage}</div>}
         </div>
     );

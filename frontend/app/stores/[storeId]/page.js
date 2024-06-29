@@ -64,13 +64,16 @@ const StoreDetail = () => {
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {store.products.map((product) => (
-            <ManagerProduct key={product.id} product={product} store_id={store_id} />
+            <ManagerProduct key={product.product_id} product={product} store_id={store_id} />
           ))}
         </div>
 
         {/* Add Product Button */}
         <div className="mt-8 flex justify-center">
-          <Link href="/add-product">
+          <Link href={{
+                      pathname: `/stores/${store_id}/add-product`,
+                      query: { storeId: store_id },
+                    }}>
             <div className="bg-red-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Add Product</div>
           </Link>
         </div>

@@ -512,6 +512,37 @@ def remove_product_amount():
 
     return store_service.remove_amount_from_product(user_id, store_id, product_id, amount)
 
+@store_bp.route('/edit_product', methods=['POST'])
+@jwt_required()
+def edit_product_in_store():
+    """
+        Use Case 2.4.1:
+        Add a product to a store
+
+    """
+    logger.info('received request to edit product')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        product_name = str(data['product_name'])
+        description = str(data['description'])
+        price = float(data['price'])
+        weight = float(data['weight'])
+        tags_helper = data['tags']
+        if not isinstance(tags_helper, list):
+            raise ServiceLayerError("Tags must be a list", ServiceLayerErrorTypes.tags_not_list)
+        tags = [str(tag) for tag in tags_helper]
+        amount=0
+        if 'amount' in data:
+            amount = int(data['amount'])
+    except Exception as e:
+        logger.error('edit_product - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.edit_product_in_store(user_id, store_id, product_id, product_name, description, price, weight, tags, amount)
+
 @store_bp.route('/change_price_of_product', methods=['POST'])
 @jwt_required()
 def change_price_of_product():
