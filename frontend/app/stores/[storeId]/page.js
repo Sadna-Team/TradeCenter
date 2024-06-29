@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 const StoreDetail = () => {
   const searchParams = useSearchParams();
-  const id = searchParams.get('id');
+  const storeId = searchParams.get('storeId');
 
   // Mock data for demonstration purposes
   const storeData = {
@@ -57,12 +57,12 @@ const StoreDetail = () => {
   const [store, setStore] = useState(null);
 
   useEffect(() => {
-    if (id && storeData[id]) {
-      setStore(storeData[id]);
+    if (storeId && storeData[storeId]) {
+      setStore(storeData[storeId]);
     } else {
       setStore(null); // Handle case where store is not found
     }
-  }, [id]);
+  }, [storeId]);
 
   if (!store) {
     return <div className="min-h-screen bg-gray-100 p-4">Store not found</div>;
@@ -86,7 +86,7 @@ const StoreDetail = () => {
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {store.products.map((product) => (
-            <ManagerProduct key={product.id} product={product} />
+            <ManagerProduct key={product.id} product={product} currStoreId={storeId} />
           ))}
         </div>
 

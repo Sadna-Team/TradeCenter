@@ -1,3 +1,5 @@
+// NavbarWrapper.jsx
+
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import GuestNavBar from './GuestNavBar';
@@ -31,15 +33,13 @@ const NavbarWrapper = ({ onToggleSidebar }) => {
     }
   }, [router.events]);
 
-  if (!isHydrated) {
-    return null; // Prevent mismatched render on the server
-  }
-
-  return isConnected ? (
-    <ClientNavBar onToggleSidebar={onToggleSidebar} />
-  ) : (
-    <GuestNavBar />
-  );
+  return isHydrated ? (
+    isConnected ? (
+      <ClientNavBar onToggleSidebar={onToggleSidebar} isConnected={isConnected} />
+    ) : (
+      <GuestNavBar />
+    )
+  ) : null;
 };
 
 export default NavbarWrapper;
