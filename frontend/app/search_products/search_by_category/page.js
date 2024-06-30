@@ -9,7 +9,7 @@ export default function SearchByCategory() {
 
     const [results, setResults] = useState([]);
     const [errorMessage, setErrorMessage] = useState(null);
-    const [cateoryIdToName, setCategoryIdToName] = useState({});
+    const [categories, setCategories] = useState({});
     const [storeIdToName, setStoreIdToName] = useState({});
     const [initialSearch, setInitialSearch] = useState(true);
 
@@ -17,7 +17,8 @@ export default function SearchByCategory() {
         const fetchData = async () => {
             try {
                 const categoriesResponse = await api.get('/store/category_ids_to_names');
-                setCategoryIdToName(categoriesResponse.data.message);
+                console.log(categoriesResponse.data);
+                setCategories(categoriesResponse.data.message);
             } catch (error) {
                 console.error('Failed to fetch tags', error);
                 setErrorMessage('Failed to fetch tags');
@@ -37,9 +38,9 @@ export default function SearchByCategory() {
         fetchData();
     }, []);
 
-    const handleSearch = async (selectedCategory, storeName) => {
+    const handleSearch = async (selectedCategoryName, storeName) => {
         const store_id = Object.keys(storeIdToName).find((key) => storeIdToName[key] === storeName);
-        const category_id = Object.keys(cateoryIdToName).find((key) => cateoryIdToName[key] === selectedCategory);
+        const category_id = Object.keys(categories).find((key) => categories[key].category_name === selectedCategoryName);
         
         console.log("category id: ", category_id);
         console.log("store id: ", store_id);
@@ -111,7 +112,7 @@ export default function SearchByCategory() {
 
     return (
         <div>
-            <SearchForm onSearch={handleSearch} categories={Object.values(cateoryIdToName)} stores={Object.values(storeIdToName)}/>
+            <SearchForm onSearch={handleSearch} categories={Object.values(categories).map(item => item.category_name)} stores={Object.values(storeIdToName)}/>
             {errorMessage && <div className="error">{errorMessage}</div>}
             {Object.keys(results).length === 0 && !initialSearch && <div className="no-results">No results found</div>}
             {Object.keys(results).length > 0 && (

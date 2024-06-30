@@ -561,6 +561,7 @@ class StoreService:
         """
         try:
             categories = self.__market_facade.get_all_categories()
+            categories = {cid: c.get() for cid, c in categories.items()}
             logger.info('categories were sent successfully')
             return jsonify({'message': categories}), 200
         except Exception as e:

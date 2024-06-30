@@ -374,10 +374,11 @@ class TransactionException(Exception):
 
 
 class CategoryDTO:
-    def __init__(self, category_id: int, category_name: str, parent_category_id: int):
+    def __init__(self, category_id: int, category_name: str, parent_category_id: int, sub_categories: Optional[List[int]] = None):
         self.__category_id: int = category_id
         self.__category_name: str = category_name
         self.__parent_category_id: int = parent_category_id
+        self.__sub_categories: List[int] = sub_categories
 
     @property
     def category_id(self) -> int:
@@ -390,10 +391,14 @@ class CategoryDTO:
     @property
     def parent_category_id(self) -> int:
         return self.__parent_category_id
+    
+    @property
+    def sub_categories(self) -> Optional[List[int]]:
+        return self.__sub_categories
 
     def get(self) -> dict:
-        return {"category_id": self.__category_id, "category name": self.__category_name,
-                "parent_category_id": self.__parent_category_id}
+        return {"category_id": self.__category_id, "category_name": self.__category_name,
+                "parent_category_id": self.__parent_category_id, "sub_categories": self.__sub_categories}
 
 
 class UserDTO:

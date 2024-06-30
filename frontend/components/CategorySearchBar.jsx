@@ -4,6 +4,8 @@ const SearchForm = ({ onSearch, categories, stores }) => {
     const [selectedCategory, setSelectedCategory] = useState('');
     const [storeName, setStoreName] = useState('');
 
+    console.log("categories: ", categories);
+
     // Handle form submission by calling the onSearch function passed as a prop
     const handleSubmit = (e) => {
         e.preventDefault();
