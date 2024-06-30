@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 
-export default function Sidebar({ isOpen, onClose, hasStores }) {
+export default function Sidebar({ isOpen, onClose, hasStores, isSystemManager }) {
   const [showMyStoresLink, setShowMyStoresLink] = useState(false);
 
   useEffect(() => {
@@ -41,6 +41,8 @@ export default function Sidebar({ isOpen, onClose, hasStores }) {
     }
   }, []);
 
+  console.log('isSystemManager:', isSystemManager);
+
   return (
     <div
       className={`fixed top-0 left-0 h-full w-64 bg-gray-800 text-white flex flex-col p-4 space-y-2 transform ${
@@ -69,6 +71,11 @@ export default function Sidebar({ isOpen, onClose, hasStores }) {
       {(showMyStoresLink || hasStores) && (
         <Link href="/my-stores" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
           My Stores
+        </Link>
+      )}
+      {isSystemManager && (
+        <Link href="/system-manager" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
+          System Manager Page
         </Link>
       )}
       <Link href="/purchase-history" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
