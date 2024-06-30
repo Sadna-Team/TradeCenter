@@ -79,6 +79,8 @@ class MarketFacade:
         # users:
         uid1 = self.user_facade.create_user("USD")
         uid2 = self.user_facade.create_user("USD")
+        uid3 = self.user_facade.create_user("USD")
+        uid4 = self.user_facade.create_user("USD")
 
         uc1 = {
             "username": "user1",
@@ -100,6 +102,26 @@ class MarketFacade:
             "phone": "0522222222"
         }
 
+        uc3 = {
+            "username": "user3",
+            "password": "5678",
+            "email": "example3@gmail.com",
+            "year": 2002,
+            "month": 2,
+            "day": 2,
+            "phone": "0522222222"
+        }
+
+        uc4 = {
+            "username": "user4",
+            "password": "5678",
+            "email": "example4@gmai.com",
+            "year": 2002,
+            "month": 2,
+            "day": 2,
+            "phone": "0522222222"
+        }
+
         default_payment_method = {'payment method': 'bogo'}
 
         default_supply_method = "bogo"
@@ -112,6 +134,8 @@ class MarketFacade:
 
         self.auth_facade.register_user(uid1, uc1)
         self.auth_facade.register_user(uid2, uc2)
+        self.auth_facade.register_user(uid3, uc3)
+        self.auth_facade.register_user(uid4, uc4)
         
         # stores:
         store_id = self.add_store(uid1, "","","","","","store1")
@@ -124,6 +148,14 @@ class MarketFacade:
 
         self.nominate_store_owner(store_id, uid1, "user2")
         self.accept_nomination(uid2, 0, True)
+
+        self.nominate_store_manager(store_id, uid1, "user3")
+        self.accept_nomination(uid3, 1, True)
+
+        self.nominate_store_manager(store_id, uid2, "user4")
+        self.accept_nomination(uid4, 2, True)
+
+        self.change_permissions(uid1, store_id, uid4, True, True, False, True, False, False, True)
 
         # add 3 categories
         self.store_facade.add_category("category1")
@@ -1381,4 +1413,12 @@ class MarketFacade:
 
     def is_store_closed(self, store_id: int) -> bool:
         return self.store_facade.is_store_closed(store_id)
+
+    def get_user_employees(self, user_id: int, store_id: int):
+        print("get_user_employees")
+        employees = self.roles_facade.get_user_employees(user_id, store_id)
+        for employee in employees:
+            user_dto = self.user_facade.get_userDTO(employee.user_id)
+            employee.username = user_dto.username
+        return employees
 

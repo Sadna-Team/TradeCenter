@@ -456,3 +456,17 @@ def get_user_nominations():
         return jsonify({'message': str(e)}), 400
 
     return user_service.get_user_nominations(user_id)
+
+@user_bp.route('/get_user_employees', methods=['GET', 'POST'])
+@jwt_required()
+def get_user_employees():
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('get_user_employees - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    res = user_service.get_user_employees(user_id, store_id)
+    return res
