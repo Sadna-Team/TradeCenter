@@ -199,7 +199,7 @@ const StoreDetail = () => {
 
         {/* Management Buttons */}
         <div className="mb-6 flex justify-center">
-          <Link href="/manage_employee">
+          <Link href={`/manage_employee/${store_id}`}>
             <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Employees Management</div>
           </Link>
           <div>
