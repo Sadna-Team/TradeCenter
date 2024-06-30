@@ -12,6 +12,29 @@ const StoreDetail = () => {
   const [store, setStore] = useState(null);
   const [errorMessage, setErrorMessage] = useState(''); // Add error handling as needed
 
+  const deleteProduct = async (store_id, product_id) => {
+    try {
+      const response = await api.post('/store/remove_product', { store_id, product_id });
+      if(response.status !== 200) {
+        console.error('Failed to delete product:', response);
+        setErrorMessage('Failed to delete product');
+        return;
+      }
+      const data = response.data.message;
+      if(data === null || data === undefined) {
+        console.error('Failed to delete product:', response);
+        setErrorMessage('Failed to delete product');
+        return;
+      }
+      console.log('Product deleted:', data);
+      setErrorMessage('');
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      setErrorMessage('Failed to delete product');
+    }
+  }
+
   useEffect(() => {
     if(!store_id) {
       setErrorMessage('Store ID not given');
@@ -64,7 +87,7 @@ const StoreDetail = () => {
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {store.products.map((product) => (
-            <ManagerProduct key={product.product_id} product={product} store_id={store_id} />
+            <ManagerProduct key={product.product_id} product={product} store_id={store_id} deleteProduct={deleteProduct} />
           ))}
         </div>
 

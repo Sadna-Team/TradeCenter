@@ -1,7 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 
-const ManagerProduct = ({ product, store_id }) => {
+const ManagerProduct = ({ product, store_id, deleteProduct }) => {
+
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const cancelDelete = () => {
+    setShowConfirm(false);
+  };
+
+  const confirmDelete = () => {
+    setShowConfirm(true);
+  };
+
+  const handleDelete = () => {
+    console.log('Deleting product:', product.product_id);
+    deleteProduct(store_id, product.product_id);
+  };
 
   return (
     <div className="product-container" style={{ backgroundColor: '#f0f0f0', border: '1px solid #ccc', padding: '16px', marginBottom: '16px', borderRadius: '8px' }}>
@@ -22,7 +37,17 @@ const ManagerProduct = ({ product, store_id }) => {
           >
           <button className="edit-fields-btn" style={{ backgroundColor: '#3498db', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>Edit Fields</button>
         </Link>
-        <button className="delete-all-btn" style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>Delete</button>
+        <button onClick={confirmDelete} className="delete-all-btn" style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>Delete</button>
+        {showConfirm && (
+          <div className="confirm-container" style={{ marginTop: '16px', padding: '16px', backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px' }}>
+          <p>Are you sure you want to delete this item?</p>
+          <div className="button-container" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <button onClick={handleDelete} className="confirm-delete-btn" style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>Yes</button>
+            <button onClick={cancelDelete} className="cancel-delete-btn" style={{ backgroundColor: '#3498db', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>No</button>
+          </div>
+        </div>
+      )}
+
       </div>
     </div>
   );

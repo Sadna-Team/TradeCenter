@@ -44,118 +44,155 @@ werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it 
 werkzeug - INFO - [33mPress CTRL+C to quit[0m
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 3
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:11:27] "GET /auth/ HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:04] "OPTIONS /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:26:55] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:11] "OPTIONS /auth/login HTTP/1.1" 200 -
 myapp - INFO - received request to login a user
 myapp - INFO - User logged in successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:05] "POST /auth/login HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:05] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b01yt HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:05] "GET /socket.io/?EIO=4&transport=polling&t=P1b01yt HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:05] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0225&sid=RvQvJ7AqT-wuAiCTAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:12] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:12] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e2cy8 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:12] "GET /socket.io/?EIO=4&transport=polling&t=P1e2cy8 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:13] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e2d10&sid=V513ugTDJGoZsfQvAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:13] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e2d11&sid=V513ugTDJGoZsfQvAAAA HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
 myapp - INFO - Client 1 connected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:05] "POST /socket.io/?EIO=4&transport=polling&t=P1b0225&sid=RvQvJ7AqT-wuAiCTAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:05] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0228&sid=RvQvJ7AqT-wuAiCTAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:06] "GET /socket.io/?EIO=4&transport=polling&t=P1b0228&sid=RvQvJ7AqT-wuAiCTAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:13] "POST /socket.io/?EIO=4&transport=polling&t=P1e2d10&sid=V513ugTDJGoZsfQvAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:13] "GET /socket.io/?EIO=4&transport=polling&t=P1e2d11&sid=V513ugTDJGoZsfQvAAAA HTTP/1.1" 200 -
 myapp - INFO - Connect data: 1
 myapp - INFO - Client 1 connected
 myapp - INFO - Client joining room 1
 myapp - INFO - Client None disconnected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:07] "GET /socket.io/?EIO=4&transport=websocket&sid=RvQvJ7AqT-wuAiCTAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:07] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:08] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:13] "GET /socket.io/?EIO=4&transport=websocket&sid=V513ugTDJGoZsfQvAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:14] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:15] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:15] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e2dUV HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:08] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:08] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b02aG HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:10] "GET /socket.io/?EIO=4&transport=polling&t=P1b02aG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:15] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:15] "GET /socket.io/?EIO=4&transport=polling&t=P1e2dUV HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:10] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:10] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b03Eg&sid=V-KYcYkvSxzvBmypAAAC HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:10] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b03El&sid=V-KYcYkvSxzvBmypAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:15] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:15] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e2dex&sid=4TfRuDzfv2-HSRFYAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:15] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e2dey&sid=4TfRuDzfv2-HSRFYAAAC HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
 myapp - INFO - Client 1 connected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:10] "POST /socket.io/?EIO=4&transport=polling&t=P1b03Eg&sid=V-KYcYkvSxzvBmypAAAC HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:10] "GET /socket.io/?EIO=4&transport=polling&t=P1b03El&sid=V-KYcYkvSxzvBmypAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:16] "POST /socket.io/?EIO=4&transport=polling&t=P1e2dex&sid=4TfRuDzfv2-HSRFYAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:16] "GET /socket.io/?EIO=4&transport=polling&t=P1e2dey&sid=4TfRuDzfv2-HSRFYAAAC HTTP/1.1" 200 -
 myapp - INFO - Connect data: 1
 myapp - INFO - Client 1 connected
 myapp - INFO - Client joining room 1
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:15] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:15] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:22] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:22] "OPTIONS /store/my_stores HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:15] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:23] "GET /store/my_stores HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:15] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:19] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:20] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:23] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:27] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:27] "OPTIONS /store/store_info HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
 myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:20] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:27] "POST /store/store_info HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
 myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:17:20] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:27:27] "POST /store/store_info HTTP/1.1" 200 -
 myapp - INFO - Client None disconnected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:54] "GET /socket.io/?EIO=4&transport=websocket&sid=V-KYcYkvSxzvBmypAAAC HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0SjB HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:34] "GET /socket.io/?EIO=4&transport=websocket&sid=4TfRuDzfv2-HSRFYAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e2xEG HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
 myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "POST /store/store_info HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
-myapp - INFO - my stores were sent successfully
 myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "GET /socket.io/?EIO=4&transport=polling&t=P1b0SjB HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "GET /socket.io/?EIO=4&transport=polling&t=P1e2xEG HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0Su2&sid=kjQEtQemweaxKACBAAAE HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:55] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0Su5&sid=kjQEtQemweaxKACBAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e2xQK&sid=pDFeQB4EpzzmNyc_AAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:36] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e2xQL&sid=pDFeQB4EpzzmNyc_AAAE HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
 myapp - INFO - Client 1 connected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:56] "POST /socket.io/?EIO=4&transport=polling&t=P1b0Su2&sid=kjQEtQemweaxKACBAAAE HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:18:56] "GET /socket.io/?EIO=4&transport=polling&t=P1b0Su5&sid=kjQEtQemweaxKACBAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:37] "POST /socket.io/?EIO=4&transport=polling&t=P1e2xQK&sid=pDFeQB4EpzzmNyc_AAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:28:37] "GET /socket.io/?EIO=4&transport=polling&t=P1e2xQL&sid=pDFeQB4EpzzmNyc_AAAE HTTP/1.1" 200 -
 myapp - INFO - Connect data: 1
 myapp - INFO - Client 1 connected
 myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:07] "OPTIONS /store/remove_product HTTP/1.1" 200 -
+myapp - INFO - received request to remove product
+New Store Logger - INFO - Successfully removed product from store with id: {self.__store_id}
+myapp - INFO - product was removed successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:07] "POST /store/remove_product HTTP/1.1" 200 -
 myapp - INFO - Client None disconnected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:18] "GET /socket.io/?EIO=4&transport=websocket&sid=kjQEtQemweaxKACBAAAE HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0Yim HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:07] "GET /socket.io/?EIO=4&transport=websocket&sid=pDFeQB4EpzzmNyc_AAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:07] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "OPTIONS /store/my_stores HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
 myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "POST /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "GET /socket.io/?EIO=4&transport=polling&t=P1b0Yim HTTP/1.1" 200 -
-myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e335a HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0Ysu&sid=UBRHGpzCQvpOngaOAAAG HTTP/1.1" 200 -
 myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:19] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "POST /store/store_info HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:20] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:20] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0Ysw&sid=UBRHGpzCQvpOngaOAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "GET /socket.io/?EIO=4&transport=polling&t=P1e335a HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e33Fb&sid=GvUuq_1nHnBnlKHBAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:08] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e33Fc&sid=GvUuq_1nHnBnlKHBAAAG HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:20] "GET /socket.io/?EIO=4&transport=polling&t=P1b0Ysw&sid=UBRHGpzCQvpOngaOAAAG HTTP/1.1" 200 -
 myapp - INFO - Client 1 connected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:20] "POST /socket.io/?EIO=4&transport=polling&t=P1b0Ysu&sid=UBRHGpzCQvpOngaOAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:09] "POST /socket.io/?EIO=4&transport=polling&t=P1e33Fb&sid=GvUuq_1nHnBnlKHBAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:09] "GET /socket.io/?EIO=4&transport=polling&t=P1e33Fc&sid=GvUuq_1nHnBnlKHBAAAG HTTP/1.1" 200 -
 myapp - INFO - Connect data: 1
 myapp - INFO - Client 1 connected
 myapp - INFO - Client joining room 1
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:33] "OPTIONS /store/tags HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:33] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:14] "OPTIONS /store/remove_product HTTP/1.1" 200 -
+myapp - INFO - received request to remove product
+New Store Logger - INFO - Successfully removed product from store with id: {self.__store_id}
+myapp - INFO - product was removed successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:14] "POST /store/remove_product HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:14] "GET /socket.io/?EIO=4&transport=websocket&sid=GvUuq_1nHnBnlKHBAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:15] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:15] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:15] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:15] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:15] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:15] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e34xn HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:16] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:16] "GET /socket.io/?EIO=4&transport=polling&t=P1e34xn HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:16] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:16] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e355o&sid=yJAksD7hAtxgwlJzAAAI HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:16] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e355q&sid=yJAksD7hAtxgwlJzAAAI HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:16] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:16] "POST /socket.io/?EIO=4&transport=polling&t=P1e355o&sid=yJAksD7hAtxgwlJzAAAI HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:16] "GET /socket.io/?EIO=4&transport=polling&t=P1e355q&sid=yJAksD7hAtxgwlJzAAAI HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:23] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:23] "OPTIONS /store/tags HTTP/1.1" 200 -
 myapp - INFO - received request to get all product tags
 myapp - INFO - tags were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:33] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:24] "GET /store/tags HTTP/1.1" 200 -
 myapp - INFO - received request to get all product tags
 myapp - INFO - tags were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:19:33] "GET /store/tags HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:20] "OPTIONS /store/add_product HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:24] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:46] "OPTIONS /store/add_product HTTP/1.1" 200 -
 myapp - INFO - received request to add product
 New Store Logger - INFO - Successfully added product: product5 to store with the id: 0
 New Store Logger - INFO - [Product] successfully created product with id: 4
@@ -163,65 +200,400 @@ New Store Logger - INFO - [Product] successfully added tag to product with id: 4
 New Store Logger - INFO - [Product] successfully added tag to product with id: 4
 New Store Logger - INFO - [Store] successfully added product to store with id: 0
 myapp - INFO - product was added successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:20] "POST /store/add_product HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:46] "POST /store/add_product HTTP/1.1" 200 -
 myapp - INFO - Client None disconnected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:20] "GET /socket.io/?EIO=4&transport=websocket&sid=UBRHGpzCQvpOngaOAAAG HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:21] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:21] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:21] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:21] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:21] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0no3 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:46] "GET /socket.io/?EIO=4&transport=websocket&sid=yJAksD7hAtxgwlJzAAAI HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:47] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:47] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:47] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:47] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:47] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3Ckh HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
 myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:21] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:47] "POST /store/store_info HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:48] "GET /store/my_stores HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:21] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:21] "GET /socket.io/?EIO=4&transport=polling&t=P1b0no3 HTTP/1.1" 200 -
 myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:21] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:48] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:48] "GET /socket.io/?EIO=4&transport=polling&t=P1e3Ckh HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:22] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:22] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0nyW&sid=5TV_1Y8rPC65owJrAAAI HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:22] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1b0nya&sid=5TV_1Y8rPC65owJrAAAI HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:48] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:48] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3Cv7&sid=SlCei-kiOqWjU9WVAAAK HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:48] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3Cv8&sid=SlCei-kiOqWjU9WVAAAK HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:48] "GET /socket.io/?EIO=4&transport=polling&t=P1e3Cv8&sid=SlCei-kiOqWjU9WVAAAK HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
 myapp - INFO - Client 1 connected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:22] "POST /socket.io/?EIO=4&transport=polling&t=P1b0nyW&sid=5TV_1Y8rPC65owJrAAAI HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:22] "GET /socket.io/?EIO=4&transport=polling&t=P1b0nya&sid=5TV_1Y8rPC65owJrAAAI HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:29:48] "POST /socket.io/?EIO=4&transport=polling&t=P1e3Cv7&sid=SlCei-kiOqWjU9WVAAAK HTTP/1.1" 200 -
 myapp - INFO - Connect data: 1
 myapp - INFO - Client 1 connected
 myapp - INFO - Client joining room 1
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:38] "OPTIONS /store/tags HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:38] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:05] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:05] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:05] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:05] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
 myapp - INFO - received request to get all product tags
 myapp - INFO - tags were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:38] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:06] "GET /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:06] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:06] "POST /store/get_product_info HTTP/1.1" 200 -
 myapp - INFO - received request to get all product tags
 myapp - INFO - tags were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:38] "GET /store/tags HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:39] "OPTIONS /store/store_ids_to_names HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:39] "OPTIONS /store/store_ids_to_names HTTP/1.1" 200 -
-myapp - INFO - received request to get all store names
-myapp - INFO - store ids to names were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:39] "GET /store/store_ids_to_names HTTP/1.1" 200 -
-myapp - INFO - received request to get all store names
-myapp - INFO - store ids to names were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:39] "GET /store/store_ids_to_names HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:45] "OPTIONS /market/search_products_by_tags HTTP/1.1" 200 -
-myapp - INFO - recieved request to search for products
-myapp - INFO - checkpoint 1
-myapp - INFO - data- 
-myapp - INFO - search_products_by_tags was successful
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:45] "POST /market/search_products_by_tags HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:53] "OPTIONS /auth/logout HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:06] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:11] "OPTIONS /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - received request to edit product
+New Store Logger - INFO - [Product] successfully changed name of product with id: 4
+New Store Logger - INFO - [Product] successfully changed description of product with id: 4
+New Store Logger - INFO - [Product] successfully changed price of product with id: 4
+New Store Logger - INFO - [Product] weight is being changed to: 10.0
+New Store Logger - INFO - [Product] successfully changed weight of product with id: 4
+New Store Logger - INFO - [Product] successfully changed tags of product with id: 4
+New Store Logger - INFO - [Product] successfully changed amount of product with id: 4
+New Store Logger - INFO - [Store] successfully edited product in store with id: 0
+myapp - INFO - product was edited successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:11] "POST /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:11] "GET /socket.io/?EIO=4&transport=websocket&sid=SlCei-kiOqWjU9WVAAAK HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:12] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:12] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:12] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:12] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:12] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3IqF HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:12] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:12] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:12] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:12] "GET /socket.io/?EIO=4&transport=polling&t=P1e3IqF HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:13] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:13] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3I-4&sid=yWjzcbFbSR5jtvRsAAAM HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:13] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3I-5&sid=yWjzcbFbSR5jtvRsAAAM HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:13] "POST /socket.io/?EIO=4&transport=polling&t=P1e3I-4&sid=yWjzcbFbSR5jtvRsAAAM HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:13] "GET /socket.io/?EIO=4&transport=polling&t=P1e3I-5&sid=yWjzcbFbSR5jtvRsAAAM HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:18] "GET /socket.io/?EIO=4&transport=websocket&sid=yWjzcbFbSR5jtvRsAAAM HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3KVR HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+myapp - INFO - received request to send store info
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "GET /socket.io/?EIO=4&transport=polling&t=P1e3KVR HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:19] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:20] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3KfW&sid=OA1qyBja-HukTyK4AAAO HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:20] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3KfX&sid=OA1qyBja-HukTyK4AAAO HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:20] "POST /socket.io/?EIO=4&transport=polling&t=P1e3KfW&sid=OA1qyBja-HukTyK4AAAO HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:20] "GET /socket.io/?EIO=4&transport=polling&t=P1e3KfX&sid=OA1qyBja-HukTyK4AAAO HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:23] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:23] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:23] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:23] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:23] "GET /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:24] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:24] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:24] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:29] "OPTIONS /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - received request to edit product
+New Store Logger - INFO - [Product] successfully changed name of product with id: 4
+New Store Logger - INFO - [Product] successfully changed description of product with id: 4
+New Store Logger - INFO - [Product] successfully changed price of product with id: 4
+New Store Logger - INFO - [Product] weight is being changed to: 11.0
+New Store Logger - INFO - [Product] successfully changed weight of product with id: 4
+New Store Logger - INFO - [Product] successfully changed tags of product with id: 4
+New Store Logger - INFO - [Product] successfully changed amount of product with id: 4
+New Store Logger - INFO - [Store] successfully edited product in store with id: 0
+myapp - INFO - product was edited successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:29] "POST /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:29] "GET /socket.io/?EIO=4&transport=websocket&sid=OA1qyBja-HukTyK4AAAO HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:30] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:30] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3NF7 HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:30] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:30] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:30] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:30] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:31] "GET /socket.io/?EIO=4&transport=polling&t=P1e3NF7 HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:31] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:31] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:31] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3NPN.0&sid=pQjfLUAjbuE50yyPAAAQ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:31] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3NPN&sid=pQjfLUAjbuE50yyPAAAQ HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:31] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:31] "GET /socket.io/?EIO=4&transport=polling&t=P1e3NPN.0&sid=pQjfLUAjbuE50yyPAAAQ HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:31] "POST /socket.io/?EIO=4&transport=polling&t=P1e3NPN&sid=pQjfLUAjbuE50yyPAAAQ HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:44] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:44] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:44] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:44] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:44] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - received request to get product info
+myapp - INFO - tags were sent successfully
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:44] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:44] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:44] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:51] "OPTIONS /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - received request to edit product
+New Store Logger - INFO - [Product] successfully changed name of product with id: 3
+New Store Logger - INFO - [Product] successfully changed description of product with id: 3
+New Store Logger - INFO - [Product] successfully changed price of product with id: 3
+New Store Logger - INFO - [Product] weight is being changed to: 4.0
+New Store Logger - INFO - [Product] successfully changed weight of product with id: 3
+New Store Logger - INFO - [Product] successfully changed tags of product with id: 3
+New Store Logger - INFO - [Product] successfully changed amount of product with id: 3
+New Store Logger - INFO - [Store] successfully edited product in store with id: 0
+myapp - INFO - product was edited successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:51] "POST /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:51] "GET /socket.io/?EIO=4&transport=websocket&sid=pQjfLUAjbuE50yyPAAAQ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:52] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:52] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:52] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:52] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:52] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:52] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3SZj HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:52] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:52] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:52] "GET /socket.io/?EIO=4&transport=polling&t=P1e3SZj HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:53] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:53] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3Sjt&sid=DxG4EdEmaYZ5pxH2AAAS HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:53] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3Sju&sid=DxG4EdEmaYZ5pxH2AAAS HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:53] "POST /socket.io/?EIO=4&transport=polling&t=P1e3Sjt&sid=DxG4EdEmaYZ5pxH2AAAS HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:53] "GET /socket.io/?EIO=4&transport=polling&t=P1e3Sju&sid=DxG4EdEmaYZ5pxH2AAAS HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:55] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:55] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:55] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:55] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:55] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:55] "GET /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:55] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:30:55] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:01] "OPTIONS /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - received request to edit product
+New Store Logger - INFO - [Product] successfully changed name of product with id: 3
+New Store Logger - INFO - [Product] successfully changed description of product with id: 3
+New Store Logger - INFO - [Product] successfully changed price of product with id: 3
+New Store Logger - INFO - [Product] weight is being changed to: 4.0
+New Store Logger - INFO - [Product] successfully changed weight of product with id: 3
+New Store Logger - INFO - [Product] successfully changed tags of product with id: 3
+New Store Logger - INFO - [Product] successfully changed amount of product with id: 3
+New Store Logger - INFO - [Store] successfully edited product in store with id: 0
+myapp - INFO - product was edited successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:02] "POST /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:02] "GET /socket.io/?EIO=4&transport=websocket&sid=DxG4EdEmaYZ5pxH2AAAS HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:03] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:03] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:03] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:03] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:03] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:03] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3VG4 HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - my stores were sent successfully
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:04] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:04] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:04] "GET /socket.io/?EIO=4&transport=polling&t=P1e3VG4 HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:04] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:04] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3VRS&sid=xpeL4GcJKbtYel7rAAAU HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:04] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3VRT&sid=xpeL4GcJKbtYel7rAAAU HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:04] "POST /socket.io/?EIO=4&transport=polling&t=P1e3VRS&sid=xpeL4GcJKbtYel7rAAAU HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:05] "GET /socket.io/?EIO=4&transport=polling&t=P1e3VRT&sid=xpeL4GcJKbtYel7rAAAU HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:06] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:06] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:06] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:06] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:06] "GET /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:07] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:07] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:07] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:11] "OPTIONS /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - received request to edit product
+New Store Logger - INFO - [Product] successfully changed name of product with id: 2
+New Store Logger - INFO - [Product] successfully changed description of product with id: 2
+New Store Logger - INFO - [Product] successfully changed price of product with id: 2
+New Store Logger - INFO - [Product] weight is being changed to: 3.0
+New Store Logger - INFO - [Product] successfully changed weight of product with id: 2
+New Store Logger - INFO - [Product] successfully changed tags of product with id: 2
+New Store Logger - INFO - [Product] successfully changed amount of product with id: 2
+New Store Logger - INFO - [Store] successfully edited product in store with id: 0
+myapp - INFO - product was edited successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:12] "POST /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:12] "GET /socket.io/?EIO=4&transport=websocket&sid=xpeL4GcJKbtYel7rAAAU HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:13] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:13] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:13] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:13] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:13] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3XfP HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:13] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:13] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:13] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:13] "GET /socket.io/?EIO=4&transport=polling&t=P1e3XfP HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:14] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:14] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3Xpd&sid=wSfn1SoY55k99BPEAAAW HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:14] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3Xpe&sid=wSfn1SoY55k99BPEAAAW HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:14] "GET /socket.io/?EIO=4&transport=polling&t=P1e3Xpe&sid=wSfn1SoY55k99BPEAAAW HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:14] "POST /socket.io/?EIO=4&transport=polling&t=P1e3Xpd&sid=wSfn1SoY55k99BPEAAAW HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:18] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:18] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:18] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:18] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:18] "GET /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+myapp - INFO - received request to get product info
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:18] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - product info was sent successfully
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:18] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:18] "POST /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:24] "OPTIONS /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - received request to edit product
+New Store Logger - INFO - [Product] successfully changed name of product with id: 4
+New Store Logger - INFO - [Product] successfully changed description of product with id: 4
+New Store Logger - INFO - [Product] successfully changed price of product with id: 4
+New Store Logger - INFO - [Product] weight is being changed to: 11.0
+New Store Logger - INFO - [Product] successfully changed weight of product with id: 4
+New Store Logger - INFO - [Product] successfully changed tags of product with id: 4
+New Store Logger - INFO - [Product] successfully changed amount of product with id: 4
+New Store Logger - INFO - [Store] successfully edited product in store with id: 0
+myapp - INFO - product was edited successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:24] "POST /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:24] "GET /socket.io/?EIO=4&transport=websocket&sid=wSfn1SoY55k99BPEAAAW HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:25] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:25] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:25] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:25] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:25] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3aiA HTTP/1.1" 200 -
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:25] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:26] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:26] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:26] "GET /socket.io/?EIO=4&transport=polling&t=P1e3aiA HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:26] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:26] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3asF&sid=1Pj5YdZogav1xe5GAAAY HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:26] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1e3asG&sid=1Pj5YdZogav1xe5GAAAY HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:26] "POST /socket.io/?EIO=4&transport=polling&t=P1e3asF&sid=1Pj5YdZogav1xe5GAAAY HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:26] "GET /socket.io/?EIO=4&transport=polling&t=P1e3asG&sid=1Pj5YdZogav1xe5GAAAY HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:30] "OPTIONS /auth/logout HTTP/1.1" 200 -
 myapp - INFO - recieved request to logout a user
 myapp - INFO - guest entered the app successfully - user_id: 4
 myapp - INFO - User logged out successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:53] "POST /auth/logout HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:31] "POST /auth/logout HTTP/1.1" 200 -
 myapp - INFO - Client None disconnected
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:53] "GET /socket.io/?EIO=4&transport=websocket&sid=5TV_1Y8rPC65owJrAAAI HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:31] "GET /socket.io/?EIO=4&transport=websocket&sid=1Pj5YdZogav1xe5GAAAY HTTP/1.1" 200 -
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 5
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:55] "GET /auth/ HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:55] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 20:20:55] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:31] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:32] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 10:31:32] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
