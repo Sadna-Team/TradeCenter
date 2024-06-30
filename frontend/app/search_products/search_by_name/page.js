@@ -9,6 +9,7 @@ export default function SearchByName() {
     const [results, setResults] = useState({});
     const [errorMessage, setErrorMessage] = useState(null);
     const [storeIdToName, setstoreIdToName] = useState({});
+    const [initialSearch, setInitialSearch] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -39,6 +40,9 @@ export default function SearchByName() {
         const response = (storeName ? await makeCall({ name, store_id }) : await makeCall({ name }));
         if (response.status === 200) {
             setResults(response.data.message);
+            if(initialSearch) {
+                setInitialSearch(false);
+            }
             setErrorMessage(null);
         }
         else {
@@ -97,6 +101,7 @@ export default function SearchByName() {
         <div>
             <SearchForm onSearch={handleSearch} stores={Object.values(storeIdToName)}/>
             {errorMessage && <div className="error">{errorMessage}</div>}
+            {Object.keys(results).length === 0 && !initialSearch && <div className="no-results">No results found</div>}
             {Object.keys(results).length > 0 && (
                 <div>
                     {renderResults()}

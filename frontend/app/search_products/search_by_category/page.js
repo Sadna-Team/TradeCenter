@@ -11,6 +11,7 @@ export default function SearchByCategory() {
     const [errorMessage, setErrorMessage] = useState(null);
     const [cateoryIdToName, setCategoryIdToName] = useState({});
     const [storeIdToName, setStoreIdToName] = useState({});
+    const [initialSearch, setInitialSearch] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,6 +52,9 @@ export default function SearchByCategory() {
         const response = (storeName ? await makeCall({ category_id, store_id }) : await makeCall({ category_id }));
         if (response.status === 200) {
             setResults(response.data.message);
+            if(initialSearch) {
+                setInitialSearch(false);
+            }
             setErrorMessage(null);
         }
         else {
@@ -109,6 +113,7 @@ export default function SearchByCategory() {
         <div>
             <SearchForm onSearch={handleSearch} categories={Object.values(cateoryIdToName)} stores={Object.values(storeIdToName)}/>
             {errorMessage && <div className="error">{errorMessage}</div>}
+            {Object.keys(results).length === 0 && !initialSearch && <div className="no-results">No results found</div>}
             {Object.keys(results).length > 0 && (
                 <div>
                     {renderResults()}
