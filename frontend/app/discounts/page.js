@@ -13,9 +13,7 @@ import {
 import { Input } from "@/components/Input";
 import { Label } from "@/components/Label";
 import Button from "@/components/Button";
-//import MultiSelect from "@/components/MultiSelect";
 import { MultiSelect } from 'react-multi-select-component';
-
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/Select";
 import {
   AlertDialog,
@@ -174,18 +172,18 @@ const ManageDiscount = () => {
   const [editDiscountPercentage, setEditDiscountPercentage] = useState('');
   const [editDiscountType, setEditDiscountType] = useState('');
 
-
   const generateUniqueId = () => {
     // Generate a unique ID based on the current timestamp and a random number
     return Date.now() + Math.floor(Math.random() * 1000);
   };
 
+  
   const handleSaveChanges = () => {
     if (!newDiscountDescription) {
       setErrorMessage('Please enter a description.');
       return;
     }
-
+  
     let newDiscountId = generateUniqueId();
     let newDiscount;
     switch (dialogType) {
@@ -239,6 +237,19 @@ const ManageDiscount = () => {
           left_discount_id: parseInt(selectedLeftDiscount),
           right_discount_id: parseInt(selectedRightDiscount)
         };
+  
+        // Remove the selected discounts
+        setDiscounts((prevDiscounts) => {
+          const updatedDiscounts = { ...prevDiscounts };
+          Object.keys(updatedDiscounts).forEach((type) => {
+            updatedDiscounts[type] = updatedDiscounts[type].filter(
+              (discount) =>
+                discount.discount_id !== parseInt(selectedLeftDiscount) &&
+                discount.discount_id !== parseInt(selectedRightDiscount)
+            );
+          });
+          return updatedDiscounts;
+        });
         break;
       case 'additiveDiscounts':
       case 'maxDiscounts':
@@ -253,12 +264,36 @@ const ManageDiscount = () => {
           ending_date: newDiscountEndingDate,
           discounts: selectedMultipleDiscounts.map((value) => parseInt(value))
         };
+  
+        // Remove the selected discounts
+        setDiscounts((prevDiscounts) => {
+          const updatedDiscounts = { ...prevDiscounts };
+          selectedMultipleDiscounts.forEach((selectedDiscountId) => {
+            Object.keys(updatedDiscounts).forEach((type) => {
+              updatedDiscounts[type] = updatedDiscounts[type].filter(
+                (discount) => discount.discount_id !== parseInt(selectedDiscountId)
+              );
+            });
+          });
+          return updatedDiscounts;
+        });
         break;
       default:
         return;
     }
-
-    setDiscounts({ ...discounts, [dialogType]: [...discounts[dialogType], newDiscount] });
+  
+    if (!['andDiscounts', 'orDiscounts', 'xorDiscounts', 'additiveDiscounts', 'maxDiscounts'].includes(dialogType)) {
+      setDiscounts((prevDiscounts) => ({
+        ...prevDiscounts,
+        [dialogType]: [...prevDiscounts[dialogType], newDiscount],
+      }));
+    } else {
+      setDiscounts((prevDiscounts) => ({
+        ...prevDiscounts,
+        [dialogType]: [...prevDiscounts[dialogType], newDiscount],
+      }));
+    }
+  
     setIsDialogOpen(false);
     setNewDiscountDescription('');
     setNewDiscountPercentage('');
@@ -271,7 +306,7 @@ const ManageDiscount = () => {
     setSelectedMultipleDiscounts([]);
     setErrorMessage('');
   };
-
+  
   const handleEditSaveChanges = () => {
     if (!editDiscountDescription) {
       setErrorMessage('Please enter a description.');
@@ -382,217 +417,264 @@ const ManageDiscount = () => {
 
   const renderConstraintFields = () => {
     switch (selectedConstraintType) {
-      case 'age':
-        return (
-          <>
-            <Input
-              id="age-limit"
-              placeholder="Enter age limit"
-              value={constraintValues.ageLimit || ''}
-              onChange={(e) => handleConstraintValueChange('ageLimit', e.target.value)}
-              className="col-span-3 border border-black mt-2"
-            />
-            <div className="mt-8">
-              {constraintValues.ageLimit && isNaN(constraintValues.ageLimit) && <p className="text-red-500">Not a number</p>}
-            </div>
-          </>
-        );
-
-      // Add other cases for different constraint types here...
-
-      default:
-        return null;
+        case 'age':
+            return (
+                <>
+                    <Input
+                        id="age-limit"
+                        placeholder="Enter age limit"
+                        value={constraintValues.ageLimit || ''}
+                        onChange={(e) => handleConstraintValueChange('ageLimit', e.target.value)}
+                        className="col-span-3 border border-black mt-2"
+                    />
+                    <div className="mt-8">
+                        {constraintValues.ageLimit && isNaN(constraintValues.ageLimit) && <p className="text-red-500">Not a number</p>}
+                    </div>
+                </>
+            );
+        // Add other cases for different constraint types here...
+        default:
+            return null;
     }
-  };
+};
 
-  const renderDiscount = (discount, type) => (
+const renderDiscount = (discount, type) => (
     <div 
-      key={discount.discount_id} 
-      className="mb-4 p-4 border-2 border-gray-300 rounded-md"
+        key={discount.discount_id} 
+        className="mb-4 p-4 border-2 border-gray-300 rounded-md"
     >
-      <button
-        onClick={() => handleToggle(discount.discount_id, type)}
-        className="text-left w-full"
-      >
-        {`Discount ID: ${discount.discount_id}`}
-      </button>
-      {expandedDiscounts[type] === discount.discount_id && (
-        <div className="mt-2">
-          <p><strong>Description:</strong> {discount.description}</p>
-          <p><strong>Starting Date:</strong> {discount.starting_date}</p>
-          <p><strong>Ending Date:</strong> {discount.ending_date}</p>
-          {discount.percentage && <p><strong>Percentage:</strong> {discount.percentage}%</p>}
-          {type === 'storeDiscounts' && <p><strong>Store ID:</strong> {discount.store_id}</p>}
-          {type === 'categoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
-          {type === 'productDiscounts' && (
-            <>
-              <p><strong>Product ID:</strong> {discount.product_id}</p>
-              <p><strong>Store ID:</strong> {discount.store_id}</p>
-            </>
-          )}
-          {['andDiscounts', 'orDiscounts', 'xorDiscounts'].includes(type) && (
-            <>
-              <div className="flex justify-between">
-                <button onClick={() => handleToggleLeftDiscount(discount.discount_id)} className="mt-2">Show Left Discount</button>
-                <button onClick={() => handleToggleRightDiscount(discount.discount_id)} className="mt-2">Show Right Discount</button>
-              </div>
-              {expandedLeftDiscount === discount.discount_id && (
-                <div className="mt-2">
-                  {renderNestedDiscount(discount.left_discount_id)}
-                </div>
-              )}
-              {expandedRightDiscount === discount.discount_id && (
-                <div className="mt-2">
-                  {renderNestedDiscount(discount.right_discount_id)}
-                </div>
-              )}
-            </>
-          )}
-          {['additiveDiscounts', 'maxDiscounts'].includes(type) && (
-            <button className="mt-2" onClick={() => handleToggleConstraint(discount.discount_id)}>Show Discounts</button>
-          )}
-          {expandedConstraint === discount.discount_id && discount.discounts && (
+        <button
+            onClick={() => handleToggle(discount.discount_id, type)}
+            className="text-left w-full"
+        >
+            {`Discount ID: ${discount.discount_id}`}
+        </button>
+        {expandedDiscounts[type] === discount.discount_id && (
             <div className="mt-2">
-              {discount.discounts.map((id) => renderNestedDiscount(id))}
+                <p><strong>Description:</strong> {discount.description}</p>
+                <p><strong>Starting Date:</strong> {discount.starting_date}</p>
+                <p><strong>Ending Date:</strong> {discount.ending_date}</p>
+                {discount.percentage && <p><strong>Percentage:</strong> {discount.percentage}%</p>}
+                {type === 'storeDiscounts' && <p><strong>Store ID:</strong> {discount.store_id}</p>}
+                {type === 'categoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
+                {type === 'productDiscounts' && (
+                    <>
+                        <p><strong>Product ID:</strong> {discount.product_id}</p>
+                        <p><strong>Store ID:</strong> {discount.store_id}</p>
+                    </>
+                )}
+                {['andDiscounts', 'orDiscounts', 'xorDiscounts'].includes(type) && (
+                    <>
+                        <div className="flex justify-between">
+                            <button onClick={() => handleToggleLeftDiscount(discount.discount_id)} className="mt-2">Show Left Discount</button>
+                            <button onClick={() => handleToggleRightDiscount(discount.discount_id)} className="mt-2">Show Right Discount</button>
+                        </div>
+                        {expandedLeftDiscount === discount.discount_id && (
+                            <div className="mt-2">
+                                {renderNestedDiscount(discount.left_discount_id)}
+                            </div>
+                        )}
+                        {expandedRightDiscount === discount.discount_id && (
+                            <div className="mt-2">
+                                {renderNestedDiscount(discount.right_discount_id)}
+                            </div>
+                        )}
+                    </>
+                )}
+                {['additiveDiscounts', 'maxDiscounts'].includes(type) && (
+                    <button className="mt-2" onClick={() => handleToggleConstraint(discount.discount_id)}>Show Discounts</button>
+                )}
+                {expandedConstraint === discount.discount_id && discount.discounts && (
+                    <div className="mt-2">
+                        {discount.discounts.map((id) => renderNestedDiscount(id))}
+                    </div>
+                )}
+                {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(type) && (
+                    <button className="mt-2" onClick={() => handleToggleConstraint(discount.discount_id)}>Show Constraints</button>
+                )}
+                {expandedConstraint === discount.discount_id && discount.constraints && (
+                    <div className="mt-2">
+                        {discount.constraints.map((constraint, index) => (
+                            <p key={index}>{constraint.type}: {constraint.details}</p>
+                        ))}
+                    </div>
+                )}
+                <div className="flex justify-between mt-4">
+                    {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(type) && (
+                        <Button className="bg-blue-500 text-white py-1 px-3 rounded" onClick={() => handleOpenConstraintDialog(discount.discount_id)}>Add Constraint</Button>
+                    )}
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Discount</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the discount.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleRemoveDiscount(type, discount.discount_id)}>Yes, remove discount</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    <Button className="bg-green-500 text-white py-1 px-3 rounded" onClick={() => handleOpenEditDialog(discount.discount_id, type)}>Edit Discount</Button>
+                </div>
             </div>
-          )}
-          {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(type) && (
-            <button className="mt-2" onClick={() => handleToggleConstraint(discount.discount_id)}>Show Constraints</button>
-          )}
-          {expandedConstraint === discount.discount_id && discount.constraints && (
-            <div className="mt-2">
-              {discount.constraints.map((constraint, index) => (
-                <p key={index}>{constraint.type}: {constraint.details}</p>
-              ))}
-            </div>
-          )}
-          <div className="flex justify-between mt-4">
-            {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(type) && (
-              <Button className="bg-blue-500 text-white py-1 px-3 rounded" onClick={() => handleOpenConstraintDialog(discount.discount_id)}>Add Constraint</Button>
-            )}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Discount</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="bg-white">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete the discount.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => handleRemoveDiscount(type, discount.discount_id)}>Yes, remove discount</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            <Button className="bg-green-500 text-white py-1 px-3 rounded" onClick={() => handleOpenEditDialog(discount.discount_id, type)}>Edit Discount</Button>
-          </div>
-        </div>
-      )}
+        )}
     </div>
-  );
+);
 
-  const renderNestedDiscount = (discountId) => {
+const renderNestedDiscount = (discountId) => {
     const discountType = Object.keys(discounts).find(type => 
-      discounts[type].some(discount => discount.discount_id === discountId)
+        discounts[type].some(d => d.discount_id === discountId)
     );
 
     if (!discountType) {
-      return <p>Discount not found</p>;
+        return <p>Discount not found</p>;
     }
 
     const nestedDiscount = discounts[discountType].find(d => d.discount_id === discountId);
 
     if (!nestedDiscount) {
-      return <p>Discount not found</p>;
+        return <p>Discount not found</p>;
     }
 
     return (
-      <div className="ml-4">
-        <p><strong>Discount ID:</strong> {nestedDiscount.discount_id}</p>
-        <p><strong>Description:</strong> {nestedDiscount.description}</p>
-        <p><strong>Starting Date:</strong> {nestedDiscount.starting_date}</p>
-        <p><strong>Ending Date:</strong> {nestedDiscount.ending_date}</p>
-        {nestedDiscount.percentage && <p><strong>Percentage:</strong> {nestedDiscount.percentage}%</p>}
-        {discountType === 'storeDiscounts' && <p><strong>Store ID:</strong> {nestedDiscount.store_id}</p>}
-        {discountType === 'categoryDiscounts' && <p><strong>Category ID:</strong> {nestedDiscount.category_id}</p>}
-        {discountType === 'productDiscounts' && (
-          <>
-            <p><strong>Product ID:</strong> {nestedDiscount.product_id}</p>
-            <p><strong>Store ID:</strong> {nestedDiscount.store_id}</p>
-          </>
-        )}
-      </div>
+        <div className="ml-4">
+            <p><strong>Discount ID:</strong> {nestedDiscount.discount_id}</p>
+            <p><strong>Description:</strong> {nestedDiscount.description}</p>
+            <p><strong>Starting Date:</strong> {nestedDiscount.starting_date}</p>
+            <p><strong>Ending Date:</strong> {nestedDiscount.ending_date}</p>
+            {nestedDiscount.percentage && <p><strong>Percentage:</strong> {nestedDiscount.percentage}%</p>}
+            {discountType === 'storeDiscounts' && <p><strong>Store ID:</strong> {nestedDiscount.store_id}</p>}
+            {discountType === 'categoryDiscounts' && <p><strong>Category ID:</strong> {nestedDiscount.category_id}</p>}
+            {discountType === 'productDiscounts' && (
+                <>
+                    <p><strong>Product ID:</strong> {nestedDiscount.product_id}</p>
+                    <p><strong>Store ID:</strong> {nestedDiscount.store_id}</p>
+                </>
+            )}
+        </div>
     );
-  };
+};
 
 
-  return (
-    <div className="flex flex-wrap justify-center">
-      {/* Render all discount types here */}
-      {Object.keys(discounts).map((type) => (
-        <div key={type} className="w-full max-w-md p-4">
-          <h2 className="text-center font-bold mb-4">{type.replace(/([A-Z])/g, ' $1').trim()} Discounts</h2>
-          <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-            {discounts[type].map((discount) => renderDiscount(discount, type))}
-          </ScrollArea>
-          <Dialog open={isDialogOpen && dialogType === type} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog(type)}>Add {type.replace(/([A-Z])/g, ' $1').trim()} Discount</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-white">
-              <DialogHeader>
-                <DialogTitle>Adding a {type.replace(/([A-Z])/g, ' $1').trim()} discount</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {errorMessage && (
-                  <div className="text-red-500 text-sm">{errorMessage}</div>
-                )}
+return (
+  <div className="flex flex-wrap justify-center">
+    {/* Render all discount types here */}
+    {Object.keys(discounts).map((type) => (
+      <div key={type} className="w-full max-w-md p-4">
+        <h2 className="text-center font-bold mb-4">{type.replace(/([A-Z])/g, ' $1').trim()} Discounts</h2>
+        <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
+          {discounts[type].map((discount) => renderDiscount(discount, type))}
+        </ScrollArea>
+        <Dialog open={isDialogOpen && dialogType === type} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog(type)}>Add {type.replace(/([A-Z])/g, ' $1').trim()} Discount</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] bg-white">
+            <DialogHeader>
+              <DialogTitle>Adding a {type.replace(/([A-Z])/g, ' $1').trim()} discount</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {errorMessage && (
+                <div className="text-red-500 text-sm">{errorMessage}</div>
+              )}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="block mt-2">Description</Label>
+                <Input
+                  id="description"
+                  placeholder="Description"
+                  value={newDiscountDescription}
+                  onChange={(e) => setNewDiscountDescription(e.target.value)}
+                  className="col-span-3 border border-black"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="starting-date" className="block mt-2">Starting Date</Label>
+                <Input
+                  id="starting-date"
+                  placeholder="Starting Date"
+                  value={newDiscountStartingDate}
+                  onChange={(e) => setNewDiscountStartingDate(e.target.value)}
+                  className="col-span-3 border border-black"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="ending-date" className="block mt-2">Ending Date</Label>
+                <Input
+                  id="ending-date"
+                  placeholder="Ending Date"
+                  value={newDiscountEndingDate}
+                  onChange={(e) => setNewDiscountEndingDate(e.target.value)}
+                  className="col-span-3 border border-black"
+                />
+              </div>
+              {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(type) && (
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="block mt-2">Description</Label>
+                  <Label htmlFor="percentage" className="block mt-2">Percentage</Label>
                   <Input
-                    id="description"
-                    placeholder="Description"
-                    value={newDiscountDescription}
-                    onChange={(e) => setNewDiscountDescription(e.target.value)}
+                    id="percentage"
+                    placeholder="Percentage"
+                    value={newDiscountPercentage}
+                    onChange={(e) => setNewDiscountPercentage(e.target.value)}
                     className="col-span-3 border border-black"
                   />
                 </div>
+              )}
+              {type === 'storeDiscounts' && (
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="starting-date" className="block mt-2">Starting Date</Label>
-                  <Input
-                    id="starting-date"
-                    placeholder="Starting Date"
-                    value={newDiscountStartingDate}
-                    onChange={(e) => setNewDiscountStartingDate(e.target.value)}
-                    className="col-span-3 border border-black"
-                  />
+                  <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
+                  <Select onValueChange={setSelectedProduct}>
+                    <SelectTrigger className="col-span-3 border border-black bg-white">
+                      <SelectValue placeholder="Store ID" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      {mockStores.map((store) => (
+                        <SelectItem key={store.value} value={store.value}>
+                          {store.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="ending-date" className="block mt-2">Ending Date</Label>
-                  <Input
-                    id="ending-date"
-                    placeholder="Ending Date"
-                    value={newDiscountEndingDate}
-                    onChange={(e) => setNewDiscountEndingDate(e.target.value)}
-                    className="col-span-3 border border-black"
-                  />
-                </div>
-                {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(type) && (
+              )}
+              {type === 'categoryDiscounts' && (
+                <>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="percentage" className="block mt-2">Percentage</Label>
-                    <Input
-                      id="percentage"
-                      placeholder="Percentage"
-                      value={newDiscountPercentage}
-                      onChange={(e) => setNewDiscountPercentage(e.target.value)}
-                      className="col-span-3 border border-black"
-                    />
+                    <Label htmlFor="category-id" className="block mt-2">Category ID</Label>
+                    <Select onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Category ID" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {mockCategories.map((category) => (
+                          <SelectItem key={category.value} value={category.value}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
-                {type === 'storeDiscounts' && (
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="apply-sub-categories" className="block mt-2">Apply to Sub Categories</Label>
+                    <Select onValueChange={setSelectedLeftDiscount}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Apply to Sub Categories" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="yes">YES</SelectItem>
+                        <SelectItem value="no">NO</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              {type === 'productDiscounts' && (
+                <>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
                     <Select onValueChange={setSelectedProduct}>
@@ -608,201 +690,153 @@ const ManageDiscount = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                )}
-                {type === 'categoryDiscounts' && (
-                  <>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="category-id" className="block mt-2">Category ID</Label>
-                      <Select onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="col-span-3 border border-black bg-white">
-                          <SelectValue placeholder="Category ID" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          {mockCategories.map((category) => (
-                            <SelectItem key={category.value} value={category.value}>
-                              {category.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="apply-sub-categories" className="block mt-2">Apply to Sub Categories</Label>
-                      <Select onValueChange={setSelectedLeftDiscount}>
-                        <SelectTrigger className="col-span-3 border border-black bg-white">
-                          <SelectValue placeholder="Apply to Sub Categories" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          <SelectItem value="yes">YES</SelectItem>
-                          <SelectItem value="no">NO</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
-                {type === 'productDiscounts' && (
-                  <>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
-                      <Select onValueChange={setSelectedProduct}>
-                        <SelectTrigger className="col-span-3 border border-black bg-white">
-                          <SelectValue placeholder="Store ID" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          {mockStores.map((store) => (
-                            <SelectItem key={store.value} value={store.value}>
-                              {store.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="product-id" className="block mt-2">Product ID</Label>
-                      <Select onValueChange={setSelectedRightDiscount}>
-                        <SelectTrigger className="col-span-3 border border-black bg-white">
-                          <SelectValue placeholder="Product ID" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          {mockProducts.map((product) => (
-                            <SelectItem key={product.value} value={product.value}>
-                              {product.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
-                {['andDiscounts', 'orDiscounts', 'xorDiscounts'].includes(type) && (
-                  <>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="left-discount-id" className="block mt-2">Discount 1</Label>
-                      <Select onValueChange={setSelectedLeftDiscount}>
-                        <SelectTrigger className="col-span-3 border border-black bg-white">
-                          <SelectValue placeholder="Select Discount 1" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          {Object.values(discounts).flat().map((discount) => (
-                            <SelectItem key={discount.discount_id} value={discount.discount_id}>
-                              {discount.description}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="right-discount-id" className="block mt-2">Discount 2</Label>
-                      <Select onValueChange={setSelectedRightDiscount}>
-                        <SelectTrigger className="col-span-3 border border-black bg-white">
-                          <SelectValue placeholder="Select Discount 2" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          {Object.values(discounts).flat().map((discount) => (
-                            <SelectItem key={discount.discount_id} value={discount.discount_id}>
-                              {discount.description}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
-                {['additiveDiscounts', 'maxDiscounts'].includes(type) && (
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="discounts" className="block mt-2">Discounts</Label>
-                    <MultiSelect
-                      options={Object.values(discounts).flat().map((discount) => ({
-                        label: discount.description,
-                        value: discount.discount_id.toString()
-                      }))}
-                      value={selectedMultipleDiscounts}
-                      onChange={setSelectedMultipleDiscounts}
-                      labelledBy="Select Discounts"
-                      className="wider-select"
-                    />
+                    <Label htmlFor="product-id" className="block mt-2">Product ID</Label>
+                    <Select onValueChange={setSelectedRightDiscount}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Product ID" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {mockProducts.map((product) => (
+                          <SelectItem key={product.value} value={product.value}>
+                            {product.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
-              </div>
-              <DialogFooter>
-                <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      ))}
-      
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white">
-          <DialogHeader>
-            <DialogTitle>Editing a discount</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {errorMessage && (
-              <div className="text-red-500 text-sm">{errorMessage}</div>
-            )}
+                </>
+              )}
+              {['andDiscounts', 'orDiscounts', 'xorDiscounts'].includes(type) && (
+                <>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="left-discount-id" className="block mt-2">Discount 1</Label>
+                    <Select onValueChange={setSelectedLeftDiscount}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Select Discount 1" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {Object.values(discounts).flat().map((discount) => (
+                          <SelectItem key={discount.discount_id} value={discount.discount_id}>
+                            {discount.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="right-discount-id" className="block mt-2">Discount 2</Label>
+                    <Select onValueChange={setSelectedRightDiscount}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Select Discount 2" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {Object.values(discounts).flat().map((discount) => (
+                          <SelectItem key={discount.discount_id} value={discount.discount_id}>
+                            {discount.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              {['additiveDiscounts', 'maxDiscounts'].includes(type) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="discounts" className="block mt-2">Discounts</Label>
+                  <MultiSelect
+                    options={Object.values(discounts).flat().map((discount) => ({
+                      label: discount.description,
+                      value: discount.discount_id.toString()
+                    }))}
+                    value={selectedMultipleDiscounts}
+                    onChange={setSelectedMultipleDiscounts}
+                    labelledBy="Select Discounts"
+                    className="wider-select"
+                  />
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    ))}
+
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <DialogContent className="sm:max-w-[425px] bg-white">
+        <DialogHeader>
+          <DialogTitle>Editing a discount</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          {errorMessage && (
+            <div className="text-red-500 text-sm">{errorMessage}</div>
+          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="edit-description" className="block mt-2">Change Description</Label>
+            <Input
+              id="edit-description"
+              placeholder="Change Description"
+              value={editDiscountDescription}
+              onChange={(e) => setEditDiscountDescription(e.target.value)}
+              className="col-span-3 border border-black"
+            />
+          </div>
+          {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(editDiscountType) && (
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-description" className="block mt-2">Change Description</Label>
+              <Label htmlFor="edit-percentage" className="block mt-2">Change Percentage</Label>
               <Input
-                id="edit-description"
-                placeholder="Change Description"
-                value={editDiscountDescription}
-                onChange={(e) => setEditDiscountDescription(e.target.value)}
+                id="edit-percentage"
+                placeholder="Change Percentage"
+                value={editDiscountPercentage}
+                onChange={(e) => setEditDiscountPercentage(e.target.value)}
                 className="col-span-3 border border-black"
               />
             </div>
-            {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(editDiscountType) && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-percentage" className="block mt-2">Change Percentage</Label>
-                <Input
-                  id="edit-percentage"
-                  placeholder="Change Percentage"
-                  value={editDiscountPercentage}
-                  onChange={(e) => setEditDiscountPercentage(e.target.value)}
-                  className="col-span-3 border border-black"
-                />
-              </div>
-            )}
+          )}
+        </div>
+        <DialogFooter>
+          <Button type="button" onClick={handleEditSaveChanges}>Save changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog open={constraintDialogOpen} onOpenChange={setConstraintDialogOpen}>
+      <DialogContent className="sm:max-w-[425px] bg-white">
+        <DialogHeader>
+          <DialogTitle>Adding a constraint</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          {constraintError && (
+            <div className="text-red-500 text-sm">{constraintError}</div>
+          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="constraint-type" className="block mt-2">Constraint Type</Label>
+            <Select onValueChange={handleConstraintTypeChange}>
+              <SelectTrigger className="col-span-3 border border-black bg-white">
+                <SelectValue placeholder="Choose constraint type" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {constraintTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <DialogFooter>
-            <Button type="button" onClick={handleEditSaveChanges}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-  
-      <Dialog open={constraintDialogOpen} onOpenChange={setConstraintDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white">
-          <DialogHeader>
-            <DialogTitle>Adding a constraint</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {constraintError && (
-              <div className="text-red-500 text-sm">{constraintError}</div>
-            )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="constraint-type" className="block mt-2">Constraint Type</Label>
-              <Select onValueChange={handleConstraintTypeChange}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Choose constraint type" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {constraintTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {renderConstraintFields()}
-          </div>
-          <DialogFooter>
-            <Button type="button" onClick={handleSaveConstraint}>Save constraint</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+          {renderConstraintFields()}
+        </div>
+        <DialogFooter>
+          <Button type="button" onClick={handleSaveConstraint}>Save constraint</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </div>
+);
+
 };
 
 export default ManageDiscount;
