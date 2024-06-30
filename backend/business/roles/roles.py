@@ -352,7 +352,7 @@ class RolesFacade:
                 raise RoleError("Actor is not an ancestor of the removed user",RoleErrorTypes.actor_not_ancestor_of_role)
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
                 raise RoleError("Cannot remove the root owner of the store",RoleErrorTypes.cant_remove_founder)
-            self.__notifier.notify_removed_management_position(store_id, removed_id)
+            # self.__notifier.notify_removed_management_position(store_id, removed_id)
             removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
 
             for user_id in removed:
