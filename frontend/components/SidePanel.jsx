@@ -1,14 +1,15 @@
+// SidePanel.jsx
 "use client";
 
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
-const Dialog = DialogPrimitive.Root;
-const DialogTrigger = DialogPrimitive.Trigger;
-const DialogPortal = DialogPrimitive.Portal;
-const DialogClose = DialogPrimitive.Close;
+const SidePanel = DialogPrimitive.Root;
+const SidePanelTrigger = DialogPrimitive.Trigger;
+const SidePanelPortal = DialogPrimitive.Portal;
+const SidePanelClose = DialogPrimitive.Close;
 
-const DialogOverlay = React.forwardRef(
+const SidePanelOverlay = React.forwardRef(
   ({ className, ...props }, ref) => (
     <DialogPrimitive.Overlay
       ref={ref}
@@ -17,15 +18,15 @@ const DialogOverlay = React.forwardRef(
     />
   )
 );
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
+SidePanelOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-const DialogContent = React.forwardRef(
+const SidePanelContent = React.forwardRef(
   ({ className, children, ...props }, ref) => (
-    <DialogPortal>
-      <DialogOverlay />
+    <SidePanelPortal>
+      <SidePanelOverlay />
       <DialogPrimitive.Content
         ref={ref}
-        className={`fixed left-[50%] top-[50%] z-50 grid w-full max-w-xl translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg custom-width ${className}`}
+        className={`fixed right-0 top-0 z-50 h-full w-[300px] max-w-full translate-x-[100%] bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-right-full sm:rounded-l-lg ${className}`}
         {...props}
       >
         {children}
@@ -33,22 +34,22 @@ const DialogContent = React.forwardRef(
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
-    </DialogPortal>
+    </SidePanelPortal>
   )
 );
-DialogContent.displayName = DialogPrimitive.Content.displayName;
+SidePanelContent.displayName = DialogPrimitive.Content.displayName;
 
-const DialogHeader = ({ className, ...props }) => (
+const SidePanelHeader = ({ className, ...props }) => (
   <div className={`flex flex-col space-y-1.5 text-center sm:text-left ${className}`} {...props} />
 );
-DialogHeader.displayName = "DialogHeader";
+SidePanelHeader.displayName = "SidePanelHeader";
 
-const DialogFooter = ({ className, ...props }) => (
+const SidePanelFooter = ({ className, ...props }) => (
   <div className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className}`} {...props} />
 );
-DialogFooter.displayName = "DialogFooter";
+SidePanelFooter.displayName = "SidePanelFooter";
 
-const DialogTitle = React.forwardRef(
+const SidePanelTitle = React.forwardRef(
   ({ className, ...props }, ref) => (
     <DialogPrimitive.Title
       ref={ref}
@@ -57,9 +58,9 @@ const DialogTitle = React.forwardRef(
     />
   )
 );
-DialogTitle.displayName = DialogPrimitive.Title.displayName;
+SidePanelTitle.displayName = DialogPrimitive.Title.displayName;
 
-const DialogDescription = React.forwardRef(
+const SidePanelDescription = React.forwardRef(
   ({ className, ...props }, ref) => (
     <DialogPrimitive.Description
       ref={ref}
@@ -68,17 +69,16 @@ const DialogDescription = React.forwardRef(
     />
   )
 );
-DialogDescription.displayName = DialogPrimitive.Description.displayName;
+SidePanelDescription.displayName = DialogPrimitive.Description.displayName;
 
 export {
-  Dialog,
-  DialogPortal,
-  DialogOverlay,
-  DialogTrigger,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
+  SidePanel,
+  SidePanelTrigger,
+  SidePanelPortal,
+  SidePanelOverlay,
+  SidePanelContent,
+  SidePanelHeader,
+  SidePanelFooter,
+  SidePanelTitle,
+  SidePanelDescription,
 };
