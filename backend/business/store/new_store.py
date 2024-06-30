@@ -1447,11 +1447,11 @@ class StoreFacade:
         """
         * Parameters: predicate_properties
         * this function recursively creates a predicate for a discount
-        * NOTE: the following are examples: (and, 
+        * NOTE: the following are examples: (and,  
                                                 (age, 18), 
                                                 (or 
                                                     (location, {address: "bla", city: "bla", state: "bla", country: "bla", zip_code: "bla"}),
-                                                    (time, 10:00, 20:00)
+                                                    (time, 10, 00, 20, 00)
                                                 ) 
                                             )
         * Returns: the predicated
@@ -1493,11 +1493,13 @@ class StoreFacade:
                 logger.warning('[StoreFacade] location is not a dictionary')
                 raise DiscountAndConstraintsError('Location is not a dictionary', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == TimeConstraint:
-            if isinstance(predicate_properties[1], time) and isinstance(predicate_properties[2], time):
-                if predicate_properties[1] > predicate_properties[2]:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                starting_time = time(predicate_properties[1], predicate_properties[2],0)
+                ending_time = time(predicate_properties[3], predicate_properties[4],0)
+                if starting_time > ending_time:
                     logger.warning('[StoreFacade] starting time is greater than ending time')
                     raise DiscountAndConstraintsError('Starting time is greater than ending time', DiscountAndConstraintsErrorTypes.predicate_creation_error)
-                return predicate_type(predicate_properties[1], predicate_properties[2])
+                return predicate_type(starting_time, ending_time)
             else:
                 logger.warning('[StoreFacade] starting time or ending time is not a datetime.time')
                 raise DiscountAndConstraintsError('Starting time or ending time is not a datetime.time', DiscountAndConstraintsErrorTypes.predicate_creation_error)

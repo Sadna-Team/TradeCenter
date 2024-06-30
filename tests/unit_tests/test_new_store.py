@@ -197,7 +197,7 @@ def test_assign_predicate_to_discount2(store_facade):
     store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     discount_id1 = store_facade.add_discount('discount1', datetime(2020, 1, 1), datetime(2020, 1, 2), 0.1,None,store_id,None,None)
     locations: Dict = {'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'zip_code': 'zip_code'}
-    store_facade.assign_predicate_to_discount(discount_id1,('and', ('location',locations) , ('time', time(10, 0), time(12, 0))))
+    store_facade.assign_predicate_to_discount(discount_id1,('and', ('location',locations) , ('time', 10, 0, 12, 0)))
     assert isinstance(store_facade.discounts[0].predicate, AndConstraint)
     
     
@@ -1212,7 +1212,7 @@ def test_create_simple_purchase_policy_to_store3(store_facade):
     policy_id=store_facade.add_purchase_policy_to_store(store_id, 'no_alcohol_after_23', category_id3)
     shopping_basket = {product_id:21}
     total_price_of_basket=shopping_basket[product_id]*product_price_10
-    store_facade.assign_predicate_to_purchase_policy(store_id,policy_id, ('time', time(6, 0, 0), time(23, 0, 0), store_id))
+    store_facade.assign_predicate_to_purchase_policy(store_id,policy_id, ('time', 6, 0, 23, 0, store_id))
     
     if datetime.now().hour<23 and datetime.now().hour>6:
         assert store_facade.validate_purchase_policy(store_id, total_price_of_basket,shopping_basket, user_information_dto2)==True
@@ -1282,7 +1282,7 @@ def test_create_simple_purchase_policy_to_store6(store_facade):
     store_facade.get_store_by_id(store_id).restock_product(0, 50)
     policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_alcohol_after_23', category_id3)
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'no_alcohol_on_holidays', category_id3)
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('time', time(6, 0, 0), time(23, 0, 0), store_id))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('time', 6, 0, 23, 0, store_id))
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('holidays_of_country', 'IL'))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 2)
