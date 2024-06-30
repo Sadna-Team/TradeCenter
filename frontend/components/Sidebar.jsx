@@ -1,8 +1,25 @@
 "use client";
 
 import Link from 'next/link';
+import { useEffect, useState } from "react";
 
 export default function Sidebar({ isOpen, onClose, hasStores }) {
+  const [showMyStoresLink, setShowMyStoresLink] = useState(false);
+
+  useEffect(() => {
+    const storeAdded = (e) => {
+      console.log('Store added:', e.detail);
+      setShowMyStoresLink(true); // Set showMyStoresLink to true when storeAdded event occurs
+      onClose();
+    };
+
+    window.addEventListener('storeAdded', storeAdded);
+
+    // Clean up the event listener
+    return () => {
+      window.removeEventListener('storeAdded', storeAdded);
+    };
+  }, [onClose]);
 
   return (
     <div
@@ -29,11 +46,11 @@ export default function Sidebar({ isOpen, onClose, hasStores }) {
       <Link href="/add-store" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
         Add Store
       </Link>
-      {hasStores &&
+      {(showMyStoresLink || hasStores) && (
         <Link href="/my-stores" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
           My Stores
         </Link>
-      }
+      )}
       <Link href="/purchase-history" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
         Purchase History
       </Link>

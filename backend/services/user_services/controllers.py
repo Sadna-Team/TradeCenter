@@ -81,7 +81,7 @@ class UserService:
         """
         try:
             shopping_cart = self.user_facade.get_shopping_cart(user_id)
-            logger.info('shopping cart retrieved successfully')
+            logger.info(f"shopping cart: {shopping_cart}")
             return jsonify({'shopping_cart': shopping_cart}), 200
         except Exception as e:
             logger.error('show_shopping_cart - ' + str(e))

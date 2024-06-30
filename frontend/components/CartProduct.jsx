@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const CartProduct = ({ product, storeName, onRemove }) => {
+const CartProduct = ({ product_id, product_name, weight, description, price, storeName, onRemove }) => {
   const [amount, setAmount] = useState(1);
 
   const decreaseAmount = () => {
@@ -15,18 +15,17 @@ const CartProduct = ({ product, storeName, onRemove }) => {
 
   const handleRemove = () => {
     // Call the parent handler to remove the product from the cart
-    onRemove(product.id);
+    onRemove(product_id);
   };
 
   return (
     <div className="product-container" style={{ backgroundColor: '#f0f0f0', border: '1px solid #ccc', padding: '16px', marginBottom: '16px', borderRadius: '8px' }}>
-      <h2 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>{product.product_name}</h2>
+      <h2 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>{product_name}</h2>
       <p><strong>Store:</strong> {storeName}</p>
       <div className="product-details" style={{ marginBottom: '12px' }}>
-        <p><strong>Weight:</strong> {product.weight}</p>
-        <p><strong>Description:</strong> {product.description}</p>
-        <p><strong>Price:</strong> ${product.price}</p>
-        <p><strong>Rating:</strong> {product.rating}/5</p> {/* Display rating from database */}
+        <p><strong>Weight:</strong> {weight}</p>
+        <p><strong>Description:</strong> {description}</p>
+        <p><strong>Price:</strong> ${price}</p>
       </div>
       <div className="amount-control" style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
         <button className="amount-btn" style={{ backgroundColor: '#D5DBDB', color: '#333', border: 'none', padding: '8px 12px', fontSize: '1rem', cursor: 'pointer', marginRight: '4px' }} onClick={decreaseAmount}>-</button>

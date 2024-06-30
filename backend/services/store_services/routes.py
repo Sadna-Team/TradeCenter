@@ -338,8 +338,7 @@ def show_store_info():
     logger.info('received request to send store info')
     try:
         data = request.get_json()
-        print(data)
-        store_id = 0 #int(data['store_id'])
+        store_id = int(data['store_id'])
     except Exception as e:
         logger.error(('show_store_info - ', str(e)))
         return jsonify({'message': str(e)}), 400
