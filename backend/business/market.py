@@ -1366,7 +1366,14 @@ class MarketFacade:
             raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.edit_product_in_store(store_id, product_id, product_name, description, price, weight, tags, amount)
 
+    def get_store_role(self, user_id: int, store_id: int) -> str:
+        return self.roles_facade.get_store_role(user_id, store_id)
+
+    def get_user_stores(self, user_id: int) -> List[int]:
+        return self.roles_facade.get_user_stores(user_id)
+
     def set_user_shopping_cart(self, user_id: int, shopping_cart: Dict[int, Dict[int, int]]) -> None:
         # validate all products exist
         self.store_facade.validate_cart(shopping_cart)
         self.user_facade.set_user_shopping_cart(user_id, shopping_cart)
+

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from "react";
+import api from "@/lib/api";
 
 export default function Sidebar({ isOpen, onClose, hasStores }) {
   const [showMyStoresLink, setShowMyStoresLink] = useState(false);
@@ -20,6 +21,25 @@ export default function Sidebar({ isOpen, onClose, hasStores }) {
       window.removeEventListener('storeAdded', storeAdded);
     };
   }, [onClose]);
+
+  useEffect(() => {
+    const storeDeleted = (e) => {
+      api.get('/market/get_user_stores').then((response) => {
+        if (response.data.message.length === 0) {
+          setShowMyStoresLink(false); // Set showMyStoresLink to false when user has no stores
+        }
+        else {
+            setShowMyStoresLink(true); // Set showMyStoresLink to true when user has stores
+
+        }
+      });
+    }
+    window.addEventListener('storeDeleted', storeDeleted);
+
+    return () => {
+        window.removeEventListener('storeDeleted', storeDeleted);
+    }
+  }, []);
 
   return (
     <div

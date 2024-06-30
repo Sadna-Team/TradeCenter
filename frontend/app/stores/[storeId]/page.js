@@ -11,23 +11,24 @@ const StoreDetail = () => {
   const searchParams = useSearchParams();
   const store_id = searchParams.get('storeId');
   const [store, setStore] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(''); // Add error handling as needed
-  const [rerender, setRerender] = useState(false); // Add rerender state as needed
+  const [errorMessage, setErrorMessage] = useState('');
+  const [rerender, setRerender] = useState(false);
+  const [storeRole, setStoreRole] = useState('');
 
   const handleReload = () => {
     setRerender(!rerender);
-  }
+  };
 
   const deleteProduct = async (store_id, product_id) => {
     try {
       const response = await api.post('/store/remove_product', { store_id, product_id });
-      if(response.status !== 200) {
+      if (response.status !== 200) {
         console.error('Failed to delete product:', response);
         setErrorMessage('Failed to delete product');
         return;
       }
       const data = response.data.message;
-      if(data === null || data === undefined) {
+      if (data === null || data === undefined) {
         console.error('Failed to delete product:', response);
         setErrorMessage('Failed to delete product');
         return;
@@ -36,27 +37,27 @@ const StoreDetail = () => {
       setErrorMessage('');
       handleReload();
     } catch (error) {
-        console.error('Failed to delete product:', error);
-        setErrorMessage('Failed to delete product');
+      console.error('Failed to delete product:', error);
+      setErrorMessage('Failed to delete product');
     }
-  }
+  };
 
   useEffect(() => {
-    if(!store_id) {
+    if (!store_id) {
       setErrorMessage('Store ID not given');
       return;
     }
-    
-    const fetchData = async () => {
+
+    const fetchStoreInfo = async () => {
       try {
         const response = await api.post('/store/store_info', { store_id });
-        if(response.status !== 200) {
+        if (response.status !== 200) {
           console.error('Failed to fetch store:', response);
           setErrorMessage('Failed to fetch store');
           return;
         }
         const data = response.data.message;
-        if(data === null || data === undefined) {
+        if (data === null || data === undefined) {
           console.error('Failed to fetch store:', response);
           setErrorMessage('Failed to fetch store');
           return;
@@ -69,48 +70,65 @@ const StoreDetail = () => {
         setErrorMessage('Failed to fetch store');
       }
     };
-    fetchData();
+
+    fetchStoreInfo();
   }, []);
 
   useEffect(() => {
-    if(!store_id) {
+    if (!store_id) {
       setErrorMessage('Store ID not given');
       return;
     }
-    
-    const fetchData = async () => {
+
+    const fetchStoreRole = async () => {
       try {
-        const response = await api.post('/store/store_info', { store_id });
-        if(response.status !== 200) {
-          console.error('Failed to fetch store:', response);
-          setErrorMessage('Failed to fetch store');
+        const response = await api.post('/market/get_store_role', { store_id });
+        if (response.status !== 200) {
+          console.error('Failed to fetch store role:', response);
+          setErrorMessage('Failed to fetch store role');
           return;
         }
-        const data = response.data.message;
-        if(data === null || data === undefined) {
-          console.error('Failed to fetch store:', response);
-          setErrorMessage('Failed to fetch store');
+        const role = response.data.message;
+        if (role === null || role === undefined) {
+          console.error('Failed to fetch store role:', response);
+          setErrorMessage('Failed to fetch store role');
           return;
         }
-        console.log('Store: ', data);
-        setStore(data);
+        console.log('Store Role: ', role);
+        setStoreRole(role);
         setErrorMessage('');
       } catch (error) {
-        console.error('Failed to fetch store:', error);
-        setErrorMessage('Failed to fetch store');
+        console.error('Failed to fetch store role:', error);
+        setErrorMessage('Failed to fetch store role');
       }
     };
-    fetchData();
+
+    fetchStoreRole();
   }, [rerender]);
+
+    const handleGiveupNomination = async () => {
+      api.post('/store/give_up_role', { store_id }).then((response) => {
+        if (response.status !== 200) {
+          console.error('Failed to give up nomination:', response);
+          setErrorMessage('Failed to give up nomination');
+          return;
+        }
+        console.log('Give up nomination:', response.data.message);
+        setErrorMessage('');
+        const event = new Event('storeDeleted');
+        window.dispatchEvent(event);
+        handleReload();
+      });
+    }
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       {errorMessage.length > 0 && <div className="text-red-500">{errorMessage}</div>}
       {store === null && <div>Loading...</div>}
-      {store && 
+      {store &&
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 mt-8 text-center">{store.store_name}</h1>
-        
+
         {/* Management Buttons */}
         <div className="mb-6 flex justify-center">
           <Link href="/manage_employee">
@@ -137,6 +155,15 @@ const StoreDetail = () => {
             <div className="bg-red-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Add Product</div>
           </Link>
         </div>
+
+        {/* Conditional "Giveup Nomination" Button */}
+        {(storeRole === 'StoreOwner' || storeRole === 'StoreManager') && (
+          <div className="mt-8 flex justify-center">
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={handleGiveupNomination}>
+              Giveup Nomination
+            </button>
+          </div>
+        )}
       </div>}
     </div>
   );

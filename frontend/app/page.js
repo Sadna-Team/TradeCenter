@@ -54,6 +54,17 @@ export default function Home() {
       sessionStorage.setItem('stores', JSON.stringify(stores));
     } catch (error) {
       setErrorMessage('Error fetching stores');
+      // if its 401, then token is expired, so remove it
+        if (error.response && error.response.status === 401) {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('stores');
+            sessionStorage.setItem('isConnected', false);
+            sessionStorage.removeItem('notifications')
+            sessionStorage.removeItem('listener');
+            setTokenFetched(false);
+            // refresh the page
+            window.location.reload();
+        }
       console.error('Error fetching stores:', error.response ? error.response.data : error.message);
     }
   };
@@ -73,7 +84,7 @@ export default function Home() {
       <h1 className="text-4xl font-bold text-red-600 mb-8">Welcome to Abu Ali Home Page</h1>
 
       {errorMessage && (
-        <Popup initialMessage={errorMessage} is_closable={false} onClose={() => setErrorMessage(null)} />
+        <Popup initialMessage={errorMessage} is_closable={true} onClose={() => setErrorMessage(null)} />
       )}
 
       <div className="w-full max-w-3xl bg-white p-6 rounded-lg shadow-md">

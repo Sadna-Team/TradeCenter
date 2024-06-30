@@ -97,3 +97,26 @@ class PurchaseService:
             logger.error('search_products_by_name was not successful')
             return jsonify({'message': str(e)}), 400
 
+    def get_store_role(self, user_id: int, store_id: int):
+        """
+            Get the roles of a user in a store
+        """
+        try:
+            info = self.__market_facade.get_store_role(user_id, store_id)
+            logger.info('get_store_roles was successful')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('get_store_roles was not successful')
+            return jsonify({'message': str(e)}), 400
+
+    def get_user_stores(self, user_id: int):
+        """
+            Get the stores of a user
+        """
+        try:
+            info = self.__market_facade.get_user_stores(user_id)
+            logger.info('get_user_stores was successful')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('get_user_stores was not successful')
+            return jsonify({'message': str(e)}), 400

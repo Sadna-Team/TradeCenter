@@ -39,6 +39,8 @@ export default function NominationsPage() {
       // Remove the accepted nomination from the list
       setNominations(nominations.filter(nomination => nomination.id !== id));
       console.log(`Accepted nomination with id: ${id}`);
+      const event = new Event('storeAdded');
+      window.dispatchEvent(event);
     } catch (error) {
       setErrorMessage('Error accepting nomination');
       console.error('Error accepting nomination:', error.response ? error.response.data : error.message);
