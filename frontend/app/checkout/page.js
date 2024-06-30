@@ -18,7 +18,7 @@ const Checkout = () => {
     city: '',
     state: '',
     country: '',
-    zip: ''
+    zip_code: ''
   });
   const router = useRouter();
 
@@ -46,8 +46,8 @@ const Checkout = () => {
     if (!fullAddress.country) {
       newErrors.country = 'Country is required';
     }
-    if (!fullAddress.zip) {
-      newErrors.zip = 'Zip code is required';
+    if (!fullAddress.zip_code) {
+      newErrors.zip_code = 'Zip code is required';
     }
     if (!supplyMethod) {
       newErrors.supplyMethod = 'Supply method is required';
@@ -64,7 +64,7 @@ const Checkout = () => {
       fullAddress.city &&
       fullAddress.state &&
       fullAddress.country &&
-      fullAddress.zip &&
+      fullAddress.zip_code &&
       supplyMethod
     ) {
       setIsFormValid(true);
@@ -202,14 +202,14 @@ const Checkout = () => {
           <label htmlFor="zip">Zip Code</label>
           <input
             type="text"
-            id="zip"
-            name="zip"
-            value={fullAddress.zip}
+            id="zip_code"
+            name="zip_code"
+            value={fullAddress.zip_code}
             onChange={handleInputChange}
             placeholder="Zip Code"
             required
           />
-          {errors.zip && <p className="error">{errors.zip}</p>}
+          {errors.zip_code && <p className="error">{errors.zip_code}</p>}
         </div>
 
         <button type="submit">Submit</button>

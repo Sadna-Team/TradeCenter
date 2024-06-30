@@ -1,77 +1,115 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import ManagerProduct from '@/components/ManagerProduct'; // Adjust path as needed
 import Link from 'next/link';
+import api from '@/lib/api';
 
 const StoreDetail = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const storeId = searchParams.get('storeId');
-
-  // Mock data for demonstration purposes
-  const storeData = {
-    1: {
-      title: 'Store One',
-      products: [
-        {
-          id: 1,
-          product_name: 'Product A',
-          weight: '1kg',
-          description: 'Lorem ipsum dolor sit amet.',
-          price: 20.0,
-          amount: 10,
-        },
-        {
-          id: 2,
-          product_name: 'Product B',
-          weight: '500g',
-          description: 'Consectetur adipiscing elit.',
-          price: 15.0,
-          amount: 5,
-        },
-      ],
-    },
-    2: {
-      title: 'Store Two',
-      products: [
-        {
-          id: 3,
-          product_name: 'Product C',
-          weight: '2kg',
-          description: 'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-          price: 25.0,
-        },
-        {
-          id: 4,
-          product_name: 'Product D',
-          weight: '750g',
-          description: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-          price: 18.0,
-        },
-      ],
-    },
-    // Add more stores and products as needed
-  };
-
+  const store_id = searchParams.get('storeId');
   const [store, setStore] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(''); // Add error handling as needed
+  const [rerender, setRerender] = useState(false); // Add rerender state as needed
+
+  const handleReload = () => {
+    setRerender(!rerender);
+  }
+
+  const deleteProduct = async (store_id, product_id) => {
+    try {
+      const response = await api.post('/store/remove_product', { store_id, product_id });
+      if(response.status !== 200) {
+        console.error('Failed to delete product:', response);
+        setErrorMessage('Failed to delete product');
+        return;
+      }
+      const data = response.data.message;
+      if(data === null || data === undefined) {
+        console.error('Failed to delete product:', response);
+        setErrorMessage('Failed to delete product');
+        return;
+      }
+      console.log('Product deleted:', data);
+      setErrorMessage('');
+      handleReload();
+    } catch (error) {
+        console.error('Failed to delete product:', error);
+        setErrorMessage('Failed to delete product');
+    }
+  }
 
   useEffect(() => {
-    if (storeId && storeData[storeId]) {
-      setStore(storeData[storeId]);
-    } else {
-      setStore(null); // Handle case where store is not found
+    if(!store_id) {
+      setErrorMessage('Store ID not given');
+      return;
     }
-  }, [storeId]);
+    
+    const fetchData = async () => {
+      try {
+        const response = await api.post('/store/store_info', { store_id });
+        if(response.status !== 200) {
+          console.error('Failed to fetch store:', response);
+          setErrorMessage('Failed to fetch store');
+          return;
+        }
+        const data = response.data.message;
+        if(data === null || data === undefined) {
+          console.error('Failed to fetch store:', response);
+          setErrorMessage('Failed to fetch store');
+          return;
+        }
+        console.log('Store: ', data);
+        setStore(data);
+        setErrorMessage('');
+      } catch (error) {
+        console.error('Failed to fetch store:', error);
+        setErrorMessage('Failed to fetch store');
+      }
+    };
+    fetchData();
+  }, []);
 
-  if (!store) {
-    return <div className="min-h-screen bg-gray-100 p-4">Store not found</div>;
-  }
+  useEffect(() => {
+    if(!store_id) {
+      setErrorMessage('Store ID not given');
+      return;
+    }
+    
+    const fetchData = async () => {
+      try {
+        const response = await api.post('/store/store_info', { store_id });
+        if(response.status !== 200) {
+          console.error('Failed to fetch store:', response);
+          setErrorMessage('Failed to fetch store');
+          return;
+        }
+        const data = response.data.message;
+        if(data === null || data === undefined) {
+          console.error('Failed to fetch store:', response);
+          setErrorMessage('Failed to fetch store');
+          return;
+        }
+        console.log('Store: ', data);
+        setStore(data);
+        setErrorMessage('');
+      } catch (error) {
+        console.error('Failed to fetch store:', error);
+        setErrorMessage('Failed to fetch store');
+      }
+    };
+    fetchData();
+  }, [rerender]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
+      {errorMessage.length > 0 && <div className="text-red-500">{errorMessage}</div>}
+      {store === null && <div>Loading...</div>}
+      {store && 
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 mt-8 text-center">{store.title}</h1>
+        <h1 className="text-4xl font-bold mb-8 mt-8 text-center">{store.store_name}</h1>
         
         {/* Management Buttons */}
         <div className="mb-6 flex justify-center">
@@ -86,17 +124,20 @@ const StoreDetail = () => {
         {/* Products */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {store.products.map((product) => (
-            <ManagerProduct key={product.id} product={product} currStoreId={storeId} />
+            <ManagerProduct key={product.product_id} product={product} store_id={store_id} deleteProduct={deleteProduct} />
           ))}
         </div>
 
         {/* Add Product Button */}
         <div className="mt-8 flex justify-center">
-          <Link href="/add-product">
+          <Link href={{
+                      pathname: `/stores/${store_id}/add-product`,
+                      query: { storeId: store_id },
+                    }}>
             <div className="bg-red-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Add Product</div>
           </Link>
         </div>
-      </div>
+      </div>}
     </div>
   );
 };

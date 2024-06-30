@@ -108,7 +108,7 @@ class MarketFacade:
                                     'city': 'arkham', 
                                     'state': 'gotham',
                                     'country': 'Wakanda', 
-                                    'zip': '12345'}
+                                    'zip_code': '12345'}
 
         self.auth_facade.register_user(uid1, uc1)
         self.auth_facade.register_user(uid2, uc2)
@@ -183,11 +183,11 @@ class MarketFacade:
                 birthdate = date(user_dto.year, user_dto.month, user_dto.day)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, birthdate)
 
-            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip' not in address:
+            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip_code' not in address:
                 raise ThirdPartyHandlerError("Address information is missing", ThirdPartyHandlerErrorTypes.missing_address)
             address_of_user_for_discount: AddressDTO = AddressDTO(address['address'],
                                                                   address['city'], address['state'],
-                                                                  address['country'], address['zip'])
+                                                                  address['country'], address['zip_code'])
 
 
             user_info_for_constraint_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
@@ -1339,8 +1339,10 @@ class MarketFacade:
         roles = self.roles_facade.get_store_owners(store_id)
         return self.user_facade.get_users_dto(roles)
       
-    def get_my_stores(self, user_id):
-        return self.roles_facade.get_my_stores(user_id)
+    def get_my_stores(self, user_id) -> Dict[int, StoreDTO]:
+        store_ids = self.roles_facade.get_my_stores(user_id)
+        stores = {store_id: self.store_facade.get_store_info(store_id) for store_id in store_ids}
+        return stores
     
     def get_all_product_tags(self) -> List[str]:
         return self.store_facade.get_all_tags()
@@ -1350,3 +1352,16 @@ class MarketFacade:
     
     def get_all_categories(self) -> Dict[int, str]:
         return self.store_facade.get_all_categories()
+    
+    def edit_product(self, user_id: int, store_id: int, product_id: int, product_name: str, description: str, price: float,
+                    weight: float, tags: List[str], amount: Optional[int] = None) -> None:
+        """
+        * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
+        * This function adds a product to the store
+        * Returns None
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+            raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
+        self.store_facade.edit_product_in_store(store_id, product_id, product_name, description, price, weight, tags, amount)

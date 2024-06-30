@@ -191,7 +191,7 @@ class StoreService:
             logger.error('store products info was not sent')
             return jsonify({'message': str(e)}), 400
 
-    def get_product_info(self, store_id, product_id: int):
+    def get_product_info(self, store_id: int, product_id: int):
         """
             Show information about a product
         """
@@ -240,6 +240,20 @@ class StoreService:
             logger.error('product was not removed')
             return jsonify({'message': str(e)}), 400
         
+    def edit_product_in_store(self, user_id: int, store_id: int, product_id: int,  product_name: str, description: str, price: float,
+                             weight: float, tags: list[str], amount: Optional[int]=None):
+        """
+            Edit a product in a store
+        """
+        try:
+            self.__market_facade.edit_product(user_id, store_id, product_id, product_name, description, price, weight, tags, amount)
+            logger.info('product was edited successfully')
+            return jsonify({'message': 'product was edited successfully'}), 200
+        except Exception as e:
+            logger.error('product was not edited')
+            return jsonify({'message': str(e)}), 400
+
+
     def change_price_of_product(self, user_id: int, store_id: int, product_id: int, new_price: float):
         """
             Change the price of a product
@@ -510,6 +524,7 @@ class StoreService:
         """
         try:
             stores = self.__market_facade.get_my_stores(user_id)
+            stores = {sid: s.get() for sid, s in stores.items()}
             logger.info('my stores were sent successfully')
             return jsonify({'message': stores}), 200
         except Exception as e:
