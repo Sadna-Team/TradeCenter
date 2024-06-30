@@ -108,7 +108,7 @@ class MarketFacade:
                                     'city': 'arkham', 
                                     'state': 'gotham',
                                     'country': 'Wakanda', 
-                                    'zip': '12345'}
+                                    'zip_code': '12345'}
 
         self.auth_facade.register_user(uid1, uc1)
         self.auth_facade.register_user(uid2, uc2)
@@ -183,11 +183,11 @@ class MarketFacade:
                 birthdate = date(user_dto.year, user_dto.month, user_dto.day)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, birthdate)
 
-            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip' not in address:
+            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip_code' not in address:
                 raise ThirdPartyHandlerError("Address information is missing", ThirdPartyHandlerErrorTypes.missing_address)
             address_of_user_for_discount: AddressDTO = AddressDTO(address['address'],
                                                                   address['city'], address['state'],
-                                                                  address['country'], address['zip'])
+                                                                  address['country'], address['zip_code'])
 
 
             user_info_for_constraint_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
