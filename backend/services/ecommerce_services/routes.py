@@ -80,17 +80,29 @@ def show_user_purchase_history():
     logger.info('recieved request to show the purchase history of a user')
     try:
         user_id = get_jwt_identity()
-        store_id = None
-        data = request.get_json()
-        requested_id = int(data['user_id'])
-        if 'store_id' in data:
-            store_id = int(data['store_id'])
-
+        
     except Exception as e:
-        logger.error('show_user_purchase_history - ', str(e))
+        logger.error(('show_user_purchase_history - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.show_purchase_history_of_user(user_id, requested_id, store_id)
+    return purchase_service.show_purchase_history_of_user(user_id, user_id)
+
+
+@market_bp.route('/show_purchase_history', methods=['GET'])
+@jwt_required()
+def show_purchase_history():
+    """
+        Use Case
+        Show the purchase history of a user
+    """
+    logger.info('recieved request to show the purchase history of a user')
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error(('show_purchase_history - ', str(e)))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.show_purchase_history_of_user(user_id, user_id)
 
 
 @market_bp.route('/search_products_by_category', methods=['POST'])
@@ -673,3 +685,27 @@ def handle_ongoing_lotteries():
     except Exception as e:
         logger.error('handle_ongoing_lotteries - ', str(e))
         return jsonify({'message': str(e)}), 400'''
+
+@market_bp.route('/get_store_role', methods=['POST'])
+@jwt_required()
+def get_store_role():
+    logger.info('recieved request to get the role of a store')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('get_store_role - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    return purchase_service.get_store_role(user_id, store_id)
+
+@market_bp.route('/get_user_stores', methods=['GET'])
+@jwt_required()
+def get_user_stores():
+    logger.info('recieved request to get the stores of a user')
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_user_stores - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    return purchase_service.get_user_stores(user_id)

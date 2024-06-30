@@ -338,8 +338,7 @@ def show_store_info():
     logger.info('received request to send store info')
     try:
         data = request.get_json()
-        print(data)
-        store_id = 0 #int(data['store_id'])
+        store_id = int(data['store_id'])
     except Exception as e:
         logger.error(('show_store_info - ', str(e)))
         return jsonify({'message': str(e)}), 400
@@ -516,6 +515,37 @@ def remove_product_amount():
         return jsonify({'message': str(e)}), 400
 
     return store_service.remove_amount_from_product(user_id, store_id, product_id, amount)
+
+@store_bp.route('/edit_product', methods=['POST'])
+@jwt_required()
+def edit_product_in_store():
+    """
+        Use Case 2.4.1:
+        Add a product to a store
+
+    """
+    logger.info('received request to edit product')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        product_name = str(data['product_name'])
+        description = str(data['description'])
+        price = float(data['price'])
+        weight = float(data['weight'])
+        tags_helper = data['tags']
+        if not isinstance(tags_helper, list):
+            raise ServiceLayerError("Tags must be a list", ServiceLayerErrorTypes.tags_not_list)
+        tags = [str(tag) for tag in tags_helper]
+        amount=0
+        if 'amount' in data:
+            amount = int(data['amount'])
+    except Exception as e:
+        logger.error('edit_product - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.edit_product_in_store(user_id, store_id, product_id, product_name, description, price, weight, tags, amount)
 
 @store_bp.route('/change_price_of_product', methods=['POST'])
 @jwt_required()
@@ -765,7 +795,6 @@ def add_store_owner():
         return jsonify({'message': str(e)}), 400
     return store_service.add_store_owner(user_id, store_id, username)
 
-
 @store_bp.route('/add_store_manager', methods=['POST'])
 @jwt_required()
 def add_store_manager():
@@ -863,6 +892,24 @@ def closing_store():
         return jsonify({'message': str(e)}), 400
 
     return store_service.closing_store(user_id, store_id)
+
+@store_bp.route('/is_store_closed', methods=['POST'])
+@jwt_required()
+def is_store_closed():
+    """
+        Use Case 2.4.9:
+        Check if a store is closed
+    """
+    logger.info('received request to check if store is closed')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('is_store_closed - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.is_store_closed(store_id)
 
 @store_bp.route('/opening_store', methods=['POST'])
 @jwt_required()

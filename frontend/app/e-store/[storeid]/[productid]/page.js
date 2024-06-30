@@ -7,6 +7,7 @@ import api from '@/lib/api'; // Import the configured axios instance
 export default function ProductPage() {
   const { storeid, productid } = useParams();
   const [product, setProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
 
@@ -46,7 +47,7 @@ export default function ProductPage() {
       const response = await api.post('/user/add_to_basket', {
         store_id: storeid,
         product_id: productid,
-        quantity: 1,
+        quantity: quantity,
       });
       const data = response.data;
       setSuccessMessage(data.message);
@@ -77,6 +78,16 @@ export default function ProductPage() {
           {product.tags.map((tag, index) => (
             <span key={index} className="ml-2 text-blue-600">{tag}</span>
           ))}
+        </div>
+        <div className="amount-control" style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+          <button className="amount-btn" 
+            style={{ backgroundColor: '#D5DBDB', color: '#333', border: 'none', padding: '8px 12px', fontSize: '1rem', cursor: 'pointer', marginRight: '4px' }} 
+            onClick={() => {quantity > 1 ? setQuantity(quantity - 1) : setQuantity(quantity)}}>-</button>
+          <input type="text" className="amount-input" 
+          style={{ width: '50px', textAlign: 'center', fontSize: '1rem', padding: '8px', margin: '0 4px' }} value={quantity} readOnly />
+          <button className="amount-btn" 
+            style={{ backgroundColor: '#D5DBDB', color: '#333', border: 'none', padding: '8px 12px', fontSize: '1rem', cursor: 'pointer', marginLeft: '4px' }} 
+            onClick={() => setQuantity(quantity+1)}>+</button>
         </div>
         <button
           className="bg-blue-500 text-white py-2 px-4 rounded"

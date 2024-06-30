@@ -408,7 +408,7 @@ def test_show_cart():
 def test_search_by_category():
     global token
     data = {"store_id": 0, "category_id": 0}
-    response = client.get('/market/search_products_by_category', headers={
+    response = client.post('/market/search_products_by_category', headers={
         'Authorization': f'Bearer {token}'
     }, json=data)
     assert response.status_code == 200
@@ -416,7 +416,7 @@ def test_search_by_category():
 def test_search_by_category_failed_store_not_exists():
     global token
     data = {"store_id": 100, "category_id": 0}
-    response = client.get('/market/search_products_by_category', headers={
+    response = client.post('/market/search_products_by_category', headers={
         'Authorization': f'Bearer {token}'
     }, json=data)
     assert response.status_code == 400
@@ -424,14 +424,14 @@ def test_search_by_category_failed_store_not_exists():
 def test_search_by_category_failed_category_not_exists():
     global token
     data = {"store_id": 0, "category_id": 100}
-    response = client.get('/market/search_products_by_category', headers={
+    response = client.post('/market/search_products_by_category', headers={
         'Authorization': f'Bearer {token}'} , json=data)
     assert response.status_code == 400
 
 def test_search_by_tags():
     global token
     data = {"store_id": 0, "tags": ["test_tag"]}
-    response = client.get('/market/search_products_by_tags', headers={
+    response = client.post('/market/search_products_by_tags', headers={
         'Authorization': f'Bearer {token}'
     }, json=data)
     assert response.status_code == 200
@@ -439,7 +439,7 @@ def test_search_by_tags():
 def test_search_by_tags_failed_store_not_exists():
     global token
     data = {"store_id": 100, "tags": ["test_tag"]}
-    response = client.get('/market/search_products_by_tags', headers={
+    response = client.post('/market/search_products_by_tags', headers={
         'Authorization': f'Bearer {token}'
     }, json=data)
     assert response.status_code == 400
@@ -447,7 +447,7 @@ def test_search_by_tags_failed_store_not_exists():
 def test_search_by_name():
     global token
     data = {"store_id": 0, "name": "test_product"}
-    response = client.get('/market/search_products_by_name', headers={
+    response = client.post('/market/search_products_by_name', headers={
         'Authorization': f'Bearer {token}'
     }, json=data)
     assert response.status_code == 200
@@ -455,7 +455,7 @@ def test_search_by_name():
 def test_search_by_name_failed_store_not_exists():
     global token
     data = {"store_id": 100, "name": "test_product"}
-    response = client.get('/market/search_products_by_name', headers={
+    response = client.post('/market/search_products_by_name', headers={
         'Authorization': f'Bearer {token}'
     }, json=data)
     assert response.status_code == 400
@@ -477,7 +477,7 @@ def test_information_about_stores_failed_store_not_exists():
     global guest_token
 
     init_guest_token()
-    response = client.get('/store/store_info', headers={
+    response = client.post('/store/store_info', headers={
         'Authorization': f'Bearer {guest_token}'
     }, json={
         'store_id': 100

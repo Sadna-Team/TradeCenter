@@ -10,7 +10,7 @@ import { SocketProvider } from './socketContext';
 
 export default function RootLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [stores, setStores] = useState([]);
+  const [stores, setStores] = useState({});
   
   // fetch stores from server
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function RootLayout({ children }) {
           <title>Trade Center</title>
         </head>
         <body className="flex">
-          <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} hasStores={stores.length>0}/>
+          <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} hasStores={Object.keys(stores).length > 0}/>
           <div className="flex flex-col flex-grow">
             <header>
               <Navbar onToggleSidebar={handleToggleSidebar} />

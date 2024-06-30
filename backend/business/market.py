@@ -100,11 +100,22 @@ class MarketFacade:
             "phone": "0522222222"
         }
 
-        self.auth_facade.register_user(uid1,uc1)
+        default_payment_method = {'payment method': 'bogo'}
+
+        default_supply_method = "bogo"
+
+        default_address_checkout = { 'address': 'randomstreet 34th', 
+                                    'city': 'arkham', 
+                                    'state': 'gotham',
+                                    'country': 'Wakanda', 
+                                    'zip_code': '12345'}
+
+        self.auth_facade.register_user(uid1, uc1)
         self.auth_facade.register_user(uid2, uc2)
         
         # stores:
         store_id = self.add_store(uid1, "address", "city", "state", "country", "zip_code", "store1")
+
         self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
         self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
         self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
@@ -113,6 +124,7 @@ class MarketFacade:
         store_id = self.add_store(uid1, "address", "city", "state", "country", "zip_code", "store2")
 
         self.nominate_store_owner(store_id, uid1, "user2")
+        self.accept_nomination(uid2, 0, True)
 
         # add 3 categories
         self.store_facade.add_category("category1")
@@ -125,6 +137,12 @@ class MarketFacade:
         self.store_facade.assign_product_to_category(0, 0, 1)
         self.store_facade.assign_product_to_category(1, 0, 2)
         self.store_facade.assign_product_to_category(2, 0, 3)
+
+        # user 2 adds product 1 to basket
+        self.add_product_to_basket(uid2, 0, 0, 1)
+
+        # user 2 checks out
+        self.checkout(uid2, default_payment_method, default_supply_method, default_address_checkout)
         
          # add test notifications to admin
         self.notifier.notify_general_message(0, "test notification 1")
@@ -488,16 +506,17 @@ class MarketFacade:
         """
         return self.get_store_info(store_id).products
 
-    def get_product_info(self, store_id: int, product_id: int) -> ProductDTO:
+    def get_product_info(self, store_id: int, product_id: int) -> Tuple[ProductDTO, str]:
         """
         * Parameters: storeId, productId
         * This function returns the product information
         * Returns the product information
         """
         products = self.get_store_product_info(store_id)
+        store_name = self.get_store_info(store_id).store_name
         for product in products:
             if product.product_id == product_id:
-                return product
+                return product, store_name
         raise StoreError("Product not found", StoreErrorTypes.product_not_found)
 
 
@@ -1336,8 +1355,11 @@ class MarketFacade:
         roles = self.roles_facade.get_store_owners(store_id)
         return self.user_facade.get_users_dto(roles)
       
-    def get_my_stores(self, user_id):
-        return self.roles_facade.get_my_stores(user_id)
+    def get_my_stores(self, user_id) -> Dict[int, StoreDTO]:
+        store_ids = self.roles_facade.get_my_stores(user_id)
+        open_stores = self.store_facade.get_open_stores(user_id, store_ids)
+        stores = {store_id: self.store_facade.get_store_info(store_id) for store_id in open_stores}
+        return stores
     
     def get_all_product_tags(self) -> List[str]:
         return self.store_facade.get_all_tags()
@@ -1347,3 +1369,31 @@ class MarketFacade:
     
     def get_all_categories(self) -> Dict[int, str]:
         return self.store_facade.get_all_categories()
+    
+    def edit_product(self, user_id: int, store_id: int, product_id: int, product_name: str, description: str, price: float,
+                    weight: float, tags: List[str], amount: Optional[int] = None) -> None:
+        """
+        * Parameters: user_id, store_id, productSpecId, expirationDate, condition, price
+        * This function adds a product to the store
+        * Returns None
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+            raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
+        self.store_facade.edit_product_in_store(store_id, product_id, product_name, description, price, weight, tags, amount)
+
+    def get_store_role(self, user_id: int, store_id: int) -> str:
+        return self.roles_facade.get_store_role(user_id, store_id)
+
+    def get_user_stores(self, user_id: int) -> List[int]:
+        return self.roles_facade.get_user_stores(user_id)
+
+    def set_user_shopping_cart(self, user_id: int, shopping_cart: Dict[int, Dict[int, int]]) -> None:
+        # validate all products exist
+        self.store_facade.validate_cart(shopping_cart)
+        self.user_facade.set_user_shopping_cart(user_id, shopping_cart)
+
+    def is_store_closed(self, store_id: int) -> bool:
+        return self.store_facade.is_store_closed(store_id)
+

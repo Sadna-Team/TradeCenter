@@ -7,53 +7,64 @@ import api from '@/lib/api';
 
 export default function Home() {
   const [errorMessage, setErrorMessage] = useState(null);
+  const [stores, setStores] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [tokenFetched, setTokenFetched] = useState(false);
+  const renderAfter = useRef(false);
 
-  // const renderAfter = useRef(false);
-  //
-  // useEffect(() => {
-  //   if (!renderAfter.current) {
-  //     const fetchToken = async () => {
-  //       try {
-  //         const response = await api.get('/auth/');
-  //         const data = response.data;
-  //         const token = data.token; // Assuming the response contains the token
-  //         console.log('Token:', token);
-  //
-  //         sessionStorage.setItem('token', token);
-  //         sessionStorage.setItem('isConnected', false);
-  //       } catch (error) {
-  //         setErrorMessage('Error fetching token');
-  //         console.error('Error fetching token:', error.response ? error.response.data : error.message);
-  //       }
-  //     };
-  //
-  //     renderAfter.current = true;
-  //     if(sessionStorage.getItem('token') === null) fetchToken();
-  //   }
-  // }, []); // Empty dependency array to run the effect only once after mount
+  useEffect(() => {
 
+    if (sessionStorage.getItem('token') !== null) {
+        setTokenFetched(true);
+        return () => {};
+    }
+    const handleTokenFetched = (event) => {
+      console.log('Token fetched:', event.detail);
+      setTokenFetched(true);
+    };
+
+    window.addEventListener('tokenFetched', handleTokenFetched);
+
+    return () => {
+      window.removeEventListener('tokenFetched', handleTokenFetched);
+    };
+  }, []);
 
   const fetchStores = async (page) => {
     try {
+      // if (sessionStorage.getItem('stores') !== null) {
+      //   setStores(JSON.parse(sessionStorage.getItem('stores')));
+      //   return;
+      // }
       const limit = 4;
       const response = await api.post('/store/get_stores', {
-        page, 
+        page,
         limit,
       });
       const data = response.data;
-      console.log('Data:', data);
       const formattedStores = Object.entries(data.message).map(([id, store]) => ({
         id,
         ...store,
       }));
-      console.log('Stores:', formattedStores);
       if (formattedStores.length < limit) {
         setHasMore(false);
       }
       setStores((prevStores) => [...prevStores, ...formattedStores]);
-      console.log('Stores:', stores);
+      sessionStorage.setItem('stores', JSON.stringify(stores));
     } catch (error) {
       setErrorMessage('Error fetching stores');
+      // if its 401, then token is expired, so remove it
+        if (error.response && error.response.status === 401) {
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('stores');
+            sessionStorage.setItem('isConnected', false);
+            sessionStorage.removeItem('notifications')
+            sessionStorage.removeItem('listener');
+            setTokenFetched(false);
+            // refresh the page
+            window.location.reload();
+        }
       console.error('Error fetching stores:', error.response ? error.response.data : error.message);
     }
   };
@@ -71,9 +82,9 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <h1 className="text-4xl font-bold text-red-600 mb-8">Welcome to Abu Ali Home Page</h1>
-      
+
       {errorMessage && (
-        <Popup initialMessage={errorMessage} is_closable={false} onClose={() => setErrorMessage(null)} />
+        <Popup initialMessage={errorMessage} is_closable={true} onClose={() => setErrorMessage(null)} />
       )}
 
       <div className="w-full max-w-3xl bg-white p-6 rounded-lg shadow-md">
