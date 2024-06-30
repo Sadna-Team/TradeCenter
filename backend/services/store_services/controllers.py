@@ -196,9 +196,10 @@ class StoreService:
             Show information about a product
         """
         try:
-            info = self.__market_facade.get_product_info(store_id, product_id).get()
+            info, store_name = self.__market_facade.get_product_info(store_id, product_id)
+            info = info.get()
             logger.info('product info was sent successfully')
-            return jsonify({'message': info}), 200
+            return jsonify({'message': info, 'store_name': store_name}), 200
         except Exception as e:
             logger.error('product info was not sent')
             return jsonify({'message': str(e)}), 400

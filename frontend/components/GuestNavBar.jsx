@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
 import Button from './Button';
-import api from '@/lib/api'; // Adjust the import according to your project structure
+import api from '@/lib/api';
+import popup from "@/components/Popup";
+import Popup from "@/components/Popup";
 
 const GuestNavBar = () => {
   const [token, setToken] = useState(null);
@@ -21,6 +23,10 @@ const GuestNavBar = () => {
           sessionStorage.setItem('token', token);
           sessionStorage.setItem('isConnected', false);
           setToken(token);
+
+          // Dispatch the custom event
+          const event = new CustomEvent('tokenFetched', { detail: token });
+          window.dispatchEvent(event);
         } catch (error) {
           setErrorMessage('Error fetching token');
           console.error('Error fetching token:', error.response ? error.response.data : error.message);
@@ -29,7 +35,14 @@ const GuestNavBar = () => {
 
       renderAfter.current = true;
       if (sessionStorage.getItem('token') === null) fetchToken();
-      else setToken(sessionStorage.getItem('token'));
+      else {
+        const token = sessionStorage.getItem('token');
+        setToken(token);
+
+        // Dispatch the custom event
+        const event = new CustomEvent('tokenFetched', { detail: token });
+        window.dispatchEvent(event);
+      }
     }
   }, []);
 
@@ -80,7 +93,7 @@ const GuestNavBar = () => {
             Register
           </Button>
         </Link>
-        {errorMessage && <div className="text-red-500">{errorMessage}</div>}
+        {errorMessage && (<Popup initialMessage={errorMessage} is_closable={false} onClose={() => setErrorMessage(null)} />)}
       </div>
     </nav>
   );

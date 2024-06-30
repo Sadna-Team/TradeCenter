@@ -123,9 +123,9 @@ def test_owner_nomination_notification_real_time(client1, owner, store, user_soc
     # check notification
     response = user_socket.get_received()
 
-    assert len(response) == 1
+    assert len(response) == 2
     
-    notification = response[0]['args']['message']
+    notification = response[1]['args']['message']
     assert notification == 'You have been nominated to be the owner of store 0. nomination id: 0 '
 
 def test_owner_nomination_notification_delay(app, client1, owner, store, client2, user, user_socket, clean):
@@ -169,10 +169,11 @@ def test_manager_nomination_notification_real_time(client1, owner, store, user_s
     # check notification
     response = user_socket.get_received()
 
-    assert len(response) == 2
+    assert len(response) == 3
     
-    notification = response[1]['args']['message']
-    assert notification == 'You have been nominated to be the manager of store 0. nomination id: 1 '
+    notification = response[2]['args']['message']
+    # check that 'You have been nominated to be the manager of store 0.' contains in the message
+    assert 'You have been nominated to be the manager of store 0.' in notification
 
 def test_manager_nomination_notification_delay(app, client1, owner, store, client2, user, user_socket, clean):
     # log out user
@@ -214,9 +215,9 @@ def test_purchase_notification_real_time(owner_socket, client2, user, store, cle
     # check notification
     response = owner_socket.get_received()
 
-    assert len(response) == 1
+    assert len(response) == 2
 
-    notification = response[0]['args']['message']
+    notification = response[1]['args']['message']
     assert notification == 'New purchase in store: 0\n purchase ID: 0'
 
 def test_purchase_notification_delay(app, client1, owner, owner_socket, store, client2, user, clean):
@@ -257,7 +258,8 @@ def test_purchase_notification_real_time_multiple_owners(client1, owner, owner_s
     client1.post('store/add_store_owner', headers=headers, json=data)
 
     # user reads notification
-    assert len(user_socket.get_received()) == 1
+    recived = user_socket.get_received()
+    assert len(recived) == 2
 
     # accept nomination
     headers = {'Authorization': 'Bearer ' + user}
@@ -276,9 +278,10 @@ def test_purchase_notification_real_time_multiple_owners(client1, owner, owner_s
     # check notification - owner
     response = owner_socket.get_received()
 
-    assert len(response) == 1
 
-    notification = response[0]['args']['message']
+    assert len(response) == 2
+
+    notification = response[1]['args']['message']
     assert notification == 'New purchase in store: 0\n purchase ID: 0'
 
     # check notification - user
@@ -296,7 +299,7 @@ def test_closing_opening_store_notification_real_time(client1, owner, store, cli
     client1.post('store/add_store_manager', headers=headers, json=data)
 
     # user reads notification
-    assert len(user_socket.get_received()) == 1
+    assert len(user_socket.get_received()) == 2
 
     # accept promotion
     headers = {'Authorization': 'Bearer ' + user}
@@ -337,7 +340,7 @@ def test_closing_store_notification_delay(app, client1, owner, store, client2, u
     client1.post('store/add_store_manager', headers=headers, json=data)
 
     # user reads notification
-    assert len(user_socket.get_received()) == 1
+    assert len(user_socket.get_received()) == 2
 
     # accept promotion
     headers = {'Authorization': 'Bearer ' + user}

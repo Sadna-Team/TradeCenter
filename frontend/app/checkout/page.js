@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import BogoDetails from '@/components/BogoDetails';
+import api from "@/lib/api";
+import Popup from "@/components/Popup"; // Assuming Popup component is imported correctly
 
 const Checkout = () => {
   // get payment methods:
@@ -17,11 +20,14 @@ const Checkout = () => {
     country: '',
     zip: ''
   });
+  const router = useRouter();
 
   const [supplyMethod, setSupplyMethod] = useState('');
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState('');
+  const [message, setMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const validate = () => {
     const newErrors = {};
@@ -53,12 +59,12 @@ const Checkout = () => {
   useEffect(() => {
     // Check if all fields are filled
     if (
-      paymentMethod && 
-      fullAddress.address && 
-      fullAddress.city && 
-      fullAddress.state && 
-      fullAddress.country && 
-      fullAddress.zip && 
+      paymentMethod &&
+      fullAddress.address &&
+      fullAddress.city &&
+      fullAddress.state &&
+      fullAddress.country &&
+      fullAddress.zip &&
       supplyMethod
     ) {
       setIsFormValid(true);
@@ -78,7 +84,25 @@ const Checkout = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
-      setSubmissionStatus('Submitted successfully');
+      // Submit the form
+      const data = {
+        "payment_details" : {'payment method' : paymentMethod},
+        'address' : fullAddress,
+        'supply_method' : supplyMethod
+      };
+
+      api.post('/market/checkout', data)
+        .then((response) => {
+          console.log('Checkout response:', response.data);
+          setSubmissionStatus('Submitted successfully');
+          setMessage('Your order has been submitted successfully.');
+        })
+        .catch(error => {
+          console.error('Error submitting checkout:', error);
+          setSubmissionStatus('Error submitting checkout');
+          setErrorMessage('There was an error submitting your order.');
+        });
+
     } else {
       setSubmissionStatus('Please fill in all required fields.');
     }
@@ -192,6 +216,27 @@ const Checkout = () => {
       </form>
 
       {submissionStatus && <p className="submission-status">{submissionStatus}</p>}
+
+      {message && (
+        <Popup
+          initialMessage={message}
+          is_closable={true}
+          onClose={() => {
+            setMessage('');
+            router.back();
+          }}
+        />
+      )}
+
+      {errorMessage && (
+        <Popup
+          initialMessage={errorMessage}
+          is_closable={true}
+          onClose={() => {
+            setErrorMessage('');
+          }}
+        />
+      )}
 
       <style jsx>{`
         .container {

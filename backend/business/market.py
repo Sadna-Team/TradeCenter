@@ -100,17 +100,27 @@ class MarketFacade:
             "phone": "0522222222"
         }
 
-        self.auth_facade.register_user(uid1,uc1)
+        default_payment_method = {'payment method': 'bogo'}
+
+        default_supply_method = "bogo"
+
+        default_address_checkout = { 'address': 'randomstreet 34th', 
+                                    'city': 'arkham', 
+                                    'state': 'gotham',
+                                    'country': 'Wakanda', 
+                                    'zip': '12345'}
+
+        self.auth_facade.register_user(uid1, uc1)
         self.auth_facade.register_user(uid2, uc2)
         
         # stores:
-        store_id = self.add_store(uid1, 1, "store1")
+        store_id = self.add_store(uid1, "","","","","","store1")
         self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
         self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
         self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
         self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
-        store_id = self.add_store(uid1, 2, "store2")
+        store_id = self.add_store(uid1, "","","","","","store2")
 
         self.nominate_store_owner(store_id, uid1, "user2")
 
@@ -125,6 +135,12 @@ class MarketFacade:
         self.store_facade.assign_product_to_category(0, 0, 1)
         self.store_facade.assign_product_to_category(1, 0, 2)
         self.store_facade.assign_product_to_category(2, 0, 3)
+
+        # user 2 adds product 1 to basket
+        self.add_product_to_basket(uid2, 0, 0, 1)
+
+        # user 2 checks out
+        self.checkout(uid2, default_payment_method, default_supply_method, default_address_checkout)
         
          # add test notifications to admin
         self.notifier.notify_general_message(0, "test notification 1")
@@ -167,11 +183,11 @@ class MarketFacade:
                 birthdate = date(user_dto.year, user_dto.month, user_dto.day)
             user_purchase_dto = PurchaseUserDTO(user_dto.user_id, birthdate)
 
-            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip_code' not in address:
+            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip' not in address:
                 raise ThirdPartyHandlerError("Address information is missing", ThirdPartyHandlerErrorTypes.missing_address)
             address_of_user_for_discount: AddressDTO = AddressDTO(address['address'],
                                                                   address['city'], address['state'],
-                                                                  address['country'], address['zip_code'])
+                                                                  address['country'], address['zip'])
 
 
             user_info_for_constraint_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
@@ -488,16 +504,17 @@ class MarketFacade:
         """
         return self.get_store_info(store_id).products
 
-    def get_product_info(self, store_id: int, product_id: int) -> ProductDTO:
+    def get_product_info(self, store_id: int, product_id: int) -> Tuple[ProductDTO, str]:
         """
         * Parameters: storeId, productId
         * This function returns the product information
         * Returns the product information
         """
         products = self.get_store_product_info(store_id)
+        store_name = self.get_store_info(store_id).store_name
         for product in products:
             if product.product_id == product_id:
-                return product
+                return product, store_name
         raise StoreError("Product not found", StoreErrorTypes.product_not_found)
 
 

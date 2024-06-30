@@ -190,7 +190,8 @@ def show_cart():
         Use Case 2.2.4.1:
         Show the shopping cart of a user
     """
-    logger.info('received request to show the shopping cart')
+    userid = get_jwt_identity()
+    logger.info(f"user {userid} requested to show his cart")
     try:
         user_id = get_jwt_identity()
     except Exception as e:
