@@ -162,3 +162,4 @@ myapp - INFO - recieved request to get the stores of a user
 werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 16:14:21] "POST /market/get_store_role HTTP/1.1" 200 -
 myapp - INFO - get_user_stores was successful
 werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 16:14:21] "GET /market/get_user_stores HTTP/1.1" 200 -
+

@@ -1371,3 +1371,9 @@ class MarketFacade:
 
     def get_user_stores(self, user_id: int) -> List[int]:
         return self.roles_facade.get_user_stores(user_id)
+
+    def set_user_shopping_cart(self, user_id: int, shopping_cart: Dict[int, Dict[int, int]]) -> None:
+        # validate all products exist
+        self.store_facade.validate_cart(shopping_cart)
+        self.user_facade.set_user_shopping_cart(user_id, shopping_cart)
+
