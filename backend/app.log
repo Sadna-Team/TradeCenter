@@ -39,150 +39,7 @@ New Store Logger - INFO - [Category] successfully added product to category with
 New Store Logger - INFO - [Category] successfully added product to category with id: 0
 New Store Logger - INFO - [Category] successfully added product to category with id: 1
 New Store Logger - INFO - [Category] successfully added product to category with id: 2
-backend - INFO - Starting app...
-werkzeug - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
-werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:5000
- * Running on http://192.168.1.249:5000
-werkzeug - INFO - [33mPress CTRL+C to quit[0m
-myapp - INFO - recieved request from a guest to enter the app
-myapp - INFO - guest entered the app successfully - user_id: 3
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:43] "GET /auth/ HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:43] "OPTIONS /store/get_stores HTTP/1.1" 200 -
-myapp - INFO - received request to get stores
-myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:43] "POST /store/get_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:47] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:47] "OPTIONS /store/store_info HTTP/1.1" 200 -
-myapp - INFO - received request to send store info
-myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:47] "POST /store/store_info HTTP/1.1" 200 -
-myapp - INFO - received request to send store info
-myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:47] "POST /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:48] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:49] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:49] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:49] "POST /store/get_product_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:50] "OPTIONS /user/add_to_basket HTTP/1.1" 200 -
-myapp - INFO - received request to add a product to the basket
-Market logger - INFO - User 3 has added 1 of product 0 to the basket
-myapp - INFO - product added to the basket successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:50] "POST /user/add_to_basket HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:52] "OPTIONS /user/show_cart HTTP/1.1" 200 -
-myapp - INFO - user 3 requested to show his cart
-myapp - INFO - shopping cart: {0: {0: 1}}
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:52] "GET /user/show_cart HTTP/1.1" 200 -
-myapp - INFO - user 3 requested to show his cart
-myapp - INFO - shopping cart: {0: {0: 1}}
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:52] "GET /user/show_cart HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:52] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:52] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:53] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:53] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:53] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:53] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:53] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:53] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:54] "POST /store/get_product_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:54] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:54] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:54] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:54] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:55] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:55] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:55] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:55] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:55] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:55] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:56] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:56] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:56] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:56] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:56] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:56] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:57] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:57] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:57] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:57] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:57] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:57] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:58] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:58] "POST /store/get_product_info HTTP/1.1" 200 -
-myapp - INFO - received request to get product info
-myapp - INFO - product info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:11:58] "POST /store/get_product_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:12:06] "OPTIONS /market/checkout HTTP/1.1" 200 -
-myapp - INFO - recieved request to checkout the shopping cart
+Market logger - INFO - User 2 has added 1 of product 0 to the basket
 New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
 New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
 New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
@@ -193,21 +50,458 @@ New Store Logger - INFO - [StoreFacade] successfully calculated total price afte
 myapp - INFO - [ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: 0
 myapp - INFO - [ImmediatePurchase] successfully created immediate purchase object with purchase id: 0
 New Store Logger - INFO - Successfully removed product amount with id: {product_id}
-third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'Binyamin', 'city': 'Modiin', 'state': 'Israel', 'country': 'Israel', 'zip': '7175260'}
-third_party_handlers logger - INFO - Estimated delivery time: 2024-06-29 23:12:11.751744 - for package {'stores': dict_keys([0]), 'supply method': 'bogo'} to address {'address': 'Binyamin', 'city': 'Modiin', 'state': 'Israel', 'country': 'Israel', 'zip': '7175260'}
+third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+third_party_handlers logger - INFO - Estimated delivery time: 2024-06-30 12:09:17.020469 - for package {'stores': dict_keys([0]), 'supply method': 'bogo'} to address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
 myapp - INFO - [PurchaseFacade] attempting to accept purchase with purchase id: 0
 third_party_handlers logger - INFO - Processing payment of 100.0 with details {'payment method': 'bogo'}
-third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'Binyamin', 'city': 'Modiin', 'state': 'Israel', 'country': 'Israel', 'zip': '7175260'}
-third_party_handlers logger - INFO - Processed supply for package {'shopping cart': {0: {0: 1}}, 'address': {'address': 'Binyamin', 'city': 'Modiin', 'state': 'Israel', 'country': 'Israel', 'zip': '7175260'}, 'arrival time': datetime.datetime(2024, 6, 29, 23, 12, 11, 751744), 'purchase id': 0, 'supply method': 'bogo'} to user 3
-Market logger - INFO - User 3 has checked out
-myapp - INFO - checkout was successful
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:12:06] "POST /market/checkout HTTP/1.1" 200 -
+third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+third_party_handlers logger - INFO - Processed supply for package {'shopping cart': {0: {0: 1}}, 'address': {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}, 'arrival time': datetime.datetime(2024, 6, 30, 12, 9, 17, 20469), 'purchase id': 0, 'supply method': 'bogo'} to user 2
+Market logger - INFO - User 2 has checked out
+werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+werkzeug - INFO - [33mPress CTRL+C to quit[0m
 myapp - INFO - [PurchaseFacade] attempting to complete purchase with purchase id: 0
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:12:11] "OPTIONS /user/show_cart HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:12:12] "OPTIONS /user/show_cart HTTP/1.1" 200 -
-myapp - INFO - user 3 requested to show his cart
-myapp - INFO - shopping cart: {}
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:12:12] "GET /user/show_cart HTTP/1.1" 200 -
-myapp - INFO - user 3 requested to show his cart
-myapp - INFO - shopping cart: {}
-werkzeug - INFO - 127.0.0.1 - - [29/Jun/2024 23:12:12] "GET /user/show_cart HTTP/1.1" 200 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 3
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:07] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:07] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:08] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:24] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:24] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:24] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eQEkY HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:25] "GET /socket.io/?EIO=4&transport=polling&t=P1eQEkY HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:25] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eQEpe&sid=7SmuJ2qaQ8dPAQRzAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:25] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eQEpf&sid=7SmuJ2qaQ8dPAQRzAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:25] "POST /socket.io/?EIO=4&transport=polling&t=P1eQEpe&sid=7SmuJ2qaQ8dPAQRzAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:25] "GET /socket.io/?EIO=4&transport=polling&t=P1eQEpf&sid=7SmuJ2qaQ8dPAQRzAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:26] "GET /socket.io/?EIO=4&transport=websocket&sid=7SmuJ2qaQ8dPAQRzAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:27] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:27] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:27] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eQFMI HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:27] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:27] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:28] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:28] "GET /socket.io/?EIO=4&transport=polling&t=P1eQFMI HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:28] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:28] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eQFWZ&sid=Ffc-8zFy6ROcfgeZAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:28] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eQFWa&sid=Ffc-8zFy6ROcfgeZAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:28] "POST /socket.io/?EIO=4&transport=polling&t=P1eQFWZ&sid=Ffc-8zFy6ROcfgeZAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:10:28] "GET /socket.io/?EIO=4&transport=polling&t=P1eQFWa&sid=Ffc-8zFy6ROcfgeZAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:11:25] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:11:25] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:11:26] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:11:26] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:11:38] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:11:38] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:11:38] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:11:38] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:13:27] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:13:27] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:13:27] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:13:27] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:18:46] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:18:46] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:18:46] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:18:46] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:18:46] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - received request to send store info
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+myapp - INFO - store info was sent successfully
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:18:47] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:18:47] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:18:47] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:29] "OPTIONS /store/remove_product HTTP/1.1" 200 -
+myapp - INFO - received request to remove product
+New Store Logger - INFO - Successfully removed product from store with id: {self.__store_id}
+myapp - INFO - product was removed successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:30] "POST /store/remove_product HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:30] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:30] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:36] "OPTIONS /store/remove_product HTTP/1.1" 200 -
+myapp - INFO - received request to remove product
+New Store Logger - INFO - Successfully removed product from store with id: {self.__store_id}
+myapp - INFO - product was removed successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:36] "POST /store/remove_product HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:37] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:37] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:46] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:46] "OPTIONS /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:46] "GET /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:19:46] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:10] "OPTIONS /store/add_product HTTP/1.1" 200 -
+myapp - INFO - received request to add product
+New Store Logger - INFO - Successfully added product: product6 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 4
+New Store Logger - INFO - [Product] successfully added tag to product with id: 4
+New Store Logger - INFO - [Product] successfully added tag to product with id: 4
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+myapp - INFO - product was added successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:11] "POST /store/add_product HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:11] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:11] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:11] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:11] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:11] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:11] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:12] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:12] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:27] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:28] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:28] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:28] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:28] "GET /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:28] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:28] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:28] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:49] "OPTIONS /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - received request to edit product
+New Store Logger - INFO - [Product] successfully changed name of product with id: 4
+New Store Logger - INFO - [Product] successfully changed description of product with id: 4
+New Store Logger - INFO - [Product] successfully changed price of product with id: 4
+New Store Logger - INFO - [Product] weight is being changed to: 2.0
+New Store Logger - INFO - [Product] successfully changed weight of product with id: 4
+New Store Logger - INFO - [Product] successfully changed tags of product with id: 4
+New Store Logger - INFO - [Product] successfully changed amount of product with id: 4
+New Store Logger - INFO - [Store] successfully edited product in store with id: 0
+myapp - INFO - product was edited successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:50] "POST /store/edit_product HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:50] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:50] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:50] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:50] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:50] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:56] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:57] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:57] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:57] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:57] "GET /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:57] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get product info
+myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:57] "POST /store/get_product_info HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:20:57] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:04] "OPTIONS /store/edit_product HTTP/1.1" 200 -
+myapp - INFO - received request to edit product
+New Store Logger - INFO - [Product] successfully changed name of product with id: 4
+New Store Logger - INFO - [Product] successfully changed description of product with id: 4
+New Store Logger - INFO - [Product] successfully changed price of product with id: 4
+New Store Logger - INFO - [Product] weight is being changed to: 2.0
+New Store Logger - INFO - [Product] successfully changed weight of product with id: 4
+New Store Logger - INFO - [Product] successfully changed tags of product with id: 4
+New Store Logger - INFO - [Product] successfully changed amount of product with id: 4
+New Store Logger - INFO - [Store] successfully edited product in store with id: 0
+myapp - INFO - product was edited successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:04] "POST /store/edit_product HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:04] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:04] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:04] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:04] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:04] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:05] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+myapp - INFO - received request to send store info
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:05] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:05] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:13] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:13] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:23] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:23] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:23] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:24] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:31] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:31] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:32] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:32] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:34] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:34] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:34] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:34] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:34] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:35] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:35] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:35] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:47] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:47] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:48] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:48] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:50] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:51] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:51] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:51] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:51] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:51] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:51] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:51] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:57] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:57] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:58] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:58] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:59] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:59] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:59] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:59] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:59] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:59] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:59] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:21:59] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:10] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:11] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:13] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:13] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:13] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:13] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:16] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:16] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:19] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:19] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:19] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:20] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:21] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:22] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:22] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:22] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:22] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:22] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:22] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:22] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:26] "OPTIONS /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:26] "OPTIONS /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:26] "GET /store/tags HTTP/1.1" 200 -
+myapp - INFO - received request to get all product tags
+myapp - INFO - tags were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:27] "GET /store/tags HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:47] "OPTIONS /store/add_product HTTP/1.1" 200 -
+myapp - INFO - received request to add product
+New Store Logger - INFO - Successfully added product: milk to store with the id: 1
+New Store Logger - INFO - [Product] successfully created product with id: 0
+New Store Logger - INFO - [Product] successfully added tag to product with id: 0
+New Store Logger - INFO - [Product] successfully added tag to product with id: 0
+New Store Logger - INFO - [Store] successfully added product to store with id: 1
+myapp - INFO - product was added successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:48] "POST /store/add_product HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:48] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:48] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:48] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:48] "OPTIONS /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:48] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:48] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:48] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:48] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:56] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:22:56] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:33] "OPTIONS /auth/logout HTTP/1.1" 200 -
+myapp - INFO - recieved request to logout a user
+myapp - INFO - guest entered the app successfully - user_id: 4
+myapp - INFO - User logged out successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:33] "POST /auth/logout HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:37] "GET /socket.io/?EIO=4&transport=websocket&sid=Ffc-8zFy6ROcfgeZAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:37] "[31m[1mPOST /auth/logout HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:39] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 5
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:39] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:39] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:39] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:39] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:49] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:50] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:50] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eTJLk HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:50] "GET /socket.io/?EIO=4&transport=polling&t=P1eTJLk HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:50] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eTJRG&sid=xqyVvevyt5lU1fjAAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:50] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eTJRH&sid=xqyVvevyt5lU1fjAAAAE HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:50] "POST /socket.io/?EIO=4&transport=polling&t=P1eTJRG&sid=xqyVvevyt5lU1fjAAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:51] "GET /socket.io/?EIO=4&transport=polling&t=P1eTJRH&sid=xqyVvevyt5lU1fjAAAAE HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:51] "GET /socket.io/?EIO=4&transport=websocket&sid=xqyVvevyt5lU1fjAAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:52] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eTJxx HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "GET /socket.io/?EIO=4&transport=polling&t=P1eTJxx HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eTK68&sid=HMMZQv7FEbTHH_rpAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1eTK6B&sid=HMMZQv7FEbTHH_rpAAAG HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "POST /socket.io/?EIO=4&transport=polling&t=P1eTK68&sid=HMMZQv7FEbTHH_rpAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:53] "GET /socket.io/?EIO=4&transport=polling&t=P1eTK6B&sid=HMMZQv7FEbTHH_rpAAAG HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:57] "OPTIONS /auth/logout HTTP/1.1" 200 -
+myapp - INFO - recieved request to logout a user
+myapp - INFO - guest entered the app successfully - user_id: 6
+myapp - INFO - User logged out successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:57] "POST /auth/logout HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:59] "GET /socket.io/?EIO=4&transport=websocket&sid=HMMZQv7FEbTHH_rpAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:23:59] "[31m[1mPOST /auth/logout HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:24:01] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 7
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:24:01] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:24:01] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:24:01] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [30/Jun/2024 12:24:01] "POST /store/get_stores HTTP/1.1" 200 -

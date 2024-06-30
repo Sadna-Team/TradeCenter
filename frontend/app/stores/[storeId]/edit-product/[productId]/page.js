@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import ProductPage from '@/components/ProductEditable';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
 export default function EditProduct() {
+    const router = useRouter();
     const [errorMessage, setErrorMessage] = useState(null);
     const searchParams = useSearchParams();
     
@@ -53,7 +54,7 @@ export default function EditProduct() {
                 }
                 setErrorMessage(null);
                 // move to store window:
-                window.location.href = `/stores/${store_id}?storeId=${store_id}`;
+                router.push(`/stores/${store_id}?storeId=${store_id}`);
             } catch (error) {
                 setErrorMessage("Failed to save product data");
             }

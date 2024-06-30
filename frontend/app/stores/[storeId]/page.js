@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import ManagerProduct from '@/components/ManagerProduct'; // Adjust path as needed
 import Link from 'next/link';
 import api from '@/lib/api';
 
 const StoreDetail = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const store_id = searchParams.get('storeId');
   const [store, setStore] = useState(null);
   const [errorMessage, setErrorMessage] = useState(''); // Add error handling as needed
+  const [rerender, setRerender] = useState(false); // Add rerender state as needed
+
+  const handleReload = () => {
+    setRerender(!rerender);
+  }
 
   const deleteProduct = async (store_id, product_id) => {
     try {
@@ -28,10 +34,10 @@ const StoreDetail = () => {
       }
       console.log('Product deleted:', data);
       setErrorMessage('');
-      window.location.reload();
+      handleReload();
     } catch (error) {
-      console.error('Failed to delete product:', error);
-      setErrorMessage('Failed to delete product');
+        console.error('Failed to delete product:', error);
+        setErrorMessage('Failed to delete product');
     }
   }
 
@@ -65,6 +71,37 @@ const StoreDetail = () => {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if(!store_id) {
+      setErrorMessage('Store ID not given');
+      return;
+    }
+    
+    const fetchData = async () => {
+      try {
+        const response = await api.post('/store/store_info', { store_id });
+        if(response.status !== 200) {
+          console.error('Failed to fetch store:', response);
+          setErrorMessage('Failed to fetch store');
+          return;
+        }
+        const data = response.data.message;
+        if(data === null || data === undefined) {
+          console.error('Failed to fetch store:', response);
+          setErrorMessage('Failed to fetch store');
+          return;
+        }
+        console.log('Store: ', data);
+        setStore(data);
+        setErrorMessage('');
+      } catch (error) {
+        console.error('Failed to fetch store:', error);
+        setErrorMessage('Failed to fetch store');
+      }
+    };
+    fetchData();
+  }, [rerender]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
