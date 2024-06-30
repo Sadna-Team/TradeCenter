@@ -125,6 +125,8 @@ class MarketFacade:
         self.nominate_store_owner(store_id, uid1, "user2")
         self.accept_nomination(uid2, 0, True)
 
+        # self.change_permissions(uid1, store_id, uid2, True, False, False, False, False, False, False)
+
         # add 3 categories
         self.store_facade.add_category("category1")
         self.store_facade.add_category("category2")
