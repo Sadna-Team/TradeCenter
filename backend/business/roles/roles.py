@@ -512,3 +512,19 @@ class RolesFacade:
             if user_id in roles:
                 stores.append(store_id)
         return stores
+
+    def get_store_role(self, user_id: int, store_id: int) -> str:
+        with self.__stores_locks[store_id]:
+            if user_id in self.__stores_to_roles[store_id]:
+                # if it is the store owner, return ''founder''
+                if self.__stores_to_role_tree[store_id].is_root(user_id):
+                    return "Founder"
+                return self.__stores_to_roles[store_id][user_id].__str__()
+            return "User is not a member of the store"
+
+    def get_user_stores(self, user_id: int) -> List[int]:
+        stores = []
+        for store_id, roles in self.__stores_to_roles.items():
+            if user_id in roles:
+                stores.append(store_id)
+        return stores

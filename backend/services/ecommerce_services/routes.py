@@ -685,3 +685,27 @@ def handle_ongoing_lotteries():
     except Exception as e:
         logger.error('handle_ongoing_lotteries - ', str(e))
         return jsonify({'message': str(e)}), 400'''
+
+@market_bp.route('/get_store_role', methods=['POST'])
+@jwt_required()
+def get_store_role():
+    logger.info('recieved request to get the role of a store')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('get_store_role - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    return purchase_service.get_store_role(user_id, store_id)
+
+@market_bp.route('/get_user_stores', methods=['GET'])
+@jwt_required()
+def get_user_stores():
+    logger.info('recieved request to get the stores of a user')
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_user_stores - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    return purchase_service.get_user_stores(user_id)

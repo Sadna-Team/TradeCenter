@@ -146,6 +146,8 @@ class Notifier:
             
             raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
 
+        logger.info(f"send message to user {user_id} about being removed from store {store_id}")
+
         msg = "your position in store: " + str(store_id) + " has been terminated."
         if self._authentication.is_logged_in(user_id):
             self._notify_real_time(user_id, msg)
