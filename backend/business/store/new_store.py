@@ -1024,8 +1024,7 @@ class StoreFacade:
                         'beauty', 'health', 'sports', 'outdoor', 'home decor',
                         'office supplies', 'pet supplies', 'jewelry', 'footwear', 
                         'automotive', 'gardening', 'tools', 'kitchenware', 'baby products',
-                        'musical instruments', 'stationery', 'party supplies', 'craft supplies',
-                        }
+                        'musical instruments', 'stationery', 'party supplies', 'craft supplies'}
 
     # ---------------------getters and setters---------------------
     @property
