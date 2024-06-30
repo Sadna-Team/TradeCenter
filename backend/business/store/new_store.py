@@ -2190,6 +2190,8 @@ class StoreFacade:
         """
         for store_id, products in cart.items():
             for product_id, amount in products.items():
+                logger.info('[StoreFacade] checking product availability')
+                logger.info(f'types are: {type(product_id)}, { type(amount)}, {type(store_id)}')
                 existing_amount = self.__stores[store_id].get_product_dto_by_id(product_id).amount
                 if amount > existing_amount:
                     raise StoreError('Product amount is greater than the existing amount', StoreErrorTypes.product_not_available)

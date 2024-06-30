@@ -463,6 +463,6 @@ class UserFacade:
             for product_id, quantity in products.items():
                 self.add_product_to_basket(user_id, store_id, product_id, quantity)
 
-    def set_cart(self, user_id: int, cart: Dict[int, Dict[int, int]]):
+    def set_user_shopping_cart(self, user_id: int, cart: Dict[int, Dict[int, int]]):
         user = self.__get_user(user_id)
         user.set_cart(cart)

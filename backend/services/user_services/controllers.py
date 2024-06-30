@@ -92,6 +92,8 @@ class UserService:
             Set the shopping cart of a user
         """
         try:
+            # parse the shopping cart to Dict[int, Dict[int, int]]
+            shopping_cart = {int(store_id): {int(product_id): int(quantity) for product_id, quantity in products.items()} for store_id, products in shopping_cart.items()}
             self.market_facade.set_user_shopping_cart(user_id, shopping_cart)
             logger.info('shopping cart set successfully')
             return jsonify({'message': 'shopping cart set successfully'}), 200

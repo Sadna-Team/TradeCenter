@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
 
-const CartProduct = ({ product_id, product_name, weight, description, price, storeName, onRemove, quantity }) => {
+const CartProduct = ({ product_id, product_name, weight, description, price, storeName, onRemove, quantity, onQuantityChange }) => {
   const [amount, setAmount] = useState(quantity);
 
-  const decreaseAmount = () => {
+  const decreaseAmount = async () => {
     if (amount > 1) {
+      const newAmount = amount - 1;
       setAmount(amount - 1);
+      onQuantityChange(newAmount);
     }
   };
 
-  const increaseAmount = () => {
+  const increaseAmount = async () => {
+    const newAmount = amount + 1;
     setAmount(amount + 1);
+    onQuantityChange(newAmount);
   };
 
   const handleRemove = () => {

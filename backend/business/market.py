@@ -1369,4 +1369,4 @@ class MarketFacade:
     def set_user_shopping_cart(self, user_id: int, shopping_cart: Dict[int, Dict[int, int]]) -> None:
         # validate all products exist
         self.store_facade.validate_cart(shopping_cart)
-        self.user_facade.set_shopping_cart(user_id, shopping_cart)
+        self.user_facade.set_user_shopping_cart(user_id, shopping_cart)

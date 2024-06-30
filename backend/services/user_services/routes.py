@@ -212,6 +212,7 @@ def set_cart():
         user_id = get_jwt_identity()
         data = request.get_json()
         cart = data['cart']
+        logger.info(f"cart: {cart}")
     except Exception as e:
         logger.error('set_cart - ', str(e))
         return jsonify({'message': str(e)}), 400

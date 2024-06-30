@@ -31,7 +31,9 @@ const Cart = () => {
             });
           }
         }
-        setIdsCart(fetchedCart);
+        console.log('Fetched cart:', fetchedCart);
+        await setIdsCart(fetchedCart);
+        setRerender(!rerender);
       } catch (error) {
         console.error('Failed to fetch cart:', error);
         setIdsCart([]); // Ensure cart is always an array
@@ -71,17 +73,23 @@ const Cart = () => {
       }
       fetchProductDetails();
     }
-  }, [rerender]); // Depend only on the length of the ids cart
+    else {
+      setCart([]); // Ensure cart is always an array
+    }
+  }, [rerender]); // depend on rerender to update cart
 
   const onRemove = async (store_id, product_id, quantity) => {
     console.log('Removing all amount product with: ', product_id, " ", store_id);
     try {
+      console.log('Removing product:', store_id, product_id, quantity);
       const response = await api.post('/user/remove_from_basket', { store_id, product_id, quantity });
       if (response.status !== 200) {
         console.error('Failed to remove product:', response);
         return;
       }
       console.log('Product removed:', response.data.message);
+      const tempIdsCart = [...idsCart].filter(item => item.storeId !== store_id || item.productId !== product_id);
+      setIdsCart(tempIdsCart);
       setRerender(!rerender);
     }
     catch (error) {
@@ -89,17 +97,38 @@ const Cart = () => {
     }
   }
 
-  onQuantityChange = async (store_id, product_id, quantity) => {
+  const onQuantityChange = async (store_id, product_id, quantity) => {
     console.log('Changing quantity of product with: ', product_id, " ", store_id, " to ", quantity);
     // change quantity of product with product_id and store_id to quantity in idsCart
-    const updatedDict = { ...idsCart };
-    updatedDict[store_id][product_id] = quantity;
-    setIdsCart(updatedDict);
+    const updatedList = idsCart.map(item => {
+      if (item.storeId === store_id && item.productId === product_id) {
+        item.quantity = quantity;
+      }
+      return item;
+    });
+    setIdsCart(updatedList);
     setRerender(!rerender);
   }
 
-  onSaveCart = async () => {
+  const onSaveCart = async () => {
     console.log('Saving cart:', idsCart);
+    const cartToSend = {};
+    idsCart.forEach(item => {
+      if (!cartToSend[item.storeId]) {
+        cartToSend[item.storeId] = {};
+      }
+      cartToSend[item.storeId][item.productId] = item.quantity;
+    });
+    try {
+      const response = await api.post('/user/set_cart', { cart: cartToSend });
+      if (response.status !== 200) {
+        console.error('Failed to save cart:', response);
+        return;
+      }
+      console.log('Cart saved:', response.data.message);
+    } catch (error) {
+      console.error('Failed to save cart:', error);
+    }
   }
 
   return (
@@ -126,7 +155,8 @@ const Cart = () => {
                     rating={item.rating}
                     storeName={item.storeName}
                     quantity={item.quantity}
-                    onRemove={() => onRemove(item.productId, item.storeId, item.quantity)} // Pass correct handler
+                    onRemove={() => onRemove(item.storeId, item.productId, item.quantity)}
+                    onQuantityChange={(quantity) => onQuantityChange(item.storeId, item.productId, quantity)}
                   />
                 ))}
                 <div className="cart-summary mt-4">
@@ -144,7 +174,7 @@ const Cart = () => {
                         Bid
                       </div>
                     </Link>
-                    <button onClick={onSaveChanges} className="bg-gray-600 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded inline-block text-center">
+                    <button onClick={onSaveCart} className="bg-gray-600 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded inline-block text-center">
                       Save Changes
                     </button>
                   </div>
