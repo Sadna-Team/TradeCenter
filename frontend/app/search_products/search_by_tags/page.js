@@ -10,6 +10,7 @@ export default function SearchByTags() {
     const [errorMessage, setErrorMessage] = useState(null);
     const [allTags, setAllTags] = useState([]);
     const [storeIdToName, setStoreIdToName] = useState({});
+    const [initialSearch, setInitialSearch] = useState(true);
 
     const validate = (tags, storeName) => {
       return tags !== null && tags.length !== undefined && tags.length > 0;
@@ -33,6 +34,9 @@ export default function SearchByTags() {
         const response = (storeName ? await makeCall({ tags, store_id }) : await makeCall({ tags }));
         if (response.status === 200) {
             setResults(response.data.message);
+            if(initialSearch) {
+                setInitialSearch(false);
+            }
             setErrorMessage(null);
         }
         else {
@@ -88,24 +92,24 @@ export default function SearchByTags() {
         return (
             <div className="flex items-start justify-center bg-gray-100">
             <div className="bg-white p-6 rounded shadow-md w-full max-w-md mt-4">
-              <h1 className="text-2xl font-bold mb-4 text-center">Search Results</h1>
-              <div className="store-products">
-                {Object.keys(results).map(storeId => (
-                  <div key={storeId} className="store-container mb-4">
-                    <strong className="block text-lg font-bold">Store Name: {storeIdToName[storeId]}</strong>
-                    <div className="product-list mt-2">
-                      {Object.keys(results[storeId]).map(productId => (
-                        <div key={productId} className="product-item mb-2">
-                          <div><strong>Name:</strong> {results[storeId][productId].name}</div>
-                          <div><strong>Description:</strong> {results[storeId][productId].description}</div>
-                          <div><strong>Price:</strong> {results[storeId][productId].price}</div>
-                          <div><strong>Amount:</strong> {results[storeId][productId].amount}</div>
-                        </div>
-                      ))}
+                <h1 className="text-2xl font-bold mb-4 text-center">Search Results</h1>
+                <div className="store-products">
+                  {Object.keys(results).map(storeId => (
+                    <div key={storeId} className="store-container mb-4">
+                      <strong className="block text-lg font-bold">Store Name: {storeIdToName[storeId]}</strong>
+                      <div className="product-list mt-2">
+                        {Object.keys(results[storeId]).map(productId => (
+                          <div key={productId} className="product-item mb-2">
+                            <div><strong>Name:</strong> {results[storeId][productId].name}</div>
+                            <div><strong>Description:</strong> {results[storeId][productId].description}</div>
+                            <div><strong>Price:</strong> {results[storeId][productId].price}</div>
+                            <div><strong>Amount:</strong> {results[storeId][productId].amount}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
             </div>
           </div>
         );
@@ -117,6 +121,8 @@ export default function SearchByTags() {
         <div>
             <SearchForm onSearch={handleSearch} tags={allTags} stores={Object.values(storeIdToName)}/>
             {errorMessage && <span className="text-red-500 text-sm">{errorMessage}</span>}
+            {Object.keys(storeIdToName).length === 0 && <span>Loading...</span>}
+            {Object.keys(results).length === 0 && !initialSearch && <span>No Search Results Found</span>}
             {Object.keys(results).length > 0 && (
                 <div>
                     {renderResults()}

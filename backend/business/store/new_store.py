@@ -1,5 +1,5 @@
 # ---------- Imports ------------#
-from typing import List, Dict, Tuple, Optional, Callable
+from typing import List, Dict, Tuple, Optional, Callable, Set
 
 from .constraints import *
 from .discount import *
@@ -77,6 +77,18 @@ class Product:
     def release_lock(self):
         self.__product_lock.release()
 
+    def change_name(self, new_name: str) -> None:
+        """
+        * Parameters: newName
+        * This function changes the name of the product
+        * Returns: none
+        """
+        if new_name is None:
+            raise StoreError('New name is not a valid string', StoreErrorTypes.invalid_name)
+        with self.__product_lock:
+            self.__product_name = new_name
+        logger.info('[Product] successfully changed name of product with id: ' + str(self.__product_id))
+
     def change_price(self, new_price: float) -> None:
         """
         * Parameters: newPrice
@@ -101,6 +113,28 @@ class Product:
             self.__description = new_description
         logger.info(
             '[Product] successfully changed description of product with id: ' + str(self.__product_id))
+        
+    def change_tags(self, new_tags: List[str]) -> None:
+        """
+        * Parameters: newTags
+        * This function changes the tags of the product
+        * Returns: none
+        """
+        with self.__product_lock:
+            self.__tags = new_tags
+        logger.info('[Product] successfully changed tags of product with id: ' + str(self.__product_id))
+
+    def change_amount(self, new_amount: int) -> None:
+        """
+        * Parameters: newAmount
+        * This function changes the amount of the product
+        * Returns: none
+        """
+        if new_amount < 0:
+            raise StoreError('New amount is a negative value', StoreErrorTypes.invalid_amount)
+        with self.__product_lock:
+            self.__amount = new_amount
+        logger.info('[Product] successfully changed amount of product with id: ' + str(self.__product_id))
 
 
     def add_tag(self, tag: str) -> None:
@@ -150,6 +184,7 @@ class Product:
         * This function changes the weight of the product
         * Returns: none
         """
+        logger.info('[Product] weight is being changed to: ' + str(new_weight))
         if new_weight < 0:
             raise StoreError('New weight is a negative value', StoreErrorTypes.invalid_weight)
         with self.__product_lock:
@@ -938,6 +973,25 @@ class Store:
         """
         product = self.get_product_by_id(product_id)
         product.change_weight(new_weight)
+
+    
+    def edit_product(self, product_id: int, name: str, description: str, price: float, tags: List[str], weight: float, amount: Optional[int]=None) -> None:
+        """
+        * Parameters: productId, name, description, price, tags, weight
+        * This function edits a product in the store
+        * Returns: none
+        """
+        if product_id not in self.__store_products:
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
+        product = self.__store_products[product_id]
+        product.change_name(name)
+        product.change_description(description)
+        product.change_price(price)
+        product.change_weight(weight)
+        product.change_tags(tags)
+        if amount is not None:
+            product.change_amount(amount)
+        logger.info('[Store] successfully edited product in store with id: ' + str(self.__store_id))
 # ---------------------end of classes---------------------#
 
 # ---------------------storeFacade class---------------------#
@@ -962,7 +1016,7 @@ class StoreFacade:
             self.__store_id_lock = threading.Lock() # lock for store id
             self.__discount_id_counter = 0  # Counter for discount IDs
             self.__discount_id_lock = threading.Lock() # lock for discount id
-            self.__tags: Dict[str, int] = {} # existing product tags for fast access (tagname -> count)
+            self.__tags: Set[str] = set() # all existing product tags for fast access
             logger.info('successfully created storeFacade')
 
     def clean_data(self):
@@ -975,7 +1029,13 @@ class StoreFacade:
         self.__category_id_counter = 0
         self.__store_id_counter = 0
         self.__discount_id_counter = 0
-        self.__tags = {}
+        self.__tags = {
+                       'alcoholic', 'tobacco', 'food', 'utilities',
+                        'clothing', 'electronics', 'furniture', 'toys', 'books',
+                        'beauty', 'health', 'sports', 'outdoor', 'home decor',
+                        'office supplies', 'pet supplies', 'jewelry', 'footwear', 
+                        'automotive', 'gardening', 'tools', 'kitchenware', 'baby products',
+                        'musical instruments', 'stationery', 'party supplies', 'craft supplies'}
 
     # ---------------------getters and setters---------------------
     @property
@@ -1135,10 +1195,7 @@ class StoreFacade:
             amount = 0
         product_id =  store.add_product(product_name, description, price, tags, weight, amount)
         for tag in tags:
-            if tag not in self.__tags:
-                self.__tags[tag] = 1
-            else:
-                self.__tags[tag] += 1
+            self.__tags.add(tag)
 
         return product_id
 
@@ -1155,10 +1212,6 @@ class StoreFacade:
             tags = store.get_product_by_id(product_id).tags
             store.remove_product(product_id)
             store.release_lock()
-            for tag in tags:
-                self.__tags[tag] -= 1
-                if self.__tags[tag] == 0:
-                    self.__tags.pop(tag)
         except Exception as e:
             store.release_lock()
             raise e
@@ -1223,10 +1276,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.add_tag_to_product(product_id, tag)
-        if tag not in self.__tags:
-            self.__tags[tag] = 1
-        else:
-            self.__tags[tag] += 1
+        self.__tags.add(tag)
 
     def remove_tag_from_product(self, store_id: int, product_id: int, tag: str) -> None:
         """
@@ -1238,9 +1288,6 @@ class StoreFacade:
         if store is None:
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         store.remove_tag_from_product(product_id, tag)
-        self.__tags[tag] -= 1
-        if self.__tags[tag] == 0:
-            self.__tags.pop(tag)
 
     def get_tags_of_product(self, store_id: int, product_id: int) -> List[str]:
         """
@@ -1447,11 +1494,11 @@ class StoreFacade:
         """
         * Parameters: predicate_properties
         * this function recursively creates a predicate for a discount
-        * NOTE: the following are examples: (and, 
+        * NOTE: the following are examples: (and,  
                                                 (age, 18), 
                                                 (or 
                                                     (location, {address: "bla", city: "bla", state: "bla", country: "bla", zip_code: "bla"}),
-                                                    (time, 10:00, 20:00)
+                                                    (time, 10, 00, 20, 00)
                                                 ) 
                                             )
         * Returns: the predicated
@@ -1493,11 +1540,13 @@ class StoreFacade:
                 logger.warning('[StoreFacade] location is not a dictionary')
                 raise DiscountAndConstraintsError('Location is not a dictionary', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == TimeConstraint:
-            if isinstance(predicate_properties[1], time) and isinstance(predicate_properties[2], time):
-                if predicate_properties[1] > predicate_properties[2]:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                starting_time = time(predicate_properties[1], predicate_properties[2],0)
+                ending_time = time(predicate_properties[3], predicate_properties[4],0)
+                if starting_time > ending_time:
                     logger.warning('[StoreFacade] starting time is greater than ending time')
                     raise DiscountAndConstraintsError('Starting time is greater than ending time', DiscountAndConstraintsErrorTypes.predicate_creation_error)
-                return predicate_type(predicate_properties[1], predicate_properties[2])
+                return predicate_type(starting_time, ending_time)
             else:
                 logger.warning('[StoreFacade] starting time or ending time is not a datetime.time')
                 raise DiscountAndConstraintsError('Starting time or ending time is not a datetime.time', DiscountAndConstraintsErrorTypes.predicate_creation_error)
@@ -2134,7 +2183,7 @@ class StoreFacade:
         * This function gets all the tags in the system
         * Returns: a list of tags
         """
-        return list(self.__tags.keys())
+        return list(self.__tags)
     
     def get_all_store_names(self) -> Dict[int, str]:
         """
@@ -2149,3 +2198,49 @@ class StoreFacade:
         * Returns: a dict from category_id to category_name
         """
         return {category_id: category.category_name for category_id, category in self.__categories.items()}
+    
+    def edit_product_in_store(self, store_id: int, product_id: int, product_name: str, description: str, price: float, weight: float, tags: List[str],
+                              amount: Optional[int]) -> None:
+        """
+        * Parameters: store_id, product_id, product_name, description, price, weight, tags
+        * This function edits a product in the store
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        store.edit_product(product_id, product_name, description, price, tags, weight, amount)
+
+    def validate_cart(self, cart: Dict[int, Dict[int, int]]) -> None:
+        """
+        * Parameters: cart
+        * This function validates the shopping cart
+        * Returns: none
+        """
+        for store_id, products in cart.items():
+            for product_id, amount in products.items():
+                logger.info('[StoreFacade] checking product availability')
+                logger.info(f'types are: {type(product_id)}, { type(amount)}, {type(store_id)}')
+                existing_amount = self.__stores[store_id].get_product_dto_by_id(product_id).amount
+                if amount > existing_amount:
+                    raise StoreError('Product amount is greater than the existing amount', StoreErrorTypes.product_not_available)
+        
+    def is_store_closed(self, store_id: int) -> bool:
+        """
+        * Parameters: storeId
+        * This function checks if the store is closed
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        return not store.is_active
+
+    def get_open_stores(self, user_id: int, store_ids: List[int]) -> List[int]:
+        """
+        * Parameters: storeIds
+        * This function gets a list of stores and returns the open stores or the stores which are found by the user
+        * Returns: a list of store ids which are open or found by the user
+        """
+        open_stores = []
+        for store_id in store_ids:
+            store = self.__get_store_by_id(store_id)
+            if store.is_active or store.store_founder_id == user_id:
+                open_stores.append(store_id)
+        return open_stores
