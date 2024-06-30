@@ -1377,3 +1377,6 @@ class MarketFacade:
         self.store_facade.validate_cart(shopping_cart)
         self.user_facade.set_user_shopping_cart(user_id, shopping_cart)
 
+    def is_store_closed(self, store_id: int) -> bool:
+        return self.store_facade.is_store_closed(store_id)
+

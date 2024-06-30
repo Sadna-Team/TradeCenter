@@ -82,7 +82,7 @@ export default function ProductPage() {
         <div className="amount-control" style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
           <button className="amount-btn" 
             style={{ backgroundColor: '#D5DBDB', color: '#333', border: 'none', padding: '8px 12px', fontSize: '1rem', cursor: 'pointer', marginRight: '4px' }} 
-            onClick={() => {setQuantity(quantity > 1) ? quantity - 1 : quantity}}>-</button>
+            onClick={() => {quantity > 1 ? setQuantity(quantity - 1) : setQuantity(quantity)}}>-</button>
           <input type="text" className="amount-input" 
           style={{ width: '50px', textAlign: 'center', fontSize: '1rem', padding: '8px', margin: '0 4px' }} value={quantity} readOnly />
           <button className="amount-btn" 

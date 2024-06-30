@@ -2195,3 +2195,12 @@ class StoreFacade:
                 existing_amount = self.__stores[store_id].get_product_dto_by_id(product_id).amount
                 if amount > existing_amount:
                     raise StoreError('Product amount is greater than the existing amount', StoreErrorTypes.product_not_available)
+        
+    def is_store_closed(self, store_id: int) -> bool:
+        """
+        * Parameters: storeId
+        * This function checks if the store is closed
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        return not store.is_active
