@@ -46,3 +46,13 @@ body {
 .accordion-trigger {
   cursor: pointer;
 }
+
+.wider-select .multi-select-container {
+  width: 100%;
+  min-width: 250px; /* Adjust as needed */
+}
+
+.wider-select .dropdown-container {
+  width: 100%;
+  min-width: 250px; /* Adjust as needed */
+}

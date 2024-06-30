@@ -1,3 +1,4 @@
+
 "use client";
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
@@ -163,12 +164,18 @@ const ManagePolicy = () => {
   const [currentPolicyId, setCurrentPolicyId] = useState(null);
   const [constraintError, setConstraintError] = useState('');
 
+  const generateUniqueId = () => {
+    // Generate a unique ID based on the current timestamp and a random number
+    return Date.now() + Math.floor(Math.random() * 1000);
+  };
+
   const handleSaveChanges = () => {
     if (!newPolicyName) {
       setErrorMessage('Please enter a policy name.');
       return;
     }
-
+  
+    let newPolicyId = generateUniqueId();
     let newPolicy;
     switch (dialogType) {
       case 'productSpecific':
@@ -177,7 +184,7 @@ const ManagePolicy = () => {
           return;
         }
         newPolicy = {
-          purchase_policy_id: policies[dialogType].length + 1,
+          purchase_policy_id: newPolicyId,
           store_id: 100 + policies[dialogType].length + 1,
           policy_name: newPolicyName,
           product_id: selectedProduct,
@@ -190,7 +197,7 @@ const ManagePolicy = () => {
           return;
         }
         newPolicy = {
-          purchase_policy_id: policies[dialogType].length + 1,
+          purchase_policy_id: newPolicyId,
           store_id: 100 + policies[dialogType].length + 1,
           policy_name: newPolicyName,
           category_id: selectedCategory,
@@ -199,7 +206,7 @@ const ManagePolicy = () => {
         break;
       case 'basketSpecific':
         newPolicy = {
-          purchase_policy_id: policies[dialogType].length + 1,
+          purchase_policy_id: newPolicyId,
           store_id: 100 + policies[dialogType].length + 1,
           policy_name: newPolicyName,
           constraints: []
@@ -213,18 +220,38 @@ const ManagePolicy = () => {
           return;
         }
         newPolicy = {
-          purchase_policy_id: policies[dialogType].length + 1,
+          purchase_policy_id: newPolicyId,
           store_id: 100 + policies[dialogType].length + 1,
           policy_name: newPolicyName,
-          left_policy: { id: selectedLeftPolicy, details: "Left policy details" },
-          right_policy: { id: selectedRightPolicy, details: "Right policy details" }
+          left_policy_id: parseInt(selectedLeftPolicy),
+          right_policy_id: parseInt(selectedRightPolicy)
         };
+  
+        // Add the new composite policy to the appropriate type
+        const updatedPolicies = { ...policies };
+        updatedPolicies[dialogType].push(newPolicy);
+        setPolicies(updatedPolicies);
+  
+        // Remove the selected policies
+        const removePolicy = (policyId) => {
+          for (let type in updatedPolicies) {
+            updatedPolicies[type] = updatedPolicies[type].filter(policy => policy.purchase_policy_id !== policyId);
+          }
+        };
+  
+        removePolicy(parseInt(selectedLeftPolicy));
+        removePolicy(parseInt(selectedRightPolicy));
+        setPolicies(updatedPolicies);
+  
         break;
       default:
         return;
     }
-
-    setPolicies({ ...policies, [dialogType]: [...policies[dialogType], newPolicy] });
+  
+    if (!['andPolicies', 'orPolicies', 'conditionalPolicies'].includes(dialogType)) {
+      setPolicies({ ...policies, [dialogType]: [...policies[dialogType], newPolicy] });
+    }
+  
     setIsDialogOpen(false);
     setNewPolicyName('');
     setSelectedProduct('');
@@ -233,6 +260,8 @@ const ManagePolicy = () => {
     setSelectedRightPolicy('');
     setErrorMessage('');
   };
+  
+  
 
   const handleRemovePolicy = (type, policyId) => {
     setPolicies({
@@ -323,8 +352,6 @@ const ManagePolicy = () => {
             {constraintValues.ageLimit && isNaN(constraintValues.ageLimit) && <p className="text-red-500">Not a number</p>}
           </div>
           </>
-
-
         );
 
       // Add other cases for different constraint types here...
@@ -604,729 +631,752 @@ const ManagePolicy = () => {
               </Select>
             </>
           );
-        case 'categoryPrice':
-          return (
-            <>
-              <Input
-                id="min-price"
-                placeholder="Min price (in dollars)"
-                value={constraintValues.minPrice || ''}
-                onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
-                className="col-span-3 border border-black"
-              />
 
-              <div className="mt-2">
-            {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Input
-                id="max-price"
-                placeholder="Max price (in dollars)"
-                value={constraintValues.maxPrice || ''}
-                onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-              <div className="mt-2">
-            {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select category..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {mockCategories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          );
-        case 'basketAmount':
-          return (
-            <>
-              <Input
-                id="min-amount"
-                placeholder="Min amount"
-                value={constraintValues.minAmount || ''}
-                onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-              <div className="mt-2">
-            {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
-           </div>
+case 'categoryPrice':
+  return (
+    <>
+      <Input
+        id="min-price"
+        placeholder="Min price (in dollars)"
+        value={constraintValues.minPrice || ''}
+        onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Input
+        id="max-price"
+        placeholder="Max price (in dollars)"
+        value={constraintValues.maxPrice || ''}
+        onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
+        <SelectTrigger className="col-span-3 border border-black bg-white">
+          <SelectValue placeholder="Select category..." />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {mockCategories.map((category) => (
+            <SelectItem key={category.value} value={category.value}>
+              {category.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  );
+case 'basketAmount':
+  return (
+    <>
+      <Input
+        id="min-amount"
+        placeholder="Min amount"
+        value={constraintValues.minAmount || ''}
+        onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+        <SelectTrigger className="col-span-3 border border-black bg-white">
+          <SelectValue placeholder="Select store..." />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {mockStores.map((store) => (
+            <SelectItem key={store.value} value={store.value}>
+              {store.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  );
+case 'productAmount':
+  return (
+    <>
+      <Input
+        id="min-amount"
+        placeholder="Min amount"
+        value={constraintValues.minAmount || ''}
+        onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+        <SelectTrigger className="col-span-3 border border-black bg-white">
+          <SelectValue placeholder="Select store..." />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {mockStores.map((store) => (
+            <SelectItem key={store.value} value={store.value}>
+              {store.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
+        <SelectTrigger className="col-span-3 border border-black bg-white">
+          <SelectValue placeholder="Select product..." />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {mockProducts.map((product) => (
+            <SelectItem key={product.value} value={product.value}>
+              {product.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  );
+case 'categoryAmount':
+  return (
+    <>
+      <Input
+        id="min-amount"
+        placeholder="Min amount"
+        value={constraintValues.minAmount || ''}
+        onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
+        <SelectTrigger className="col-span-3 border border-black bg-white">
+          <SelectValue placeholder="Select category..." />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {mockCategories.map((category) => (
+            <SelectItem key={category.value} value={category.value}>
+              {category.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  );
+case 'categoryWeight':
+  return (
+    <>
+      <Input
+        id="min-weight"
+        placeholder="Min weight (in kg)"
+        value={constraintValues.minWeight || ''}
+        onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Input
+        id="max-weight"
+        placeholder="Max weight (in kg)"
+        value={constraintValues.maxWeight || ''}
+        onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
+        <SelectTrigger className="col-span-3 border border-black bg-white">
+          <SelectValue placeholder="Select category..." />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {mockCategories.map((category) => (
+            <SelectItem key={category.value} value={category.value}>
+              {category.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  );
+case 'basketWeight':
+  return (
+    <>
+      <Input
+        id="min-weight"
+        placeholder="Min weight (in kg)"
+        value={constraintValues.minWeight || ''}
+        onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Input
+        id="max-weight"
+        placeholder="Max weight (in kg)"
+        value={constraintValues.maxWeight || ''}
+        onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+        <SelectTrigger className="col-span-3 border border-black bg-white">
+          <SelectValue placeholder="Select store..." />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {mockStores.map((store) => (
+            <SelectItem key={store.value} value={store.value}>
+              {store.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  );
+case 'productWeight':
+  return (
+    <>
+      <Input
+        id="min-weight"
+        placeholder="Min weight (in kg)"
+        value={constraintValues.minWeight || ''}
+        onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Input
+        id="max-weight"
+        placeholder="Max weight (in kg)"
+        value={constraintValues.maxWeight || ''}
+        onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+      <div className="mt-2">
+        {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
+      </div>
+      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+        <SelectTrigger className="col-span-3 border border-black bg-white">
+          <SelectValue placeholder="Select store..." />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {mockStores.map((store) => (
+            <SelectItem key={store.value} value={store.value}>
+              {store.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
+        <SelectTrigger className="col-span-3 border border-black bg-white">
+          <SelectValue placeholder="Select product..." />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          {mockProducts.map((product) => (
+            <SelectItem key={product.value} value={product.value}>
+              {product.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  );
+case 'compositeConstraint':
+  return (
+    <>
+      <Input
+        id="composite-constraint"
+        placeholder="composite constraint: (and,(and (age 17), (or (time, 23, 00, 14, 00), (season, summer)))) "
+        value={constraintValues.compositeConstraint || ''}
+        onChange={(e) => handleConstraintValueChange('compositeConstraint', e.target.value)}
+        className="col-span-3 border border-black"
+      />
+    </>
+  );
+default:
+  return null;
+}
+};
 
-              <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select store..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {mockStores.map((store) => (
-                    <SelectItem key={store.value} value={store.value}>
-                      {store.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          );
-        case 'productAmount':
-          return (
-            <>
-              <Input
-                id="min-amount"
-                placeholder="Min amount"
-                value={constraintValues.minAmount || ''}
-                onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
-                className="col-span-3 border border-black"
-              />
+const renderPolicy = (policy, type) => (
+  <div 
+    key={policy.purchase_policy_id} 
+    className="mb-4 p-4 border-2 border-gray-300 rounded-md"
+  >
+    <button
+      onClick={() => handleToggle(policy.purchase_policy_id, type)}
+      className="text-left w-full"
+    >
+      {`Policy ID: ${policy.purchase_policy_id}`}
+    </button>
+    {expandedPolicies[type] === policy.purchase_policy_id && (
+      <div className="mt-2">
+        <p><strong>Store ID:</strong> {policy.store_id}</p>
+        <p><strong>Policy Name:</strong> {policy.policy_name}</p>
+        {type === 'productSpecific' && <p><strong>Product ID:</strong> {policy.product_id}</p>}
+        {type === 'categorySpecific' && <p><strong>Category ID:</strong> {policy.category_id}</p>}
+        {['andPolicies', 'orPolicies', 'conditionalPolicies'].includes(type) && (
+          <>
+            <div className="flex justify-between">
+              <button onClick={() => handleToggleLeftPolicy(policy.purchase_policy_id)} className="mt-2">Show Left Policy</button>
+              <button onClick={() => handleToggleRightPolicy(policy.purchase_policy_id)} className="mt-2">Show Right Policy</button>
+            </div>
+            {expandedLeftPolicy === policy.purchase_policy_id && (
               <div className="mt-2">
-            {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
-           </div>
-
-              <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select store..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {mockStores.map((store) => (
-                    <SelectItem key={store.value} value={store.value}>
-                      {store.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select product..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {mockProducts.map((product) => (
-                    <SelectItem key={product.value} value={product.value}>
-                      {product.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          );
-        case 'categoryAmount':
-          return (
-            <>
-              <Input
-                id="min-amount"
-                placeholder="Min amount"
-                value={constraintValues.minAmount || ''}
-                onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-
-              <div className="mt-2">
-            {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select category..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {mockCategories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          );
-        case 'categoryWeight':
-          return (
-            <>
-              <Input
-                id="min-weight"
-                placeholder="Min weight (in kg)"
-                value={constraintValues.minWeight || ''}
-                onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-
-              <div className="mt-2">
-            {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Input
-                id="max-weight"
-                placeholder="Max weight (in kg)"
-                value={constraintValues.maxWeight || ''}
-                onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-
-              <div className="mt-2">
-            {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select category..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {mockCategories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          );
-        case 'basketWeight':
-          return (
-            <>
-              <Input
-                id="min-weight"
-                placeholder="Min weight (in kg)"
-                value={constraintValues.minWeight || ''}
-                onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-
-              <div className="mt-2">
-            {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Input
-                id="max-weight"
-                placeholder="Max weight (in kg)"
-                value={constraintValues.maxWeight || ''}
-                onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-
-              <div className="mt-2">
-            {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select store..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {mockStores.map((store) => (
-                    <SelectItem key={store.value} value={store.value}>
-                      {store.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          );
-        case 'productWeight':
-          return (
-            <>
-              <Input
-                id="min-weight"
-                placeholder="Min weight (in kg)"
-                value={constraintValues.minWeight || ''}
-                onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-              <div className="mt-2">
-            {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
-           </div>
-              
-              <Input
-                id="max-weight"
-                placeholder="Max weight (in kg)"
-                value={constraintValues.maxWeight || ''}
-                onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-
-              <div className="mt-2">
-            {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select store..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {mockStores.map((store) => (
-                    <SelectItem key={store.value} value={store.value}>
-                      {store.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select product..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {mockProducts.map((product) => (
-                    <SelectItem key={product.value} value={product.value}>
-                      {product.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          );
-  
-        case 'compositeConstraint':
-       
-          return (
-            <>
-              <Input
-                id="composite-constraint"
-                placeholder="composite constraint: (and,(and (age 17), (or (time, 23, 00, 14, 00), (season, summer)))) "
-                value={constraintValues.compositeConstraint || ''}
-                onChange={(e) => handleConstraintValueChange('compositeConstraint', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-      
-            </>
-          );
-        default:
-          return null;
-      }
-    };
-  
-    const renderPolicy = (policy, type) => (
-      <div 
-        key={policy.purchase_policy_id} 
-        className="mb-4 p-4 border-2 border-gray-300 rounded-md"
-      >
-        <button
-          onClick={() => handleToggle(policy.purchase_policy_id, type)}
-          className="text-left w-full"
-        >
-          {`Policy ID: ${policy.purchase_policy_id}`}
-        </button>
-        {expandedPolicies[type] === policy.purchase_policy_id && (
-          <div className="mt-2">
-            <p><strong>Store ID:</strong> {policy.store_id}</p>
-            <p><strong>Policy Name:</strong> {policy.policy_name}</p>
-            {type === 'productSpecific' && <p><strong>Product ID:</strong> {policy.product_id}</p>}
-            {type === 'categorySpecific' && <p><strong>Category ID:</strong> {policy.category_id}</p>}
-            {['andPolicies', 'orPolicies', 'conditionalPolicies'].includes(type) && (
-              <>
-                <div className="flex justify-between">
-                  <button onClick={() => handleToggleLeftPolicy(policy.purchase_policy_id)} className="mt-2">Show Left Policy</button>
-                  <button onClick={() => handleToggleRightPolicy(policy.purchase_policy_id)} className="mt-2">Show Right Policy</button>
-                </div>
-                {expandedLeftPolicy === policy.purchase_policy_id && (
-                  <div className="mt-2">
-                    <p><strong>Left Policy ID:</strong> {policy.left_policy.id}</p>
-                    <p><strong>Left Policy Details:</strong> {policy.left_policy.details}</p>
-                  </div>
-                )}
-                {expandedRightPolicy === policy.purchase_policy_id && (
-                  <div className="mt-2">
-                    <p><strong>Right Policy ID:</strong> {policy.right_policy.id}</p>
-                    <p><strong>Right Policy Details:</strong> {policy.right_policy.details}</p>
-                  </div>
-                )}
-              </>
-            )}
-            {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
-              <button className="mt-2" onClick={() => handleToggleConstraint(policy.purchase_policy_id)}>Show Constraints</button>
-            )}
-            {expandedConstraint === policy.purchase_policy_id && (
-              <div className="mt-2">
-                {policy.constraints.map((constraint, index) => (
-                  <p key={index}>{constraint.type}: {constraint.details}</p>
-                ))}
+                {renderNestedPolicy(policy.left_policy_id)}
               </div>
             )}
-            <div className={`flex ${['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
-              {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
-                <Button className="bg-blue-500 text-white py-1 px-3 rounded" onClick={() => handleOpenConstraintDialog(policy.purchase_policy_id)}>Add Constraint</Button>
-              )}
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Policy</Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-white">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the policy.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleRemovePolicy(type, policy.purchase_policy_id)}>Yes, remove policy</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
+            {expandedRightPolicy === policy.purchase_policy_id && (
+              <div className="mt-2">
+                {renderNestedPolicy(policy.right_policy_id)}
+              </div>
+            )}
+          </>
+        )}
+        {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
+          <button className="mt-2" onClick={() => handleToggleConstraint(policy.purchase_policy_id)}>Show Constraints</button>
+        )}
+        {expandedConstraint === policy.purchase_policy_id && (
+          <div className="mt-2">
+            {policy.constraints.map((constraint, index) => (
+              <p key={index}>{constraint.type}: {constraint.details}</p>
+            ))}
           </div>
         )}
+        <div className={`flex ${['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
+          {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
+            <Button className="bg-blue-500 text-white py-1 px-3 rounded" onClick={() => handleOpenConstraintDialog(policy.purchase_policy_id)}>Add Constraint</Button>
+          )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Policy</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-white">
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the policy.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={() => handleRemovePolicy(type, policy.purchase_policy_id)}>Yes, remove policy</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
-    );
+    )}
+  </div>
+);
 
 
-    return (
-      <div className="flex flex-wrap justify-center">
-        <div className="w-full max-w-md p-4">
-          <h2 className="text-center font-bold mb-4">Product Specific Policies</h2>
-          <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-            {policies.productSpecific.map((policy) => renderPolicy(policy, 'productSpecific'))}
-          </ScrollArea>
-          <Dialog open={isDialogOpen && dialogType === 'productSpecific'} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('productSpecific')}>Add Product Policy</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-white">
-              <DialogHeader>
-                <DialogTitle>Adding a product specific policy</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {errorMessage && (
-                  <div className="text-red-500 text-sm">{errorMessage}</div>
-                )}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-                  <Input 
-                    id="policy-name" 
-                    placeholder="Policy Name"
-                    value={newPolicyName}
-                    onChange={(e) => setNewPolicyName(e.target.value)}
-                    className="col-span-3 border border-black"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="product" className="block mt-2">Choose Product</Label>
-                  <Select onValueChange={setSelectedProduct}>
-                    <SelectTrigger className="col-span-3 border border-black bg-white">
-                      <SelectValue placeholder="Choose Product" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {mockProducts.map((product) => (
-                        <SelectItem key={product.value} value={product.value}>
-                          {product.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
 
-        <div className="w-full max-w-md p-4">
-          <h2 className="text-center font-bold mb-4">Category Specific Policies</h2>
-          <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-            {policies.categorySpecific.map((policy) => renderPolicy(policy, 'categorySpecific'))}
-          </ScrollArea>
-          <Dialog open={isDialogOpen && dialogType === 'categorySpecific'} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('categorySpecific')}>Add Category Policy</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-white">
-              <DialogHeader>
-                <DialogTitle>Adding a category specific policy</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {errorMessage && (
-                  <div className="text-red-500 text-sm">{errorMessage}</div>
-                )}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-                  <Input 
-                    id="policy-name" 
-                    placeholder="Policy Name"
-                    value={newPolicyName}
-                    onChange={(e) => setNewPolicyName(e.target.value)}
-                    className="col-span-3 border border-black"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="category" className="block mt-2">Choose Category</Label>
-                  <Select onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="col-span-3 border border-black bg-white">
-                      <SelectValue placeholder="Choose Category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {mockCategories.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+const renderNestedPolicy = (policyId) => {
+  
+  console.log('renderNestedPolicy called with policyId:', policyId); // Add log
+  const policyType = Object.keys(policies).find(type => 
+    policies[type].some(p => p.purchase_policy_id === policyId)
+  );
 
-        <div className="w-full max-w-md p-4">
-          <h2 className="text-center font-bold mb-4">Basket Specific Policies</h2>
-          <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-            {policies.basketSpecific.map((policy) => renderPolicy(policy, 'basketSpecific'))}
-          </ScrollArea>
-          <Dialog open={isDialogOpen && dialogType === 'basketSpecific'} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('basketSpecific')}>Add Basket Policy</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-white">
-              <DialogHeader>
-                <DialogTitle>Adding a basket specific policy</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {errorMessage && (
-                  <div className="text-red-500 text-sm">{errorMessage}</div>
-                )}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-                  <Input 
-                    id="policy-name" 
-                    placeholder="Policy Name"
-                    value={newPolicyName}
-                    onChange={(e) => setNewPolicyName(e.target.value)}
-                    className="col-span-3 border border-black"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+  console.log('policyType found:', policyType); // Add log
 
-        <div className="w-full max-w-md p-4">
-          <h2 className="text-center font-bold mb-4">And Policies</h2>
-          <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-            {policies.andPolicies.map((policy) => renderPolicy(policy, 'andPolicies'))}
-          </ScrollArea>
-          <Dialog open={isDialogOpen && dialogType === 'andPolicies'} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('andPolicies')}>Add And Policy</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-white">
-              <DialogHeader>
-                <DialogTitle>Adding an And policy</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {errorMessage && (
-                  <div className="text-red-500 text-sm">{errorMessage}</div>
-                )}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-                  <Input 
-                    id="policy-name" 
-                    placeholder="Policy Name"
-                    value={newPolicyName}
-                    onChange={(e) => setNewPolicyName(e.target.value)}
-                    className="col-span-3 border border-black"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
-                  <Select onValueChange={setSelectedLeftPolicy}>
-                    <SelectTrigger className="col-span-3 border border-black bg-white">
-                      <SelectValue placeholder="Policy 1" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {Object.values(policies).flat().map((policy) => (
-                        <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
-                          {policy.policy_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
-                  <Select onValueChange={setSelectedRightPolicy}>
-                    <SelectTrigger className="col-span-3 border border-black bg-white">
-                      <SelectValue placeholder="Policy 2" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {Object.values(policies).flat().map((policy) => (
-                        <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
-                          {policy.policy_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+  if (!policyType) {
+    return <p>Policy not found</p>;
+  }
 
-        <div className="w-full max-w-md p-4">
-          <h2 className="text-center font-bold mb-4">Or Policies</h2>
-          <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-            {policies.orPolicies.map((policy) => renderPolicy(policy, 'orPolicies'))}
-          </ScrollArea>
-          <Dialog open={isDialogOpen && dialogType === 'orPolicies'} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('orPolicies')}>Add Or Policy</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-white">
-              <DialogHeader>
-                <DialogTitle>Adding an Or policy</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {errorMessage && (
-                  <div className="text-red-500 text-sm">{errorMessage}</div>
-                )}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-                  <Input 
-                    id="policy-name" 
-                    placeholder="Policy Name"
-                    value={newPolicyName}
-                    onChange={(e) => setNewPolicyName(e.target.value)}
-                    className="col-span-3 border border-black"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
-                  <Select onValueChange={setSelectedLeftPolicy}>
-                    <SelectTrigger className="col-span-3 border border-black bg-white">
-                      <SelectValue placeholder="Policy 1" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {Object.values(policies).flat().map((policy) => (
-                        <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
-                          {policy.policy_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
-                  <Select onValueChange={setSelectedRightPolicy}>
-                    <SelectTrigger className="col-span-3 border border-black bg-white">
-                      <SelectValue placeholder="Policy 2" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {Object.values(policies).flat().map((policy) => (
-                        <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
-                          {policy.policy_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+  const nestedPolicy = policies[policyType].find(p => p.purchase_policy_id === policyId);
 
-        <div className="w-full max-w-md p-4">
-          <h2 className="text-center font-bold mb-4">Conditional Policies</h2>
-          <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-            {policies.conditionalPolicies.map((policy) => renderPolicy(policy, 'conditionalPolicies'))}
-          </ScrollArea>
-          <Dialog open={isDialogOpen && dialogType === 'conditionalPolicies'} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('conditionalPolicies')}>Add Conditional Policy</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-white">
-              <DialogHeader>
-                <DialogTitle>Adding a Conditional policy</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                {errorMessage && (
-                  <div className="text-red-500 text-sm">{errorMessage}</div>
-                )}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-                  <Input 
-                    id="policy-name" 
-                    placeholder="Policy Name"
-                    value={newPolicyName}
-                    onChange={(e) => setNewPolicyName(e.target.value)}
-                    className="col-span-3 border border-black"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
-                  <Select onValueChange={setSelectedLeftPolicy}>
-                    <SelectTrigger className="col-span-3 border border-black bg-white">
-                      <SelectValue placeholder="Policy 1" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {Object.values(policies).flat().map((policy) => (
-                        <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
-                          {policy.policy_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
-                  <Select onValueChange={setSelectedRightPolicy}>
-                    <SelectTrigger className="col-span-3 border border-black bg-white">
-                      <SelectValue placeholder="Policy 2" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {Object.values(policies).flat().map((policy) => (
-                        <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
-                          {policy.policy_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+  console.log('nestedPolicy found:', nestedPolicy); // Add log
 
-        <Dialog open={constraintDialogOpen} onOpenChange={setConstraintDialogOpen}>
-          <DialogContent className="sm:max-w-[425px] bg-white">
-            <DialogHeader>
-              <DialogTitle>Adding a constraint</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              {constraintError && (
-                <div className="text-red-500 text-sm">{constraintError}</div>
-              )}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="constraint-type" className="block mt-2">Constraint Type</Label>
-                <Select onValueChange={handleConstraintTypeChange}>
-                  <SelectTrigger className="col-span-3 border border-black bg-white">
-                    <SelectValue placeholder="Choose constraint type" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    {constraintTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {renderConstraintFields()}
+  if (!nestedPolicy) {
+    return <p>Policy not found</p>;
+  }
+
+  return (
+    <div className="ml-4">
+      <p><strong>Policy ID:</strong> {nestedPolicy.purchase_policy_id}</p>
+      <p><strong>Store ID:</strong> {nestedPolicy.store_id}</p>
+      <p><strong>Policy Name:</strong> {nestedPolicy.policy_name}</p>
+      {policyType === 'productSpecific' && <p><strong>Product ID:</strong> {nestedPolicy.product_id}</p>}
+      {policyType === 'categorySpecific' && <p><strong>Category ID:</strong> {nestedPolicy.category_id}</p>}
+      {policyType === 'basketSpecific' && <p><strong>Constraints:</strong> {JSON.stringify(nestedPolicy.constraints)}</p>}
+    </div>
+  );
+};
+
+
+return (
+  <div className="flex flex-wrap justify-center">
+    <div className="w-full max-w-md p-4">
+      <h2 className="text-center font-bold mb-4">Product Specific Policies</h2>
+      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
+        {policies.productSpecific.map((policy) => renderPolicy(policy, 'productSpecific'))}
+      </ScrollArea>
+      <Dialog open={isDialogOpen && dialogType === 'productSpecific'} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('productSpecific')}>Add Product Policy</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Adding a product specific policy</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {errorMessage && (
+              <div className="text-red-500 text-sm">{errorMessage}</div>
+            )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
+              <Input 
+                id="policy-name" 
+                placeholder="Policy Name"
+                value={newPolicyName}
+                onChange={(e) => setNewPolicyName(e.target.value)}
+                className="col-span-3 border border-black"
+              />
             </div>
-            <DialogFooter>
-              <Button type="button" onClick={handleSaveConstraint}>Save constraint</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
-  };
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="product" className="block mt-2">Choose Product</Label>
+              <Select onValueChange={setSelectedProduct}>
+                <SelectTrigger className="col-span-3 border border-black bg-white">
+                  <SelectValue placeholder="Choose Product" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {mockProducts.map((product) => (
+                    <SelectItem key={product.value} value={product.value}>
+                      {product.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
 
-  export default ManagePolicy;
+    <div className="w-full max-w-md p-4">
+      <h2 className="text-center font-bold mb-4">Category Specific Policies</h2>
+      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
+        {policies.categorySpecific.map((policy) => renderPolicy(policy, 'categorySpecific'))}
+      </ScrollArea>
+      <Dialog open={isDialogOpen && dialogType === 'categorySpecific'} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('categorySpecific')}>Add Category Policy</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Adding a category specific policy</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {errorMessage && (
+              <div className="text-red-500 text-sm">{errorMessage}</div>
+            )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
+              <Input 
+                id="policy-name" 
+                placeholder="Policy Name"
+                value={newPolicyName}
+                onChange={(e) => setNewPolicyName(e.target.value)}
+                className="col-span-3 border border-black"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="category" className="block mt-2">Choose Category</Label>
+              <Select onValueChange={setSelectedCategory}>
+                <SelectTrigger className="col-span-3 border border-black bg-white">
+                  <SelectValue placeholder="Choose Category" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {mockCategories.map((category) => (
+                    <SelectItem key={category.value} value={category.value}>
+                      {category.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+
+    <div className="w-full max-w-md p-4">
+      <h2 className="text-center font-bold mb-4">Basket Specific Policies</h2>
+      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
+        {policies.basketSpecific.map((policy) => renderPolicy(policy, 'basketSpecific'))}
+      </ScrollArea>
+      <Dialog open={isDialogOpen && dialogType === 'basketSpecific'} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('basketSpecific')}>Add Basket Policy</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Adding a basket specific policy</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {errorMessage && (
+              <div className="text-red-500 text-sm">{errorMessage}</div>
+            )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
+              <Input 
+                id="policy-name" 
+                placeholder="Policy Name"
+                value={newPolicyName}
+                onChange={(e) => setNewPolicyName(e.target.value)}
+                className="col-span-3 border border-black"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+
+    <div className="w-full max-w-md p-4">
+      <h2 className="text-center font-bold mb-4">And Policies</h2>
+      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
+        {policies.andPolicies.map((policy) => renderPolicy(policy, 'andPolicies'))}
+      </ScrollArea>
+      <Dialog open={isDialogOpen && dialogType === 'andPolicies'} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('andPolicies')}>Add And Policy</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Adding an And policy</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {errorMessage && (
+              <div className="text-red-500 text-sm">{errorMessage}</div>
+            )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
+              <Input 
+                id="policy-name" 
+                placeholder="Policy Name"
+                value={newPolicyName}
+                onChange={(e) => setNewPolicyName(e.target.value)}
+                className="col-span-3 border border-black"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
+              <Select onValueChange={setSelectedLeftPolicy}>
+                <SelectTrigger className="col-span-3 border border-black bg-white">
+                  <SelectValue placeholder="Policy 1" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {Object.values(policies).flat().map((policy) => (
+                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                      {policy.policy_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
+              <Select onValueChange={setSelectedRightPolicy}>
+                <SelectTrigger className="col-span-3 border border-black bg-white">
+                  <SelectValue placeholder="Policy 2" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {Object.values(policies).flat().map((policy) => (
+                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                      {policy.policy_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+
+    <div className="w-full max-w-md p-4">
+      <h2 className="text-center font-bold mb-4">Or Policies</h2>
+      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
+        {policies.orPolicies.map((policy) => renderPolicy(policy, 'orPolicies'))}
+      </ScrollArea>
+      <Dialog open={isDialogOpen && dialogType === 'orPolicies'} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('orPolicies')}>Add Or Policy</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Adding an Or policy</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {errorMessage && (
+              <div className="text-red-500 text-sm">{errorMessage}</div>
+            )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
+              <Input 
+                id="policy-name" 
+                placeholder="Policy Name"
+                value={newPolicyName}
+                onChange={(e) => setNewPolicyName(e.target.value)}
+                className="col-span-3 border border-black"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
+              <Select onValueChange={setSelectedLeftPolicy}>
+                <SelectTrigger className="col-span-3 border border-black bg-white">
+                  <SelectValue placeholder="Policy 1" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {Object.values(policies).flat().map((policy) => (
+                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                      {policy.policy_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
+              <Select onValueChange={setSelectedRightPolicy}>
+                <SelectTrigger className="col-span-3 border border-black bg-white">
+                  <SelectValue placeholder="Policy 2" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {Object.values(policies).flat().map((policy) => (
+                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                      {policy.policy_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+
+    <div className="w-full max-w-md p-4">
+      <h2 className="text-center font-bold mb-4">Conditional Policies</h2>
+      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
+        {policies.conditionalPolicies.map((policy) => renderPolicy(policy, 'conditionalPolicies'))}
+      </ScrollArea>
+      <Dialog open={isDialogOpen && dialogType === 'conditionalPolicies'} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('conditionalPolicies')}>Add Conditional Policy</Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Adding a Conditional policy</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {errorMessage && (
+              <div className="text-red-500 text-sm">{errorMessage}</div>
+            )}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
+              <Input 
+                id="policy-name" 
+                placeholder="Policy Name"
+                value={newPolicyName}
+                onChange={(e) => setNewPolicyName(e.target.value)}
+                className="col-span-3 border border-black"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
+              <Select onValueChange={setSelectedLeftPolicy}>
+                <SelectTrigger className="col-span-3 border border-black bg-white">
+                  <SelectValue placeholder="Policy 1" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {Object.values(policies).flat().map((policy) => (
+                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                      {policy.policy_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
+              <Select onValueChange={setSelectedRightPolicy}>
+                <SelectTrigger className="col-span-3 border border-black bg-white">
+                  <SelectValue placeholder="Policy 2" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {Object.values(policies).flat().map((policy) => (
+                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                      {policy.policy_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+
+    <Dialog open={constraintDialogOpen} onOpenChange={setConstraintDialogOpen}>
+      <DialogContent className="sm:max-w-[425px] bg-white">
+        <DialogHeader>
+          <DialogTitle>Adding a constraint</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          {constraintError && (
+            <div className="text-red-500 text-sm">{constraintError}</div>
+          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="constraint-type" className="block mt-2">Constraint Type</Label>
+            <Select onValueChange={handleConstraintTypeChange}>
+              <SelectTrigger className="col-span-3 border border-black bg-white">
+                <SelectValue placeholder="Choose constraint type" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {constraintTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {renderConstraintFields()}
+        </div>
+        <DialogFooter>
+          <Button type="button" onClick={handleSaveConstraint}>Save constraint</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </div>
+);
+
+};
+
+export default ManagePolicy;
+
