@@ -123,6 +123,7 @@ class MarketFacade:
         store_id = self.add_store(uid1, "","","","","","store2")
 
         self.nominate_store_owner(store_id, uid1, "user2")
+        self.accept_nomination(uid2, 0, True)
 
         # add 3 categories
         self.store_facade.add_category("category1")
@@ -1341,7 +1342,8 @@ class MarketFacade:
       
     def get_my_stores(self, user_id) -> Dict[int, StoreDTO]:
         store_ids = self.roles_facade.get_my_stores(user_id)
-        stores = {store_id: self.store_facade.get_store_info(store_id) for store_id in store_ids}
+        open_stores = self.store_facade.get_open_stores(user_id, store_ids)
+        stores = {store_id: self.store_facade.get_store_info(store_id) for store_id in open_stores}
         return stores
     
     def get_all_product_tags(self) -> List[str]:
@@ -1376,4 +1378,7 @@ class MarketFacade:
         # validate all products exist
         self.store_facade.validate_cart(shopping_cart)
         self.user_facade.set_user_shopping_cart(user_id, shopping_cart)
+
+    def is_store_closed(self, store_id: int) -> bool:
+        return self.store_facade.is_store_closed(store_id)
 

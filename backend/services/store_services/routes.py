@@ -795,7 +795,6 @@ def add_store_owner():
         return jsonify({'message': str(e)}), 400
     return store_service.add_store_owner(user_id, store_id, username)
 
-
 @store_bp.route('/add_store_manager', methods=['POST'])
 @jwt_required()
 def add_store_manager():
@@ -893,6 +892,24 @@ def closing_store():
         return jsonify({'message': str(e)}), 400
 
     return store_service.closing_store(user_id, store_id)
+
+@store_bp.route('/is_store_closed', methods=['POST'])
+@jwt_required()
+def is_store_closed():
+    """
+        Use Case 2.4.9:
+        Check if a store is closed
+    """
+    logger.info('received request to check if store is closed')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('is_store_closed - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.is_store_closed(store_id)
 
 @store_bp.route('/opening_store', methods=['POST'])
 @jwt_required()

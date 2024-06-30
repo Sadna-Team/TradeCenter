@@ -566,4 +566,16 @@ class StoreService:
         except Exception as e:
             logger.error('categories were not sent')
             return jsonify({'message': str(e)}), 400
+        
+    def is_store_closed(self, store_id: int):
+        """
+            Check if the store is closed
+        """
+        try:
+            result = self.__market_facade.is_store_closed(store_id)
+            logger.info('store is closed' if result else 'store is not closed')
+            return jsonify({'message': result}), 200
+        except Exception as e:
+            logger.error('store is not closed')
+            return jsonify({'message': str(e)}), 400
       
