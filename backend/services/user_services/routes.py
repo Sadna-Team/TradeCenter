@@ -200,6 +200,25 @@ def show_cart():
     ans = user_service.show_shopping_cart(user_id)
     return ans
 
+@user_bp.route('/set_cart', methods=['POST'])
+@jwt_required()
+def set_cart():
+    """
+        Set the shopping cart of a user
+    """
+    userid = get_jwt_identity()
+    logger.info(f"user {userid} requested to set his cart")
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        cart = data['cart']
+        logger.info(f"cart: {cart}")
+    except Exception as e:
+        logger.error('set_cart - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    ans = user_service.set_shopping_cart(user_id, cart)
+    return ans
+
 
 @user_bp.route('/accept_promotion', methods=['POST'])
 @jwt_required()

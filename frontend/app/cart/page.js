@@ -6,9 +6,11 @@ import CartProduct from '@/components/CartProduct';
 import api from "@/lib/api"; // Ensure this import path is correct
 
 const Cart = () => {
+  const [idsCart, setIdsCart] = useState([]); // [store_id, product_id, quantity]
   const [cart, setCart] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [rerender, setRerender] = useState(false);
 
   useEffect(() => {
     // Fetch cart from server
@@ -29,10 +31,12 @@ const Cart = () => {
             });
           }
         }
-        setCart(fetchedCart);
+        console.log('Fetched cart:', fetchedCart);
+        await setIdsCart(fetchedCart);
+        setRerender(!rerender);
       } catch (error) {
         console.error('Failed to fetch cart:', error);
-        setCart([]); // Ensure cart is always an array
+        setIdsCart([]); // Ensure cart is always an array
       }
       setLoading(false);
     }
@@ -40,10 +44,10 @@ const Cart = () => {
   }, []);
 
   useEffect(() => {
-    if (cart.length > 0) {
+    if (idsCart.length > 0) {
       const fetchProductDetails = async () => {
         let total = 0;
-        const updatedCart = await Promise.all(cart.map(async item => {
+        const updatedCart = await Promise.all(idsCart.map(async item => {
           try {
             const response = await api.post('store/get_product_info', { store_id: item.storeId, product_id: item.productId });
             const product = response.data.message;
@@ -69,11 +73,62 @@ const Cart = () => {
       }
       fetchProductDetails();
     }
-  }, [cart.length]); // Depend only on the length of the cart
+    else {
+      setCart([]); // Ensure cart is always an array
+    }
+  }, [rerender]); // depend on rerender to update cart
 
-  const onRemove = async (productId) => {
-    console.log('Removing product:', productId);
-    // Implement removal logic here
+  const onRemove = async (store_id, product_id, quantity) => {
+    console.log('Removing all amount product with: ', product_id, " ", store_id);
+    try {
+      console.log('Removing product:', store_id, product_id, quantity);
+      const response = await api.post('/user/remove_from_basket', { store_id, product_id, quantity });
+      if (response.status !== 200) {
+        console.error('Failed to remove product:', response);
+        return;
+      }
+      console.log('Product removed:', response.data.message);
+      const tempIdsCart = [...idsCart].filter(item => item.storeId !== store_id || item.productId !== product_id);
+      setIdsCart(tempIdsCart);
+      setRerender(!rerender);
+    }
+    catch (error) {
+      console.error('Failed to remove product:', error);
+    }
+  }
+
+  const onQuantityChange = async (store_id, product_id, quantity) => {
+    console.log('Changing quantity of product with: ', product_id, " ", store_id, " to ", quantity);
+    // change quantity of product with product_id and store_id to quantity in idsCart
+    const updatedList = idsCart.map(item => {
+      if (item.storeId === store_id && item.productId === product_id) {
+        item.quantity = quantity;
+      }
+      return item;
+    });
+    setIdsCart(updatedList);
+    setRerender(!rerender);
+  }
+
+  const onSaveCart = async () => {
+    console.log('Saving cart:', idsCart);
+    const cartToSend = {};
+    idsCart.forEach(item => {
+      if (!cartToSend[item.storeId]) {
+        cartToSend[item.storeId] = {};
+      }
+      cartToSend[item.storeId][item.productId] = item.quantity;
+    });
+    try {
+      const response = await api.post('/user/set_cart', { cart: cartToSend });
+      if (response.status !== 200) {
+        console.error('Failed to save cart:', response);
+        return;
+      }
+      console.log('Cart saved:', response.data.message);
+    } catch (error) {
+      console.error('Failed to save cart:', error);
+    }
   }
 
   return (
@@ -99,7 +154,9 @@ const Cart = () => {
                     price={item.price}
                     rating={item.rating}
                     storeName={item.storeName}
-                    onRemove={() => onRemove(item.productId)} // Pass correct handler
+                    quantity={item.quantity}
+                    onRemove={() => onRemove(item.storeId, item.productId, item.quantity)}
+                    onQuantityChange={(quantity) => onQuantityChange(item.storeId, item.productId, quantity)}
                   />
                 ))}
                 <div className="cart-summary mt-4">
@@ -117,6 +174,9 @@ const Cart = () => {
                         Bid
                       </div>
                     </Link>
+                    <button onClick={onSaveCart} className="bg-gray-600 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded inline-block text-center">
+                      Save Changes
+                    </button>
                   </div>
                 )}
               </>

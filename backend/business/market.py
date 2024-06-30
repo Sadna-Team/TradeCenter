@@ -1365,3 +1365,8 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
             raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.edit_product_in_store(store_id, product_id, product_name, description, price, weight, tags, amount)
+
+    def set_user_shopping_cart(self, user_id: int, shopping_cart: Dict[int, Dict[int, int]]) -> None:
+        # validate all products exist
+        self.store_facade.validate_cart(shopping_cart)
+        self.user_facade.set_user_shopping_cart(user_id, shopping_cart)
