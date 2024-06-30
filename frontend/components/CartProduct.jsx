@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
-const CartProduct = ({ product_id, product_name, weight, description, price, storeName, onRemove }) => {
-  const [amount, setAmount] = useState(1);
+const CartProduct = ({ product_id, product_name, weight, description, price, storeName, onRemove, quantity }) => {
+  const [amount, setAmount] = useState(quantity);
 
   const decreaseAmount = () => {
     if (amount > 1) {
@@ -15,7 +15,7 @@ const CartProduct = ({ product_id, product_name, weight, description, price, sto
 
   const handleRemove = () => {
     // Call the parent handler to remove the product from the cart
-    onRemove(product_id);
+    onRemove();
   };
 
   return (

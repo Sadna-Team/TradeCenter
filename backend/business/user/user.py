@@ -278,6 +278,12 @@ class User:
         return UserDTO(self.__id, self.__member.get_email(), self.__member.get_username(),
                        self.__member.get_birthdate().year, self.__member.get_birthdate().month,
                        self.__member.get_birthdate().day, self.__member.get_phone(), role)
+    
+    def set_cart(self, cart: Dict[int, Dict[int, int]]):
+        self.__shopping_cart = ShoppingCart(self.__id)
+        for store_id, products in cart.items():
+            for product_id, quantity in products.items():
+                self.add_product_to_basket(store_id, product_id, quantity)
 
 
 class UserFacade:
@@ -456,3 +462,7 @@ class UserFacade:
         for store_id, products in cart.items():
             for product_id, quantity in products.items():
                 self.add_product_to_basket(user_id, store_id, product_id, quantity)
+
+    def set_cart(self, user_id: int, cart: Dict[int, Dict[int, int]]):
+        user = self.__get_user(user_id)
+        user.set_cart(cart)

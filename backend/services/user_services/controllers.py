@@ -86,6 +86,18 @@ class UserService:
         except Exception as e:
             logger.error('show_shopping_cart - ' + str(e))
             return jsonify({'message': str(e)}), 400
+        
+    def set_shopping_cart(self, user_id: int, shopping_cart: dict):
+        """
+            Set the shopping cart of a user
+        """
+        try:
+            self.market_facade.set_user_shopping_cart(user_id, shopping_cart)
+            logger.info('shopping cart set successfully')
+            return jsonify({'message': 'shopping cart set successfully'}), 200
+        except Exception as e:
+            logger.error('set_shopping_cart - ' + str(e))
+            return jsonify({'message': str(e)}), 400
 
     def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, quantity: int):
         """
