@@ -381,7 +381,7 @@ class StoreService:
             Remove a subcategory from a category
         """
         try:
-            self.__market_facade.remove_sub_category_from_category(user_id, category_id, parent_category_id)
+            self.__market_facade.remove_sub_category_from_category(user_id, parent_category_id, category_id)
             logger.info('subcategory was removed successfully')
             return jsonify({'message': 'subcategory was removed successfully'}), 200
         except Exception as e:
