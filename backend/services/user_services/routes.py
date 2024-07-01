@@ -249,13 +249,13 @@ def is_system_manager():
     try:
         user_id = get_jwt_identity()
     except Exception as e:
-        logger.error('is_system_manager - ', str(e))
+        logger.error(('is_system_manager - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.is_system_manager(user_id)
 
 
-@user_bp.route('/is_store_owner', methods=['GET'])
+@user_bp.route('/is_store_owner', methods=['POST', 'GET'])
 @jwt_required()
 def is_store_owner():
     logger.info('received request to check if the user is a store owner')
@@ -264,13 +264,13 @@ def is_store_owner():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('is_system_manager - ', str(e))
+        logger.error(('is_system_manager - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.is_store_owner(user_id, store_id)
 
 
-@user_bp.route('/is_store_manager', methods=['GET'])
+@user_bp.route('/is_store_manager', methods=['POST', 'GET'])
 @jwt_required()
 def is_store_manager():
     logger.info('received request to check if the user is a store manager')
@@ -279,13 +279,13 @@ def is_store_manager():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('is_system_manager - ', str(e))
+        logger.error(('is_system_manager - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.is_store_manager(user_id, store_id)
 
 
-@user_bp.route('/has_add_product_permission', methods=['GET'])
+@user_bp.route('/has_add_product_permission', methods=['POST', 'GET'])
 @jwt_required()
 def has_add_product_permission():
     logger.info('received request to check if the user has add product permission')
@@ -294,13 +294,13 @@ def has_add_product_permission():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('has_add_product_permission - ', str(e))
+        logger.error(('has_add_product_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.has_add_product_permission(user_id, store_id)
 
 
-@user_bp.route('/has_change_purchase_policy_permission', methods=['GET'])
+@user_bp.route('/has_change_purchase_policy_permission', methods=['POST', 'GET'])
 @jwt_required()
 def has_change_purchase_policy_permission():
     logger.info('received request to check if the user has change purchase policy permission')
@@ -309,13 +309,13 @@ def has_change_purchase_policy_permission():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('has_change_purchase_policy_permission - ', str(e))
+        logger.error(('has_change_purchase_policy_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.has_change_purchase_policy_permission(user_id, store_id)
 
 
-@user_bp.route('/has_change_purchase_types_permission', methods=['GET'])
+@user_bp.route('/has_change_purchase_types_permission', methods=['POST', 'GET'])
 @jwt_required()
 def has_change_purchase_types_permission():
     logger.info('received request to check if the user has change purchase types permission')
@@ -324,13 +324,13 @@ def has_change_purchase_types_permission():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('has_change_purchase_types_permission - ', str(e))
+        logger.error(('has_change_purchase_types_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.has_change_purchase_types_permission(user_id, store_id)
 
 
-@user_bp.route('/has_change_discount_policy_permission', methods=['GET'])
+@user_bp.route('/has_change_discount_policy_permission', methods=['POST', 'GET'])
 @jwt_required()
 def has_change_discount_policy_permission():
     logger.info('received request to check if the user has change discount policy permission')
@@ -339,13 +339,13 @@ def has_change_discount_policy_permission():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('has_change_discount_policy_permission - ', str(e))
+        logger.error(('has_change_discount_policy_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.has_change_discount_policy_permission(user_id, store_id)
 
 
-@user_bp.route('/has_change_discount_types_permission', methods=['GET'])
+@user_bp.route('/has_change_discount_types_permission', methods=['POST', 'GET'])
 @jwt_required()
 def has_change_discount_types_permission():
     logger.info('received request to check if the user has change discount types permission')
@@ -354,13 +354,13 @@ def has_change_discount_types_permission():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('has_change_discount_types_permission - ', str(e))
+        logger.error(('has_change_discount_types_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.has_change_discount_types_permission(user_id, store_id)
 
 
-@user_bp.route('/has_add_manager_permission', methods=['GET'])
+@user_bp.route('/has_add_manager_permission', methods=['POST', 'GET'])
 @jwt_required()
 def has_add_manager_permission():
     logger.info('received request to check if the user has add manager permission')
@@ -369,13 +369,13 @@ def has_add_manager_permission():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('has_add_manager_permission - ', str(e))
+        logger.error(('has_add_manager_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.has_add_manager_permission(user_id, store_id)
 
 
-@user_bp.route('/has_get_bid_permission', methods=['GET'])
+@user_bp.route('/has_get_bid_permission', methods=['POST', 'GET'])
 @jwt_required()
 def has_get_bid_permission():
     logger.info('received request to check if the user has get bid permission')
@@ -384,7 +384,7 @@ def has_get_bid_permission():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('has_get_bid_permission - ', str(e))
+        logger.error(('has_get_bid_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.has_get_bid_permission(user_id, store_id)

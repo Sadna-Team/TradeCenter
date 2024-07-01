@@ -157,6 +157,7 @@ class MarketFacade:
 
         self.change_permissions(uid1, store_id, uid4, True, True, False, True, False, False, True)
 
+
         # add 3 categories
         self.store_facade.add_category("category1")
         self.store_facade.add_category("category2")

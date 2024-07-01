@@ -1018,7 +1018,13 @@ class StoreFacade:
         self.__category_id_counter = 0
         self.__store_id_counter = 0
         self.__discount_id_counter = 0
-        self.__tags = set()
+        self.__tags = {
+                       'alcoholic', 'tobacco', 'food', 'utilities',
+                        'clothing', 'electronics', 'furniture', 'toys', 'books',
+                        'beauty', 'health', 'sports', 'outdoor', 'home decor',
+                        'office supplies', 'pet supplies', 'jewelry', 'footwear', 
+                        'automotive', 'gardening', 'tools', 'kitchenware', 'baby products',
+                        'musical instruments', 'stationery', 'party supplies', 'craft supplies'}
 
     # ---------------------getters and setters---------------------
     @property

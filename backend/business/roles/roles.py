@@ -294,6 +294,7 @@ class RolesFacade:
             raise RoleError("Nominee is already a member of the store",RoleErrorTypes.nominee_already_exists_in_store)
 
     def accept_nomination(self, nomination_id: int, nominee_id: int) -> None:
+
         if nomination_id not in self.__systems_nominations.keys():
             raise RoleError(f"Nomination does not exist - given id - {nomination_id}, {type(nomination_id)}",RoleErrorTypes.nomination_does_not_exist)
         nomination = self.__systems_nominations[nomination_id]
