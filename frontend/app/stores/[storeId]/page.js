@@ -285,13 +285,13 @@ const StoreDetail = () => {
         <div>
           {!isClosed && permission['add_product'] && (
             <div className="mt-8 flex justify-center">
-            <Link href={{
-                        pathname: `/stores/${store_id}/add-product`,
-                        query: { storeId: store_id },
-                      }}>
-              <div className="bg-red-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Add Product</div>
-            </Link>
-          </div>
+              <Link href={{
+                          pathname: `/stores/${store_id}/add-product`,
+                          query: { storeId: store_id },
+                        }}>
+                <div className="bg-red-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Add Product</div>
+              </Link>
+           </div>
           )}
         </div>
 
@@ -299,7 +299,7 @@ const StoreDetail = () => {
         {(storeRole === 'StoreOwner' || storeRole === 'StoreManager') && (
           <div className="mt-8 flex justify-center">
             <Link href={""} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={handleGiveupNomination}>
-              Giveup Nomination
+              Give Up Nomination
             </Link>
           </div>
         )}

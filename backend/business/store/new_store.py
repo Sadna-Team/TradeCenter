@@ -2242,3 +2242,16 @@ class StoreFacade:
             if store.is_active or store.store_founder_id == user_id:
                 open_stores.append(store_id)
         return open_stores
+    
+    def get_product_categories(self, store_id: int, product_id: int) -> Dict[int, CategoryDTO]:
+        """
+        * Parameters: storeId, productId
+        * This function gets the categories of the product
+        * Returns: a dict from category_id to category_name
+        """
+        categories = self.__categories
+        product_categories = {}
+        for category_id, category in categories.items():
+            if (store_id, product_id) in category.category_products:
+                product_categories[category_id] = category.get_category_dto()
+        return product_categories

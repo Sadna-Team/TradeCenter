@@ -1439,3 +1439,9 @@ class MarketFacade:
 
     def is_suspended(self, user_id: int) -> bool:
         return self.user_facade.suspended(user_id)
+
+    def get_product_categories(self, user_id: int, store_id: int, product_id: int) -> Dict[int, CategoryDTO]:
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
+            raise UserError("User does not have the necessary permissions to get the product categories", UserErrorTypes.user_does_not_have_necessary_permissions)
+        return self.store_facade.get_product_categories(store_id, product_id)
+

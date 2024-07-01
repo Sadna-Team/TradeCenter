@@ -381,7 +381,7 @@ class StoreService:
             Remove a subcategory from a category
         """
         try:
-            self.__market_facade.remove_sub_category_from_category(user_id, category_id, parent_category_id)
+            self.__market_facade.remove_sub_category_from_category(user_id, parent_category_id, category_id)
             logger.info('subcategory was removed successfully')
             return jsonify({'message': 'subcategory was removed successfully'}), 200
         except Exception as e:
@@ -580,3 +580,15 @@ class StoreService:
             logger.error('store is not closed')
             return jsonify({'message': str(e)}), 400
       
+    def get_product_categories(self, user_id: int, store_id: int, product_id: int):
+        """
+            Get the categories of a product
+        """
+        try:
+            categories = self.__market_facade.get_product_categories(user_id, store_id, product_id)
+            categories = {cid: c.get() for cid, c in categories.items()}
+            logger.info('product categories were sent successfully')
+            return jsonify({'message': categories}), 200
+        except Exception as e:
+            logger.error('product categories were not sent')
+            return jsonify({'message': str(e)}), 400

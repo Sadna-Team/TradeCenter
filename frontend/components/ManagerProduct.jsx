@@ -37,6 +37,14 @@ const ManagerProduct = ({ product, store_id, deleteProduct }) => {
           >
           <button className="edit-fields-btn" style={{ backgroundColor: '#3498db', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>Edit Fields</button>
         </Link>
+        <Link
+            href={{
+              pathname: `/stores/${store_id}/edit-product-categories/${product.product_id}`,
+              query: { storeId: store_id, productId: product.product_id },
+            }}
+          >
+          <button className="edit-fields-btn" style={{ backgroundColor: '#3498db', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>Edit Categories</button>
+        </Link>
         <button onClick={confirmDelete} className="delete-all-btn" style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '10px 20px', fontSize: '1rem', cursor: 'pointer' }}>Delete</button>
         {showConfirm && (
           <div className="confirm-container" style={{ marginTop: '16px', padding: '16px', backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '8px' }}>
