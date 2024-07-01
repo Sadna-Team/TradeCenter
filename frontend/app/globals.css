@@ -49,10 +49,77 @@ body {
 
 .wider-select .multi-select-container {
   width: 100%;
-  min-width: 250px; /* Adjust as needed */
+  min-width: 250px; 
 }
 
 .wider-select .dropdown-container {
   width: 100%;
-  min-width: 250px; /* Adjust as needed */
+  min-width: 300px; 
 }
+
+
+.wider-date-picker .popover-trigger {
+  width: 100%;
+  min-width: 250px;
+}
+
+.wider-date-picker .popover-content {
+  width: 100%;
+  min-width: 300px;
+}
+
+.wider-date-picker .rdp {
+  width: 100%;
+
+}
+
+.wider-date-picker .rdp-months {
+  display:inline-block;
+  flex-direction:column;
+  align-items: center;
+  width: 500%;
+
+  
+}
+
+.wider-date-picker .rdp-caption {
+  display: flex;
+  justify-content: right;
+  width: 100%;
+
+}
+
+.wider-date-picker .rdp-nav {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.wider-date-picker .rdp-nav button {
+  flex: 1;
+  text-align: center;
+  width: 100%;
+
+}
+
+.wider-date-picker .rdp-head {
+  text-align: center;
+  width: 100%;
+
+}
+
+.wider-date-picker .rdp-table {
+  width: 100%;
+
+}
+
+.wider-date-picker .rdp-tbody {
+  width: 100%;
+
+}
+
+.wider-date-picker .react-day-picker {
+  width: 100%;
+
+}
+
