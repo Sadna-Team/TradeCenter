@@ -11,6 +11,7 @@ import { SocketProvider } from './socketContext';
 export default function RootLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [stores, setStores] = useState({});
+  const [isSystemManager, setIsSystemManager] = useState(false);
   
   // fetch stores from server
   useEffect(() => {
@@ -22,7 +23,27 @@ export default function RootLayout({ children }) {
         console.error('Failed to fetch stores:', error);
       }
     }
-    if(sessionStorage['isConnected']) fetchStores();
+
+    async function isSystemManager() {
+      try {
+        const response = await api.get('/user/is_system_manager');
+        console.log('isSystemManager response:', response);
+        if(response.status !== 200) {
+          console.error('Failed to check if user is system manager:', response.data.message);
+          return;
+        }
+        const data = response.data.is_system_manager;
+        if(data) {
+          setIsSystemManager(true);
+        }
+      } catch (error) {
+        console.error('Failed to check if user is system manager:', error);
+      }
+    }
+    if(sessionStorage['isConnected']) {
+      fetchStores();
+      isSystemManager();
+    }
   }, []);
   
   const handleToggleSidebar = () => {
@@ -41,7 +62,7 @@ export default function RootLayout({ children }) {
           <title>Trade Center</title>
         </head>
         <body className="flex">
-          <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} hasStores={Object.keys(stores).length > 0}/>
+          <Sidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} hasStores={Object.keys(stores).length > 0} isSystemManager={isSystemManager}/>
           <div className="flex flex-col flex-grow">
             <header>
               <Navbar onToggleSidebar={handleToggleSidebar} />
