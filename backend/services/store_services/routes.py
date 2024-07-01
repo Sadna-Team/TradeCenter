@@ -747,6 +747,27 @@ def assign_product_to_category():
 
     return store_service.assign_product_to_category(user_id, category_id, store_id, product_id)
 
+@store_bp.route('/remove_product_from_category', methods=['POST'])
+@jwt_required()
+def remove_product_from_category():
+    """
+        Use Case 
+        Remove a product from a category
+    """
+    logger.info('received request to remove product from category')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        product_id = int(data['product_id'])
+        store_id = int(data['store_id'])
+        category_id = int(data['category_id'])
+    except Exception as e:
+        logger.error('remove_product_from_category - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.remove_product_from_category(user_id, category_id, store_id, product_id)
+
+
 
 '''@store_bp.route('/remove_product_specification_from_category', methods=['POST'])
 @jwt_required()
@@ -1095,3 +1116,22 @@ def get_all_category_names():
         return jsonify({'message': str(e)}), 400
 
     return store_service.get_all_categories()
+
+@store_bp.route('/get_product_categories', methods=['POST'])
+@jwt_required()
+def get_product_categories():
+    """
+        Get product categories
+        get store_id from request
+    """
+    logger.info('received request to get product categories')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+    except Exception as e:
+        logger.error('get_product_categories - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_product_categories(user_id, store_id, product_id)
