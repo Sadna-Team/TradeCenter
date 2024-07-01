@@ -152,9 +152,9 @@ class StoreService:
     
     def view_all_policies_of_store(self, user_id: int, store_id: int):
         try:
-            info = self.__market_facade.view_all_policies_of_store(user_id, store_id)
+            data = self.__market_facade.view_all_policies_of_store(user_id, store_id)
             logger.info('policies info was sent successfully')
-            return jsonify({'message': info}), 200
+            return jsonify({'message': data}), 200
         except Exception as e:
             logger.error('policies info was not sent')
             return jsonify({'message': str(e)}), 400
@@ -193,9 +193,9 @@ class StoreService:
             Show products of a store
         """
         try:
-            info = [p.get() for p in self.__market_facade.get_store_product_info(store_id)]
+            data = [p.get() for p in self.__market_facade.get_store_product_info(store_id)]
             logger.info('store products info was sent successfully')
-            return jsonify({'message': info}), 200
+            return jsonify({'message': data}), 200
         except Exception as e:
             logger.error('store products info was not sent')
             return jsonify({'message': str(e)}), 400
