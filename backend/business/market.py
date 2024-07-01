@@ -2,7 +2,7 @@ from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
 from .DTOs import AddressDTO, NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO, \
-    PurchaseUserDTO, UserInformationForConstraintDTO, RoleNominationDTO, NominationDTO
+    PurchaseUserDTO, UserInformationForConstraintDTO, RoleNominationDTO, NominationDTO, CategoryDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
 from .ThirdPartyHandlers import PaymentHandler, SupplyHandler
@@ -1385,7 +1385,7 @@ class MarketFacade:
     def get_all_store_names(self) -> Dict[int, str]:
         return self.store_facade.get_all_store_names()
     
-    def get_all_categories(self) -> Dict[int, str]:
+    def get_all_categories(self) -> Dict[int, CategoryDTO]:
         return self.store_facade.get_all_categories()
     
     def edit_product(self, user_id: int, store_id: int, product_id: int, product_name: str, description: str, price: float,

@@ -5,7 +5,7 @@ from .constraints import *
 from .discount import *
 from .PurchasePolicy import *
 from datetime import datetime
-from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO
+from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO, CategoryDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
 import threading
 # -------------logging configuration----------------
@@ -373,6 +373,25 @@ class Category:
         for subCategory in self.__sub_categories:
             products.update(subCategory.get_all_products_recursively())
         return list(products)
+    
+    def get_all_subcategories_recursively(self) -> List[int]:
+        """
+        * Parameters: none
+        * This function returns all the subcategories recursively
+        * Returns: all the subcategories recursively
+        """
+        subcategories = set([self.__category_id])
+        for subCategory in self.__sub_categories:
+            subcategories.update(subCategory.get_all_subcategories_recursively())
+        return list(subcategories)
+    
+    def get_category_dto(self) -> CategoryDTO:
+        """
+        * Parameters: none
+        * This function returns the category DTO
+        * Returns: the category DTO
+        """
+        return CategoryDTO(self.__category_id, self.__category_name, self.__parent_category_id, self.get_all_subcategories_recursively())
 
 '''
     def get_all_product_names(self) -> str:
@@ -2171,12 +2190,12 @@ class StoreFacade:
         """
         return {store_id: store.store_name for store_id, store in self.__stores.items()}
     
-    def get_all_categories(self) -> Dict[int, str]:
+    def get_all_categories(self) -> Dict[int, CategoryDTO]:
         """
         * This function gets all the category names in the system
         * Returns: a dict from category_id to category_name
         """
-        return {category_id: category.category_name for category_id, category in self.__categories.items()}
+        return {category_id: category.get_category_dto() for category_id, category in self.__categories.items()}
     
     def edit_product_in_store(self, store_id: int, product_id: int, product_name: str, description: str, price: float, weight: float, tags: List[str],
                               amount: Optional[int]) -> None:
