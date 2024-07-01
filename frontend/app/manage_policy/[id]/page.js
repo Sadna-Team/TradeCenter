@@ -359,23 +359,24 @@ const ManagePolicy = () => {
     removePolicy();
   };
 
-  //function responsible for toggling the expanded state of a policy
-  const handleToggle = (policyId, type) => {
-    setExpandedPolicies({
-      ...expandedPolicies,
-      [type]: expandedPolicies[type] === policyId ? null : policyId
-    });
-  };
+ //function responsible for toggling the expanded state of a policy
+const handleToggle = (policyId, type) => {
+  setExpandedPolicies(prevState => ({
+    ...prevState,
+    [type]: prevState[type] === policyId ? null : policyId
+  }));
+};
+
 
   //function responsible for toggling the expanded sub policies of a composite policy
   const handleToggleLeftPolicy = (policyId) => {
     setExpandedLeftPolicy(expandedLeftPolicy === policyId ? null : policyId);
   };
-
+  
   const handleToggleRightPolicy = (policyId) => {
     setExpandedRightPolicy(expandedRightPolicy === policyId ? null : policyId);
   };
-
+  
   //function responsible for toggling the expanded constraint of a policy
   const handleToggleConstraint = (policyId) => {
     setExpandedConstraint(expandedConstraint === policyId ? null : policyId);
@@ -1011,17 +1012,21 @@ const renderPolicy = (policy, type) => (
         {['andPolicies', 'orPolicies', 'conditionalPolicies'].includes(type) && (
           <>
             <div className="flex justify-between">
-              <button onClick={() => handleToggleLeftPolicy(policy.policy_id)} className="mt-2">Show Left Policy</button>
-              <button onClick={() => handleToggleRightPolicy(policy.policy_id)} className="mt-2">Show Right Policy</button>
+              <button onClick={() => handleToggleLeftPolicy(policy.policy_id)} className="mt-2">
+                {expandedLeftPolicy === policy.policy_id ? 'Hide Left Policy' : 'Show Left Policy'}
+              </button>
+              <button onClick={() => handleToggleRightPolicy(policy.policy_id)} className="mt-2">
+                {expandedRightPolicy === policy.policy_id ? 'Hide Right Policy' : 'Show Right Policy'}
+              </button>
             </div>
             {expandedLeftPolicy === policy.policy_id && (
-              <div className="mt-2">
-                {renderNestedPolicy(policy.left_policy_id)}
+              <div className="mt-2 ml-4">
+                {renderNestedPolicy(policy.policy_left)}
               </div>
             )}
             {expandedRightPolicy === policy.policy_id && (
-              <div className="mt-2">
-                {renderNestedPolicy(policy.right_policy_id)}
+              <div className="mt-2 ml-4">
+                {renderNestedPolicy(policy.policy_right)}
               </div>
             )}
           </>
@@ -1062,42 +1067,54 @@ const renderPolicy = (policy, type) => (
   </div>
 );
 
-
-
-
-
-const renderNestedPolicy = (policyId) => {
-  
-  console.log('renderNestedPolicy called with policyId:', policyId); // Add log
-  const policyType = Object.keys(policies).find(type => 
-    policies[type].some(p => p.policy_id === policyId)
-  );
-
-  console.log('policyType found:', policyType); // Add log
-
-  if (!policyType) {
-    return <p>Policy not found</p>;
-  }
-
-  const nestedPolicy = policies[policyType].find(p => p.policy_id === policyId);
-
-  console.log('nestedPolicy found:', nestedPolicy); // Add log
-
-  if (!nestedPolicy) {
-    return <p>Policy not found</p>;
-  }
+const renderNestedPolicy = (policy) => {
+  if (!policy) return null;
 
   return (
     <div className="ml-4">
-      <p><strong>Policy ID:</strong> {nestedPolicy.policy_id}</p>
-      <p><strong>Store ID:</strong> {nestedPolicy.store_id}</p>
-      <p><strong>Policy Name:</strong> {nestedPolicy.policy_name}</p>
-      {policyType === 'productSpecific' && <p><strong>Product ID:</strong> {nestedPolicy.product_id}</p>}
-      {policyType === 'categorySpecific' && <p><strong>Category ID:</strong> {nestedPolicy.category_id}</p>}
-      {policyType === 'basketSpecific' && <p><strong>Constraints:</strong> {JSON.stringify(nestedPolicy.constraints)}</p>}
+      <p><strong>Policy ID:</strong> {policy.policy_id}</p>
+      <p><strong>Store ID:</strong> {policy.store_id}</p>
+      <p><strong>Policy Name:</strong> {policy.policy_name}</p>
+      {policy.policy_type === 'ProductSpecificPolicy' && <p><strong>Product ID:</strong> {policy.product_id}</p>}
+      {policy.policy_type === 'CategorySpecificPolicy' && <p><strong>Category ID:</strong> {policy.category_id}</p>}
+      {['AndPolicy', 'OrPolicy', 'ConditionalPolicy'].includes(policy.policy_type) && (
+        <>
+          <div className="flex justify-between">
+            <button onClick={() => handleToggleLeftPolicy(policy.policy_id)} className="mt-2">
+              {expandedLeftPolicy === policy.policy_id ? 'Hide Left Policy' : 'Show Left Policy'}
+            </button>
+            <button onClick={() => handleToggleRightPolicy(policy.policy_id)} className="mt-2">
+              {expandedRightPolicy === policy.policy_id ? 'Hide Right Policy' : 'Show Right Policy'}
+            </button>
+          </div>
+          {expandedLeftPolicy === policy.policy_id && (
+            <div className="mt-2 ml-4">
+              {renderNestedPolicy(policy.left_policy)}
+            </div>
+          )}
+          {expandedRightPolicy === policy.policy_id && (
+            <div className="mt-2 ml-4">
+              {renderNestedPolicy(policy.right_policy)}
+            </div>
+          )}
+        </>
+      )}
+      {['ProductSpecificPolicy', 'CategorySpecificPolicy', 'BasketSpecificPolicy'].includes(policy.policy_type) && policy.predicate && (
+        <>
+          <button onClick={() => handleToggleConstraint(policy.policy_id)} className="text-gray-500 mt-2">
+            {expandedConstraint === policy.policy_id ? 'Hide Constraint' : 'Show Constraint'}
+          </button>
+          {expandedConstraint === policy.policy_id && (
+            <div className="mt-2">
+              <p>{policy.predicate}</p>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
+
 
 
 return (

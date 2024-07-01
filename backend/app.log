@@ -191,11 +191,11 @@ myapp - INFO - [ImmediateSubPurchases] successfully created immediate sub purcha
 myapp - INFO - [ImmediatePurchase] successfully created immediate purchase object with purchase id: 0
 New Store Logger - INFO - Successfully removed product amount with id: {product_id}
 third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
-third_party_handlers logger - INFO - Estimated delivery time: 2024-07-01 21:57:00.439744 - for package {'stores': dict_keys([0]), 'supply method': 'bogo'} to address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+third_party_handlers logger - INFO - Estimated delivery time: 2024-07-01 22:11:41.059153 - for package {'stores': dict_keys([0]), 'supply method': 'bogo'} to address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
 myapp - INFO - [PurchaseFacade] attempting to accept purchase with purchase id: 0
 third_party_handlers logger - INFO - Processing payment of 40.0 with details {'payment method': 'bogo'}
 third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
-third_party_handlers logger - INFO - Processed supply for package {'shopping cart': {0: {0: 1}}, 'address': {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}, 'arrival time': datetime.datetime(2024, 7, 1, 21, 57, 0, 439744), 'purchase id': 0, 'supply method': 'bogo'} to user 2
+third_party_handlers logger - INFO - Processed supply for package {'shopping cart': {0: {0: 1}}, 'address': {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}, 'arrival time': datetime.datetime(2024, 7, 1, 22, 11, 41, 59153), 'purchase id': 0, 'supply method': 'bogo'} to user 2
 Market logger - INFO - User 2 has checked out
 werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on http://127.0.0.1:5000
@@ -203,205 +203,200 @@ werkzeug - INFO - [33mPress CTRL+C to quit[0m
 myapp - INFO - [PurchaseFacade] attempting to complete purchase with purchase id: 0
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 5
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:05] "GET /auth/ HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:05] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:00] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:01] "OPTIONS /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - received request to get stores
 myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:05] "POST /store/get_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:11] "OPTIONS /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:01] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:23] "OPTIONS /auth/login HTTP/1.1" 200 -
 myapp - INFO - received request to login a user
 myapp - INFO - User logged in successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:12] "POST /auth/login HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:12] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lg83b HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:12] "GET /socket.io/?EIO=4&transport=polling&t=P1lg83b HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:12] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lg88n&sid=oOOZdxdUvrqRWgNAAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:13] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lg88q&sid=oOOZdxdUvrqRWgNAAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:23] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:23] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1ljcZp HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:24] "GET /socket.io/?EIO=4&transport=polling&t=P1ljcZp HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:24] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1ljces&sid=zB5RnMiK2rI3oi7xAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:24] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1ljcet&sid=zB5RnMiK2rI3oi7xAAAA HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
 myapp - INFO - Client 1 connected
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:13] "POST /socket.io/?EIO=4&transport=polling&t=P1lg88n&sid=oOOZdxdUvrqRWgNAAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:13] "GET /socket.io/?EIO=4&transport=polling&t=P1lg88q&sid=oOOZdxdUvrqRWgNAAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:24] "POST /socket.io/?EIO=4&transport=polling&t=P1ljces&sid=zB5RnMiK2rI3oi7xAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:24] "GET /socket.io/?EIO=4&transport=polling&t=P1ljcet&sid=zB5RnMiK2rI3oi7xAAAA HTTP/1.1" 200 -
 myapp - INFO - Connect data: 1
 myapp - INFO - Client 1 connected
 myapp - INFO - Client joining room 1
 myapp - INFO - Client None disconnected
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:13] "GET /socket.io/?EIO=4&transport=websocket&sid=oOOZdxdUvrqRWgNAAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lg8VC HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "OPTIONS /store/get_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
-myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "GET /store/my_stores HTTP/1.1" 200 -
-myapp - INFO - received request to check if the user is a system manager
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "GET /user/is_system_manager HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "GET /socket.io/?EIO=4&transport=polling&t=P1lg8VC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:24] "GET /socket.io/?EIO=4&transport=websocket&sid=zB5RnMiK2rI3oi7xAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1ljcup HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "OPTIONS /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - received request to get stores
-myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "POST /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:14] "GET /store/my_stores HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user is a system manager
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:15] "GET /user/is_system_manager HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:15] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lg8fq&sid=PewW8iKmlivFnEXGAAAC HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:15] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lg8fs&sid=PewW8iKmlivFnEXGAAAC HTTP/1.1" 200 -
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "GET /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "GET /socket.io/?EIO=4&transport=polling&t=P1ljcup HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:25] "POST /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:26] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user is a system manager
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:26] "GET /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:26] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1ljd3G&sid=g-F6LP2UR9GtAucNAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:26] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1ljd3I&sid=g-F6LP2UR9GtAucNAAAC HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
 myapp - INFO - Client 1 connected
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:15] "POST /socket.io/?EIO=4&transport=polling&t=P1lg8fq&sid=PewW8iKmlivFnEXGAAAC HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:15] "GET /socket.io/?EIO=4&transport=polling&t=P1lg8fs&sid=PewW8iKmlivFnEXGAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:26] "GET /socket.io/?EIO=4&transport=polling&t=P1ljd3I&sid=g-F6LP2UR9GtAucNAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:26] "POST /socket.io/?EIO=4&transport=polling&t=P1ljd3G&sid=g-F6LP2UR9GtAucNAAAC HTTP/1.1" 200 -
 myapp - INFO - Connect data: 1
 myapp - INFO - Client 1 connected
 myapp - INFO - Client joining room 1
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:21] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:22] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:46] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:46] "OPTIONS /store/my_stores HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:22] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:46] "GET /store/my_stores HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:22] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:46] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
-myapp - INFO - store info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:28] "POST /store/store_info HTTP/1.1" 200 -
-myapp - INFO - recieved request to get the role of a store
-myapp - INFO - get_store_roles was successful
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /market/get_store_role HTTP/1.1" 200 -
-myapp - INFO - received request to check if store is closed
-myapp - INFO - store is not closed
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /store/is_store_closed HTTP/1.1" 200 -
-myapp - INFO - received request to check if the user has add product permission
-myapp - INFO - received request to send store info
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /user/has_add_product_permission HTTP/1.1" 200 -
 myapp - INFO - recieved request to get the role of a store
 myapp - INFO - store info was sent successfully
 myapp - INFO - get_store_roles was successful
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "POST /market/get_store_role HTTP/1.1" 200 -
 myapp - INFO - received request to check if store is closed
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /store/store_info HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /market/get_store_role HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
 myapp - INFO - store is not closed
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /store/is_store_closed HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has add product permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:48] "POST /store/is_store_closed HTTP/1.1" 200 -
 myapp - INFO - recieved request to get the role of a store
-myapp - INFO - received request to check if the user has add product permission
-myapp - INFO - get_store_roles was successful
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /store/store_info HTTP/1.1" 200 -
 myapp - INFO - received request to check if store is closed
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /user/has_add_product_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /market/get_store_role HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "OPTIONS /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+myapp - INFO - get_store_roles was successful
+myapp - INFO - received request to check if the user has add product permission
 myapp - INFO - store is not closed
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /store/is_store_closed HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "OPTIONS /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /store/is_store_closed HTTP/1.1" 200 -
+myapp - INFO - received request to check if store is closed
+myapp - INFO - store is not closed
+myapp - INFO - received request to check if the user has add product permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - recieved request to get the role of a store
+myapp - INFO - get_store_roles was successful
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "OPTIONS /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "OPTIONS /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change purchase policy permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change purchase policy permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change purchase policy permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:29] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:49] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change purchase types permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change purchase types permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change purchase types permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change discount policy permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change discount policy permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change discount policy permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:30] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:50] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change discount types permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change discount types permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has change discount types permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has add manager permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has add manager permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has add manager permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:31] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:32] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:32] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has get bid permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:32] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:51] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has get bid permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:32] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:52] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user has get bid permission
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:32] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "OPTIONS /store/store_ids_to_names HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "OPTIONS /store/category_ids_to_names HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "OPTIONS /store/store_ids_to_names HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "OPTIONS /store/category_ids_to_names HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:12:52] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "OPTIONS /store/store_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "OPTIONS /store/category_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "OPTIONS /store/store_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "OPTIONS /store/category_ids_to_names HTTP/1.1" 200 -
 myapp - INFO - received request to view all policies of store
 myapp - INFO - policies info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
-myapp - INFO - received request to get all store names
-myapp - INFO - received request to get all category names
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
 myapp - INFO - received request to view all policies of store
-myapp - INFO - store ids to names were sent successfully
-myapp - INFO - categories were sent successfully
 myapp - INFO - policies info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "GET /store/store_ids_to_names HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "GET /store/category_ids_to_names HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:37] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
-myapp - INFO - received request to get all store names
-myapp - INFO - store ids to names were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:38] "GET /store/store_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
 myapp - INFO - received request to get all category names
 myapp - INFO - categories were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:38] "GET /store/category_ids_to_names HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:38] "OPTIONS /store/store_products HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:38] "OPTIONS /store/store_products HTTP/1.1" 200 -
+myapp - INFO - received request to get all store names
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "GET /store/category_ids_to_names HTTP/1.1" 200 -
+myapp - INFO - store ids to names were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:01] "GET /store/store_ids_to_names HTTP/1.1" 200 -
+myapp - INFO - received request to get all category names
+myapp - INFO - categories were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:02] "GET /store/category_ids_to_names HTTP/1.1" 200 -
+myapp - INFO - received request to get all store names
+myapp - INFO - store ids to names were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:02] "GET /store/store_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:02] "OPTIONS /store/store_products HTTP/1.1" 200 -
 myapp - INFO - received request to send store products
 myapp - INFO - store products info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:38] "POST /store/store_products HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:02] "POST /store/store_products HTTP/1.1" 200 -
 myapp - INFO - received request to send store products
 myapp - INFO - store products info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:38] "POST /store/store_products HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:02] "POST /store/store_products HTTP/1.1" 200 -
 myapp - INFO - received request to send store products
 myapp - INFO - store products info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:38] "POST /store/store_products HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:02] "POST /store/store_products HTTP/1.1" 200 -
 myapp - INFO - received request to send store products
 myapp - INFO - store products info was sent successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:57:39] "POST /store/store_products HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:59:28] "OPTIONS /auth/logout HTTP/1.1" 200 -
-myapp - INFO - recieved request to logout a user
-myapp - INFO - guest entered the app successfully - user_id: 6
-myapp - INFO - User logged out successfully
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:59:28] "POST /auth/logout HTTP/1.1" 200 -
-myapp - INFO - Client None disconnected
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:59:30] "GET /socket.io/?EIO=4&transport=websocket&sid=PewW8iKmlivFnEXGAAAC HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:59:30] "[31m[1mPOST /auth/logout HTTP/1.1[0m" 401 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:59:31] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:59:31] "[31m[1mGET /user/is_system_manager HTTP/1.1[0m" 401 -
-myapp - INFO - recieved request from a guest to enter the app
-myapp - INFO - guest entered the app successfully - user_id: 7
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:59:31] "GET /auth/ HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:59:31] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
-werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:59:31] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:13:02] "POST /store/store_products HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:17:56] "OPTIONS /store/create_composite_purchase_policy HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:17:56] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+myapp - INFO - received request to create composite purchase policy
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 7 created successfully!
+myapp - INFO - [OrPurchasePolicy] Or Purchase Policy with id: 7 created successfully!
+New Store Logger - INFO - [Store] successfully created composite purchase policy in store with id: {self.__store_id}
+Market logger - INFO - User 1 has created a composite policy in store 0
+myapp - INFO - composite purchase policy was created successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:17:56] "POST /store/create_composite_purchase_policy HTTP/1.1" 200 -
+myapp - INFO - received request to view all policies of store
+myapp - INFO - policies info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 22:17:56] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
