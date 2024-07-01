@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link'; // Import the Link component
 import Button from '@/components/Button';
@@ -197,6 +198,24 @@ export default function SystemManagerPage() {
             <div className='add-category'>
                 <button onClick={handleAddCategory}>Add Category</button>
             </div>
+            <div className='flex justify-center mt-4'>
+                <div className='flex-col'>
+                    <Link href="system-manager/manage-users">
+                        <div className='flex items-center'>
+                            <Button className="text-lg font-bold text-blue-600">Members Management Page</Button>
+                        </div>
+                    </Link>
+                </div>
+            </div>
+            <div className='flex justify-center mt-2'>
+                <div className='flex-col'>
+                    <Link href="/system-manager/store-management">
+                        <div className='flex items-center'>
+                            <Button className="text-lg font-bold text-blue-600">Store Management Page</Button>
+                        </div>
+                    </Link>
+                </div>
+            </div>
             <style jsx>{`
                 .container {
                     padding: 20px;
@@ -271,26 +290,12 @@ export default function SystemManagerPage() {
                     border-radius: 5px;
                     cursor: pointer;
                     font-size: 16px;
+                    margin-bottom: 10px; /* Added margin bottom */
                 }
                 .add-category button:hover {
                     background-color: #45a049;
                 }
             `}</style>
-            <div className='flex justify-center mt-4'>
-                <div className='flex-col'>
-                    <Link href="system-manager/manage-users">
-                        <div className='flex items-center'>
-                            <Button className="text-lg font-bold text-blue-600">members management page</Button>
-                        </div>
-                    </Link>
-                </div>
-                    <Link href="/system-manager/store-management">
-                        <div className='flex items-center'>
-                            <Button className="text-lg font-bold text-blue-600">store management page</Button>
-                        </div>
-                    </Link>
-                </div>
-            </div>
         </div>
     );
 }
