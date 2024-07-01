@@ -704,7 +704,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id) or self.roles_facade.is_owner(store_id, user_id):
+        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
             toreturn = self.store_facade.add_purchase_policy_to_store(store_id, policy_name,category_id, product_id)
             logger.info(f"User {user_id} has added a policy to store {store_id}")
             return toreturn
@@ -720,7 +720,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id) or self.roles_facade.is_owner(store_id, user_id):
+        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
             self.store_facade.remove_purchase_policy_from_store(store_id, policy_id)
             logger.info(f"User {user_id} has removed a policy from store {store_id}")
         else:
@@ -735,7 +735,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id) or self.roles_facade.is_owner(store_id, user_id):
+        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
             toreturn = self.store_facade.create_composite_purchase_policy_to_store(store_id, policy_name, left_policy_id, right_policy_id, type_of_composite)
             logger.info(f"User {user_id} has created a composite policy in store {store_id}")
             return toreturn
@@ -746,7 +746,7 @@ class MarketFacade:
     def assign_predicate_to_purchase_policy(self, user_id: int, store_id: int, policy_id: int, predicate_properties: Tuple) -> None:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if self.roles_facade.has_change_purchase_policy_permission(policy_id, user_id) or self.roles_facade.is_owner(store_id, user_id):
+        if self.roles_facade.has_change_purchase_policy_permission(policy_id, user_id):
             self.store_facade.assign_predicate_to_purchase_policy(store_id, policy_id, predicate_properties)
         else:
             raise UserError("User does not have the necessary permissions to assign a predicate to a policy in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
@@ -761,7 +761,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         return self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags, amount)
 
@@ -773,7 +773,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to remove a product from the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.remove_product_from_store(store_id, product_id)
 
@@ -785,7 +785,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to add an amount of a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.add_product_amount(store_id, product_id, amount)
 
@@ -797,7 +797,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to remove an amount of a product from the "
                              "store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.remove_product_amount(store_id, product_id, amount)
@@ -851,7 +851,7 @@ class MarketFacade:
         * This function returns the employees of a store
         * Returns a dict of employees (user_id: role)
         """
-        if not self.roles_facade.is_manager(store_id, user_id) and not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.is_manager(store_id, user_id) and not self.roles_facade.has_add_manager_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to get the employees of the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         return self.roles_facade.get_employees_info(store_id, user_id)
 
@@ -864,7 +864,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to add a tag to a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.add_tag_to_product(store_id, product_id, tag)
 
@@ -876,7 +876,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to remove a tag to a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.remove_tag_from_product(store_id, product_id, tag)
 
@@ -889,7 +889,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError(
                 "User does not have the necessary permissions to change the price of a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.change_price_of_product(store_id, product_id, new_price)
@@ -902,7 +902,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to change the price of a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.change_description_of_product(store_id, product_id, description)
 
@@ -912,7 +912,7 @@ class MarketFacade:
         * This function changes the weight of a product
         * Returns None
         """
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to change the price of a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.change_weight_of_product(store_id, product_id, weight)
 
@@ -1402,7 +1402,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id) or not self.roles_facade.is_owner(store_id, user_id):
+        if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.edit_product_in_store(store_id, product_id, product_name, description, price, weight, tags, amount)
 
