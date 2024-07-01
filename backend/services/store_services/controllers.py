@@ -166,6 +166,19 @@ class StoreService:
         except Exception as e:
             logger.error('store info was not sent')
             return jsonify({'message': str(e)}), 400
+        
+    def get_all_stores(self, user_id: int):
+        """
+            Get all the stores in the system
+        """
+        try:
+            stores = self.__market_facade.get_all_stores(user_id)
+            stores = {sid: s.get() for sid, s in stores.items()}
+            logger.info('all stores were sent successfully')
+            return jsonify({'message': stores}), 200
+        except Exception as e:
+            logger.error('all stores were not sent')
+            return jsonify({'message': str(e)}), 400
 
     def get_stores(self, page: int, limit: int):
         """

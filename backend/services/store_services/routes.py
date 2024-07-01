@@ -363,6 +363,22 @@ def get_stores():
 
     return store_service.get_stores(page, limit)
 
+@store_bp.route('/get_all_stores', methods=['GET'])
+@jwt_required()
+def get_all_stores():
+    """
+        Get stores
+        get page and limit from request
+    """
+    logger.info('received request to get stores')
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('show_store_products - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_stores(user_id)
+
 @store_bp.route('/store_products', methods=['GET'])
 @jwt_required()
 def show_store_products():
