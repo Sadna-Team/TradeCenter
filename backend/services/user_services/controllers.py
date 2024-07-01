@@ -81,10 +81,24 @@ class UserService:
         """
         try:
             shopping_cart = self.user_facade.get_shopping_cart(user_id)
-            logger.info('shopping cart retrieved successfully')
+            logger.info(f"shopping cart: {shopping_cart}")
             return jsonify({'shopping_cart': shopping_cart}), 200
         except Exception as e:
             logger.error('show_shopping_cart - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+        
+    def set_shopping_cart(self, user_id: int, shopping_cart: dict):
+        """
+            Set the shopping cart of a user
+        """
+        try:
+            # parse the shopping cart to Dict[int, Dict[int, int]]
+            shopping_cart = {int(store_id): {int(product_id): int(quantity) for product_id, quantity in products.items()} for store_id, products in shopping_cart.items()}
+            self.market_facade.set_user_shopping_cart(user_id, shopping_cart)
+            logger.info('shopping cart set successfully')
+            return jsonify({'message': 'shopping cart set successfully'}), 200
+        except Exception as e:
+            logger.error('set_shopping_cart - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
     def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, quantity: int):
@@ -350,26 +364,27 @@ class UserService:
             logger.error('add_system_manager - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def suspend_user(self, user_id: int, username: str, date: dict[str, int]):
+    def suspend_user(self, user_id: int, username: str, date: dict[str, str], time: dict[str, str]):
         """
             Suspend a user
 
             Args:
                 user_id (int): id of the user
                 username (str): username of the user to be suspended
-                date (dict): date to end the suspension(if empty the suspension is indefinite)
+                date (dict): {year: str, month: str, day: str}
+                time (dict): {hour: str, minute: str}
 
             Returns:
                 response (str): response of the operation
         """
         try:
-            if date:
-                self.market_facade.suspend_user_temporarily(user_id, username, date)
+            if not (date == None or time == None):
+                self.market_facade.suspend_user_temporarily(user_id, username, date, time)
             else:
                 self.market_facade.suspend_user_permanently(user_id, username)
             return jsonify({'message': 'user suspended successfully'}), 200
         except Exception as e:
-            logger.error('suspend_user - ' + str(e))
+            logger.error(('suspend_user - ' + str(e)))
             return jsonify({'message': str(e)}), 400
     
     def unsuspend_user(self, user_id: int, username: str):
@@ -424,6 +439,65 @@ class UserService:
             logger.error('get_user_nominations - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
+    def get_user_employees(self, user_id: int, store_id: int):
+        """
+            Get user employees
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            employees = self.market_facade.get_user_employees(user_id, store_id)
+            employees = [employee.get() for employee in employees]
+            return jsonify({'employees': employees}), 200
+        except Exception as e:
+            logger.error('get_user_employees - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def get_unemployed_users(self, store_id):
+        """
+            Get unemployed users
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            unemployed_users = self.market_facade.get_unemployed_users(store_id)
+            unemployed_users = [user.get() for user in unemployed_users]
+            return jsonify({'unemployed_users': unemployed_users}), 200
+        except Exception as e:
+            logger.error('get_unemployed_users - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+    def get_all_members(self, user_id: int):
+        """
+            Get all users
+
+            Args:
+                user_id (int): id of the user
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            users = self.market_facade.get_all_members(user_id)
+            users = [user.get() for user in users]
+            for user in users:
+                user['is_suspended'] = self.market_facade.is_suspended(user['user_id'])
+                user['is_system_manager'] = self.roles_facade.is_system_manager(user['user_id'])
+            return jsonify({'users': users}), 200
+        except Exception as e:
+            logger.error('get_all_users - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
 class AuthenticationService:
     # singleton
     instance = None
@@ -436,6 +510,7 @@ class AuthenticationService:
 
     def __init__(self):
         self.authentication = Authentication()
+        self.roles_facade = RolesFacade()
 
     def start_guest(self):
         """
@@ -474,7 +549,7 @@ class AuthenticationService:
             logger.error('register - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def login(self, username: str, password: str):
+    def login(self,username: str, password: str):
         """
             Use Case 2.1.4:
             Login a user
@@ -488,9 +563,10 @@ class AuthenticationService:
                 notification (list[str]): list of delayed notifications
         """
         try:
-            user_token, notification = self.authentication.login_user(username, password)
+            user_token, notification, user_id = self.authentication.login_user(username, password)
             logger.info('User logged in successfully')
-            return jsonify({'token': user_token, 'notification': notification}), 200
+            user_admin = self.roles_facade.is_system_manager(user_id)
+            return jsonify({'token': user_token, 'notification': notification, 'admin': user_admin}), 200
 
         except UserError as e:
             logger.error(f"login - {str(e.user_error_type)} , {str(e.message)}")

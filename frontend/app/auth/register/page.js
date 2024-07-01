@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
+import Popup from '@/components/Popup';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -13,6 +14,7 @@ export default function Register() {
   const [phone, setPhone] = useState('');
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
+  const [popup, setPopup] = useState(null);
 
   useEffect(() => {
     // Check if all fields are filled
@@ -58,19 +60,21 @@ export default function Register() {
       year,
       phone,
     };
-    const token = localStorage.getItem('token');
+    // const token = sessionStorage.getItem('token');
 
     try {
       const response = await api.post('/auth/register', { register_credentials });
       if (response.status === 201) {
         alert('Registration successful');
+        const token = (await api.get('/auth/')).data.token;
+        sessionStorage.setItem('token', token);
         window.location.href = '/auth/login';
       } else {
-        alert('Registration failed');
+        setPopup(response.data.message);
       }
     } catch (error) {
       console.error('Error during registration:', error.response ? error.response.data : error.message);
-      alert('Registration failed');
+      setPopup(error.response?.data?.message || error.message);
     }
   };
 
@@ -188,6 +192,7 @@ export default function Register() {
             Register
           </button>
         </form>
+        {popup && <Popup initialMessage={popup} is_closable={true} onClose={() => setPopup(null)} />}
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
 # ---------- Imports ------------#
-from typing import List, Dict, Tuple, Optional, Callable
+from typing import List, Dict, Tuple, Optional, Callable, Set
 
 from .constraints import *
 from .discount import *
 from .PurchasePolicy import *
 from datetime import datetime
-from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO
+from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO, CategoryDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
 import threading
 # -------------logging configuration----------------
@@ -77,6 +77,18 @@ class Product:
     def release_lock(self):
         self.__product_lock.release()
 
+    def change_name(self, new_name: str) -> None:
+        """
+        * Parameters: newName
+        * This function changes the name of the product
+        * Returns: none
+        """
+        if new_name is None:
+            raise StoreError('New name is not a valid string', StoreErrorTypes.invalid_name)
+        with self.__product_lock:
+            self.__product_name = new_name
+        logger.info('[Product] successfully changed name of product with id: ' + str(self.__product_id))
+
     def change_price(self, new_price: float) -> None:
         """
         * Parameters: newPrice
@@ -101,6 +113,28 @@ class Product:
             self.__description = new_description
         logger.info(
             '[Product] successfully changed description of product with id: ' + str(self.__product_id))
+        
+    def change_tags(self, new_tags: List[str]) -> None:
+        """
+        * Parameters: newTags
+        * This function changes the tags of the product
+        * Returns: none
+        """
+        with self.__product_lock:
+            self.__tags = new_tags
+        logger.info('[Product] successfully changed tags of product with id: ' + str(self.__product_id))
+
+    def change_amount(self, new_amount: int) -> None:
+        """
+        * Parameters: newAmount
+        * This function changes the amount of the product
+        * Returns: none
+        """
+        if new_amount < 0:
+            raise StoreError('New amount is a negative value', StoreErrorTypes.invalid_amount)
+        with self.__product_lock:
+            self.__amount = new_amount
+        logger.info('[Product] successfully changed amount of product with id: ' + str(self.__product_id))
 
 
     def add_tag(self, tag: str) -> None:
@@ -150,6 +184,7 @@ class Product:
         * This function changes the weight of the product
         * Returns: none
         """
+        logger.info('[Product] weight is being changed to: ' + str(new_weight))
         if new_weight < 0:
             raise StoreError('New weight is a negative value', StoreErrorTypes.invalid_weight)
         with self.__product_lock:
@@ -338,6 +373,25 @@ class Category:
         for subCategory in self.__sub_categories:
             products.update(subCategory.get_all_products_recursively())
         return list(products)
+    
+    def get_all_subcategories_recursively(self) -> List[int]:
+        """
+        * Parameters: none
+        * This function returns all the subcategories recursively
+        * Returns: all the subcategories recursively
+        """
+        subcategories = set([self.__category_id])
+        for subCategory in self.__sub_categories:
+            subcategories.update(subCategory.get_all_subcategories_recursively())
+        return list(subcategories)
+    
+    def get_category_dto(self) -> CategoryDTO:
+        """
+        * Parameters: none
+        * This function returns the category DTO
+        * Returns: the category DTO
+        """
+        return CategoryDTO(self.__category_id, self.__category_name, self.__parent_category_id, self.get_all_subcategories_recursively())
 
 '''
     def get_all_product_names(self) -> str:
@@ -476,9 +530,9 @@ class Category:
 
 class Store:
     # id of store is storeId. It is unique for each store
-    def __init__(self, store_id: int, location_id: int, store_name: str, store_founder_id: int):
+    def __init__(self, store_id: int, address: AddressDTO, store_name: str, store_founder_id: int):
         self.__store_id = store_id
-        self.__location_id = location_id
+        self.__address = address
         self.__store_name = store_name
         self.__store_founder_id = store_founder_id
         self.__is_active = True
@@ -497,8 +551,8 @@ class Store:
         return self.__store_id
 
     @property
-    def location_id(self) -> int:
-        return self.__location_id
+    def address(self) -> AddressDTO:
+        return self.__address
 
     @property
     def store_name(self) -> str:
@@ -787,7 +841,7 @@ class Store:
         * This function creates a store DTO from the store
         * Returns: the store DTO
         """
-        store_dto = StoreDTO(self.__store_id, self.__location_id, self.__store_name, self.__store_founder_id,
+        store_dto = StoreDTO(self.__store_id, self.__address, self.__store_name, self.__store_founder_id,
                              self.__is_active, self.__founded_date)
         product_dtos = [product.create_product_dto() for product in self.__store_products.values()]
         store_dto.products = product_dtos
@@ -927,6 +981,25 @@ class Store:
         """
         product = self.get_product_by_id(product_id)
         product.change_weight(new_weight)
+
+    
+    def edit_product(self, product_id: int, name: str, description: str, price: float, tags: List[str], weight: float, amount: Optional[int]=None) -> None:
+        """
+        * Parameters: productId, name, description, price, tags, weight
+        * This function edits a product in the store
+        * Returns: none
+        """
+        if product_id not in self.__store_products:
+            raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
+        product = self.__store_products[product_id]
+        product.change_name(name)
+        product.change_description(description)
+        product.change_price(price)
+        product.change_weight(weight)
+        product.change_tags(tags)
+        if amount is not None:
+            product.change_amount(amount)
+        logger.info('[Store] successfully edited product in store with id: ' + str(self.__store_id))
 # ---------------------end of classes---------------------#
 
 # ---------------------storeFacade class---------------------#
@@ -950,6 +1023,8 @@ class StoreFacade:
             self.__store_id_counter = 0  # Counter for store IDs
             self.__store_id_lock = threading.Lock() # lock for store id
             self.__discount_id_counter = 0  # Counter for discount IDs
+            self.__discount_id_lock = threading.Lock() # lock for discount id
+            self.__tags: Set[str] = set() # all existing product tags for fast access
             logger.info('successfully created storeFacade')
 
     def clean_data(self):
@@ -962,6 +1037,13 @@ class StoreFacade:
         self.__category_id_counter = 0
         self.__store_id_counter = 0
         self.__discount_id_counter = 0
+        self.__tags = {
+                       'alcoholic', 'tobacco', 'food', 'utilities',
+                        'clothing', 'electronics', 'furniture', 'toys', 'books',
+                        'beauty', 'health', 'sports', 'outdoor', 'home decor',
+                        'office supplies', 'pet supplies', 'jewelry', 'footwear', 
+                        'automotive', 'gardening', 'tools', 'kitchenware', 'baby products',
+                        'musical instruments', 'stationery', 'party supplies', 'craft supplies'}
 
     # ---------------------getters and setters---------------------
     @property
@@ -1119,7 +1201,11 @@ class StoreFacade:
         logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
         if amount is None:
             amount = 0
-        return store.add_product(product_name, description, price, tags, weight, amount)
+        product_id =  store.add_product(product_name, description, price, tags, weight, amount)
+        for tag in tags:
+            self.__tags.add(tag)
+
+        return product_id
 
 
     def remove_product_from_store(self, store_id: int, product_id: int) -> None:
@@ -1131,6 +1217,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         store.acquire_lock()
         try:
+            tags = store.get_product_by_id(product_id).tags
             store.remove_product(product_id)
             store.release_lock()
         except Exception as e:
@@ -1197,6 +1284,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.add_tag_to_product(product_id, tag)
+        self.__tags.add(tag)
 
     def remove_tag_from_product(self, store_id: int, product_id: int, tag: str) -> None:
         """
@@ -1218,7 +1306,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         return store.get_tags_of_product(product_id)
 
-    def add_store(self, location_id: int, store_name: str, store_founder_id: int) -> int:
+    def add_store(self, address: AddressDTO, store_name: str, store_founder_id: int) -> int:
         """
         * Parameters: locationId, storeName, storeFounderId, isActive, storeProducts, purchasePolicies, foundedDate,
          ratingsOfProduct_Id
@@ -1230,7 +1318,7 @@ class StoreFacade:
         if store_name == "":
             raise StoreError('Store name is an empty string', StoreErrorTypes.invalid_store_name)
         with self.__store_id_lock:
-            store = Store(self.__store_id_counter, location_id, store_name, store_founder_id)
+            store = Store(self.__store_id_counter, address, store_name, store_founder_id)
             self.__stores[self.__store_id_counter] = store
             self.__store_id_counter += 1
         
@@ -1668,6 +1756,17 @@ class StoreFacade:
         # TODO: implement this function
         return None
     '''
+    def view_all_discount_information(self) -> List[Dict]:
+        """
+        * Parameters: none
+        * This function is used for converting all the discounts into a List of dictionaries for our frontend to manage the discounts
+        * Returns: a list of dictionaries
+        """
+        discount_info = []
+        for discount_id in self.__discounts:
+            discount = self.__discounts[discount_id]
+            discount_info.append(discount.get_discount_info_as_dict())
+        return discount_info
 
 
     def get_category_as_dto_for_discount(self, category: Category, shopping_basket: Dict[int,int]) -> CategoryForConstraintDTO:
@@ -2063,3 +2162,104 @@ class StoreFacade:
                             products[store.store_id] = []
                         products[store.store_id].append(product)
         return products
+
+    def get_stores(self, page: int, limit: int) -> Dict[int, StoreDTO]:
+        start = (page - 1) * limit
+        end = start + limit
+        stores = {}
+        store_keys = list(self.__stores.keys())
+        store_keys.sort()
+        store_keys = store_keys[start:end]
+        for store_id in store_keys:
+            store = self.__stores[store_id]
+            stores[store_id] = store.create_store_dto()
+
+        return stores
+    
+    def get_all_tags(self) -> List[str]:
+        """
+        * This function gets all the tags in the system
+        * Returns: a list of tags
+        """
+        return list(self.__tags)
+    
+    def get_all_store_names(self) -> Dict[int, str]:
+        """
+        * This function gets all the store names in the system
+        * Returns: a dict from store_id to store_name
+        """
+        return {store_id: store.store_name for store_id, store in self.__stores.items()}
+    
+    def get_all_categories(self) -> Dict[int, CategoryDTO]:
+        """
+        * This function gets all the category names in the system
+        * Returns: a dict from category_id to category_name
+        """
+        return {category_id: category.get_category_dto() for category_id, category in self.__categories.items()}
+    
+    def edit_product_in_store(self, store_id: int, product_id: int, product_name: str, description: str, price: float, weight: float, tags: List[str],
+                              amount: Optional[int]) -> None:
+        """
+        * Parameters: store_id, product_id, product_name, description, price, weight, tags
+        * This function edits a product in the store
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        store.edit_product(product_id, product_name, description, price, tags, weight, amount)
+
+    def validate_cart(self, cart: Dict[int, Dict[int, int]]) -> None:
+        """
+        * Parameters: cart
+        * This function validates the shopping cart
+        * Returns: none
+        """
+        for store_id, products in cart.items():
+            for product_id, amount in products.items():
+                logger.info('[StoreFacade] checking product availability')
+                logger.info(f'types are: {type(product_id)}, { type(amount)}, {type(store_id)}')
+                existing_amount = self.__stores[store_id].get_product_dto_by_id(product_id).amount
+                if amount > existing_amount:
+                    raise StoreError('Product amount is greater than the existing amount', StoreErrorTypes.product_not_available)
+        
+    def is_store_closed(self, store_id: int) -> bool:
+        """
+        * Parameters: storeId
+        * This function checks if the store is closed
+        * Returns: none
+        """
+        store = self.__get_store_by_id(store_id)
+        return not store.is_active
+
+    def get_open_stores(self, user_id: int, store_ids: List[int]) -> List[int]:
+        """
+        * Parameters: storeIds
+        * This function gets a list of stores and returns the open stores or the stores which are found by the user
+        * Returns: a list of store ids which are open or found by the user
+        """
+        open_stores = []
+        for store_id in store_ids:
+            store = self.__get_store_by_id(store_id)
+            if store.is_active or store.store_founder_id == user_id:
+                open_stores.append(store_id)
+        return open_stores
+    
+    def get_product_categories(self, store_id: int, product_id: int) -> Dict[int, CategoryDTO]:
+        """
+        * Parameters: storeId, productId
+        * This function gets the categories of the product
+        * Returns: a dict from category_id to category_name
+        """
+        categories = self.__categories
+        product_categories = {}
+        for category_id, category in categories.items():
+            if (store_id, product_id) in category.category_products:
+                product_categories[category_id] = category.get_category_dto()
+        return product_categories
+    
+    def get_all_stores(self)-> Dict[int, StoreDTO]:
+        """
+        * Parameters: none
+        * This function gets all the stores in the system
+        * Returns: a dict from store_id to storeDTO
+        """
+        return {store_id: store.create_store_dto() for store_id, store in self.__stores.items()}

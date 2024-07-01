@@ -10,7 +10,11 @@ register_credentials = {
         'username': 'test',
         'email': 'test@gmail.com',
         'password': 'test',
-        'location_id': 1,
+        'address': 'address',
+        'city': 'city',
+        'state': 'state',
+        'country': 'country',
+        'zip_code': '12345',
         'year': 2003,
         'month': 1,
         'day': 1,
@@ -114,7 +118,7 @@ response = client.post('auth/login', headers=headers, json=data)
 owner_token = response.get_json()['token']
 
 # create a store
-data = {'store_name': 'test_store', 'location_id': 1}
+data = {'store_name': 'test_store', 'address': 'test_address', 'city': 'test_city', 'state': 'test_state', 'country': 'test_country', 'zip_code': '12345'}
 owner_headers = {'Authorization': 'Bearer ' + owner_token}
 response = client.post('store/add_store', headers=headers, json=data)
 

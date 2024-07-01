@@ -20,7 +20,11 @@ def create_and_login_user(username, password, email, phone, year, month, day):
         'username': username,
         'email': email,
         'password': password,
-        'location_id': 1,
+        'address': 'address',
+        'city': 'city',
+        'state': 'state',
+        'country': 'country',
+        'zip_code': '12345',
         'year': year,
         'month': month,
         'day': day,
@@ -46,7 +50,7 @@ def test_start():
     token3 = create_and_login_user('test3', 'test3', 'test3@gmail.com', '054-1234567', 2003, 1, 1)
 
     response = client.post('/store/add_store', headers={'Authorization': 'Bearer ' + token1},
-                           json={'store_name': 'test_store', 'location_id': 1})
+                           json={'store_name': 'test_store', 'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'zip_code': '12345'})
     assert response.status_code == 200
 
 
@@ -99,11 +103,38 @@ def test_give_up_ownership():
 
     assert response.status_code == 200
 
+    # nominate another owner
+    response = client.post('/store/add_store_owner',
+                            headers={'Authorization': 'Bearer ' + token2},
+                            json={'store_id': 0, 'username': 'test3'})
+    assert response.status_code == 200
+
+    # accept the nomination
+    response = client.post('/user/accept_promotion',
+                            headers={'Authorization': 'Bearer ' + token3},
+                            json={'promotion_id': 3, 'accept': True})
+    assert response.status_code == 200
+
     response = client.post('/store/give_up_role',
                            headers={'Authorization': 'Bearer ' + token2},
                            json={'store_id': 0})
 
     assert response.status_code == 200
+
+    # check if the user test3 is no longer an owner
+    response = client.get('/user/is_store_owner',
+                            headers={'Authorization': 'Bearer ' + token3},
+                            json={'store_id': 0})
+
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_owner'] is False
+
+    response = client.get('/user/is_store_owner',
+                            headers={'Authorization': 'Bearer ' + token2},
+                            json={'store_id': 0})
+
+    assert response.status_code == 200
+    assert json.loads(response.data)['is_store_owner'] is False
 
 
 def test_is_system_manager():

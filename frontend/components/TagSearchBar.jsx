@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form } from 'react-bootstrap';
 
-const SearchForm = ({ onSearch, tags }) => {
+const SearchForm = ({ onSearch, tags, stores }) => {
     const [selectedTags, setSelectedTags] = useState([]);
     const [storeName, setStoreName] = useState('');
     const [isOpen, setIsOpen] = useState(false);
@@ -75,13 +75,18 @@ const SearchForm = ({ onSearch, tags }) => {
             </div>
             <div className="mb-4">
             <label className="block text-gray-700">Store Name(Optional)</label>
-            <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded mt-1"
-                placeholder="Enter store name"
+            <select
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
-            />
+                className="w-full p-2 border border-gray-300 rounded mt-1"
+            >
+                <option value="">Select store</option>
+                {stores.map((store) => (
+                <option key={store} value={store}>
+                    {store}
+                </option>
+                ))}
+            </select>
             </div>
             <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded">
             Search

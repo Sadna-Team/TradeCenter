@@ -53,7 +53,8 @@ class Notifier:
 
     def send_real_time_notification(self, user_id, notification: NotificationDTO):
         message = jsonify({'message': notification.to_json()})
-        self.socketio_manager.send(notification.to_json(), json=True, to=user_id)
+        # self.socketio_manager.send(notification.to_json(), json=True, to=user_id)
+        self.socketio_manager.emit('message', notification.to_json(), room=user_id)
         # self.socketio_manager.send(message, json=True, to=user_id)
         logger.info(f"sent message to user {user_id}")
 
@@ -144,6 +145,8 @@ class Notifier:
         if store_id not in self._listeners:
             
             raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+
+        logger.info(f"send message to user {user_id} about being removed from store {store_id}")
 
         msg = "your position in store: " + str(store_id) + " has been terminated."
         if self._authentication.is_logged_in(user_id):

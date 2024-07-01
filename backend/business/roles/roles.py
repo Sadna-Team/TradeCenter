@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 from threading import Lock
 from backend.business.notifier.notifier import Notifier
 from backend.error_types import *
-from backend.business.DTOs import RoleNominationDTO
+from backend.business.DTOs import RoleNominationDTO, UserDTO
 
 import logging
 
@@ -294,6 +294,7 @@ class RolesFacade:
             raise RoleError("Nominee is already a member of the store",RoleErrorTypes.nominee_already_exists_in_store)
 
     def accept_nomination(self, nomination_id: int, nominee_id: int) -> None:
+
         if nomination_id not in self.__systems_nominations.keys():
             raise RoleError(f"Nomination does not exist - given id - {nomination_id}, {type(nomination_id)}",RoleErrorTypes.nomination_does_not_exist)
         nomination = self.__systems_nominations[nomination_id]
@@ -352,7 +353,7 @@ class RolesFacade:
                 raise RoleError("Actor is not an ancestor of the removed user",RoleErrorTypes.actor_not_ancestor_of_role)
             if self.__stores_to_role_tree[store_id].is_root(removed_id):
                 raise RoleError("Cannot remove the root owner of the store",RoleErrorTypes.cant_remove_founder)
-            self.__notifier.notify_removed_management_position(store_id, removed_id)
+            # self.__notifier.notify_removed_management_position(store_id, removed_id)
             removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
 
             for user_id in removed:
@@ -505,3 +506,60 @@ class RolesFacade:
                                                                nomination.nominator_id, nomination.nominee_id,
                                                                nomination.role.__str__())
         return nominations
+
+    def get_my_stores(self, user_id) -> List[int]:
+        stores = []
+        for store_id, roles in self.__stores_to_roles.items():
+            if user_id in roles:
+                stores.append(store_id)
+        return stores
+
+    def get_store_role(self, user_id: int, store_id: int) -> str:
+        with self.__stores_locks[store_id]:
+            if user_id in self.__stores_to_roles[store_id]:
+                # if it is the store owner, return ''founder''
+                if self.__stores_to_role_tree[store_id].is_root(user_id):
+                    return "Founder"
+                return self.__stores_to_roles[store_id][user_id].__str__()
+            return "User is not a member of the store"
+
+    def get_user_stores(self, user_id: int) -> List[int]:
+        stores = []
+        for store_id, roles in self.__stores_to_roles.items():
+            if user_id in roles:
+                stores.append(store_id)
+        return stores
+
+    def get_user_employees(self, user_id, store_id) -> List[UserDTO]:
+        # check if store exists
+        if store_id not in self.__stores_to_roles:
+            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+        with self.__stores_locks[store_id]:
+            if user_id not in self.__stores_to_roles[store_id]:
+                raise RoleError("User is not a member of the store", RoleErrorTypes.user_not_member_of_store)
+            employees = []
+            # return all users under the user_id
+            for user, role in self.__stores_to_roles[store_id].items():
+                if self.__stores_to_role_tree[store_id].is_descendant(user_id, user) and not user == user_id:
+                    if isinstance(role, StoreOwner):
+                        employees.append(UserDTO(user_id=user, role=role.__str__(), is_owner=True, add_product=True,
+                                                 change_purchase_policy=True, change_purchase_types=True,
+                                                 change_discount_policy=True, change_discount_types=True,
+                                                 add_manager=True, get_bid=True))
+                    else:
+                        employees.append(UserDTO(user_id=user, role=role.__str__(), is_owner=False,
+                                                 add_product=role.permissions.add_product,
+                                                 change_purchase_policy=role.permissions.change_purchase_policy,
+                                                 change_purchase_types=role.permissions.change_purchase_types,
+                                                 change_discount_policy=role.permissions.change_discount_policy,
+                                                 change_discount_types=role.permissions.change_discount_types,
+                                                 add_manager=role.permissions.add_manager,
+                                                 get_bid=role.permissions.get_bid))
+
+            return employees
+
+    def get_employed_users(self, store_id: int) -> List[int]:
+        if store_id not in self.__stores_to_roles:
+            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+        with self.__stores_locks[store_id]:
+            return list(self.__stores_to_roles[store_id].keys())

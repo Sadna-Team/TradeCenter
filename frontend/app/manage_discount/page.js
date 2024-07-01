@@ -1,10 +1,10 @@
-const ManageEmployee = () => {
+const ManageDiscounts = () => {
 
     return (
         <div>
-          <h1>manage_employee</h1>
+          <h1>manage_discounts</h1>
         </div>
       );
 }
 
-export default ManageEmployee;
+export default ManageDiscounts;

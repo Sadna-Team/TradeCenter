@@ -278,6 +278,12 @@ class User:
         return UserDTO(self.__id, self.__member.get_email(), self.__member.get_username(),
                        self.__member.get_birthdate().year, self.__member.get_birthdate().month,
                        self.__member.get_birthdate().day, self.__member.get_phone(), role)
+    
+    def set_cart(self, cart: Dict[int, Dict[int, int]]):
+        self.__shopping_cart = ShoppingCart(self.__id)
+        for store_id, products in cart.items():
+            for product_id, quantity in products.items():
+                self.add_product_to_basket(store_id, product_id, quantity)
 
 
 class UserFacade:
@@ -330,13 +336,14 @@ class UserFacade:
         self.__get_user(user_id).change_suspend(True, None)
         self.__suspend_users[user_id] = None # Added the user to the suspended users list
 
-    def suspend_user_temporarily(self, user_id: int, date_details: dict):
+    def suspend_user_temporarily(self, user_id: int, date_details: dict, time_details: dict):
         """
         Suspend user for a specific time, only system manager can do this
         * user_id: the id of the user to suspend
-        * date_details: the date until the user is suspended (year, month, day, hour, minute)
+        * date_details: the date until the user is suspended (year, month, day)
+        * time_details: the time until the user is suspended (hour, minute)
         """
-        date = datetime(date_details["year"], date_details["month"], date_details["day"], date_details["hour"], date_details["minute"])    
+        date = datetime(int(date_details["year"]), int(date_details["month"]), int(date_details["day"]), int(time_details["hour"]), int(time_details["minute"]))    
         self.__get_user(user_id).change_suspend(True, date)
         self.__suspend_users[user_id] = date # Added the user to the suspended users list
 
@@ -456,3 +463,15 @@ class UserFacade:
         for store_id, products in cart.items():
             for product_id, quantity in products.items():
                 self.add_product_to_basket(user_id, store_id, product_id, quantity)
+
+    def set_user_shopping_cart(self, user_id: int, cart: Dict[int, Dict[int, int]]):
+        user = self.__get_user(user_id)
+        user.set_cart(cart)
+
+    def get_all_members(self) -> List[UserDTO]:
+        out = []
+        for user_id, user in self.__users.items():
+            if user.is_member():
+                out.append(user.get_user_dto())
+        return out
+

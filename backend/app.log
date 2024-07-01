@@ -1,1 +1,146 @@
-
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
+New Store Logger - INFO - successfully created storeFacade
+myapp - INFO - [PurchaseFacade] successfully created purchase facade object
+Market logger - INFO - Admin was created
+Market logger - INFO - Admin was created
+New Store Logger - INFO - [Store] successfully created store with id: 0
+New Store Logger - INFO - Successfully added store: store1
+New Store Logger - INFO - Successfully added product: product1 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 0
+New Store Logger - INFO - [Product] successfully added tag to product with id: 0
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product2 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 1
+New Store Logger - INFO - [Product] successfully added tag to product with id: 1
+New Store Logger - INFO - [Product] successfully added tag to product with id: 1
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product3 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 2
+New Store Logger - INFO - [Product] successfully added tag to product with id: 2
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product4 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 3
+New Store Logger - INFO - [Product] successfully added tag to product with id: 3
+New Store Logger - INFO - [Product] successfully added tag to product with id: 3
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - [Store] successfully created store with id: 1
+New Store Logger - INFO - Successfully added store: store2
+Market logger - INFO - User 1 has nominated user 2 to be the owner of store 1
+Roles Logger - INFO - User 2 accepted the nomination 0 in store 1
+Market logger - INFO - User 1 has nominated user 3 to be the manager of store 1
+Roles Logger - INFO - User 3 accepted the nomination 1 in store 1
+Market logger - INFO - User 2 has nominated user 4 to be the manager of store 1
+Roles Logger - INFO - User 4 accepted the nomination 2 in store 1
+Market logger - INFO - User 1 has changed the permissions of user 4 in store 1
+New Store Logger - INFO - [Category] successfully created category with id: 0
+New Store Logger - INFO - [StoreFacade] successfully added category: category1
+New Store Logger - INFO - [Category] successfully created category with id: 1
+New Store Logger - INFO - [StoreFacade] successfully added category: category2
+New Store Logger - INFO - [Category] successfully created category with id: 2
+New Store Logger - INFO - [StoreFacade] successfully added category: sub-category1
+New Store Logger - INFO - [Category] successfully added parent category to category with id: 2
+New Store Logger - INFO - [Category] successfully added sub category to category with id: 0
+New Store Logger - INFO - [Category] successfully added product to category with id: 0
+New Store Logger - INFO - [Category] successfully added product to category with id: 0
+New Store Logger - INFO - [Category] successfully added product to category with id: 1
+New Store Logger - INFO - [Category] successfully added product to category with id: 2
+Market logger - INFO - User 2 has added 1 of product 0 to the basket
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+New Store Logger - INFO - [StoreFacade] attempting to get total price after discount
+New Store Logger - INFO - [StoreFacade] successfully calculated total price after discount to be 100.0
+myapp - INFO - [ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: 0
+myapp - INFO - [ImmediatePurchase] successfully created immediate purchase object with purchase id: 0
+New Store Logger - INFO - Successfully removed product amount with id: {product_id}
+third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+third_party_handlers logger - INFO - Estimated delivery time: 2024-07-01 23:47:20.653416 - for package {'stores': dict_keys([0]), 'supply method': 'bogo'} to address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+myapp - INFO - [PurchaseFacade] attempting to accept purchase with purchase id: 0
+third_party_handlers logger - INFO - Processing payment of 100.0 with details {'payment method': 'bogo'}
+third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+third_party_handlers logger - INFO - Processed supply for package {'shopping cart': {0: {0: 1}}, 'address': {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}, 'arrival time': datetime.datetime(2024, 7, 1, 23, 47, 20, 653416), 'purchase id': 0, 'supply method': 'bogo'} to user 2
+Market logger - INFO - User 2 has checked out
+backend - INFO - Starting app...
+werkzeug - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.100.102.47:5000
+werkzeug - INFO - [33mPress CTRL+C to quit[0m
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 5
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:16] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:17] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:17] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:19] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:20] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:20] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1m3LGu HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:20] "GET /socket.io/?EIO=4&transport=polling&t=P1m3LGu HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:20] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1m3LLp&sid=5DGLEKYw3NABY2A4AAAA HTTP/1.1" 200 -
+myapp - INFO - [PurchaseFacade] attempting to complete purchase with purchase id: 0
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:20] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1m3LLq&sid=5DGLEKYw3NABY2A4AAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:20] "POST /socket.io/?EIO=4&transport=polling&t=P1m3LLp&sid=5DGLEKYw3NABY2A4AAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:21] "GET /socket.io/?EIO=4&transport=polling&t=P1m3LLq&sid=5DGLEKYw3NABY2A4AAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:21] "GET /socket.io/?EIO=4&transport=websocket&sid=5DGLEKYw3NABY2A4AAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:21] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:21] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:21] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:21] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:21] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1m3Lea HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:21] "POST /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:22] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user is a system manager
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:22] "GET /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:22] "GET /socket.io/?EIO=4&transport=polling&t=P1m3Lea HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:22] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user is a system manager
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:22] "GET /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:22] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1m3LoU&sid=QEBMv-bqkk553jTcAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:22] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1m3LoW&sid=QEBMv-bqkk553jTcAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:22] "POST /socket.io/?EIO=4&transport=polling&t=P1m3LoU&sid=QEBMv-bqkk553jTcAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:47:22] "GET /socket.io/?EIO=4&transport=polling&t=P1m3LoW&sid=QEBMv-bqkk553jTcAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:48:18] "OPTIONS /market/test HTTP/1.1" 200 -
+myapp - INFO - sent message to user 1
+Market logger - INFO - test notification sent
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:48:18] "GET /market/test HTTP/1.1" 200 -
+myapp - INFO - sent message to user 1
+Market logger - INFO - test notification sent
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:48:19] "GET /market/test HTTP/1.1" 200 -
+myapp - INFO - sent message to user 1
+Market logger - INFO - test notification sent
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:48:20] "GET /market/test HTTP/1.1" 200 -
+myapp - INFO - sent message to user 1
+Market logger - INFO - test notification sent
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:48:20] "GET /market/test HTTP/1.1" 200 -
+myapp - INFO - sent message to user 1
+Market logger - INFO - test notification sent
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:48:20] "GET /market/test HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:48:32] "OPTIONS /auth/logout HTTP/1.1" 200 -
+myapp - INFO - recieved request to logout a user
+myapp - INFO - guest entered the app successfully - user_id: 6
+myapp - INFO - User logged out successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:48:32] "POST /auth/logout HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 23:48:32] "GET /socket.io/?EIO=4&transport=websocket&sid=QEBMv-bqkk553jTcAAAC HTTP/1.1" 200 -

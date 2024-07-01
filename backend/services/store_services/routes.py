@@ -306,12 +306,29 @@ def change_discount_description():
         discount_id = int(data['discount_id'])
         description = str(data['description'])
     except Exception as e:
-        logger.error('change_discount_description - ', str(e))
+        logger.error(('change_discount_description - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return store_service.change_discount_description(user_id, discount_id, description)
 
-@store_bp.route('/store_info', methods=['GET'])
+@store_bp.route('/view_discounts_info', methods=['GET'])
+@jwt_required()
+def view_discounts_info():
+    """
+        Use Case 2.4.2
+        View information about the discounts of the system
+    """
+    logger.info('received request to view discounts info')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+    except Exception as e:
+        logger.error('view_discounts_info - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.view_all_discount_info(user_id)
+
+@store_bp.route('/store_info', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_info():
     """
@@ -323,11 +340,44 @@ def show_store_info():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error('show_store_info - ', str(e))
+        logger.error(('show_store_info - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return store_service.show_store_info(store_id)
 
+@store_bp.route('/get_stores', methods=['GET', 'POST'])
+@jwt_required()
+def get_stores():
+    """
+        Get stores
+        get page and limit from request
+    """
+    logger.info('received request to get stores')
+    try:
+        data = request.get_json()
+        page = int(data['page'])
+        limit = int(data['limit'])
+    except Exception as e:
+        logger.error('show_store_products - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_stores(page, limit)
+
+@store_bp.route('/get_all_stores', methods=['GET'])
+@jwt_required()
+def get_all_stores():
+    """
+        Get stores
+        get page and limit from request
+    """
+    logger.info('received request to get stores')
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('show_store_products - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_stores(user_id)
 
 @store_bp.route('/store_products', methods=['GET'])
 @jwt_required()
@@ -346,6 +396,24 @@ def show_store_products():
 
     return store_service.show_store_products(store_id)
 
+@store_bp.route('/get_product_info', methods=['GET', 'POST'])
+@jwt_required()
+def get_product_info():
+    """
+        Use Case
+        Get product info
+    """
+    logger.info('received request to get product info')
+    try:
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+    except Exception as e:
+        logger.error('get_product_info - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_product_info(store_id, product_id)
+
 
 @store_bp.route('/add_store', methods=['POST'])
 @jwt_required()
@@ -357,14 +425,18 @@ def add_store():
     logger.info('received request to add store')
     try:
         user_id = get_jwt_identity()
-        data = request.get_json()
-        location_id = int(data['location_id'])
+        data = request.get_json() 
+        address = str(data['address'])
+        city = str(data['city'])
+        state = str(data['state'])
+        country = str(data['country'])
+        zip_code = str(data['zip_code'])
         store_name = str(data['store_name'])
     except Exception as e:
         logger.error('add_store - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    ret = store_service.add_new_store(user_id, location_id, store_name)
+    ret = store_service.add_new_store(user_id, address, city, state, country, zip_code, store_name)
     return ret
 
 
@@ -459,6 +531,37 @@ def remove_product_amount():
         return jsonify({'message': str(e)}), 400
 
     return store_service.remove_amount_from_product(user_id, store_id, product_id, amount)
+
+@store_bp.route('/edit_product', methods=['POST'])
+@jwt_required()
+def edit_product_in_store():
+    """
+        Use Case 2.4.1:
+        Add a product to a store
+
+    """
+    logger.info('received request to edit product')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+        product_name = str(data['product_name'])
+        description = str(data['description'])
+        price = float(data['price'])
+        weight = float(data['weight'])
+        tags_helper = data['tags']
+        if not isinstance(tags_helper, list):
+            raise ServiceLayerError("Tags must be a list", ServiceLayerErrorTypes.tags_not_list)
+        tags = [str(tag) for tag in tags_helper]
+        amount=0
+        if 'amount' in data:
+            amount = int(data['amount'])
+    except Exception as e:
+        logger.error('edit_product - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.edit_product_in_store(user_id, store_id, product_id, product_name, description, price, weight, tags, amount)
 
 @store_bp.route('/change_price_of_product', methods=['POST'])
 @jwt_required()
@@ -617,7 +720,7 @@ def add_subcategory_to_category():
         logger.error('add_subcategory_to_category - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.add_subcategory_to_category(user_id, parent_category_id, subcategory_id)
+    return store_service.add_subcategory_to_category(user_id, subcategory_id, parent_category_id)
 
 
 @store_bp.route('/remove_subcategory_from_category', methods=['POST'])
@@ -637,7 +740,7 @@ def remove_subcategory_from_category():
         logger.error('remove_subcategory_from_category - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.remove_subcategory_from_category(user_id, parent_category_id, subcategory_id)
+    return store_service.remove_subcategory_from_category(user_id, subcategory_id, parent_category_id)
 
 
 @store_bp.route('/assign_product_to_category', methods=['POST'])
@@ -659,6 +762,27 @@ def assign_product_to_category():
         return jsonify({'message': str(e)}), 400
 
     return store_service.assign_product_to_category(user_id, category_id, store_id, product_id)
+
+@store_bp.route('/remove_product_from_category', methods=['POST'])
+@jwt_required()
+def remove_product_from_category():
+    """
+        Use Case 
+        Remove a product from a category
+    """
+    logger.info('received request to remove product from category')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        product_id = int(data['product_id'])
+        store_id = int(data['store_id'])
+        category_id = int(data['category_id'])
+    except Exception as e:
+        logger.error('remove_product_from_category - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.remove_product_from_category(user_id, category_id, store_id, product_id)
+
 
 
 '''@store_bp.route('/remove_product_specification_from_category', methods=['POST'])
@@ -707,7 +831,6 @@ def add_store_owner():
         logger.error('add_store_owner - ', str(e))
         return jsonify({'message': str(e)}), 400
     return store_service.add_store_owner(user_id, store_id, username)
-
 
 @store_bp.route('/add_store_manager', methods=['POST'])
 @jwt_required()
@@ -806,6 +929,24 @@ def closing_store():
         return jsonify({'message': str(e)}), 400
 
     return store_service.closing_store(user_id, store_id)
+
+@store_bp.route('/is_store_closed', methods=['POST'])
+@jwt_required()
+def is_store_closed():
+    """
+        Use Case 2.4.9:
+        Check if a store is closed
+    """
+    logger.info('received request to check if store is closed')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('is_store_closed - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.is_store_closed(store_id)
 
 @store_bp.route('/opening_store', methods=['POST'])
 @jwt_required()
@@ -928,3 +1069,85 @@ def assign_predicate_to_purchase_policy():
         return jsonify({'message': str(e)}), 400
 
     return store_service.assign_predicate_to_purchase_policy(user_id, store_id, policy_id, predicate_builder)
+
+@store_bp.route('/my_stores', methods=['GET'])
+@jwt_required()
+def my_stores():
+    """
+        Use Case
+        Get all the stores that user is a part of
+    """
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error(('my_stores - ', str(e)))
+        return jsonify({'message': str(e)}), 400
+    
+    return store_service.my_stores(user_id)
+
+@store_bp.route('/tags', methods=['GET'])
+@jwt_required()
+def get_all_product_tags():
+    """
+        Helper for search by tags
+        Get all the tags of a product
+    """
+    logger.info('received request to get all product tags')
+    try:
+        _ = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_product_tags - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_product_tags()
+
+@store_bp.route('/store_ids_to_names', methods=['GET'])
+@jwt_required()
+def get_all_store_names():
+    """
+        Helper for search by store
+        Get all the names of the stores
+    """
+    logger.info('received request to get all store names')
+    try:
+        _ = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_store_names - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_store_names()
+
+@store_bp.route('/category_ids_to_names', methods=['GET'])
+@jwt_required()
+def get_all_category_names():
+    """
+        Helper for search by category
+        Get all the names of the categories
+    """
+    logger.info('received request to get all category names')
+    try:
+        _ = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_category_names - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_all_categories()
+
+@store_bp.route('/get_product_categories', methods=['POST'])
+@jwt_required()
+def get_product_categories():
+    """
+        Get product categories
+        get store_id from request
+    """
+    logger.info('received request to get product categories')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        product_id = int(data['product_id'])
+    except Exception as e:
+        logger.error('get_product_categories - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_product_categories(user_id, store_id, product_id)
