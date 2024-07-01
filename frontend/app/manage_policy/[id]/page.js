@@ -383,592 +383,587 @@ const ManagePolicy = () => {
     setConstraintValues({ ...constraintValues, [field]: value });
   };
 
-  //function responsible for adding a new constraint to a policy
-  const handleSaveConstraint = (policyId) => {
-    
-    const updatedPolicies = { ...policies };
-    const policyType = Object.keys(updatedPolicies).find(type => 
-      updatedPolicies[type].some(policy => policy.policy_id === currentPolicyId)
-    );
+ // Function responsible for adding a new constraint to a policy
+const handleSaveConstraint = async () => {
+  const data = {
+    store_id: store_id,
+    policy_id: currentPolicyId,
+    predicate_builder: [selectedConstraintType, ...Object.values(constraintValues)],
+  };
+  console.log('predicate builder of current cnostraint we are trying to add:', data.predicate_builder);
 
-    const policyIndex = updatedPolicies[policyType].findIndex(policy => 
-      policy.policy_id === currentPolicyId
-    );
-
-    updatedPolicies[policyType][policyIndex].constraints = [{
-      type: selectedConstraintType,
-      details: JSON.stringify(constraintValues)
-    }];
-
+  try {
+    const response = await api.post('/store/assign_predicate_to_purchase_policy', data);
+    if (response.status !== 200) {
+      setErrorMessage('Failed to save constraint');
+      return;
+    }
     fetchPolicies();
     setConstraintDialogOpen(false);
-  };
-
-  const renderConstraintFields = () => {
-    switch (selectedConstraintType) {
-      case 'age':
-        return (
-          <>
-            <Input
-              id="age-limit"
-              placeholder="Enter age limit"
-              value={constraintValues.ageLimit || ''}
-              onChange={(e) => handleConstraintValueChange('age', e.target.value)}
-              className="col-span-3 border border-black mt-2"
-            />
-             <div className="mt-8">
-            {constraintValues.ageLimit && isNaN(constraintValues.ageLimit) && <p className="text-red-500">Not a number</p>}
-          </div>
-          </>
-        );
-
-      // Add other cases for different constraint types here...
-
-      case 'time':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('startingHour', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Starting hour" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(24).keys()].map((hour) => (
-                  <SelectItem key={hour} value={hour}>
-                    {hour}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('endingHour', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Ending hour" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(24).keys()].map((hour) => (
-                  <SelectItem key={hour} value={hour}>
-                    {hour}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('startingMinute', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Starting minute" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(60).keys()].map((minute) => (
-                  <SelectItem key={minute} value={minute}>
-                    {minute}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('endingMinute', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Ending minute" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(60).keys()].map((minute) => (
-                  <SelectItem key={minute} value={minute}>
-                    {minute}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        );
-
-      // Continue with other constraint types...
-      case 'location':
-        return (
-          <>
-            <Input
-              id="address"
-              placeholder="Address"
-              value={constraintValues.address || ''}
-              onChange={(e) => handleConstraintValueChange('address', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <Input
-              id="city"
-              placeholder="City"
-              value={constraintValues.city || ''}
-              onChange={(e) => handleConstraintValueChange('city', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <Input
-              id="state"
-              placeholder="State"
-              value={constraintValues.state || ''}
-              onChange={(e) => handleConstraintValueChange('state', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <Input
-              id="country"
-              placeholder="Country"
-              value={constraintValues.country || ''}
-              onChange={(e) => handleConstraintValueChange('country', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <Input
-              id="zip-code"
-              placeholder="Zip-code"
-              value={constraintValues.zipCode || ''}
-              onChange={(e) => handleConstraintValueChange('zipCode', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <div className="mt-2">
-            {constraintValues.zipCode && isNaN(constraintValues.zipCode) && <p className="text-red-500">Not a number</p>}
-          </div>
-          </>
-        );
-      case 'dayOfMonth':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('startingDay', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Starting day" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(31).keys()].map((day) => (
-                  <SelectItem key={day + 1} value={day + 1}>
-                    {day + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('endingDay', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Ending day" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(31).keys()].map((day) => (
-                  <SelectItem key={day + 1} value={day + 1}>
-                    {day + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        );
-      case 'dayOfWeek':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('startingDay', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Starting day" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(7).keys()].map((day) => (
-                  <SelectItem key={day + 1} value={day + 1}>
-                    {day + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('endingDay', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Ending day" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(7).keys()].map((day) => (
-                  <SelectItem key={day + 1} value={day + 1}>
-                    {day + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        );
-      case 'season':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('season', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Select season..." />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {['summer', 'winter', 'autumn', 'spring'].map((season) => (
-                  <SelectItem key={season} value={season}>
-                    {season}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        );
-      case 'holiday':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('countryCode', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Country code" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="IL">IL</SelectItem>
-              </SelectContent>
-            </Select>
-          </>
-        );
+    setSelectedConstraintType('');
+    setConstraintValues({});
+  } catch (error) {
+    console.error('Error saving constraint:', error);
+    setErrorMessage('Failed to save constraint');
+  }
+};
 
 
-        case 'basketPrice':
-          return (
-            <>
-              <Input
-                id="min-price"
-                placeholder="Min price (in dollars)"
-                value={constraintValues.minPrice || ''}
-                onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
-                className="col-span-3 border border-black"
-              />
+const renderConstraintFields = () => {
+  switch (selectedConstraintType) {
+    case 'age':
+      return (
+        <>
+          <Input
+            id="age-limit"
+            placeholder="Enter age limit"
+            value={constraintValues.age || ''}
+            onChange={(e) => handleConstraintValueChange('age', e.target.value)}
+            className="col-span-3 border border-black mt-2"
+          />
+          {constraintValues.age && isNaN(constraintValues.age) && <p className="text-red-500">Not a number</p>}
+        </>
+      );
 
-              <div className="mt-2">
-            {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
-          </div>
-              <Input
-                id="max-price"
-                placeholder="Max price (in dollars)"
-                value={constraintValues.maxPrice || ''}
-                onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-              <div className="mt-2">
-            {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select store..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {Object.values(stores).map((store) => (
-                    <SelectItem key={store.value} value={store.value}>
-                      {store.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          );
-        case 'productPrice':
-          return (
-            <>
-              <Input
-                id="min-price"
-                placeholder="Min price (in dollars)"
-                value={constraintValues.minPrice || ''}
-                onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-              <div className="mt-2">
-            {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Input
-                id="max-price"
-                placeholder="Max price (in dollars)"
-                value={constraintValues.maxPrice || ''}
-                onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
-                className="col-span-3 border border-black"
-              />
-              <div className="mt-2">
-            {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
-           </div>
-              <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select store..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {Object.values(stores).map((store) => (
-                    <SelectItem key={store.value} value={store.value}>
-                      {store.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Select product..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {products_to_store.map((product_to_store) => (
-                    <SelectItem key={product.value} value={product.product_id}>
+    case 'time':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('startingHour', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Starting hour" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(24).keys()].map((hour) => (
+                <SelectItem key={hour} value={hour}>
+                  {hour}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('endingHour', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Ending hour" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(24).keys()].map((hour) => (
+                <SelectItem key={hour} value={hour}>
+                  {hour}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('startingMinute', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Starting minute" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(60).keys()].map((minute) => (
+                <SelectItem key={minute} value={minute}>
+                  {minute}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('endingMinute', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Ending minute" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(60).keys()].map((minute) => (
+                <SelectItem key={minute} value={minute}>
+                  {minute}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'location':
+      return (
+        <>
+          <Input
+            id="address"
+            placeholder="Address"
+            value={constraintValues.address || ''}
+            onChange={(e) => handleConstraintValueChange('address', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          <Input
+            id="city"
+            placeholder="City"
+            value={constraintValues.city || ''}
+            onChange={(e) => handleConstraintValueChange('city', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          <Input
+            id="state"
+            placeholder="State"
+            value={constraintValues.state || ''}
+            onChange={(e) => handleConstraintValueChange('state', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          <Input
+            id="country"
+            placeholder="Country"
+            value={constraintValues.country || ''}
+            onChange={(e) => handleConstraintValueChange('country', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          <Input
+            id="zip-code"
+            placeholder="Zip-code"
+            value={constraintValues.zipCode || ''}
+            onChange={(e) => handleConstraintValueChange('zipCode', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.zipCode && isNaN(constraintValues.zipCode) && <p className="text-red-500">Not a number</p>}
+        </>
+      );
+
+    case 'dayOfMonth':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('startingDay', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Starting day" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(31).keys()].map((day) => (
+                <SelectItem key={day + 1} value={day + 1}>
+                  {day + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('endingDay', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Ending day" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(31).keys()].map((day) => (
+                <SelectItem key={day + 1} value={day + 1}>
+                  {day + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'dayOfWeek':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('startingDay', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Starting day" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(7).keys()].map((day) => (
+                <SelectItem key={day + 1} value={day + 1}>
+                  {day + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('endingDay', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Ending day" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(7).keys()].map((day) => (
+                <SelectItem key={day + 1} value={day + 1}>
+                  {day + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'season':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('season', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select season..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {['summer', 'winter', 'autumn', 'spring'].map((season) => (
+                <SelectItem key={season} value={season}>
+                  {season}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'holiday':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('countryCode', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Country code" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              <SelectItem value="IL">IL</SelectItem>
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'basketPrice':
+      return (
+        <>
+          <Input
+            id="min-price"
+            placeholder="Min price (in dollars)"
+            value={constraintValues.minPrice || ''}
+            onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-price"
+            placeholder="Max price (in dollars)"
+            value={constraintValues.maxPrice || ''}
+            onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'productPrice':
+      return (
+        <>
+          <Input
+            id="min-price"
+            placeholder="Min price (in dollars)"
+            value={constraintValues.minPrice || ''}
+            onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-price"
+            placeholder="Max price (in dollars)"
+            value={constraintValues.maxPrice || ''}
+            onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {constraintValues.store && (
+            <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
+              <SelectTrigger className="col-span-3 border border-black bg-white">
+                <SelectValue placeholder="Select product..." />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {products_to_store
+                  .filter((store) => store.store_id === constraintValues.store)
+                  .flatMap((store) => store.products)
+                  .map((product) => (
+                    <SelectItem key={product.product_id} value={product.product_id}>
                       {product.name}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </>
-          );
+              </SelectContent>
+            </Select>
+          )}
+        </>
+      );
 
-case 'categoryPrice':
-  return (
-    <>
-      <Input
-        id="min-price"
-        placeholder="Min price (in dollars)"
-        value={constraintValues.minPrice || ''}
-        onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Input
-        id="max-price"
-        placeholder="Max price (in dollars)"
-        value={constraintValues.maxPrice || ''}
-        onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select category..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {Object.values(categories).map((category) => (
-            <SelectItem key={category.value} value={category.value}>
-              {category.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'basketAmount':
-  return (
-    <>
-      <Input
-        id="min-amount"
-        placeholder="Min amount"
-        value={constraintValues.minAmount || ''}
-        onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select store..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {Object.values(stores).map((store) => (
-            <SelectItem key={store.value} value={store.value}>
-              {store.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'productAmount':
-  return (
-    <>
-      <Input
-        id="min-amount"
-        placeholder="Min amount"
-        value={constraintValues.minAmount || ''}
-        onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select store..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {Object.values(stores).map((store) => (
-            <SelectItem key={store.value} value={store.value}>
-              {store.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select product..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {products_to_store.map((product) => (
-            <SelectItem key={product.value} value={product.product_id}>
-              {product.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'categoryAmount':
-  return (
-    <>
-      <Input
-        id="min-amount"
-        placeholder="Min amount"
-        value={constraintValues.minAmount || ''}
-        onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select category..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {Object.values(categories).map((category) => (
-            <SelectItem key={category.value} value={category.value}>
-              {category.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'categoryWeight':
-  return (
-    <>
-      <Input
-        id="min-weight"
-        placeholder="Min weight (in kg)"
-        value={constraintValues.minWeight || ''}
-        onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Input
-        id="max-weight"
-        placeholder="Max weight (in kg)"
-        value={constraintValues.maxWeight || ''}
-        onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select category..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {Object.values(categories).map((category) => (
-            <SelectItem key={category.value} value={category.value}>
-              {category.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'basketWeight':
-  return (
-    <>
-      <Input
-        id="min-weight"
-        placeholder="Min weight (in kg)"
-        value={constraintValues.minWeight || ''}
-        onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Input
-        id="max-weight"
-        placeholder="Max weight (in kg)"
-        value={constraintValues.maxWeight || ''}
-        onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select store..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {Object.values(stores).map((store) => (
-            <SelectItem key={store.value} value={store.value}>
-              {store.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'productWeight':
-  return (
-    <>
-      <Input
-        id="min-weight"
-        placeholder="Min weight (in kg)"
-        value={constraintValues.minWeight || ''}
-        onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Input
-        id="max-weight"
-        placeholder="Max weight (in kg)"
-        value={constraintValues.maxWeight || ''}
-        onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select store..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {Object.values(stores).map((store) => (
-            <SelectItem key={store.value} value={store.value}>
-              {store.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select product..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {products.map((product) => (
-            <SelectItem key={product.value} value={product.value}>
-              {product.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'compositeConstraint':
-  return (
-    <>
-      <Input
-        id="composite-constraint"
-        placeholder="composite constraint: (and,(and (age 17), (or (time, 23, 00, 14, 00), (season, summer)))) "
-        value={constraintValues.compositeConstraint || ''}
-        onChange={(e) => handleConstraintValueChange('compositeConstraint', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-    </>
-  );
-default:
-  return null;
-}
+    case 'categoryPrice':
+      return (
+        <>
+          <Input
+            id="min-price"
+            placeholder="Min price (in dollars)"
+            value={constraintValues.minPrice || ''}
+            onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-price"
+            placeholder="Max price (in dollars)"
+            value={constraintValues.maxPrice || ''}
+            onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select category..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(categories).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {categories[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'basketAmount':
+      return (
+        <>
+          <Input
+            id="min-amount"
+            placeholder="Min amount"
+            value={constraintValues.minAmount || ''}
+            onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'productAmount':
+      return (
+        <>
+          <Input
+            id="min-amount"
+            placeholder="Min amount"
+            value={constraintValues.minAmount || ''}
+            onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {constraintValues.store && (
+            <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
+              <SelectTrigger className="col-span-3 border border-black bg-white">
+                <SelectValue placeholder="Select product..." />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {products_to_store
+                  .filter((store) => store.store_id === constraintValues.store)
+                  .flatMap((store) => store.products)
+                  .map((product) => (
+                    <SelectItem key={product.product_id} value={product.product_id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          )}
+        </>
+      );
+
+    case 'categoryAmount':
+      return (
+        <>
+          <Input
+            id="min-amount"
+            placeholder="Min amount"
+            value={constraintValues.minAmount || ''}
+            onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select category..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(categories).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {categories[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'categoryWeight':
+      return (
+        <>
+          <Input
+            id="min-weight"
+            placeholder="Min weight (in kg)"
+            value={constraintValues.minWeight || ''}
+            onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-weight"
+            placeholder="Max weight (in kg)"
+            value={constraintValues.maxWeight || ''}
+            onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select category..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(categories).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {categories[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'basketWeight':
+      return (
+        <>
+          <Input
+            id="min-weight"
+            placeholder="Min weight (in kg)"
+            value={constraintValues.minWeight || ''}
+            onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-weight"
+            placeholder="Max weight (in kg)"
+            value={constraintValues.maxWeight || ''}
+            onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'productWeight':
+      return (
+        <>
+          <Input
+            id="min-weight"
+            placeholder="Min weight (in kg)"
+            value={constraintValues.minWeight || ''}
+            onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-weight"
+            placeholder="Max weight (in kg)"
+            value={constraintValues.maxWeight || ''}
+            onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {constraintValues.store && (
+            <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
+              <SelectTrigger className="col-span-3 border border-black bg-white">
+                <SelectValue placeholder="Select product..." />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                {products_to_store
+                  .filter((store) => store.store_id === constraintValues.store)
+                  .flatMap((store) => store.products)
+                  .map((product) => (
+                    <SelectItem key={product.product_id} value={product.product_id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          )}
+        </>
+      );
+
+    case 'compositeConstraint':
+      return (
+        <>
+          <Input
+            id="composite-constraint"
+            placeholder="composite constraint: (and,(and (age 17), (or (time, 23, 00, 14, 00), (season, summer)))) "
+            value={constraintValues.compositeConstraint || ''}
+            onChange={(e) => handleConstraintValueChange('compositeConstraint', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+        </>
+      );
+
+    default:
+      return null;
+  }
 };
+
 
 const handleToggle = (policyId, type) => {
   setExpandedPolicies(prevState => ({
@@ -1046,6 +1041,8 @@ const renderNestedPolicy = (policy) => {
   );
 };
 
+
+// Function for rendering a policy
 const renderPolicy = (policy, type) => (
   <div 
     key={policy.policy_id} 
@@ -1115,12 +1112,16 @@ const renderPolicy = (policy, type) => (
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
+            <Button onClick={() => handleOpenConstraintDialog(policy.policy_id)} className="ml-2">
+              Add Constraint
+            </Button>
+          )}
         </div>
       </div>
     )}
   </div>
 );
-
 
 
 return (
@@ -1474,8 +1475,39 @@ return (
         </DialogContent>
       </Dialog>
     </div>
+
+    <Dialog open={constraintDialogOpen} onOpenChange={setConstraintDialogOpen}>
+    <DialogContent className="sm:max-w-[425px] bg-white">
+      <DialogHeader className="text-center">
+        <DialogTitle>Adding a constraint</DialogTitle>
+      </DialogHeader>
+      <div className="grid gap-4 py-4">
+        <div className="flex items-center">
+          <Label htmlFor="constraint-type" className="mr-2 whitespace-nowrap">Constraint Type</Label>
+          <Select onValueChange={handleConstraintTypeChange} className="flex-grow ml-2">
+            <SelectTrigger className="border border-black bg-white w-full">
+              <SelectValue placeholder="Choose constraint type" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {constraintTypes.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {renderConstraintFields()}
+      </div>
+      <DialogFooter className="flex justify-between items-center">
+        <div className="text-red-500 text-sm text-left flex-grow">{errorMessage}</div>
+        <Button type="button" onClick={handleSaveConstraint} className="ml-2 px-6">Save constraint</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+
   </div>
-);
+  );
 };
 
 
