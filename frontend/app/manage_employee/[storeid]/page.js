@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import api from '@/lib/api'; // Import the configured axios instance
+import Link from 'next/link';
 
 const permissionsList = [
   { key: 'add_product', label: 'Add Product' },
@@ -126,9 +127,11 @@ export default function ManageEmployeePage() {
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
         <h1 className="text-3xl font-bold mb-4">Manage Employees</h1>
-        <button className="bg-blue-500 text-white py-2 px-4 rounded mb-4">
-          Add Employee
-        </button>
+        <Link href={`/nominate-employees/${storeid}`}>
+          <button className="bg-blue-500 text-white py-2 px-4 rounded mb-4">
+            Add Employee
+          </button>
+        </Link>
         {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {employees.map((employee) => (
