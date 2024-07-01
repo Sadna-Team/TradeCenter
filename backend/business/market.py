@@ -386,7 +386,7 @@ class MarketFacade:
         logger.info(f"User {actor} has removed user {user_id} as a system manager")
 
     def suspend_user_permanently(self, actor_id: int, user_id: int):
-        if self.user_facade.suspended(actor_id):
+        if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
         if not self.roles_facade.is_system_manager(actor_id):
@@ -395,14 +395,14 @@ class MarketFacade:
         self.user_facade.suspend_user_permanently(user_id)
         logger.info(f"User {actor_id} has suspended user {user_id} permanently")
 
-    def suspend_user_temporarily(self, actor_id: int, user_id: int, date_details: dict):
-        if self.user_facade.suspended(actor_id):
+    def suspend_user_temporarily(self, actor_id: int, user_id: int, date_details: dict, time_details: dict):
+        if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
         if not self.roles_facade.is_system_manager(actor_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
         
-        self.user_facade.suspend_user_temporarily(user_id, date_details)
+        self.user_facade.suspend_user_temporarily(user_id, date_details, time_details)
         logger.info(f"User {actor_id} has suspended user {user_id} temporarily")
 
     def unsuspend_user(self, actor_id: int, user_id: int):
@@ -1436,11 +1436,17 @@ class MarketFacade:
                 unemployed.append(user)
 
         return unemployed
+    
+    def get_all_members(self, user_id) -> List[UserDTO]:
+        if not self.roles_facade.is_system_manager(user_id):
+            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        return self.user_facade.get_all_members()
+
+    def is_suspended(self, user_id: int) -> bool:
+        return self.user_facade.suspended(user_id)
 
     def get_product_categories(self, user_id: int, store_id: int, product_id: int) -> Dict[int, CategoryDTO]:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to get the product categories", UserErrorTypes.user_does_not_have_necessary_permissions)
         return self.store_facade.get_product_categories(store_id, product_id)
-
-
 

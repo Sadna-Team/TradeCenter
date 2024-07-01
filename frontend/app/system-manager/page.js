@@ -210,7 +210,7 @@ export default function SystemManagerPage() {
                     color: red;
                 }
                 .scrollable-div {
-                    height: 200px;
+                    height: 400px;
                     overflow-y: scroll;
                     border: 1px solid #ccc;
                     padding: 10px;
@@ -278,6 +278,12 @@ export default function SystemManagerPage() {
             `}</style>
             <div className='flex justify-center mt-4'>
                 <div className='flex-col'>
+                    <Link href="system-manager/manage-users">
+                        <div className='flex items-center'>
+                            <Button className="text-lg font-bold text-blue-600">members management page</Button>
+                        </div>
+                    </Link>
+                </div>
                     <Link href="/system-manager/store-management">
                         <div className='flex items-center'>
                             <Button className="text-lg font-bold text-blue-600">store management page</Button>

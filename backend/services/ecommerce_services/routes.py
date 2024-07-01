@@ -70,7 +70,7 @@ def show_store_purchase_history():
     return purchase_service.show_purchase_history_in_store(user_id, store_id)
 
 
-@market_bp.route('/user_purchase_history', methods=['GET'])
+@market_bp.route('/user_purchase_history', methods=['POST', 'GET'])
 @jwt_required()
 def show_user_purchase_history():
     """
@@ -79,13 +79,18 @@ def show_user_purchase_history():
     """
     logger.info('recieved request to show the purchase history of a user')
     try:
-        user_id = get_jwt_identity()
-        
+        actor_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = None
+        if 'store_id' in data:
+            store_id = int(data['store_id'])
+        user_id = int(data['user_id'])
+
     except Exception as e:
         logger.error(('show_user_purchase_history - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.show_purchase_history_of_user(user_id, user_id)
+    return purchase_service.show_purchase_history_of_user(actor_id, user_id, store_id)
 
 
 @market_bp.route('/show_purchase_history', methods=['GET'])
