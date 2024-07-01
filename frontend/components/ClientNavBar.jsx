@@ -14,6 +14,7 @@ const ClientNavBar = ({ onToggleSidebar }) => {
   const [notifications, setNotifications] = useState([]);
   const [error, setError] = useState(null);
   const socket = new SocketSingleton(sessionStorage.getItem('token'));
+  const username = sessionStorage.getItem('username');
 
   // Load notifications from sessionStorage on initialization
     useEffect(() => {
@@ -114,23 +115,24 @@ const ClientNavBar = ({ onToggleSidebar }) => {
       <div className="flex items-center">
         <button onClick={onToggleSidebar} className="mr-4">
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-7 w-7"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16m-7 6h7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16m-7 6h7"
             />
           </svg>
         </button>
         <Link href="/">
-          <Logo />
+          <Logo/>
         </Link>
+        <span className="ml-2 text-xl"> {username} </span>
       </div>
       <div className="flex space-x-4 items-center">
         <div className="relative">

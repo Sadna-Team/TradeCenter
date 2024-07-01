@@ -22,7 +22,6 @@ export default function StorePage() {
 
         const storeInfo = {
           name: data.store_name,
-          owner: 'Example Owner', // Update this as needed based on your actual data
           products: data.products.map((product) => ({
             id: product.product_id,
             name: product.name,
@@ -54,7 +53,6 @@ export default function StorePage() {
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-bold mb-8 mt-8 text-center">{store.name}</h1>
-        <p className="text-xl text-gray-700 mb-8 text-center">Owner: {store.owner}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {store.products.map((product) => (
