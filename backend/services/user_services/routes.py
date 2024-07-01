@@ -470,3 +470,17 @@ def get_user_employees():
 
     res = user_service.get_user_employees(user_id, store_id)
     return res
+
+@user_bp.route('/get_unemployed_users', methods=['GET', 'POST'])
+@jwt_required()
+def get_unemployed_users():
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+    except Exception as e:
+        logger.error('get_unemployed_users - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    res = user_service.get_unemployed_users(store_id)
+    return res

@@ -457,6 +457,25 @@ class UserService:
             logger.error('get_user_employees - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
+    def get_unemployed_users(self, store_id):
+        """
+            Get unemployed users
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            unemployed_users = self.market_facade.get_unemployed_users(store_id)
+            unemployed_users = [user.get() for user in unemployed_users]
+            return jsonify({'unemployed_users': unemployed_users}), 200
+        except Exception as e:
+            logger.error('get_unemployed_users - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
 
 class AuthenticationService:
     # singleton

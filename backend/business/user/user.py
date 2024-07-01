@@ -466,3 +466,11 @@ class UserFacade:
     def set_user_shopping_cart(self, user_id: int, cart: Dict[int, Dict[int, int]]):
         user = self.__get_user(user_id)
         user.set_cart(cart)
+
+    def get_all_members(self) -> List[UserDTO]:
+        out = []
+        for user_id, user in self.__users.items():
+            if user.is_member():
+                out.append(user.get_user_dto())
+        return out
+
