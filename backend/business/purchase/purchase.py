@@ -782,7 +782,7 @@ class PurchaseFacade:
                         purchases.append(PurchaseDTO(sub_purchase.purchase_id, sub_purchase.store_id,
                                                      sub_purchase.date_of_purchase, sub_purchase.total_price,
                                                      sub_purchase.total_price_after_discounts,
-                                                     sub_purchase.status.value, sub_purchase.products))
+                                                     sub_purchase.status.value, sub_purchase.products, purchase.user_id))
         return purchases
 
     def accept_purchase(self, purchase_id: int, delivery_date: datetime) -> None:

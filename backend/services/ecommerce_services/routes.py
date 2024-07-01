@@ -51,7 +51,7 @@ def checkout():
     return purchase_service.checkout(user_id, payment_details, supply_method, address)
 
 
-@market_bp.route('/store_purchase_history', methods=['GET'])
+@market_bp.route('/store_purchase_history', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_purchase_history():
     """

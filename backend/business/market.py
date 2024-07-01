@@ -138,13 +138,13 @@ class MarketFacade:
         self.auth_facade.register_user(uid4, uc4)
         
         # stores:
-        store_id = self.add_store(uid1, "","","","","","store1")
+        store_id = self.add_store(uid1, "Rager 130","Beer Sheva","Israel","Israel","12345678","store1")
         self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
         self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
         self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
         self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
-        store_id = self.add_store(uid1, "","","","","","store2")
+        store_id = self.add_store(uid1, "BGU","Beer Shave","Israel","Israel","99999999","store2")
 
         self.nominate_store_owner(store_id, uid1, "user2")
         self.accept_nomination(uid2, 0, True)
@@ -299,6 +299,11 @@ class MarketFacade:
 
     def get_stores(self, page: int, limit: int) -> Dict[int, StoreDTO]:
         return self.store_facade.get_stores(page, limit)
+    
+    def get_all_stores(self, user_id)-> Dict[int, StoreDTO]:
+        if not self.roles_facade.is_system_manager(user_id):
+            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        return self.store_facade.get_all_stores()
 
     def nominate_store_owner(self, store_id: int, owner_id: int, new_owner_username):
         if self.user_facade.suspended(owner_id):

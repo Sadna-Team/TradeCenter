@@ -284,6 +284,12 @@ export default function SystemManagerPage() {
                         </div>
                     </Link>
                 </div>
+                    <Link href="/system-manager/store-management">
+                        <div className='flex items-center'>
+                            <Button className="text-lg font-bold text-blue-600">store management page</Button>
+                        </div>
+                    </Link>
+                </div>
             </div>
         </div>
     );

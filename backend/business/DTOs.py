@@ -104,7 +104,7 @@ class PurchaseProductDTO:
 
 class PurchaseDTO:
     def __init__(self, purchase_id: int, store_id: int, date: datetime, total_price: float,
-                 total_price_after_discounts: float, status: int, products: List[PurchaseProductDTO]):
+                 total_price_after_discounts: float, status: int, products: List[PurchaseProductDTO], user_id: Optional[int] = None):
         self.__purchase_id: int = purchase_id
         self.__store_id: int = store_id
         self.__date: datetime = date
@@ -112,6 +112,7 @@ class PurchaseDTO:
         self._total_price_after_discounts: float = total_price_after_discounts
         self.__status: int = status
         self.__products: list[PurchaseProductDTO] = products
+        self.__user_id: Optional[int] = user_id
 
     @property
     def purchase_id(self) -> int:
@@ -140,11 +141,15 @@ class PurchaseDTO:
     @property
     def products(self) -> List[PurchaseProductDTO]:
         return self.__products
+    
+    @property
+    def user_id(self) -> Optional[int]:
+        return self.__user_id
 
     def get(self) -> dict:
         return {"purchase_id": self.__purchase_id, "store_id": self.__store_id, "date": self.__date,
                 "total": self.__total, "total_price_after_discounts": self._total_price_after_discounts,
-                "status": self.__status, "products": [product.get() for product in self.__products]}
+                "status": self.__status, "products": [product.get() for product in self.__products], "user_id": self.__user_id}
 
 
 class ProductDTO:
