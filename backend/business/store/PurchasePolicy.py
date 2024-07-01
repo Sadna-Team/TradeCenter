@@ -81,7 +81,7 @@ class ProductSpecificPurchasePolicy(PurchasePolicy):
             "store_id": self.store_id,
             "policy_name": self.policy_name,
             "product_id": self.product_id,
-            "predicate": self.predicate.get_constraint_info_as_dict() if self.predicate is not None else "None"
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
         }
     
 # --------------- CategoryPolicy class ---------------#
@@ -120,7 +120,7 @@ class CategorySpecificPurchasePolicy(PurchasePolicy):
             "policy_id": self.purchase_policy_id,
             "store_id": self.store_id,
             "category_id": self.category_id,
-            "predicate": self.predicate.get_constraint_info_as_dict() if self.predicate is not None else "None"
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
         }
     
 
@@ -149,7 +149,7 @@ class BasketSpecificPurchasePolicy(PurchasePolicy):
             "policy_name": self.policy_name,
             "policy_id": self.purchase_policy_id,
             "store_id": self.store_id,
-            "predicate": self.predicate.get_constraint_info_as_dict() if self.predicate is not None else "None"
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
         }
     
 

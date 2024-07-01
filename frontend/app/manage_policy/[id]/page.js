@@ -1026,6 +1026,18 @@ const renderPolicy = (policy, type) => (
             )}
           </>
         )}
+        {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
+          <>
+            <button onClick={() => handleToggleConstraint(policy.policy_id)} className="text-gray-500 mt-2">
+              {expandedConstraint === policy.policy_id ? 'Hide Constraint' : 'Show Constraint'}
+            </button>
+            {expandedConstraint === policy.policy_id && policy.predicate && (
+              <div className="mt-2">
+                <p>{policy.predicate}</p>
+              </div>
+            )}
+          </>
+        )}
         <div className={`flex ${['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -1049,6 +1061,8 @@ const renderPolicy = (policy, type) => (
     )}
   </div>
 );
+
+
 
 
 

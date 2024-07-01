@@ -147,6 +147,8 @@ class MarketFacade:
 
         store_id2 = self.add_store(uid1, "address", "city", "state", "country", "zip_code", "store2")
 
+        product5 = self.store_facade.add_product_to_store(store_id2, "product5", "description5", 500, 5, ["tag5"], 50)
+
         self.nominate_store_owner(store_id, uid1, "user2")
         self.accept_nomination(uid2, 0, True)
 
@@ -174,6 +176,7 @@ class MarketFacade:
         # add 5 policies
         policy1 = self.store_facade.add_purchase_policy_to_store(store_id, "policy1", None, None)
         policy2 = self.store_facade.add_purchase_policy_to_store(store_id, "policy2",category1, None)
+        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy2, ("age", 18))
         policy3 = self.store_facade.add_purchase_policy_to_store(store_id, "policy3", None, product1)
         policy4 = self.store_facade.add_purchase_policy_to_store(store_id, "policy4", None, product2)
         policy5 = self.store_facade.add_purchase_policy_to_store(store_id, "policy5", category2, None)
