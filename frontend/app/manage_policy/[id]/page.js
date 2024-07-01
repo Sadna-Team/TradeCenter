@@ -1,6 +1,7 @@
 "use client";
+import api from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ScrollArea';
 import {
   Dialog,
@@ -54,9 +55,9 @@ const ManagePolicy = () => {
 
   // data required for the page
   const [policies, setPolicies] = useState([]);
-  const [stores, setStores] = useState([]);
+  const [stores, setStores] = useState({});
   const [products_to_store, setProductsToStore] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState({});
 
   // states for our dialog
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -84,107 +85,148 @@ const ManagePolicy = () => {
 
   //function for loading in all relevant data
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        //load in all the policies of store
-        const response = await api.get('/store/view_all_policies_of_store');
-        if(response.status !== 200){
-          console.error('Failed to fetch policies of store', response);
-          setErrorMessage('Failed to fetch policies');
-          return;
-        }
-        console.log("the policies of the store:", response.data.message)
-        let data = response.data.message;
+    fetchPolicies();
+    fetchInitialData();
+  }, []);
 
-        if(data === null || data === undefined) {
+  const fetchPolicies = async () => {
+    try {
+      const response = await api.post('/store/view_all_policies_of_store', { 'store_id': store_id });
+      if(response.status !== 200){
+        console.error('Failed to fetch policies of store', response);
+        setErrorMessage('Failed to fetch policies');
+        return;
+      }
+      console.log("the policies of the store:", response.data.message)
+      let data = response.data.message;
+  
+      if(data === null || data === undefined) {
+        console.error('Failed to fetch policies of store', response);
+        setErrorMessage('Failed to fetch policies of store');
+        return;
+      }
+  
+      let productSpecificPolicies = [];
+      let categorySpecificPolicies = [];
+      let basketSpecificPolicies = [];
+      let andPolicies = [];
+      let orPolicies = [];
+      let conditionalPolicies = [];
+  
+      for(let i = 0; i < data.length; i++){
+        console.log("the current policy:", data[i])
+        if(data[i].policy_type === "ProductSpecificPolicy"){
+          productSpecificPolicies.push(data[i]);
+        } else if(data[i].policy_type === "CategorySpecificPolicy"){
+          categorySpecificPolicies.push(data[i]);
+        } else if(data[i].policy_type === "BasketSpecificPolicy"){
+          basketSpecificPolicies.push(data[i]);
+        } else if(data[i].policy_type === "AndPolicy"){
+          andPolicies.push(data[i]);
+        } else if(data[i].policy_type === "OrPolicy"){
+          orPolicies.push(data[i]);
+        } else if(data[i].policy_type === "ConditionalPolicy"){
+          conditionalPolicies.push(data[i]);
+        } else {
           console.error('Failed to fetch policies of store', response);
           setErrorMessage('Failed to fetch policies of store');
           return;
         }
-        
-        setPolicies(data);        
-
-      } catch (error) {
-        console.error('Failed to fetch stores', error);
-        setErrorMessage('Failed to fetch stores');
-        setStores({});
       }
-      //fetching all the stores for the constraints
-      try {
-        const response = await api.get('/store/store_ids_to_names');
-        if(response.status !== 200){
-          console.error('Failed to fetch stores', response);
-          setErrorMessage('Failed to fetch stores');
-          return;
-        }
-        console.log("the stores:", response.data.message)
-        let data = response.data.message;
-
-        if(data === null || data === undefined) {
-          console.error('Failed to fetch stores', response);
-          setErrorMessage('Failed to fetch stores');
-          return;
-        }
-
-        setStores(data);
-      } catch (error) {
-        console.error('Failed to fetch stores', error);
-        setErrorMessage('Failed to fetch stores');
-      }
-
-      //fetching all products of the store
-      try {
-        let data = [];
-        for (let i = 0; i < stores.length; i++) {
-          const response = await api.get(`/store/store_products?store_id=${stores[i].key}`);
-          if(response.status !== 200){
-            console.error('Failed to fetch products of store', response);
-            setErrorMessage('Failed to fetch products');
-            return;
-          }
-          console.log("the products of the store:", response.data.message)
-          let data_of_store = response.data.message;
-
-          if(data_of_store === null || data_of_store === undefined) {
-            console.error('Failed to fetch products of store', response);
-            setErrorMessage('Failed to fetch products of store');
-            return;
-          }
-          data.push({ store_id: stores[i].key, products: data_of_store });
-        }
-
-        setProductsOfStore(data);
-      } catch (error) {
-        console.error('Failed to fetch products of store', error);
-        setErrorMessage('Failed to fetch products of store');
-      }
-
-      //fetching all categories
-      try {
-        const response = await api.get('/store/category_ids_to_names');
-        if(response.status !== 200){
-          console.error('Failed to fetch categories', response);
-          setErrorMessage('Failed to fetch categories');
-          return;
-        }
-        console.log("the categories:", response.data.message)
-        let data = response.data.message;
-
-        if(data === null || data === undefined) {
-          console.error('Failed to fetch categories', response);
-          setErrorMessage('Failed to fetch categories');
-          return;
-        }
-
-        setCategories(data);
-      } catch (error) {
-        console.error('Failed to fetch categories', error);
-        setErrorMessage('Failed to fetch categories');
-      }
+  
+      let policies = {
+        productSpecific: productSpecificPolicies, 
+        categorySpecific: categorySpecificPolicies, 
+        basketSpecific: basketSpecificPolicies, 
+        andPolicies: andPolicies, 
+        orPolicies: orPolicies, 
+        conditionalPolicies: conditionalPolicies
+      };
+  
+      setPolicies(policies);        
+  
+    } catch (error) {
+      console.error('Failed to fetch policies', error);
+      setErrorMessage('Failed to fetch policies');
     }
+  };
 
-    fetchData();
-  }, []);
+  const fetchInitialData = async () => {
+    try {
+      const response = await api.get('/store/store_ids_to_names');
+      if(response.status !== 200){
+        console.error('Failed to fetch stores', response);
+        setErrorMessage('Failed to fetch stores');
+        return;
+      }
+      console.log("the stores:", response.data.message)
+      let data = response.data.message;
+  
+      if(data === null || data === undefined) {
+        console.error('Failed to fetch stores', response);
+        setErrorMessage('Failed to fetch stores');
+        return;
+      }
+  
+      setStores(data);
+    } catch (error) {
+      console.error('Failed to fetch stores', error);
+      setErrorMessage('Failed to fetch stores');
+    }
+  
+    try {
+      let data = [];
+      console.log("the amount of stores:" , stores.length)
+      for (let i = 0; i < stores.length; i++) {
+        console.log("the store id:", stores[i].key)
+        let store_id_for_product = stores[i].key;
+        const response = await api.post(`/store/store_products`, {'store_id': store_id_for_product});
+        if(response.status !== 200){
+          console.error('Failed to fetch products of store', response);
+          setErrorMessage('Failed to fetch products');
+          return;
+        }
+        console.log("the products of the store:", response.data.message)
+        let data_of_store = response.data.message;
+  
+        if(data_of_store === null || data_of_store === undefined) {
+          console.error('Failed to fetch products of store', response);
+          setErrorMessage('Failed to fetch products of store');
+          return;
+        }
+        data.push({ store_id: stores[i].key, products: data_of_store });
+      }
+      
+      setProductsToStore(data);
+    } catch (error) {
+      console.error('Failed to fetch products of store', error);
+      setErrorMessage('Failed to fetch products of store');
+    }
+  
+    try {
+      const response = await api.get('/store/category_ids_to_names');
+      if(response.status !== 200){
+        console.error('Failed to fetch categories', response);
+        setErrorMessage('Failed to fetch categories');
+        return;
+      }
+      console.log("the categories:", response.data.message)
+      let data = response.data.message;
+  
+      if(data === null || data === undefined) {
+        console.error('Failed to fetch categories', response);
+        setErrorMessage('Failed to fetch categories');
+        return;
+      }
+  
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to fetch categories', error);
+      setErrorMessage('Failed to fetch categories');
+    }
+  };
+  
+
 
   //function responsible for adding a new policy
   const handleSaveChanges = () => {
@@ -252,6 +294,7 @@ const ManagePolicy = () => {
 
     let newPolicy;
     const savePolicy = async () => {
+      console.log("the data of the new policy:", data)
       try {
         console.log("the policy data:", data);
         //case of the simple policies
@@ -262,15 +305,6 @@ const ManagePolicy = () => {
             return;
           }
           console.log("the response id of the new policy:", response.data.policy_id)
-          newPolicy = {
-            "policy_id": response.data.policy_id,
-            ...data
-          }
-
-          console.log("the new policy:", newPolicy)
-          // Add the new policy to the appropriate type
-          setPolicies({ ...policies, [dialogType]: [...policies[dialogType], newPolicy] });
-
         } else {
           // case of the composite policies
           const response = await api.post(`/store/create_composite_policy`, data);
@@ -279,31 +313,6 @@ const ManagePolicy = () => {
             return;
           }
           console.log("the response id of the new policy:", response.data.policy_id)
-          newPolicy = {
-            "policy_id": response.data.policy_id,
-            "store_id": data.store_id,
-            "policy_name": data.policy_name,
-            "left_policy_id": selectedLeftPolicy,
-            "right_policy_id": selectedRightPolicy,
-            "type_of_composite": data.type_of_composite
-          }
-          console.log("the new policy:", newPolicy)
-
-          // Add the new composite policy to the appropriate type
-          const updatedPolicies = { ...policies };
-          updatedPolicies[dialogType].push(newPolicy);
-          setPolicies(updatedPolicies);
-
-          // Remove the selected policies
-          const removePolicy = (policyId) => {
-            for (let type in updatedPolicies) {
-              updatedPolicies[type] = updatedPolicies[type].filter(policy => policy.policy_id !== policyId);
-            }
-          };
-
-          removePolicy(parseInt(selectedLeftPolicy.policy_id));
-          removePolicy(parseInt(selectedRightPolicy.policy_id));
-          setPolicies(updatedPolicies);
         }
         setErrorMessage(null);
       } catch (error) {
@@ -313,6 +322,7 @@ const ManagePolicy = () => {
     };
 
     savePolicy();
+    fetchPolicies();
     setIsDialogOpen(false);
     setNewPolicyName('');
     setSelectedProduct('');
@@ -333,10 +343,7 @@ const ManagePolicy = () => {
           setErrorMessage('Failed to remove policy data');
           return;
         }
-        setPolicies({
-          ...policies,
-          [type]: policies[type].filter(policy => policy.policy_id !== policyId)
-        });
+        fetchPolicies();
         setErrorMessage(null);
       } catch (error) {
         console.error('Error removing policy:', error);
@@ -392,10 +399,8 @@ const ManagePolicy = () => {
   };
 
   //function responsible for adding a new constraint to a policy
-  const handleSaveConstraint = () => {
+  const handleSaveConstraint = (policyId) => {
     
-    // Add other validation checks for different constraint types here...
-
     const updatedPolicies = { ...policies };
     const policyType = Object.keys(updatedPolicies).find(type => 
       updatedPolicies[type].some(policy => policy.policy_id === currentPolicyId)
@@ -410,7 +415,7 @@ const ManagePolicy = () => {
       details: JSON.stringify(constraintValues)
     }];
 
-    setPolicies(updatedPolicies);
+    fetchPolicies();
     setConstraintDialogOpen(false);
   };
 
@@ -651,7 +656,7 @@ const ManagePolicy = () => {
                   <SelectValue placeholder="Select store..." />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  {stores.map((store) => (
+                  {Object.values(stores).map((store) => (
                     <SelectItem key={store.value} value={store.value}>
                       {store.label}
                     </SelectItem>
@@ -688,7 +693,7 @@ const ManagePolicy = () => {
                   <SelectValue placeholder="Select store..." />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  {stores.map((store) => (
+                  {Object.values(stores).map((store) => (
                     <SelectItem key={store.value} value={store.value}>
                       {store.label}
                     </SelectItem>
@@ -738,7 +743,7 @@ case 'categoryPrice':
           <SelectValue placeholder="Select category..." />
         </SelectTrigger>
         <SelectContent className="bg-white">
-          {categories.map((category) => (
+          {Object.values(categories).map((category) => (
             <SelectItem key={category.value} value={category.value}>
               {category.label}
             </SelectItem>
@@ -765,7 +770,7 @@ case 'basketAmount':
           <SelectValue placeholder="Select store..." />
         </SelectTrigger>
         <SelectContent className="bg-white">
-          {stores.map((store) => (
+          {Object.values(stores).map((store) => (
             <SelectItem key={store.value} value={store.value}>
               {store.label}
             </SelectItem>
@@ -792,7 +797,7 @@ case 'productAmount':
           <SelectValue placeholder="Select store..." />
         </SelectTrigger>
         <SelectContent className="bg-white">
-          {stores.map((store) => (
+          {Object.values(stores).map((store) => (
             <SelectItem key={store.value} value={store.value}>
               {store.label}
             </SelectItem>
@@ -831,7 +836,7 @@ case 'categoryAmount':
           <SelectValue placeholder="Select category..." />
         </SelectTrigger>
         <SelectContent className="bg-white">
-          {categories.map((category) => (
+          {Object.values(categories).map((category) => (
             <SelectItem key={category.value} value={category.value}>
               {category.label}
             </SelectItem>
@@ -868,7 +873,7 @@ case 'categoryWeight':
           <SelectValue placeholder="Select category..." />
         </SelectTrigger>
         <SelectContent className="bg-white">
-          {categories.map((category) => (
+          {Object.values(categories).map((category) => (
             <SelectItem key={category.value} value={category.value}>
               {category.label}
             </SelectItem>
@@ -905,7 +910,7 @@ case 'basketWeight':
           <SelectValue placeholder="Select store..." />
         </SelectTrigger>
         <SelectContent className="bg-white">
-          {stores.map((store) => (
+          {Object.values(stores).map((store) => (
             <SelectItem key={store.value} value={store.value}>
               {store.label}
             </SelectItem>
@@ -942,7 +947,7 @@ case 'productWeight':
           <SelectValue placeholder="Select store..." />
         </SelectTrigger>
         <SelectContent className="bg-white">
-          {stores.map((store) => (
+          {Object.values(stores).map((store) => (
             <SelectItem key={store.value} value={store.value}>
               {store.label}
             </SelectItem>
@@ -1015,20 +1020,7 @@ const renderPolicy = (policy, type) => (
             )}
           </>
         )}
-        {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
-          <button className="mt-2" onClick={() => handleToggleConstraint(policy.policy_id)}>Show Constraints</button>
-        )}
-        {expandedConstraint === policy.policy_id && (
-          <div className="mt-2">
-            {policy.constraints.map((constraint, index) => (
-              <p key={index}>{constraint.type}: {constraint.details}</p>
-            ))}
-          </div>
-        )}
         <div className={`flex ${['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
-          {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
-            <Button className="bg-blue-500 text-white py-1 px-3 rounded" onClick={() => handleOpenConstraintDialog(policy.policy_id)}>Add Constraint</Button>
-          )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Policy</Button>
@@ -1093,7 +1085,7 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Product Specific Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.productSpecific.map((policy) => renderPolicy(policy, 'productSpecific'))}
+        {policies.productSpecific && policies.productSpecific.map((policy) => renderPolicy(policy, 'productSpecific'))}
       </ScrollArea>
       <Dialog open={isDialogOpen && dialogType === 'productSpecific'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
@@ -1143,7 +1135,7 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Category Specific Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.categorySpecific.map((policy) => renderPolicy(policy, 'categorySpecific'))}
+        {policies.categorySpecific && policies.categorySpecific.map((policy) => renderPolicy(policy, 'categorySpecific'))}
       </ScrollArea>
       <Dialog open={isDialogOpen && dialogType === 'categorySpecific'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
@@ -1174,9 +1166,9 @@ return (
                   <SelectValue placeholder="Choose Category" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
+                  {Object.values(categories).map((category) => (
+                    <SelectItem key={category.value} value={category.category_name}>
+                      {category.category_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1193,7 +1185,7 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Basket Specific Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.basketSpecific.map((policy) => renderPolicy(policy, 'basketSpecific'))}
+        {policies.basketSpecific && policies.basketSpecific.map((policy) => renderPolicy(policy, 'basketSpecific'))}
       </ScrollArea>
       <Dialog open={isDialogOpen && dialogType === 'basketSpecific'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
@@ -1228,7 +1220,7 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">And Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.andPolicies.map((policy) => renderPolicy(policy, 'andPolicies'))}
+        {policies.andPolicies && policies.andPolicies.map((policy) => renderPolicy(policy, 'andPolicies'))}
       </ScrollArea>
       <Dialog open={isDialogOpen && dialogType === 'andPolicies'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
@@ -1293,7 +1285,7 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Or Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.orPolicies.map((policy) => renderPolicy(policy, 'orPolicies'))}
+        {policies.orPolicies && policies.orPolicies.map((policy) => renderPolicy(policy, 'orPolicies'))}
       </ScrollArea>
       <Dialog open={isDialogOpen && dialogType === 'orPolicies'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
@@ -1358,7 +1350,7 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Conditional Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.conditionalPolicies.map((policy) => renderPolicy(policy, 'conditionalPolicies'))}
+        {policies.conditionalPolicies && policies.conditionalPolicies.map((policy) => renderPolicy(policy, 'conditionalPolicies'))}
       </ScrollArea>
       <Dialog open={isDialogOpen && dialogType === 'conditionalPolicies'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
@@ -1419,41 +1411,9 @@ return (
         </DialogContent>
       </Dialog>
     </div>
-
-    <Dialog open={constraintDialogOpen} onOpenChange={setConstraintDialogOpen}>
-      <DialogContent className="sm:max-w-[425px] bg-white">
-        <DialogHeader>
-          <DialogTitle>Adding a constraint</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          {constraintError && (
-            <div className="text-red-500 text-sm">{constraintError}</div>
-          )}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="constraint-type" className="block mt-2">Constraint Type</Label>
-            <Select onValueChange={handleConstraintTypeChange}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Choose constraint type" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {constraintTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {renderConstraintFields()}
-        </div>
-        <DialogFooter>
-          <Button type="button" onClick={handleSaveConstraint}>Save constraint</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   </div>
 );
-
 };
+
 
 export default ManagePolicy;

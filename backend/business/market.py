@@ -179,7 +179,7 @@ class MarketFacade:
         policy5 = self.store_facade.add_purchase_policy_to_store(store_id, "policy5", category2, None)
         self.store_facade.assign_predicate_to_purchase_policy(store_id,policy5, ("age", 18))
         policy6 = self.store_facade.add_purchase_policy_to_store(store_id, "policy6", None, product3)
-        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy6, ("weight_basket", 1))
+        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy6, ("weight_basket", 1.0, -1.0, store_id))
         policy7 = self.store_facade.create_composite_purchase_policy_to_store(store_id, "composite policy", policy5, policy6, 1)
 
 
@@ -190,7 +190,7 @@ class MarketFacade:
         discount3 = self.store_facade.add_discount("discount3", datetime(2021, 1, 1), datetime(2050, 1,1), 0.3, category1, None, None, False)
         discount4 = self.store_facade.add_discount("discount4", datetime(2021, 1, 1), datetime(2050, 1,1), 0.4, None, store_id, product2, None)
         discount5 = self.store_facade.add_discount("discount5", datetime(2021, 1, 1), datetime(2050, 1,1), 0.5, None, store_id, product3, None)
-        self.store_facade.assign_predicate_to_discount(discount5, ("and", ("age", 18), ("weight_basket", 1)))
+        self.store_facade.assign_predicate_to_discount(discount5, ("and", ("age", 18), ("weight_basket", 1.0, -1.0, store_id)))
         discount6 = self.store_facade.add_discount("discount6", datetime(2021, 1, 1), datetime(2050, 1,1), 0.6, category2, None, None, False)
         discount7 = self.create_numerical_composite_discount(0, "composite discount", datetime(2021, 1, 1), datetime(2050, 1,1), [discount5, discount6], 2)
         discount8 = self.create_logical_composite_discount(0, "composite discount", datetime(2021, 1, 1), datetime(2050, 1,1), discount7, discount4, 1)
@@ -780,7 +780,7 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id) or self.roles_facade.is_owner(store_id, user_id):
-            return self.store_facade.view_all_policies_of_store(store_id)
+            return self.store_facade.view_all_purchase_policies_of_store(store_id)
         else:
             raise UserError("User does not have the necessary permissions to view the policies of the store", UserErrorTypes.user_does_not_have_necessary_permissions)
        

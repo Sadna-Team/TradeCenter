@@ -363,7 +363,7 @@ def get_stores():
 
     return store_service.get_stores(page, limit)
 
-@store_bp.route('/store_products', methods=['GET'])
+@store_bp.route('/store_products', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_products():
     """
@@ -1037,7 +1037,7 @@ def assign_predicate_to_purchase_policy():
 
     return store_service.assign_predicate_to_purchase_policy(user_id, store_id, policy_id, predicate_builder)
 
-@store_bp.route('/view_all_policies_of_store', methods=['GET'])
+@store_bp.route('/view_all_policies_of_store', methods=['POST'])
 @jwt_required()
 def view_all_policies_of_store():
     """
