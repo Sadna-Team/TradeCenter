@@ -45,6 +45,7 @@ export default function SystemManagerPage() {
                 const request = await api.post('/store/remove_category', { category_id: id });
                 if(request.status === 200) {
                     setRerender(!rerender);
+                    setErrorMessage('');
                     return;
                 }
                 console.error('Failed to remove category', request.data.message);
@@ -70,6 +71,7 @@ export default function SystemManagerPage() {
                 const request = await api.post('/store/add_subcategory_to_category', { parent_category_id: id, subcategory_id: subCategoryId });
                 if(request.status === 200) {
                     setRerender(!rerender);
+                    setErrorMessage('');
                     return;
                 }
                 console.error('Failed to assign sub-category', request.data.message);
@@ -80,6 +82,36 @@ export default function SystemManagerPage() {
             }
         };
         assignSubCategory();
+    };
+
+    const handleUnAssignSubCategory = (id) => {
+        const subCategoryId = window.prompt('Enter the sub-category ID:');
+        if (!subCategoryId) {
+            setErrorMessage('Please enter a sub-category ID');
+            return;
+        }
+        if (categories[id].sub_categories.indexOf(Number(subCategoryId)) === -1) {
+            setErrorMessage('Sub-category is not assigned to this category');
+            return;
+        }
+        console.log(`Un-assign sub-category with ID: ${subCategoryId} from category with ID: ${id}`);
+
+        const unAssignSubCategory = async () => {
+            try {
+                const request = await api.post('/store/remove_subcategory_from_category', { parent_category_id: id, subcategory_id: subCategoryId });
+                if(request.status === 200) {
+                    setRerender(!rerender);
+                    setErrorMessage('');
+                    return;
+                }
+                console.error('Failed to un-assign sub-category', request.data.message);
+            }
+            catch (error) {
+                console.error('Failed to un-assign sub-category', error);
+                setErrorMessage('Failed to un-assign sub-category');
+            }
+        };
+        unAssignSubCategory();
     };
 
     const handleAddCategory = () => {
@@ -95,6 +127,7 @@ export default function SystemManagerPage() {
                 const request = await api.post('/store/add_category', { category_name: categoryName });
                 if(request.status === 200) {
                     setRerender(!rerender);
+                    setErrorMessage('');
                     return;
                 }
                 console.error('Failed to add category', request.data.message);
@@ -146,6 +179,12 @@ export default function SystemManagerPage() {
                                         className="action-button assign-button"
                                     >
                                         Assign Sub-category
+                                    </div>
+                                    <div
+                                        onClick={() => handleUnAssignSubCategory(id)}
+                                        className="action-button unassign-button"
+                                    >
+                                        Un-Assign Sub-category
                                     </div>
                                 </td>
                             </tr>
@@ -214,6 +253,9 @@ export default function SystemManagerPage() {
                 }
                 .assign-button {
                     background-color: green;
+                }
+                .unassign-button {
+                    background-color: blue;
                 }
                 .add-category {
                     display: flex;

@@ -724,7 +724,7 @@ def remove_subcategory_from_category():
         logger.error('remove_subcategory_from_category - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.remove_subcategory_from_category(user_id, parent_category_id, subcategory_id)
+    return store_service.remove_subcategory_from_category(user_id, subcategory_id, parent_category_id)
 
 
 @store_bp.route('/assign_product_to_category', methods=['POST'])
