@@ -347,7 +347,7 @@ class RolesFacade:
                 raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
             if removed_id not in self.__stores_to_roles[store_id]:
                 raise RoleError("Removed user is not a member of the store",RoleErrorTypes.user_not_member_of_store)
-            if not self.__authorized_to_add_manager(store_id, actor_id):
+            if not self.__authorized_to_add_manager(store_id, actor_id) and actor_id != removed_id:
                 raise RoleError("Actor is not authorized to remove a role",RoleErrorTypes.actor_not_authorized_to_remove_role)
             if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, removed_id):
                 raise RoleError("Actor is not an ancestor of the removed user",RoleErrorTypes.actor_not_ancestor_of_role)
