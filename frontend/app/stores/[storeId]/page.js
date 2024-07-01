@@ -244,10 +244,10 @@ const StoreDetail = () => {
         <h1 className="text-4xl font-bold mb-8 mt-8 text-center">{store.store_name}</h1>
 
         {/* Management Buttons */}
-         <div className="mb-6 flex justify-center">
-          {permission['add_manager'] && <Link href="/manage_employee">
+        <div className="mb-6 flex justify-center">
+          <Link href={`/manage_employee/${store_id}`}>
             <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Employees Management</div>
-          </Link> }
+          </Link>
           <div>
             {storeRole === 'Founder' && (
               <div>
