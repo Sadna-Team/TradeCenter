@@ -85,7 +85,7 @@ export default function StoreManagementTable() {
                     color: red;
                 }
                 .scrollable-div {
-                    height: 200px;
+                    height: 400px;
                     overflow-y: scroll;
                     border: 1px solid #ccc;
                     padding: 10px;
