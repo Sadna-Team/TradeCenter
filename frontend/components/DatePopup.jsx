@@ -4,13 +4,24 @@ const DatePopup = ({ initialMessage, onClose, onCancel }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [message, setMessage] = useState(initialMessage);
   const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
 
   useEffect(() => {
     setMessage(initialMessage);
   }, [initialMessage]);
 
   const handleClose = () => {
-    onClose(date);
+    // Ensure time is in 24-hour format
+    const formattedTime = time ? new Date(`1970-01-01T${time}:00`).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+    const time_dict = { hour: formattedTime.slice(0, 2), minute: formattedTime.slice(3, 5) };
+    const date_dict = { year: date.slice(0, 4), month: date.slice(5, 7), day: date.slice(8, 10) };
+    console.log('Date:', date_dict, 'Time:', time_dict);
+    onClose({date: date_dict, time: time_dict });
+    setIsOpen(false);
+  };
+
+  const handleCloseNoDate = () => {
+    onClose(null);
     setIsOpen(false);
   };
 
@@ -37,10 +48,19 @@ const DatePopup = ({ initialMessage, onClose, onCancel }) => {
             onChange={(e) => setDate(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded mt-1"
             placeholder="Enter your date"
+            required
+          />
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded mt-1"
+            placeholder="Enter time (HH:MM)"
+            required
           />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
             <button type="submit" style={submitButtonStyle}>Submit Date</button>
-            <button onClick={handleClose} style={noDateButtonStyle}>No Date</button>
+            <button onClick={handleCloseNoDate} style={noDateButtonStyle}>No Date</button>
           </div>
         </form>
         <button onClick={handleCancel} style={cancelButtonStyle}>Cancel</button>
@@ -73,7 +93,7 @@ const popupStyle = {
   padding: '20px',
   borderRadius: '10px',
   boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-  maxWidth: '250px',
+  maxWidth: '300px',
   width: '100%',
   textAlign: 'center',
 };

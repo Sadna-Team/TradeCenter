@@ -390,14 +390,14 @@ class MarketFacade:
         self.user_facade.suspend_user_permanently(user_id)
         logger.info(f"User {actor_id} has suspended user {user_id} permanently")
 
-    def suspend_user_temporarily(self, actor_id: int, user_id: int, date_details: dict):
+    def suspend_user_temporarily(self, actor_id: int, user_id: int, date_details: dict, time_details: dict):
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
         if not self.roles_facade.is_system_manager(actor_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
         
-        self.user_facade.suspend_user_temporarily(user_id, date_details)
+        self.user_facade.suspend_user_temporarily(user_id, date_details, time_details)
         logger.info(f"User {actor_id} has suspended user {user_id} temporarily")
 
     def unsuspend_user(self, actor_id: int, user_id: int):

@@ -364,21 +364,22 @@ class UserService:
             logger.error('add_system_manager - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def suspend_user(self, user_id: int, username: str, date: dict[str, int]):
+    def suspend_user(self, user_id: int, username: str, date: dict[str, str], time: dict[str, str]):
         """
             Suspend a user
 
             Args:
                 user_id (int): id of the user
                 username (str): username of the user to be suspended
-                date (dict): date to end the suspension(if empty the suspension is indefinite)
+                date (dict): {year: str, month: str, day: str}
+                time (dict): {hour: str, minute: str}
 
             Returns:
                 response (str): response of the operation
         """
         try:
-            if date:
-                self.market_facade.suspend_user_temporarily(user_id, username, date)
+            if not (date == None or time == None):
+                self.market_facade.suspend_user_temporarily(user_id, username, date, time)
             else:
                 self.market_facade.suspend_user_permanently(user_id, username)
             return jsonify({'message': 'user suspended successfully'}), 200

@@ -414,13 +414,16 @@ def suspend_user():
         suspended_user_id = int(data['suspended_user_id'])
         try:
             date = data['date']
+            day = date['date']
+            time = date['time']
         except:
-            date = None
+            day = None
+            time = None
     except Exception as e:
         logger.error('suspend_user - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return user_service.suspend_user(user_id, suspended_user_id, date)
+    return user_service.suspend_user(user_id, suspended_user_id, day, time)
 
 
 @user_bp.route('/unsuspend_user', methods=['POST'])
