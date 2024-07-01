@@ -3,3 +3,441 @@ flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 New Store Logger - INFO - successfully created storeFacade
 myapp - INFO - [PurchaseFacade] successfully created purchase facade object
 Market logger - INFO - Admin was created
+Market logger - INFO - Admin was created
+New Store Logger - INFO - [Store] successfully created store with id: 0
+New Store Logger - INFO - Successfully added store: store1
+New Store Logger - INFO - Successfully added product: product1 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 0
+New Store Logger - INFO - [Product] successfully added tag to product with id: 0
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product2 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 1
+New Store Logger - INFO - [Product] successfully added tag to product with id: 1
+New Store Logger - INFO - [Product] successfully added tag to product with id: 1
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product3 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 2
+New Store Logger - INFO - [Product] successfully added tag to product with id: 2
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - Successfully added product: product4 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 3
+New Store Logger - INFO - [Product] successfully added tag to product with id: 3
+New Store Logger - INFO - [Product] successfully added tag to product with id: 3
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+New Store Logger - INFO - [Store] successfully created store with id: 1
+New Store Logger - INFO - Successfully added store: store2
+Market logger - INFO - User 1 has nominated user 2 to be the owner of store 0
+Roles Logger - INFO - User 2 accepted the nomination 0 in store 0
+Market logger - INFO - User 1 has nominated user 3 to be the manager of store 0
+Roles Logger - INFO - User 3 accepted the nomination 1 in store 0
+Market logger - INFO - User 2 has nominated user 4 to be the manager of store 0
+Roles Logger - INFO - User 4 accepted the nomination 2 in store 0
+Market logger - INFO - User 1 has changed the permissions of user 4 in store 0
+New Store Logger - INFO - [Category] successfully created category with id: 0
+New Store Logger - INFO - [StoreFacade] successfully added category: category1
+New Store Logger - INFO - [Category] successfully created category with id: 1
+New Store Logger - INFO - [StoreFacade] successfully added category: category2
+New Store Logger - INFO - [Category] successfully created category with id: 2
+New Store Logger - INFO - [StoreFacade] successfully added category: sub-category1
+New Store Logger - INFO - [Category] successfully added parent category to category with id: 2
+New Store Logger - INFO - [Category] successfully added sub category to category with id: 0
+New Store Logger - INFO - [Category] successfully added product to category with id: 0
+New Store Logger - INFO - [Category] successfully added product to category with id: 0
+New Store Logger - INFO - [Category] successfully added product to category with id: 1
+New Store Logger - INFO - [Category] successfully added product to category with id: 2
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 0 created successfully!
+myapp - INFO - [StoreSpecificPurchasePolicy] Store Specific Purchase Policy with id: 0 created successfully!
+New Store Logger - INFO - [Store] successfully added purchase policy to store with id: {self.__store_id}
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 1 created successfully!
+myapp - INFO - [CategorySpecificPurchasePolicy] Category Specific Purchase Policy with id: 1 created successfully!
+New Store Logger - INFO - [Store] successfully added purchase policy to store with id: {self.__store_id}
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 2 created successfully!
+myapp - INFO - [ProductSpecificPurchasePolicy] Product Specific Purchase Policy with id: 2 created successfully!
+New Store Logger - INFO - [Store] successfully added purchase policy to store with id: {self.__store_id}
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 3 created successfully!
+myapp - INFO - [ProductSpecificPurchasePolicy] Product Specific Purchase Policy with id: 3 created successfully!
+New Store Logger - INFO - [Store] successfully added purchase policy to store with id: {self.__store_id}
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 4 created successfully!
+myapp - INFO - [CategorySpecificPurchasePolicy] Category Specific Purchase Policy with id: 4 created successfully!
+New Store Logger - INFO - [Store] successfully added purchase policy to store with id: {self.__store_id}
+New Store Logger - WARNING - [StoreFacade] invalid predicate type
+myapp - INFO - [AgeConstraint]: Age constraint created with age limit: 18
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 5 created successfully!
+myapp - INFO - [ProductSpecificPurchasePolicy] Product Specific Purchase Policy with id: 5 created successfully!
+New Store Logger - INFO - [Store] successfully added purchase policy to store with id: {self.__store_id}
+New Store Logger - WARNING - [StoreFacade] invalid predicate type
+myapp - INFO - [WeightBasketConstraint]: Weight basket constraint created!
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 6 created successfully!
+myapp - INFO - [AndPurchasePolicy] And Purchase Policy with id: 6 created successfully!
+New Store Logger - INFO - [Store] successfully created composite purchase policy in store with id: {self.__store_id}
+New Store Logger - INFO - [StoreFacade] attempting to add discount to store
+New Store Logger - INFO - [StoreFacade] successfully added store discount to store
+myapp - INFO - [Discount] Discount with id: 0 created successfully!
+myapp - INFO - [StoreDiscount] Store discount with id: 0 created successfully!
+New Store Logger - INFO - [StoreFacade] attempting to add discount to store
+New Store Logger - INFO - [StoreFacade] successfully added product discount to store
+myapp - INFO - [Discount] Discount with id: 1 created successfully!
+myapp - INFO - [ProductDiscount] Product discount with id: 1 created successfully!
+New Store Logger - INFO - [StoreFacade] attempting to add discount to store
+New Store Logger - INFO - [StoreFacade] successfully added category discount to store
+myapp - INFO - [Discount] Discount with id: 2 created successfully!
+myapp - INFO - [CategoryDiscount] Category discount with id: 2 created successfully!
+New Store Logger - INFO - [StoreFacade] attempting to add discount to store
+New Store Logger - INFO - [StoreFacade] successfully added product discount to store
+myapp - INFO - [Discount] Discount with id: 3 created successfully!
+myapp - INFO - [ProductDiscount] Product discount with id: 3 created successfully!
+New Store Logger - INFO - [StoreFacade] attempting to add discount to store
+New Store Logger - INFO - [StoreFacade] successfully added product discount to store
+myapp - INFO - [Discount] Discount with id: 4 created successfully!
+myapp - INFO - [ProductDiscount] Product discount with id: 4 created successfully!
+New Store Logger - WARNING - [StoreFacade] invalid predicate type
+New Store Logger - WARNING - [StoreFacade] invalid predicate type
+myapp - INFO - [AgeConstraint]: Age constraint created with age limit: 18
+New Store Logger - WARNING - [StoreFacade] invalid predicate type
+myapp - INFO - [WeightBasketConstraint]: Weight basket constraint created!
+myapp - INFO - [AndConstraint]: And constraint created with two constraints
+New Store Logger - INFO - [StoreFacade] attempting to add discount to store
+New Store Logger - INFO - [StoreFacade] successfully added category discount to store
+myapp - INFO - [Discount] Discount with id: 5 created successfully!
+myapp - INFO - [CategoryDiscount] Category discount with id: 5 created successfully!
+New Store Logger - INFO - [StoreFacade] attempting to create numerical composite discount
+New Store Logger - INFO - [StoreFacade] successfully created Additive discount
+myapp - INFO - [Discount] Discount with id: 6 created successfully!
+myapp - INFO - [additiveDiscount] Additive discount created successfully!
+New Store Logger - INFO - [StoreFacade] attempting to create logical composite discount
+New Store Logger - INFO - [StoreFacade] successfully created AND discount
+myapp - INFO - [Discount] Discount with id: 7 created successfully!
+myapp - INFO - [AndDiscount] And discount created successfully!
+Market logger - INFO - User 2 has added 1 of product 0 to the basket
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+myapp - INFO - [AgeConstraint]: Checking if user is older than 18 years old
+myapp - INFO - [WeightBasketConstraint]: Checking if the total weight of the basket is atleast1.0 kg
+New Store Logger - INFO - [StoreFacade] attempting to get total price after discount
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+myapp - INFO - [StoreDiscount] Discount calculated to be: 10.0
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+myapp - INFO - [ProductDiscount] Discount calculated to be: 20.0
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+myapp - INFO - [CategoryDiscount] Discount calculated to be: 30.0
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+myapp - INFO - [AndDiscount] Both discounts applicable, applying discounts
+myapp - INFO - [additiveDiscount] Calculating additive discount
+myapp - INFO - [AndConstraint]: Checking if both constraints are satisfied
+myapp - INFO - [AgeConstraint]: Checking if user is older than 18 years old
+myapp - INFO - [WeightBasketConstraint]: Checking if the total weight of the basket is atleast1.0 kg
+myapp - INFO - [ProductDiscount] Discount calculated to be: 0.0
+myapp - INFO - [CategoryDiscount] Discount calculated to be: 0.0
+myapp - INFO - [ProductDiscount] Discount calculated to be: 0.0
+New Store Logger - INFO - [StoreFacade] successfully calculated total price after discount to be 40.0
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+myapp - INFO - [StoreDiscount] Discount calculated to be: 10.0
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+myapp - INFO - [ProductDiscount] Discount calculated to be: 20.0
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+myapp - INFO - [CategoryDiscount] Discount calculated to be: 30.0
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category category2 for discounts
+New Store Logger - INFO - [StoreFacade] successfully created category DTO from category sub-category1 for discounts
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+myapp - INFO - [AndDiscount] Both discounts applicable, applying discounts
+myapp - INFO - [additiveDiscount] Calculating additive discount
+myapp - INFO - [AndConstraint]: Checking if both constraints are satisfied
+myapp - INFO - [AgeConstraint]: Checking if user is older than 18 years old
+myapp - INFO - [WeightBasketConstraint]: Checking if the total weight of the basket is atleast1.0 kg
+myapp - INFO - [ProductDiscount] Discount calculated to be: 0.0
+myapp - INFO - [CategoryDiscount] Discount calculated to be: 0.0
+myapp - INFO - [ProductDiscount] Discount calculated to be: 0.0
+myapp - INFO - [ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: 0
+myapp - INFO - [ImmediatePurchase] successfully created immediate purchase object with purchase id: 0
+New Store Logger - INFO - Successfully removed product amount with id: {product_id}
+third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+third_party_handlers logger - INFO - Estimated delivery time: 2024-07-01 21:08:24.931594 - for package {'stores': dict_keys([0]), 'supply method': 'bogo'} to address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+myapp - INFO - [PurchaseFacade] attempting to accept purchase with purchase id: 0
+third_party_handlers logger - INFO - Processing payment of 40.0 with details {'payment method': 'bogo'}
+third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
+third_party_handlers logger - INFO - Processed supply for package {'shopping cart': {0: {0: 1}}, 'address': {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}, 'arrival time': datetime.datetime(2024, 7, 1, 21, 8, 24, 931594), 'purchase id': 0, 'supply method': 'bogo'} to user 2
+Market logger - INFO - User 2 has checked out
+werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+werkzeug - INFO - [33mPress CTRL+C to quit[0m
+myapp - INFO - [PurchaseFacade] attempting to complete purchase with purchase id: 0
+myapp - INFO - recieved request from a guest to enter the app
+myapp - INFO - guest entered the app successfully - user_id: 5
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:47] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:47] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:47] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:53] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:54] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:54] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lV4Yq HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:54] "GET /socket.io/?EIO=4&transport=polling&t=P1lV4Yq HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:55] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lV4dk&sid=w59zcPh8q4nedgavAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:55] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lV4dl&sid=w59zcPh8q4nedgavAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:55] "POST /socket.io/?EIO=4&transport=polling&t=P1lV4dk&sid=w59zcPh8q4nedgavAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:55] "GET /socket.io/?EIO=4&transport=polling&t=P1lV4dl&sid=w59zcPh8q4nedgavAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:55] "GET /socket.io/?EIO=4&transport=websocket&sid=w59zcPh8q4nedgavAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lV4yq HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user is a system manager
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "GET /user/is_system_manager HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "GET /socket.io/?EIO=4&transport=polling&t=P1lV4yq HTTP/1.1" 200 -
+myapp - INFO - stores were sent successfully
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:56] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user is a system manager
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:57] "GET /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:57] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lV56-&sid=ETaeNX576Vnhtxo5AAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:57] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P1lV56_&sid=ETaeNX576Vnhtxo5AAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:57] "POST /socket.io/?EIO=4&transport=polling&t=P1lV56-&sid=ETaeNX576Vnhtxo5AAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:08:57] "GET /socket.io/?EIO=4&transport=polling&t=P1lV56_&sid=ETaeNX576Vnhtxo5AAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:01] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:01] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:03] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:03] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:03] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:03] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:03] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:03] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - recieved request to get the role of a store
+myapp - INFO - received request to check if store is closed
+myapp - INFO - received request to check if the user has add product permission
+myapp - INFO - received request to send store info
+myapp - INFO - recieved request to get the role of a store
+myapp - INFO - get_store_roles was successful
+myapp - INFO - received request to check if store is closed
+myapp - INFO - store is not closed
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - store info was sent successfully
+myapp - INFO - get_store_roles was successful
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /market/get_store_role HTTP/1.1" 200 -
+myapp - INFO - store is not closed
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /store/is_store_closed HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add product permission
+myapp - INFO - recieved request to get the role of a store
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if store is closed
+myapp - INFO - get_store_roles was successful
+myapp - INFO - received request to check if the user has add product permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "OPTIONS /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+myapp - INFO - store is not closed
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:04] "POST /store/is_store_closed HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase policy permission
+myapp - INFO - received request to check if the user has change purchase policy permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase policy permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase types permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase types permission
+myapp - INFO - received request to check if the user has change purchase types permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount policy permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount policy permission
+myapp - INFO - received request to check if the user has change discount policy permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:05] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount types permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount types permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount types permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add manager permission
+myapp - INFO - received request to check if the user has add manager permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add manager permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has get bid permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:06] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has get bid permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:07] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has get bid permission
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:07] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "OPTIONS /store/store_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "OPTIONS /store/category_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "OPTIONS /store/store_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "OPTIONS /store/category_ids_to_names HTTP/1.1" 200 -
+myapp - INFO - received request to view all policies of store
+myapp - INFO - policies info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
+myapp - INFO - received request to view all policies of store
+myapp - INFO - received request to get all store names
+myapp - INFO - policies info was sent successfully
+myapp - INFO - received request to get all category names
+myapp - INFO - store ids to names were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
+myapp - INFO - categories were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "GET /store/store_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:11] "GET /store/category_ids_to_names HTTP/1.1" 200 -
+myapp - INFO - received request to get all store names
+myapp - INFO - store ids to names were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:12] "GET /store/store_ids_to_names HTTP/1.1" 200 -
+myapp - INFO - received request to get all category names
+myapp - INFO - categories were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:12] "GET /store/category_ids_to_names HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:12] "OPTIONS /store/store_products HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:12] "OPTIONS /store/store_products HTTP/1.1" 200 -
+myapp - INFO - received request to send store products
+myapp - INFO - store products info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:12] "POST /store/store_products HTTP/1.1" 200 -
+myapp - INFO - received request to send store products
+myapp - INFO - store products info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:12] "POST /store/store_products HTTP/1.1" 200 -
+myapp - INFO - received request to send store products
+myapp - INFO - store products info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:12] "POST /store/store_products HTTP/1.1" 200 -
+myapp - INFO - received request to send store products
+myapp - INFO - store products info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:12] "POST /store/store_products HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:20] "OPTIONS /store/add_purchase_policy HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:21] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+myapp - INFO - received request to add purchase policy
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 7 created successfully!
+myapp - INFO - [ProductSpecificPurchasePolicy] Product Specific Purchase Policy with id: 7 created successfully!
+New Store Logger - INFO - [Store] successfully added purchase policy to store with id: {self.__store_id}
+Market logger - INFO - User 1 has added a policy to store 0
+myapp - INFO - purchase policy was added successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:21] "POST /store/add_purchase_policy HTTP/1.1" 200 -
+myapp - INFO - received request to view all policies of store
+myapp - INFO - policies info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:21] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:27] "OPTIONS /store/add_purchase_policy HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:27] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+myapp - INFO - received request to add purchase policy
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 8 created successfully!
+myapp - INFO - [CategorySpecificPurchasePolicy] Category Specific Purchase Policy with id: 8 created successfully!
+New Store Logger - INFO - [Store] successfully added purchase policy to store with id: {self.__store_id}
+Market logger - INFO - User 1 has added a policy to store 0
+myapp - INFO - purchase policy was added successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:28] "POST /store/add_purchase_policy HTTP/1.1" 200 -
+myapp - INFO - received request to view all policies of store
+myapp - INFO - policies info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:28] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:53] "OPTIONS /store/create_composite_purchase_policy HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:53] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+myapp - INFO - received request to create composite purchase policy
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 9 created successfully!
+myapp - INFO - [AndPurchasePolicy] And Purchase Policy with id: 9 created successfully!
+New Store Logger - INFO - [Store] successfully created composite purchase policy in store with id: {self.__store_id}
+Market logger - INFO - User 1 has created a composite policy in store 0
+myapp - INFO - composite purchase policy was created successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:53] "POST /store/create_composite_purchase_policy HTTP/1.1" 200 -
+myapp - INFO - received request to view all policies of store
+myapp - INFO - policies info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:09:54] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:16] "OPTIONS /store/create_composite_purchase_policy HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:16] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+myapp - INFO - received request to create composite purchase policy
+myapp - INFO - [PurchasePolicy] Purchase Policy with id: 10 created successfully!
+myapp - INFO - [ConditioningPurchasePolicy] Conditioning Purchase Policy with id: 10 created successfully!
+New Store Logger - INFO - [Store] successfully created composite purchase policy in store with id: {self.__store_id}
+Market logger - INFO - User 1 has created a composite policy in store 0
+myapp - INFO - composite purchase policy was created successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:16] "POST /store/create_composite_purchase_policy HTTP/1.1" 200 -
+myapp - INFO - received request to view all policies of store
+myapp - INFO - policies info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:16] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:26] "OPTIONS /store/remove_purchase_policy HTTP/1.1" 200 -
+myapp - INFO - received request to remove purchase policy
+New Store Logger - INFO - [Store] successfully removed purchase policy from store with id: {self.__store_id}
+Market logger - INFO - User 1 has removed a policy from store 0
+myapp - INFO - purchase policy was removed successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:26] "POST /store/remove_purchase_policy HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:26] "OPTIONS /store/view_all_policies_of_store HTTP/1.1" 200 -
+myapp - INFO - received request to view all policies of store
+myapp - INFO - policies info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:26] "POST /store/view_all_policies_of_store HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:31] "OPTIONS /auth/logout HTTP/1.1" 200 -
+myapp - INFO - recieved request to logout a user
+myapp - INFO - guest entered the app successfully - user_id: 6
+myapp - INFO - User logged out successfully
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:31] "POST /auth/logout HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:32] "GET /socket.io/?EIO=4&transport=websocket&sid=ETaeNX576Vnhtxo5AAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [01/Jul/2024 21:10:32] "[31m[1mPOST /auth/logout HTTP/1.1[0m" 401 -

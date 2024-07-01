@@ -241,7 +241,7 @@ const ManagePolicy = () => {
     console.log("the dialog type:", dialogType)
     switch (dialogType) {
       case 'productSpecific':
-        if (!selectedProduct) {
+        if (selectedProduct === null || selectedProduct === undefined || selectedProduct === "") {
           setErrorMessage('Please select a product.');
           return;
         }
@@ -254,7 +254,7 @@ const ManagePolicy = () => {
         break;
 
       case 'categorySpecific':
-        if (!selectedCategory) {
+        if (selectedCategory === null || selectedCategory === undefined || selectedCategory === "") {
           setErrorMessage('Please select a category.');
           return;
         }
@@ -328,7 +328,6 @@ const ManagePolicy = () => {
     };
 
     savePolicy();
-    fetchPolicies();
     setIsDialogOpen(false);
     setNewPolicyName('');
     setSelectedProduct('');
@@ -336,6 +335,7 @@ const ManagePolicy = () => {
     setSelectedLeftPolicy('');
     setSelectedRightPolicy('');
     setErrorMessage('');
+    fetchPolicies();
   };
   
   
@@ -1149,43 +1149,44 @@ return (
           <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('categorySpecific')}>Add Category Policy</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-white">
-          <DialogHeader>
-            <DialogTitle>Adding a category specific policy</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {errorMessage && (
-              <div className="text-red-500 text-sm">{errorMessage}</div>
-            )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-              <Input 
-                id="policy-name" 
-                placeholder="Policy Name"
-                value={newPolicyName}
-                onChange={(e) => setNewPolicyName(e.target.value)}
-                className="col-span-3 border border-black"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="block mt-2">Choose Category</Label>
-              <Select onValueChange={setSelectedCategory}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Choose Category" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {Object.values(categories).map((category) => (
-                    <SelectItem key={category.value} value={category.category_id}>
-                      {category.category_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+        <DialogHeader>
+          <DialogTitle>Adding a category specific policy</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          {errorMessage && (
+            <div className="text-red-500 text-sm">{errorMessage}</div>
+          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
+            <Input 
+              id="policy-name" 
+              placeholder="Policy Name"
+              value={newPolicyName}
+              onChange={(e) => setNewPolicyName(e.target.value)}
+              className="col-span-3 border border-black"
+            />
           </div>
-          <DialogFooter>
-            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="category" className="block mt-2">Choose Category</Label>
+            <Select onValueChange={setSelectedCategory}>
+              <SelectTrigger className="col-span-3 border border-black bg-white">
+                <SelectValue placeholder="Please select a category" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="" disabled>Please select a category</SelectItem>
+                {Object.values(categories).map((category) => (
+                  <SelectItem key={category.category_id} value={category.category_id}>
+                    {category.category_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+        </DialogFooter>
+      </DialogContent>
       </Dialog>
     </div>
 
@@ -1199,28 +1200,46 @@ return (
           <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('basketSpecific')}>Add Basket Policy</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-white">
-          <DialogHeader>
-            <DialogTitle>Adding a basket specific policy</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {errorMessage && (
-              <div className="text-red-500 text-sm">{errorMessage}</div>
-            )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-              <Input 
-                id="policy-name" 
-                placeholder="Policy Name"
-                value={newPolicyName}
-                onChange={(e) => setNewPolicyName(e.target.value)}
-                className="col-span-3 border border-black"
-              />
-            </div>
+        
+        <DialogHeader>
+          <DialogTitle>Adding a category specific policy</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          {errorMessage && (
+            <div className="text-red-500 text-sm">{errorMessage}</div>
+          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
+            <Input 
+              id="policy-name" 
+              placeholder="Policy Name"
+              value={newPolicyName}
+              onChange={(e) => setNewPolicyName(e.target.value)}
+              className="col-span-3 border border-black"
+            />
           </div>
-          <DialogFooter>
-            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="category" className="block mt-2">Choose Category</Label>
+            <Select onValueChange={(value) => setSelectedCategory(value)} value={selectedCategory}>
+              <SelectTrigger className="col-span-3 border border-black bg-white">
+                <SelectValue placeholder="Please select a category" />
+              </SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="" disabled>Please select a category</SelectItem>
+                {Object.values(categories).map((category) => (
+                  <SelectItem key={category.category_id} value={category.category_id}>
+                    {category.category_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+        </DialogFooter>
+      </DialogContent>
+
       </Dialog>
     </div>
 
