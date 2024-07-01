@@ -50,11 +50,14 @@ const GuestNavBar = () => {
     <nav className="flex justify-between items-center p-4 bg-gray-800 text-white">
       <div className="flex items-center">
         <Link href="/">
-          <Logo />
+          <Logo/>
         </Link>
+        <span className="ml-2 text-xl">Guest</span>
+
+
       </div>
       <div className="flex space-x-4 items-center">
-        <Link href="/cart">
+      <Link href="/cart">
           <button className="relative" disabled={!token}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -78,6 +81,10 @@ const GuestNavBar = () => {
             </svg>
           </button>
         </Link>
+
+
+
+
         <Link href="/search_products">
           <Button disabled={!token}>
             Search Products
