@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 from threading import Lock
 from backend.business.notifier.notifier import Notifier
 from backend.error_types import *
-from backend.business.DTOs import RoleNominationDTO
+from backend.business.DTOs import RoleNominationDTO, UserDTO
 
 import logging
 
@@ -529,3 +529,32 @@ class RolesFacade:
             if user_id in roles:
                 stores.append(store_id)
         return stores
+
+    def get_user_employees(self, user_id, store_id) -> List[UserDTO]:
+        print("get_user_employees2")
+        # check if store exists
+        if store_id not in self.__stores_to_roles:
+            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+        with self.__stores_locks[store_id]:
+            if user_id not in self.__stores_to_roles[store_id]:
+                raise RoleError("User is not a member of the store", RoleErrorTypes.user_not_member_of_store)
+            employees = []
+            # return all users under the user_id
+            for user, role in self.__stores_to_roles[store_id].items():
+                if self.__stores_to_role_tree[store_id].is_descendant(user_id, user) and not user == user_id:
+                    if isinstance(role, StoreOwner):
+                        employees.append(UserDTO(user_id=user, role=role.__str__(), is_owner=True, add_product=True,
+                                                 change_purchase_policy=True, change_purchase_types=True,
+                                                 change_discount_policy=True, change_discount_types=True,
+                                                 add_manager=True, get_bid=True))
+                    else:
+                        employees.append(UserDTO(user_id=user, role=role.__str__(), is_owner=False,
+                                                 add_product=role.permissions.add_product,
+                                                 change_purchase_policy=role.permissions.change_purchase_policy,
+                                                 change_purchase_types=role.permissions.change_purchase_types,
+                                                 change_discount_policy=role.permissions.change_discount_policy,
+                                                 change_discount_types=role.permissions.change_discount_types,
+                                                 add_manager=role.permissions.add_manager,
+                                                 get_bid=role.permissions.get_bid))
+
+            return employees

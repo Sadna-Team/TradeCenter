@@ -438,6 +438,26 @@ class UserService:
             logger.error('get_user_nominations - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
+    def get_user_employees(self, user_id: int, store_id: int):
+        """
+            Get user employees
+
+            Args:
+                user_id (int): id of the user
+                store_id (int): id of the store
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            employees = self.market_facade.get_user_employees(user_id, store_id)
+            employees = [employee.get() for employee in employees]
+            return jsonify({'employees': employees}), 200
+        except Exception as e:
+            logger.error('get_user_employees - ' + str(e))
+            return jsonify({'message': str(e)}), 400
+
+
 class AuthenticationService:
     # singleton
     instance = None

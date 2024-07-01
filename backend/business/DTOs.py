@@ -188,7 +188,8 @@ class ProductDTO:
 
     def get(self) -> dict:
         return {"product_id": self.__product_id, "name": self.__name, "description": self.__description,
-                "price": self.__price, "amount": self.__amount, "tags": self.__tags, "weight": self.__weight, "rating": 0}
+                "price": self.__price, "amount": self.__amount, "tags": self.__tags, "weight": self.__weight,
+                "rating": 0}
 
 
 class StoreDTO:
@@ -399,7 +400,9 @@ class CategoryDTO:
 class UserDTO:
     def __init__(self, user_id: int, email: Optional[str] = None, username: Optional[str] = None, year:
     Optional[int] = None, month: Optional[int] = None, day: Optional[int] = None, phone: Optional[str] = None,
-                 role: Optional[str] = None):
+                 role: Optional[str] = None, is_owner: bool = False, add_product: bool = False, change_purchase_policy: bool = False,
+                 change_purchase_types: bool = False, change_discount_policy: bool = False,
+                 change_discount_types: bool = False, add_manager: bool = False, get_bid: bool = False):
         self.__user_id: int = user_id
         self.__email: Optional[str] = email
         self.__username: Optional[str] = username
@@ -408,6 +411,14 @@ class UserDTO:
         self.__day: Optional[int] = day
         self.__phone: Optional[str] = phone
         self.__role: Optional[str] = role
+        self.__is_owner: bool = is_owner
+        self.__add_product: bool = add_product
+        self.__change_purchase_policy: bool = change_purchase_policy
+        self.__change_purchase_types: bool = change_purchase_types
+        self.__change_discount_policy: bool = change_discount_policy
+        self.__change_discount_types: bool = change_discount_types
+        self.__add_manager: bool = add_manager
+        self.__get_bid: bool = get_bid
 
     @property
     def user_id(self) -> int:
@@ -420,6 +431,11 @@ class UserDTO:
     @property
     def username(self):
         return self.__username
+
+    # setter for username
+    @username.setter
+    def username(self, username: str):
+        self.__username = username
 
     @property
     def year(self):
@@ -440,6 +456,20 @@ class UserDTO:
     @property
     def role(self):
         return self.__role
+
+    @property
+    def is_owner(self):
+        return self.__is_owner
+
+    def get(self) -> dict:
+        return {"user_id": self.__user_id, "email": self.__email, "username": self.__username, "year": self.__year,
+                "month": self.__month, "day": self.__day, "phone": self.__phone, "role": self.__role,
+                "is_owner": self.__is_owner, "add_product": self.__add_product,
+                "change_purchase_policy": self.__change_purchase_policy,
+                "change_purchase_types": self.__change_purchase_types,
+                "change_discount_policy": self.__change_discount_policy,
+                "change_discount_types": self.__change_discount_types,
+                "add_manager": self.__add_manager, "get_bid": self.__get_bid}
 
 
 class PurchaseUserDTO:
