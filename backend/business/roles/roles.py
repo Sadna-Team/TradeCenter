@@ -531,7 +531,6 @@ class RolesFacade:
         return stores
 
     def get_user_employees(self, user_id, store_id) -> List[UserDTO]:
-        print("get_user_employees2")
         # check if store exists
         if store_id not in self.__stores_to_roles:
             raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
@@ -558,3 +557,9 @@ class RolesFacade:
                                                  get_bid=role.permissions.get_bid))
 
             return employees
+
+    def get_employed_users(self, store_id: int) -> List[int]:
+        if store_id not in self.__stores_to_roles:
+            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+        with self.__stores_locks[store_id]:
+            return list(self.__stores_to_roles[store_id].keys())

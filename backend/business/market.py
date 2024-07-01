@@ -1416,10 +1416,21 @@ class MarketFacade:
         return self.store_facade.is_store_closed(store_id)
 
     def get_user_employees(self, user_id: int, store_id: int):
-        print("get_user_employees")
         employees = self.roles_facade.get_user_employees(user_id, store_id)
         for employee in employees:
             user_dto = self.user_facade.get_userDTO(employee.user_id)
             employee.username = user_dto.username
         return employees
+
+    def get_unemployed_users(self, store_id) -> List[UserDTO]:
+        employed = self.roles_facade.get_employed_users(store_id)
+        all_users = self.user_facade.get_all_members()
+        unemployed = []
+        for user in all_users:
+            if user.user_id not in employed:
+                unemployed.append(user)
+
+        return unemployed
+
+
 
