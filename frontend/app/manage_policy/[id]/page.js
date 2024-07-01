@@ -86,7 +86,8 @@ const ManagePolicy = () => {
   //function for loading in all relevant data
   useEffect(() => {
     fetchPolicies();
-    fetchInitialData();
+    fetchStores();
+    fetchCategories();
   }, []);
 
   const fetchPolicies = async () => {
@@ -112,6 +113,8 @@ const ManagePolicy = () => {
       let andPolicies = [];
       let orPolicies = [];
       let conditionalPolicies = [];
+
+      
   
       for(let i = 0; i < data.length; i++){
         console.log("the current policy:", data[i])
@@ -151,7 +154,8 @@ const ManagePolicy = () => {
     }
   };
 
-  const fetchInitialData = async () => {
+ 
+  const fetchStores = async () => {
     try {
       const response = await api.get('/store/store_ids_to_names');
       if(response.status !== 200){
@@ -159,7 +163,7 @@ const ManagePolicy = () => {
         setErrorMessage('Failed to fetch stores');
         return;
       }
-      console.log("the stores:", response.data.message)
+      console.log("the stores:", response.data.message);
       let data = response.data.message;
   
       if(data === null || data === undefined) {
@@ -169,40 +173,38 @@ const ManagePolicy = () => {
       }
   
       setStores(data);
+
+      //fetching the products of each store
+      let products_data = [];
+      console.log("Trying to add the products of each store");
+      for(let key of Object.keys(data)){
+        console.log("Adding products of store:", key)
+        const product_response = await api.post(`/store/store_products`, { 'store_id': key });
+        if(product_response.status !== 200){
+          console.error('Failed to fetch products of store', product_response);
+          setErrorMessage('Failed to fetch products');
+          return;
+        }
+        console.log("the products of the store:", product_response.data.message);
+        let product_data = product_response.data.message;
+
+        if(product_data === null || product_data === undefined) {
+          console.error('Failed to fetch products of store', product_response);
+          setErrorMessage('Failed to fetch products of store');
+          return;
+        }
+        products_data.push({ store_id: key, products: product_data });
+      }
+
+      setProductsToStore(products_data);
+
     } catch (error) {
       console.error('Failed to fetch stores', error);
       setErrorMessage('Failed to fetch stores');
     }
-  
-    try {
-      let data = [];
-      console.log("the amount of stores:" , stores.length)
-      for (let i = 0; i < stores.length; i++) {
-        console.log("the store id:", stores[i].key)
-        let store_id_for_product = stores[i].key;
-        const response = await api.post(`/store/store_products`, {'store_id': store_id_for_product});
-        if(response.status !== 200){
-          console.error('Failed to fetch products of store', response);
-          setErrorMessage('Failed to fetch products');
-          return;
-        }
-        console.log("the products of the store:", response.data.message)
-        let data_of_store = response.data.message;
-  
-        if(data_of_store === null || data_of_store === undefined) {
-          console.error('Failed to fetch products of store', response);
-          setErrorMessage('Failed to fetch products of store');
-          return;
-        }
-        data.push({ store_id: stores[i].key, products: data_of_store });
-      }
-      
-      setProductsToStore(data);
-    } catch (error) {
-      console.error('Failed to fetch products of store', error);
-      setErrorMessage('Failed to fetch products of store');
-    }
-  
+  };
+
+  const fetchCategories = async () => {
     try {
       const response = await api.get('/store/category_ids_to_names');
       if(response.status !== 200){
@@ -210,7 +212,7 @@ const ManagePolicy = () => {
         setErrorMessage('Failed to fetch categories');
         return;
       }
-      console.log("the categories:", response.data.message)
+      console.log("the categories:", response.data.message);
       let data = response.data.message;
   
       if(data === null || data === undefined) {
@@ -226,6 +228,7 @@ const ManagePolicy = () => {
     }
   };
   
+  
 
 
   //function responsible for adding a new policy
@@ -235,16 +238,18 @@ const ManagePolicy = () => {
       return;
     }
     let data;
+    console.log("the dialog type:", dialogType)
     switch (dialogType) {
       case 'productSpecific':
         if (!selectedProduct) {
           setErrorMessage('Please select a product.');
           return;
         }
+        console.log("the selected product:", selectedProduct)
         data = {
           "store_id": store_id,
           "policy_name": newPolicyName,
-          "product_id": selectedProduct.product_id,
+          "product_id": selectedProduct,
         };
         break;
 
@@ -253,10 +258,11 @@ const ManagePolicy = () => {
           setErrorMessage('Please select a category.');
           return;
         }
+        console.log("the selected category:", selectedCategory)
         data = {
           "store_id": store_id,
           "policy_name": newPolicyName,
-          "category_id": selectedCategory.category_id,
+          "category_id": selectedCategory,
         };
         break;
 
@@ -283,8 +289,8 @@ const ManagePolicy = () => {
           data = { 
             "store_id": store_id,
             "policy_name": newPolicyName,
-            "left_policy_id": selectedLeftPolicy.policy_id,
-            "right_policy_id": selectedRightPolicy.policy_id,
+            "policy_id1": selectedLeftPolicy,
+            "policy_id2": selectedRightPolicy,
             "type_of_composite": type_of_composite
           };
           break;
@@ -307,7 +313,7 @@ const ManagePolicy = () => {
           console.log("the response id of the new policy:", response.data.policy_id)
         } else {
           // case of the composite policies
-          const response = await api.post(`/store/create_composite_policy`, data);
+          const response = await api.post(`/store/create_composite_purchase_policy`, data);
           if (response.status !== 200) {
             setErrorMessage('Failed to save policy data');
             return;
@@ -706,8 +712,8 @@ const ManagePolicy = () => {
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {products_to_store.map((product_to_store) => (
-                    <SelectItem key={product.value} value={product.value}>
-                      {product.label}
+                    <SelectItem key={product.value} value={product.product_id}>
+                      {product.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -810,8 +816,8 @@ case 'productAmount':
         </SelectTrigger>
         <SelectContent className="bg-white">
           {products_to_store.map((product) => (
-            <SelectItem key={product.value} value={product.value}>
-              {product.label}
+            <SelectItem key={product.value} value={product.product_id}>
+              {product.name}
             </SelectItem>
           ))}
         </SelectContent>
@@ -1116,11 +1122,12 @@ return (
                   <SelectValue placeholder="Choose Product" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
-                  {products_to_store.map((product) => ( //here we need to do it so that only the products associated to our store are shown
-                    <SelectItem key={product.value} value={product.value}>
-                      {product.label}
-                    </SelectItem>
-                  ))}
+                {products_to_store.filter(store => parseInt(store.store_id) === parseInt(store_id)).flatMap(store => store.products).map(product => (
+                  <SelectItem key={product.product_id} value={product.product_id}>
+                    {product.name}
+                  </SelectItem>
+                ))}
+                  
                 </SelectContent>
               </Select>
             </div>
@@ -1167,7 +1174,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(categories).map((category) => (
-                    <SelectItem key={category.value} value={category.category_name}>
+                    <SelectItem key={category.value} value={category.category_id}>
                       {category.category_name}
                     </SelectItem>
                   ))}
@@ -1252,7 +1259,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
+                    <SelectItem key={policy} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1267,7 +1274,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
+                    <SelectItem key={policy} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1317,7 +1324,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
+                    <SelectItem key={policy} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1332,7 +1339,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
+                    <SelectItem key={policy} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1382,7 +1389,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
+                    <SelectItem key={policy} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1397,7 +1404,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
+                    <SelectItem key={policy} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}

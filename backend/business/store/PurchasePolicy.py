@@ -271,7 +271,7 @@ class ConditioningPurchasePolicy(PurchasePolicy):
         policy_left = self.policy_left.get_policy_info_as_dict()
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {
-            "policy_type": "ConditioningPolicy",
+            "policy_type": "ConditionalPolicy",
             "policy_id": self.purchase_policy_id,
             "store_id": self.store_id,
             "policy_name": self.policy_name,
