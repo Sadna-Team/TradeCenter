@@ -264,7 +264,7 @@ def is_store_owner():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error(('is_system_manager - ', str(e)))
+        logger.error(('is_store_owner - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.is_store_owner(user_id, store_id)
@@ -279,7 +279,7 @@ def is_store_manager():
         data = request.get_json()
         store_id = int(data['store_id'])
     except Exception as e:
-        logger.error(('is_system_manager - ', str(e)))
+        logger.error(('is_store_manager - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
     return user_service.is_store_manager(user_id, store_id)
@@ -411,8 +411,11 @@ def suspend_user():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        suspended_user_id = str(data['suspended_user_id'])
-        date = data['date']
+        suspended_user_id = int(data['suspended_user_id'])
+        try:
+            date = data['date']
+        except:
+            date = None
     except Exception as e:
         logger.error('suspend_user - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -426,7 +429,7 @@ def unsuspend_user():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
-        suspended_user_id = str(data['suspended_user_id'])
+        suspended_user_id = int(data['suspended_user_id'])
     except Exception as e:
         logger.error('unsuspend_user - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -484,3 +487,26 @@ def get_unemployed_users():
 
     res = user_service.get_unemployed_users(store_id)
     return res
+
+@user_bp.route('/get_all_members', methods=['GET'])
+@jwt_required()
+def get_all_users():
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_all_users - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return user_service.get_all_members(user_id)
+
+@user_bp.route('/check_system_manager', methods=['POST'])
+@jwt_required()
+def check_system_manager():
+    try:
+        user_id = get_jwt_identity()
+        admin_id = request.get_json()['admin_id']
+    except Exception as e:
+        logger.error(('check_system_manager - ', str(e)))
+        return jsonify({'message': str(e)}), 400
+
+    return user_service.is_system_manager(admin_id)

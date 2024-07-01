@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link'; // Import the Link component
+import Button from '@/components/Button';
 
 export default function SystemManagerPage() {
     const [categories, setCategories] = useState({});
@@ -170,7 +171,7 @@ export default function SystemManagerPage() {
                     color: red;
                 }
                 .scrollable-div {
-                    height: 200px;
+                    height: 400px;
                     overflow-y: scroll;
                     border: 1px solid #ccc;
                     padding: 10px;
@@ -233,6 +234,15 @@ export default function SystemManagerPage() {
                     background-color: #45a049;
                 }
             `}</style>
+            <div className='flex justify-center mt-4'>
+                <div className='flex-col'>
+                    <Link href="system-manager/manage-users">
+                        <div className='flex items-center'>
+                            <Button className="text-lg font-bold text-blue-600">members management page</Button>
+                        </div>
+                    </Link>
+                </div>
+            </div>
         </div>
     );
 }

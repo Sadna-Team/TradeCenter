@@ -381,7 +381,7 @@ class MarketFacade:
         logger.info(f"User {actor} has removed user {user_id} as a system manager")
 
     def suspend_user_permanently(self, actor_id: int, user_id: int):
-        if self.user_facade.suspended(actor_id):
+        if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
         if not self.roles_facade.is_system_manager(actor_id):
@@ -391,7 +391,7 @@ class MarketFacade:
         logger.info(f"User {actor_id} has suspended user {user_id} permanently")
 
     def suspend_user_temporarily(self, actor_id: int, user_id: int, date_details: dict):
-        if self.user_facade.suspended(actor_id):
+        if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
         if not self.roles_facade.is_system_manager(actor_id):
@@ -1431,6 +1431,11 @@ class MarketFacade:
                 unemployed.append(user)
 
         return unemployed
+    
+    def get_all_members(self, user_id) -> List[UserDTO]:
+        if not self.roles_facade.is_system_manager(user_id):
+            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        return self.user_facade.get_all_members()
 
-
-
+    def is_suspended(self, user_id: int) -> bool:
+        return self.user_facade.suspended(user_id)

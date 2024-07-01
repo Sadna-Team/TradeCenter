@@ -383,7 +383,7 @@ class UserService:
                 self.market_facade.suspend_user_permanently(user_id, username)
             return jsonify({'message': 'user suspended successfully'}), 200
         except Exception as e:
-            logger.error('suspend_user - ' + str(e))
+            logger.error(('suspend_user - ' + str(e)))
             return jsonify({'message': str(e)}), 400
     
     def unsuspend_user(self, user_id: int, username: str):
@@ -476,6 +476,26 @@ class UserService:
             logger.error('get_unemployed_users - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
+    def get_all_members(self, user_id: int):
+        """
+            Get all users
+
+            Args:
+                user_id (int): id of the user
+
+            Returns:
+                response (str): response of the operation
+        """
+        try:
+            users = self.market_facade.get_all_members(user_id)
+            users = [user.get() for user in users]
+            for user in users:
+                user['is_suspended'] = self.market_facade.is_suspended(user['user_id'])
+                user['is_system_manager'] = self.roles_facade.is_system_manager(user['user_id'])
+            return jsonify({'users': users}), 200
+        except Exception as e:
+            logger.error('get_all_users - ' + str(e))
+            return jsonify({'message': str(e)}), 400
 
 class AuthenticationService:
     # singleton
