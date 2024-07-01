@@ -19,9 +19,9 @@ class StoreService:
             Add a discount to the system
         """
         try:
-            self.__market_facade.add_discount(user_id, description, start_date, end_date, percentage, store_id, product_id, category_id, applied_to_sub)
+            discount_id = self.__market_facade.add_discount(user_id, description, start_date, end_date, percentage, store_id, product_id, category_id, applied_to_sub)
             logger.info('discount was added successfully')
-            return jsonify({'message': 'discount was added successfully'}), 200
+            return jsonify({'discount_id': discount_id}), 200
         except Exception as e:
             logger.error('discount was not added')
             return jsonify({'message': str(e)}), 400
@@ -114,9 +114,9 @@ class StoreService:
 
     def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None):
         try:
-            self.__market_facade.add_purchase_policy(user_id, store_id, policy_name, category_id, product_id)
+            policy_id = self.__market_facade.add_purchase_policy(user_id, store_id, policy_name, category_id, product_id)
             logger.info('purchase policy was added successfully')
-            return jsonify({'message': 'purchase policy was added successfully'}), 200
+            return jsonify({'policy_id': policy_id}), 200
         except Exception as e:
             logger.error('purchase policy was not added')
             return jsonify({'message': str(e)}), 400
@@ -135,7 +135,7 @@ class StoreService:
         try:
             composite_policy_id = self.__market_facade.create_composite_purchase_policy(user_id, store_id, policy_name, policy_id1, policy_id2, type_of_composite)
             logger.info('composite purchase policy was created successfully')
-            return jsonify({'message': composite_policy_id}), 200
+            return jsonify({'policy_id': composite_policy_id}), 200
         except Exception as e:
             logger.error('composite purchase policy was not created')
             return jsonify({'message': str(e)}), 400

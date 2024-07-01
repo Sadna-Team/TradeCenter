@@ -1,4 +1,3 @@
-
 "use client";
 import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
@@ -27,99 +26,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/AlertDialog";
 
-// Mock data for policies
-const mockPolicies = {
-  productSpecific: [
-    {
-      purchase_policy_id: 1,
-      store_id: 101,
-      policy_name: "Product Policy 1",
-      product_id: "product1",
-      constraints: []
-    },
-    {
-      purchase_policy_id: 2,
-      store_id: 102,
-      policy_name: "Product Policy 2",
-      product_id: "product2",
-      constraints: []
-    }
-  ],
-  categorySpecific: [
-    {
-      purchase_policy_id: 3,
-      store_id: 103,
-      policy_name: "Category Policy 1",
-      category_id: "category1",
-      constraints: []
-    }
-  ],
-  basketSpecific: [
-    {
-      purchase_policy_id: 4,
-      store_id: 104,
-      policy_name: "Basket Policy 1",
-      constraints: []
-    }
-  ],
-  andPolicies: [
-    {
-      purchase_policy_id: 5,
-      store_id: 105,
-      policy_name: "And Policy 1",
-      left_policy: { id: 1, details: "Left policy details" },
-      right_policy: { id: 2, details: "Right policy details" }
-    }
-  ],
-  orPolicies: [
-    {
-      purchase_policy_id: 6,
-      store_id: 106,
-      policy_name: "Or Policy 1",
-      left_policy: { id: 3, details: "Left policy details" },
-      right_policy: { id: 4, details: "Right policy details" }
-    }
-  ],
-  conditionalPolicies: [
-    {
-      purchase_policy_id: 7,
-      store_id: 107,
-      policy_name: "Conditional Policy 1",
-      left_policy: { id: 5, details: "Left policy details" },
-      right_policy: { id: 6, details: "Right policy details" }
-    }
-  ]
-};
-
-// Mock data for products
-const mockProducts = [
-  { value: 'product1', label: 'Product 1' },
-  { value: 'product2', label: 'Product 2' },
-  { value: 'product3', label: 'Product 3' },
-  { value: 'product4', label: 'Product 4' },
-  { value: 'product5', label: 'Product 5' },
-  { value: 'product6', label: 'Product 6' },
-  { value: 'product7', label: 'Product 7' },
-  { value: 'product8', label: 'Product 8' },
-  { value: 'product9', label: 'Product 9' },
-  { value: 'product10', label: 'Product 10' },
-  // Add more mock products as needed
-];
-
-// Mock data for categories
-const mockCategories = [
-  { value: 'category1', label: 'Category 1' },
-  { value: 'category2', label: 'Category 2' },
-  // Add more mock categories as needed
-];
-
-// Mock data for stores
-const mockStores = [
-  { value: 'store1', label: 'Store 1' },
-  { value: 'store2', label: 'Store 2' },
-  // Add more mock stores as needed
-];
-
 const constraintTypes = [
   { value: 'age', label: 'Age constraint' },
   { value: 'time', label: 'Time constraint' },
@@ -138,120 +44,162 @@ const constraintTypes = [
   { value: 'basketWeight', label: 'Basket weight constraint' },
   { value: 'productWeight', label: 'Product weight constraint' },
   { value: 'compositeConstraint', label: 'Composite Constraint' },
-
-  // Add more constraint types as needed
 ];
 
 const ManagePolicy = () => {
+  const [errorMessage, setErrorMessage] = useState('');
+
   const searchParams = useSearchParams();
-  const id = searchParams.get('id');
-  const [policies, setPolicies] = useState(mockPolicies);
+  const store_id = searchParams.get('id');
+
+  // data required for the page
+  const [policies, setPolicies] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [products_to_store, setProductsToStore] = useState([]);
+  const [categories, setCategories] = useState([]);
+
+  // states for our dialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState('');
+  
+  const [newPolicyName, setNewPolicyName] = useState('');
+
+  // data for adding new composite policies
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedLeftPolicy, setSelectedLeftPolicy] = useState('');
   const [selectedRightPolicy, setSelectedRightPolicy] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState('');
-  const [newPolicyName, setNewPolicyName] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+
+  // data for viewing policy data
   const [expandedPolicies, setExpandedPolicies] = useState({});
   const [expandedLeftPolicy, setExpandedLeftPolicy] = useState(null);
   const [expandedRightPolicy, setExpandedRightPolicy] = useState(null);
   const [expandedConstraint, setExpandedConstraint] = useState(null);
+
+  // data required for adding constraints
   const [constraintDialogOpen, setConstraintDialogOpen] = useState(false);
   const [selectedConstraintType, setSelectedConstraintType] = useState('');
   const [constraintValues, setConstraintValues] = useState({});
   const [currentPolicyId, setCurrentPolicyId] = useState(null);
-  const [constraintError, setConstraintError] = useState('');
 
-  const generateUniqueId = () => {
-    // Generate a unique ID based on the current timestamp and a random number
-    return Date.now() + Math.floor(Math.random() * 1000);
-  };
-
+  //function responsible for adding a new policy
   const handleSaveChanges = () => {
     if (!newPolicyName) {
       setErrorMessage('Please enter a policy name.');
       return;
     }
-  
-    let newPolicyId = generateUniqueId();
-    let newPolicy;
+    let data;
     switch (dialogType) {
       case 'productSpecific':
         if (!selectedProduct) {
           setErrorMessage('Please select a product.');
           return;
         }
-        newPolicy = {
-          purchase_policy_id: newPolicyId,
-          store_id: 100 + policies[dialogType].length + 1,
-          policy_name: newPolicyName,
-          product_id: selectedProduct,
-          constraints: []
+        data = {
+          "store_id": store_id,
+          "policy_name": newPolicyName,
+          "product_id": selectedProduct,
         };
         break;
+
       case 'categorySpecific':
         if (!selectedCategory) {
           setErrorMessage('Please select a category.');
           return;
         }
-        newPolicy = {
-          purchase_policy_id: newPolicyId,
-          store_id: 100 + policies[dialogType].length + 1,
-          policy_name: newPolicyName,
-          category_id: selectedCategory,
-          constraints: []
+        data = {
+          "store_id": store_id,
+          "policy_name": newPolicyName,
+          "category_id": selectedCategory,
         };
         break;
+
       case 'basketSpecific':
-        newPolicy = {
-          purchase_policy_id: newPolicyId,
-          store_id: 100 + policies[dialogType].length + 1,
-          policy_name: newPolicyName,
-          constraints: []
+        data = {
+          "store_id": store_id,
+          "policy_name": newPolicyName,
         };
         break;
-      case 'andPolicies':
-      case 'orPolicies':
-      case 'conditionalPolicies':
-        if (!selectedLeftPolicy || !selectedRightPolicy) {
-          setErrorMessage('Please select both policies.');
-          return;
-        }
-        newPolicy = {
-          purchase_policy_id: newPolicyId,
-          store_id: 100 + policies[dialogType].length + 1,
-          policy_name: newPolicyName,
-          left_policy_id: parseInt(selectedLeftPolicy),
-          right_policy_id: parseInt(selectedRightPolicy)
-        };
-  
-        // Add the new composite policy to the appropriate type
-        const updatedPolicies = { ...policies };
-        updatedPolicies[dialogType].push(newPolicy);
-        setPolicies(updatedPolicies);
-  
-        // Remove the selected policies
-        const removePolicy = (policyId) => {
-          for (let type in updatedPolicies) {
-            updatedPolicies[type] = updatedPolicies[type].filter(policy => policy.purchase_policy_id !== policyId);
+      
+        case 'andPolicies':
+        case 'orPolicies':
+        case 'conditionalPolicies':
+          if (!selectedLeftPolicy || !selectedRightPolicy) {
+            setErrorMessage('Please select both policies.');
+            return;
           }
-        };
-  
-        removePolicy(parseInt(selectedLeftPolicy));
-        removePolicy(parseInt(selectedRightPolicy));
-        setPolicies(updatedPolicies);
-  
-        break;
+          const type_of_composite = 1;
+          if (dialogType == 'orPolicies'){
+            type_of_composite = 2;
+          }else if(dialogType === 'conditionalPolicies'){
+            type_of_composite = 3;
+          }
+          data = { 
+            "store_id": store_id,
+            "policy_name": newPolicyName,
+            "left_policy_id": selectedLeftPolicy.policy_id,
+            "right_policy_id": selectedRightPolicy.policy_id,
+            "type_of_composite": type_of_composite
+          };
+          break;
       default:
         return;
     }
-  
-    if (!['andPolicies', 'orPolicies', 'conditionalPolicies'].includes(dialogType)) {
-      setPolicies({ ...policies, [dialogType]: [...policies[dialogType], newPolicy] });
-    }
-  
+
+    let newPolicy;
+    const savePolicy = async () => {
+      try {
+        console.log("data: ", data);
+        //case of the simple policies
+        if (dialogType === 'productSpecific' || dialogType === 'categorySpecific' || dialogType === 'basketSpecific') {
+          const response = await api.post(`/store/add_purchase_policy`, data);
+          if (response.status !== 200) {
+            setErrorMessage('Failed to save policy data');
+            return;
+          }
+          newPolicy = {
+            "policy_id": response.data.policy_id,
+            ...data
+          }
+          // Add the new policy to the appropriate type
+          setPolicies({ ...policies, [dialogType]: [...policies[dialogType], newPolicy] });
+
+        } else {
+          // case of the composite policies
+          const response = await api.post(`/store/create_composite_policy`, data);
+          if (response.status !== 200) {
+            setErrorMessage('Failed to save policy data');
+            return;
+          }
+          newPolicy = {
+            "policy_id": response.data.policy_id,
+            ...data
+          }
+
+          // Add the new composite policy to the appropriate type
+          const updatedPolicies = { ...policies };
+          updatedPolicies[dialogType].push(newPolicy);
+          setPolicies(updatedPolicies);
+
+          // Remove the selected policies
+          const removePolicy = (policyId) => {
+            for (let type in updatedPolicies) {
+              updatedPolicies[type] = updatedPolicies[type].filter(policy => policy.policy_id !== policyId);
+            }
+          };
+
+          removePolicy(parseInt(selectedLeftPolicy.policy_id));
+          removePolicy(parseInt(selectedRightPolicy.policy_id));
+          setPolicies(updatedPolicies);
+        }
+        setErrorMessage(null);
+      } catch (error) {
+        console.error('Error adding store:', error);
+        setErrorMessage('Failed to save policy data');
+      }
+    };
+
+    savePolicy();
     setIsDialogOpen(false);
     setNewPolicyName('');
     setSelectedProduct('');
@@ -262,14 +210,29 @@ const ManagePolicy = () => {
   };
   
   
-
+  //function responsible for removing a policy
   const handleRemovePolicy = (type, policyId) => {
-    setPolicies({
-      ...policies,
-      [type]: policies[type].filter(policy => policy.purchase_policy_id !== policyId)
-    });
+    const removePolicy = async () => {
+      try {
+        const response = await api.post(`/store/remove_purchase_policy`, { "store_id": store_id, "policy_id": policyId });
+        if (response.status !== 200) {
+          setErrorMessage('Failed to remove policy data');
+          return;
+        }
+        setPolicies({
+          ...policies,
+          [type]: policies[type].filter(policy => policy.policy_id !== policyId)
+        });
+        setErrorMessage(null);
+      } catch (error) {
+        console.error('Error removing policy:', error);
+        setErrorMessage('Failed to remove policy data');
+      }
+    };
+    removePolicy();
   };
 
+  //function responsible for toggling the expanded state of a policy
   const handleToggle = (policyId, type) => {
     setExpandedPolicies({
       ...expandedPolicies,
@@ -277,6 +240,7 @@ const ManagePolicy = () => {
     });
   };
 
+  //function responsible for toggling the expanded sub policies of a composite policy
   const handleToggleLeftPolicy = (policyId) => {
     setExpandedLeftPolicy(expandedLeftPolicy === policyId ? null : policyId);
   };
@@ -285,45 +249,46 @@ const ManagePolicy = () => {
     setExpandedRightPolicy(expandedRightPolicy === policyId ? null : policyId);
   };
 
+  //function responsible for toggling the expanded constraint of a policy
   const handleToggleConstraint = (policyId) => {
     setExpandedConstraint(expandedConstraint === policyId ? null : policyId);
   };
 
+  //function responsible for opening the dialog for adding a new policy
   const handleOpenDialog = (type) => {
     setDialogType(type);
     setIsDialogOpen(true);
   };
 
+  //function responsible for opening the dialog for adding a new constraint
   const handleOpenConstraintDialog = (policyId) => {
     setCurrentPolicyId(policyId);
     setConstraintDialogOpen(true);
   };
 
+  //function responsible for changing the view for the adding a constraint type
   const handleConstraintTypeChange = (value) => {
     setSelectedConstraintType(value);
     setConstraintValues({});
   };
 
+  //function responsible for changing the values for the constraint we are adding
   const handleConstraintValueChange = (field, value) => {
     setConstraintValues({ ...constraintValues, [field]: value });
   };
 
+  //function responsible for adding a new constraint to a policy
   const handleSaveConstraint = () => {
-    // Validation logic
-    if (selectedConstraintType === 'age' && isNaN(constraintValues.ageLimit)) {
-      setConstraintError('Age limit must be a number.');
-      return;
-    }
     
     // Add other validation checks for different constraint types here...
 
     const updatedPolicies = { ...policies };
     const policyType = Object.keys(updatedPolicies).find(type => 
-      updatedPolicies[type].some(policy => policy.purchase_policy_id === currentPolicyId)
+      updatedPolicies[type].some(policy => policy.policy_id === currentPolicyId)
     );
 
     const policyIndex = updatedPolicies[policyType].findIndex(policy => 
-      policy.purchase_policy_id === currentPolicyId
+      policy.policy_id === currentPolicyId
     );
 
     updatedPolicies[policyType][policyIndex].constraints = [{
@@ -333,7 +298,6 @@ const ManagePolicy = () => {
 
     setPolicies(updatedPolicies);
     setConstraintDialogOpen(false);
-    setConstraintError('');
   };
 
   const renderConstraintFields = () => {
@@ -904,16 +868,16 @@ default:
 
 const renderPolicy = (policy, type) => (
   <div 
-    key={policy.purchase_policy_id} 
+    key={policy.policy_id} 
     className="mb-4 p-4 border-2 border-gray-300 rounded-md"
   >
     <button
-      onClick={() => handleToggle(policy.purchase_policy_id, type)}
+      onClick={() => handleToggle(policy.policy_id, type)}
       className="text-left w-full"
     >
-      {`Policy ID: ${policy.purchase_policy_id}`}
+      {`Policy ID: ${policy.policy_id}`}
     </button>
-    {expandedPolicies[type] === policy.purchase_policy_id && (
+    {expandedPolicies[type] === policy.policy_id && (
       <div className="mt-2">
         <p><strong>Store ID:</strong> {policy.store_id}</p>
         <p><strong>Policy Name:</strong> {policy.policy_name}</p>
@@ -922,15 +886,15 @@ const renderPolicy = (policy, type) => (
         {['andPolicies', 'orPolicies', 'conditionalPolicies'].includes(type) && (
           <>
             <div className="flex justify-between">
-              <button onClick={() => handleToggleLeftPolicy(policy.purchase_policy_id)} className="mt-2">Show Left Policy</button>
-              <button onClick={() => handleToggleRightPolicy(policy.purchase_policy_id)} className="mt-2">Show Right Policy</button>
+              <button onClick={() => handleToggleLeftPolicy(policy.policy_id)} className="mt-2">Show Left Policy</button>
+              <button onClick={() => handleToggleRightPolicy(policy.policy_id)} className="mt-2">Show Right Policy</button>
             </div>
-            {expandedLeftPolicy === policy.purchase_policy_id && (
+            {expandedLeftPolicy === policy.policy_id && (
               <div className="mt-2">
                 {renderNestedPolicy(policy.left_policy_id)}
               </div>
             )}
-            {expandedRightPolicy === policy.purchase_policy_id && (
+            {expandedRightPolicy === policy.policy_id && (
               <div className="mt-2">
                 {renderNestedPolicy(policy.right_policy_id)}
               </div>
@@ -938,9 +902,9 @@ const renderPolicy = (policy, type) => (
           </>
         )}
         {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
-          <button className="mt-2" onClick={() => handleToggleConstraint(policy.purchase_policy_id)}>Show Constraints</button>
+          <button className="mt-2" onClick={() => handleToggleConstraint(policy.policy_id)}>Show Constraints</button>
         )}
-        {expandedConstraint === policy.purchase_policy_id && (
+        {expandedConstraint === policy.policy_id && (
           <div className="mt-2">
             {policy.constraints.map((constraint, index) => (
               <p key={index}>{constraint.type}: {constraint.details}</p>
@@ -949,7 +913,7 @@ const renderPolicy = (policy, type) => (
         )}
         <div className={`flex ${['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
           {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
-            <Button className="bg-blue-500 text-white py-1 px-3 rounded" onClick={() => handleOpenConstraintDialog(policy.purchase_policy_id)}>Add Constraint</Button>
+            <Button className="bg-blue-500 text-white py-1 px-3 rounded" onClick={() => handleOpenConstraintDialog(policy.policy_id)}>Add Constraint</Button>
           )}
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -964,7 +928,7 @@ const renderPolicy = (policy, type) => (
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => handleRemovePolicy(type, policy.purchase_policy_id)}>Yes, remove policy</AlertDialogAction>
+                <AlertDialogAction onClick={() => handleRemovePolicy(type, policy.policy_id)}>Yes, remove policy</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -980,7 +944,7 @@ const renderNestedPolicy = (policyId) => {
   
   console.log('renderNestedPolicy called with policyId:', policyId); // Add log
   const policyType = Object.keys(policies).find(type => 
-    policies[type].some(p => p.purchase_policy_id === policyId)
+    policies[type].some(p => p.policy_id === policyId)
   );
 
   console.log('policyType found:', policyType); // Add log
@@ -989,7 +953,7 @@ const renderNestedPolicy = (policyId) => {
     return <p>Policy not found</p>;
   }
 
-  const nestedPolicy = policies[policyType].find(p => p.purchase_policy_id === policyId);
+  const nestedPolicy = policies[policyType].find(p => p.policy_id === policyId);
 
   console.log('nestedPolicy found:', nestedPolicy); // Add log
 
@@ -999,7 +963,7 @@ const renderNestedPolicy = (policyId) => {
 
   return (
     <div className="ml-4">
-      <p><strong>Policy ID:</strong> {nestedPolicy.purchase_policy_id}</p>
+      <p><strong>Policy ID:</strong> {nestedPolicy.policy_id}</p>
       <p><strong>Store ID:</strong> {nestedPolicy.store_id}</p>
       <p><strong>Policy Name:</strong> {nestedPolicy.policy_name}</p>
       {policyType === 'productSpecific' && <p><strong>Product ID:</strong> {nestedPolicy.product_id}</p>}
@@ -1182,7 +1146,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1197,7 +1161,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1247,7 +1211,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1262,7 +1226,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1312,7 +1276,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1327,7 +1291,7 @@ return (
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy.purchase_policy_id} value={policy.purchase_policy_id}>
+                    <SelectItem key={policy.policy_id} value={policy.policy_id}>
                       {policy.policy_name}
                     </SelectItem>
                   ))}
@@ -1379,4 +1343,3 @@ return (
 };
 
 export default ManagePolicy;
-

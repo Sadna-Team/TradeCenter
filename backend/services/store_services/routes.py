@@ -962,8 +962,12 @@ def add_purchase_policy():
         data = request.get_json()
         store_id = int(data['store_id'])
         policy_name = str(data['policy_name'])
-        category_id: Optional[int] = data['category_id']
-        product_id: Optional[int] = data['product_id']
+        category_id: Optional[int] = None
+        product_id: Optional[int] = None
+        if 'category_id' in data:
+            category_id = int(data['category_id'])
+        elif 'product_id' in data:
+            product_id = int(data['product_id'])
     except Exception as e:
         logger.error('add_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400

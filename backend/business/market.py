@@ -116,20 +116,20 @@ class MarketFacade:
         # stores:
         store_id = self.add_store(uid1, "address", "city", "state", "country", "zip_code", "store1")
 
-        self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
-        self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
-        self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
-        self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
+        product1 = self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
+        product2 = self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
+        product3 = self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
+        product4 = self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
-        store_id = self.add_store(uid1, "address", "city", "state", "country", "zip_code", "store2")
+        store_id2 = self.add_store(uid1, "address", "city", "state", "country", "zip_code", "store2")
 
         self.nominate_store_owner(store_id, uid1, "user2")
         self.accept_nomination(uid2, 0, True)
 
         # add 3 categories
-        self.store_facade.add_category("category1")
-        self.store_facade.add_category("category2")
-        self.store_facade.add_category("sub-category1")
+        category1 = self.store_facade.add_category("category1")
+        category2 = self.store_facade.add_category("category2")
+        category3 = self.store_facade.add_category("sub-category1")
         self.store_facade.assign_sub_category_to_category(2, 0)
         
         # assign products to categories
@@ -138,6 +138,29 @@ class MarketFacade:
         self.store_facade.assign_product_to_category(1, 0, 2)
         self.store_facade.assign_product_to_category(2, 0, 3)
 
+        # add 5 policies
+        policy1 = self.store_facade.add_purchase_policy_to_store(store_id, "policy1", None, None)
+        policy2 = self.store_facade.add_purchase_policy_to_store(store_id, "policy2",category1, None)
+        policy3 = self.store_facade.add_purchase_policy_to_store(store_id, "policy3", None, product1)
+        policy4 = self.store_facade.add_purchase_policy_to_store(store_id, "policy4", None, product2)
+        policy5 = self.store_facade.add_purchase_policy_to_store(store_id, "policy5", category2, None)
+        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy5, ("age", 18))
+        policy6 = self.store_facade.add_purchase_policy_to_store(store_id, "policy6", None, product3)
+        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy6, ("weight_basket", 1))
+        policy7 = self.store_facade.create_composite_purchase_policy_to_store(store_id, "composite policy", policy5, policy6, 1)
+
+
+
+        # add 5 discounts
+        discount1 = self.store_facade.add_discount("discount1", datetime(2021, 1, 1), datetime(2050, 1,1), 0.1, None, store_id,None,None)
+        discount2 = self.store_facade.add_discount("discount2", datetime(2021, 1, 1), datetime(2050, 1,1), 0.2, None, store_id, product1, None)
+        discount3 = self.store_facade.add_discount("discount3", datetime(2021, 1, 1), datetime(2050, 1,1), 0.3, category1, None, None, False)
+        discount4 = self.store_facade.add_discount("discount4", datetime(2021, 1, 1), datetime(2050, 1,1), 0.4, None, store_id, product2, None)
+        discount5 = self.store_facade.add_discount("discount5", datetime(2021, 1, 1), datetime(2050, 1,1), 0.5, None, store_id, product3, None)
+        self.store_facade.assign_predicate_to_discount(discount5, ("and", ("age", 18), ("weight_basket", 1)))
+        discount6 = self.store_facade.add_discount("discount6", datetime(2021, 1, 1), datetime(2050, 1,1), 0.6, category2, None, None, False)
+        discount7 = self.create_numerical_composite_discount(0, "composite discount", datetime(2021, 1, 1), datetime(2050, 1,1), [discount5, discount6], 2)
+        discount8 = self.create_logical_composite_discount(0, "composite discount", datetime(2021, 1, 1), datetime(2050, 1,1), discount7, discount4, 1)
         # user 2 adds product 1 to basket
         self.add_product_to_basket(uid2, 0, 0, 1)
 
