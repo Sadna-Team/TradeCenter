@@ -295,6 +295,16 @@ const StoreDetail = () => {
           )}
         </div>
 
+        {/*add purchase history button*/}
+        <div className="mt-8 flex justify-center">
+          <Link href={{
+                      pathname: `/stores/${store_id}/store-purchase-history`,
+                      query: { storeId: store_id },
+                    }}>
+            <div className="bg-red-600 text-white font-bold py-2 px-4 rounded cursor-pointer">Purchase History</div>
+          </Link>
+        </div>
+
         {/* Conditional "Giveup Nomination" Button */}
         {(storeRole === 'StoreOwner' || storeRole === 'StoreManager') && (
           <div className="mt-8 flex justify-center">
