@@ -5,8 +5,13 @@ best online store for selling your products! <br/>
 * pip version = 24.0
 
 ## Existing username and password
-* System manager - username: admin, password: admin
-* Store manger - username: user1, password: 1234, owns: store1 (with id=0), store2 (with id=0) 
+* System manager -
+  * **username**: admin
+  * **password**: admin
+* Store manger - 
+  * **username**: user1
+  * **password**: 1234
+  * **owns**: store1 (with id=0), store2 (with id=0)
 
 ## Dependencies
 ### Create Virtual Environment For Backend
