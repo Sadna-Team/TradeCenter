@@ -11,6 +11,40 @@ supply_service = SupplyService()
 payment_service = PaymentService()
 
 
+@third_party_bp.route('/payment/get_all', methods=['GET'])
+@jwt_required()
+def get_all_payment_methods():
+    """
+        Use Case 1.2.4:
+        Get all third party payment methods supported by the platform
+
+        Data:
+            token (int): token of the user
+    """
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
+
+    return payment_service.get_all_methods(user_id)
+
+@third_party_bp.route('/payment/get_all_active', methods=['GET'])
+@jwt_required()
+def get_all_active_payment_methods():
+    """
+        Use Case 1.2.4:
+        Get all third party payment methods supported by the platform
+
+        Data:
+            token (int): token of the user
+    """
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
+
+    return payment_service.get_all_active_methods(user_id)
+
 @third_party_bp.route('/payment/add', methods=['POST'])
 @jwt_required()
 def add_third_party_payment_service():
@@ -62,7 +96,7 @@ def edit_third_party_payment_service():
     return payment_service.edit_third_party_service(user_id, method_name, editing_data)
 
 
-@third_party_bp.route('/payment/delete', methods=['DELETE'])
+@third_party_bp.route('/payment/delete', methods=['DELETE', 'POST'])
 @jwt_required()
 def delete_third_party_payment_service():
     """
@@ -82,6 +116,40 @@ def delete_third_party_payment_service():
 
     return payment_service.delete_third_party_service(user_id, method_name)
 
+
+@third_party_bp.route('/delivery/get_all', methods=['GET'])
+@jwt_required()
+def get_all_supply_methods():
+    """
+        Use Case 1.2.4:
+        Get all third party delivery methods supported by the platform
+
+        Data:
+            token (int): token of the user
+    """
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
+
+    return supply_service.get_all_methods(user_id)
+
+@third_party_bp.route('/delivery/get_all_active', methods=['GET'])
+@jwt_required()
+def get_all_active_supply_methods():
+    """
+        Use Case 1.2.4:
+        Get all third party delivery methods supported by the platform
+
+        Data:
+            token (int): token of the user
+    """
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        return jsonify({'message': str(e)}), 400
+
+    return supply_service.get_all_active_methods(user_id)
 
 @third_party_bp.route('/delivery/add', methods=['POST'])
 @jwt_required()

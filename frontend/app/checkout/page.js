@@ -7,11 +7,9 @@ import api from "@/lib/api";
 import Popup from "@/components/Popup"; // Assuming Popup component is imported correctly
 
 const Checkout = () => {
-  // get payment methods:
-  const paymentMethods = ['bogo'];
-  // get supply methods:
-  const supplyMethods = ['bogo'];
 
+  const [allPaymentMethods, setAllPaymentMethods] = useState([]);
+  const [allSupplyMethods, setAllSupplyMethods] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('');
   const [fullAddress, setFullAddress] = useState({
     address: '',
@@ -55,6 +53,29 @@ const Checkout = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        const response = await api.get('/third_party/payment/get_all_active');
+        setAllPaymentMethods(response.data.message);
+      } catch (error) {
+        console.error('Error fetching payment methods:', error);
+      }
+    };
+
+    const fetchSupplyMethods = async () => {
+      try {
+        const response = await api.get('/third_party/delivery/get_all_active');
+        setAllSupplyMethods(response.data.message);
+      } catch (error) {
+        console.error('Error fetching supply methods:', error);
+      }
+    };
+
+    fetchPaymentMethods();
+    fetchSupplyMethods();
+  }, []);
 
   useEffect(() => {
     // Check if all fields are filled
@@ -122,7 +143,11 @@ const Checkout = () => {
             required
           >
             <option value="">Select a payment method</option>
-            <option value="bogo">Unga</option>
+            {allPaymentMethods.map((method) => (
+              <option key={method} value={method}>
+                {method}
+              </option>
+            ))}
             {/* Add more payment methods here */}
           </select>
           {errors.paymentMethod && <p className="error">{errors.paymentMethod}</p>}
@@ -139,7 +164,13 @@ const Checkout = () => {
             required
           >
             <option value="">Select a supply method</option>
-            <option value="bogo">Bunga</option>
+            {
+              allSupplyMethods.map((method) => (
+                <option key={method} value={method}>
+                  {method}
+                </option>
+              ))
+            }
           </select>
           {errors.supplyMethod && <p className="error">{errors.supplyMethod}</p>}
           {supplyMethod === 'bogo' && <BogoDetails />}

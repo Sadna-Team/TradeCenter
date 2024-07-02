@@ -216,6 +216,15 @@ export default function SystemManagerPage() {
                     </Link>
                 </div>
             </div>
+            <div className='flex justify-center mt-2'>
+                <div className='flex-col'>
+                    <Link href="/system-manager/third-party-management">
+                        <div className='flex items-center'>
+                            <Button className="text-lg font-bold text-blue-600">Third Party Management</Button>
+                        </div>
+                    </Link>
+                </div>
+            </div>
             <style jsx>{`
                 .container {
                     padding: 20px;
