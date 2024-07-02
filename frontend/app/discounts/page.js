@@ -29,26 +29,26 @@ import {
 } from "@/components/AlertDialog";
 import { DatePickerDemo } from "@/components/DatePickerDemo";
 
-
 const constraintTypes = [
   { value: 'age', label: 'Age constraint' },
   { value: 'time', label: 'Time constraint' },
   { value: 'location', label: 'Location constraint' },
-  { value: 'dayOfMonth', label: 'Day of month constraint' },
-  { value: 'dayOfWeek', label: 'Day of week constraint' },
+  { value: 'day_of_month', label: 'Day of month constraint' },
+  { value: 'day_of_week', label: 'Day of week constraint' },
   { value: 'season', label: 'Season constraint' },
-  { value: 'holiday', label: 'Holiday constraint' },
-  { value: 'basketPrice', label: 'Basket price constraint' },
-  { value: 'productPrice', label: 'Product price constraint' },
-  { value: 'categoryPrice', label: 'Category price constraint' },
-  { value: 'basketAmount', label: 'Basket amount constraint' },
-  { value: 'productAmount', label: 'Product amount constraint' },
-  { value: 'categoryAmount', label: 'Category amount constraint' },
-  { value: 'categoryWeight', label: 'Category weight constraint' },
-  { value: 'basketWeight', label: 'Basket weight constraint' },
-  { value: 'productWeight', label: 'Product weight constraint' },
+  { value: 'holidays_of_country', label: 'Holiday constraint' },
+  { value: 'price_basket', label: 'Basket price constraint' },
+  { value: 'price_product', label: 'Product price constraint' },
+  { value: 'price_category', label: 'Category price constraint' },
+  { value: 'amount_basket', label: 'Basket amount constraint' },
+  { value: 'amount_product', label: 'Product amount constraint' },
+  { value: 'amount_category', label: 'Category amount constraint' },
+  { value: 'weight_category', label: 'Category weight constraint' },
+  { value: 'weight_basket', label: 'Basket weight constraint' },
+  { value: 'weight_product', label: 'Product weight constraint' },
   { value: 'compositeConstraint', label: 'Composite Constraint' },
 ];
+
 
 const ManageDiscount = () => {
   const [errorMessage, setErrorMessage] = useState('');
@@ -618,8 +618,8 @@ const ManageDiscount = () => {
   }
 };
 
-
 const renderConstraintFields = () => {
+  console.log("the current selected constraint type is:", selectedConstraintType);
   switch (selectedConstraintType) {
     case 'age':
       return (
@@ -1175,6 +1175,7 @@ const renderConstraintFields = () => {
 };
 
 
+
 const handleToggle = (discountId, type) => {
   setExpandedDiscounts(prevState => ({
     ...prevState,
@@ -1297,7 +1298,8 @@ const renderDiscount = (discount, type) => (
         <p><strong>End Date:</strong> {discount.end_date}</p>
         {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' || discount.discount_type === "CategoryDiscounts" &&  <p><strong>Percentage:</strong> {discount.percentage}</p>}
         {discount.discount_type === 'ProductDiscounts' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
-        {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
+        {discount.discount_type === 'ProductDiscounts' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
+        {discount.discount_type === 'StoreDiscounts' && <p><strong>Store ID:</strong> {discount.store_id}</p>}
         {discount.discount_type === 'CategoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
         {discount.discount_type === 'CategoryDiscounts' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
         {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(type) && (
