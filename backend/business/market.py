@@ -139,12 +139,14 @@ class MarketFacade:
         
         # stores:
         store_id = self.add_store(uid1, "Rager 130","Beer Sheva","Israel","Israel","12345678","store1")
-        self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
-        self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
-        self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
-        self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
+        product1 = self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
+        product2 = self.store_facade.add_product_to_store(store_id, "product2", "description2", 200, 2, ["tag1", "tag2"], 20)
+        product3 = self.store_facade.add_product_to_store(store_id, "product3", "description3", 300, 3, ["tag2"], 30)
+        product4 = self.store_facade.add_product_to_store(store_id, "product4", "description4", 400, 4, ["tag3", "tag4"], 40)
 
-        store_id = self.add_store(uid1, "BGU","Beer Shave","Israel","Israel","99999999","store2")
+        store_id2 = self.add_store(uid1, "BGU","Beer Shave","Israel","Israel","99999999","store2")
+
+        product5 = self.store_facade.add_product_to_store(store_id2, "product5", "description5", 500, 5, ["tag5"], 50)
 
         self.nominate_store_owner(store_id, uid1, "user2")
         self.accept_nomination(uid2, 0, True)
@@ -159,9 +161,9 @@ class MarketFacade:
 
 
         # add 3 categories
-        self.store_facade.add_category("category1")
-        self.store_facade.add_category("category2")
-        self.store_facade.add_category("sub-category1")
+        category1 = self.store_facade.add_category("category1")
+        category2 = self.store_facade.add_category("category2")
+        category3 = self.store_facade.add_category("sub-category1")
         self.store_facade.assign_sub_category_to_category(2, 0)
         
         # assign products to categories
@@ -170,6 +172,30 @@ class MarketFacade:
         self.store_facade.assign_product_to_category(1, 0, 2)
         self.store_facade.assign_product_to_category(2, 0, 3)
 
+        # add 5 policies
+        policy1 = self.store_facade.add_purchase_policy_to_store(store_id, "policy1", None, None)
+        policy2 = self.store_facade.add_purchase_policy_to_store(store_id, "policy2",category1, None)
+        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy2, ("age", 18))
+        policy3 = self.store_facade.add_purchase_policy_to_store(store_id, "policy3", None, product1)
+        policy4 = self.store_facade.add_purchase_policy_to_store(store_id, "policy4", None, product2)
+        policy5 = self.store_facade.add_purchase_policy_to_store(store_id, "policy5", category2, None)
+        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy5, ("age", 18))
+        policy6 = self.store_facade.add_purchase_policy_to_store(store_id, "policy6", None, product3)
+        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy6, ("weight_basket", 1.0, -1.0, store_id))
+        policy7 = self.store_facade.create_composite_purchase_policy_to_store(store_id, "composite policy", policy5, policy6, 1)
+
+
+
+        # add 5 discounts
+        discount1 = self.store_facade.add_discount("discount1", datetime(2021, 1, 1), datetime(2050, 1,1), 0.1, None, store_id,None,None)
+        discount2 = self.store_facade.add_discount("discount2", datetime(2021, 1, 1), datetime(2050, 1,1), 0.2, None, store_id, product1, None)
+        discount3 = self.store_facade.add_discount("discount3", datetime(2021, 1, 1), datetime(2050, 1,1), 0.3, category1, None, None, False)
+        discount4 = self.store_facade.add_discount("discount4", datetime(2021, 1, 1), datetime(2050, 1,1), 0.4, None, store_id, product2, None)
+        discount5 = self.store_facade.add_discount("discount5", datetime(2021, 1, 1), datetime(2050, 1,1), 0.5, None, store_id, product3, None)
+        self.store_facade.assign_predicate_to_discount(discount5, ("and", ("age", 18), ("weight_basket", 1.0, -1.0, store_id)))
+        discount6 = self.store_facade.add_discount("discount6", datetime(2021, 1, 1), datetime(2050, 1,1), 0.6, category2, None, None, False)
+        discount7 = self.create_numerical_composite_discount(0, "composite discount", datetime(2021, 1, 1), datetime(2050, 1,1), [discount5, discount6], 2)
+        discount8 = self.create_logical_composite_discount(0, "composite discount", datetime(2021, 1, 1), datetime(2050, 1,1), discount7, discount4, 1)
         # user 2 adds product 1 to basket
         self.add_product_to_basket(uid2, 0, 0, 1)
 
@@ -656,7 +682,7 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to remove a discount")
 
-    def view_all_discount_information(self, user_id: int) -> List[Dict]:
+    def view_all_discount_information(self, user_id: int) -> dict:
         """
         * This function returns all the discount information
         * Returns a list of dictionaries
@@ -750,7 +776,21 @@ class MarketFacade:
             self.store_facade.assign_predicate_to_purchase_policy(store_id, policy_id, predicate_properties)
         else:
             raise UserError("User does not have the necessary permissions to assign a predicate to a policy in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
+        
 
+    def view_all_policies_of_store(self, user_id: int , store_id:int) -> dict:
+        """
+        * Parameters: user_id, store_id
+        * This function returns all the purchase policies of a store
+        * Returns a dict of policies
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id) or self.roles_facade.is_owner(store_id, user_id):
+            return self.store_facade.view_all_purchase_policies_of_store(store_id)
+        else:
+            raise UserError("User does not have the necessary permissions to view the policies of the store", UserErrorTypes.user_does_not_have_necessary_permissions)
+       
     # -------------Products related methods-------------------#
     def add_product(self, user_id: int, store_id: int, product_name: str, description: str, price: float,
                     weight: float, tags: List[str], amount: Optional[int] = 0) -> int:

@@ -22,9 +22,9 @@ class Discount(ABC):
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint]):
         if isinstance(starting_date,str):
-            starting_date = datetime.strptime(starting_date, '%a, %d %b %Y %H:%M:%S %Z')
+            starting_date = datetime.strptime(starting_date, '%Y-%m-%d')
         if isinstance(ending_date,str):
-            ending_date = datetime.strptime(ending_date, '%a, %d %b %Y %H:%M:%S %Z')
+            ending_date = datetime.strptime(ending_date, '%Y-%m-%d')
         if starting_date > ending_date:
             logger.error("[Discount] Invalid dates")
             raise DiscountAndConstraintsError("invalid dates", DiscountAndConstraintsErrorTypes.invalid_date)
@@ -140,16 +140,19 @@ class CategoryDiscount(Discount):
         return discount_reduction
     
     def get_discount_info_as_dict(self) -> dict:
+        date_format = "%Y-%m-%d" 
+        is_applied = "Yes" if self.applied_to_subcategories else "No"
+        
         return {
-            "discount_type": "Category Discount",
+            "discount_type": "CategoryDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": self.starting_date,
-            "ending_date": self.ending_date,
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "percentage": self.percentage,
-            "predicate": self.predicate,
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None",
             "category_id": self.category_id,
-            "applied_to_subcategories": self.applied_to_subcategories
+            "applied_to_subcategories": is_applied
         }
 
 
@@ -191,14 +194,16 @@ class StoreDiscount(Discount):
         return discount_reduction
     
     def get_discount_info_as_dict(self) -> dict:
+        date_format = "%Y-%m-%d" 
+
         return {
-            "discount_type": "Store Discount",
+            "discount_type": "StoreDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": self.starting_date,
-            "ending_date": self.ending_date,
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "percentage": self.percentage,
-            "predicate": self.predicate,
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None",
             "store_id": self.store_id
         }
 
@@ -245,14 +250,16 @@ class ProductDiscount(Discount):
         return discount_reduction
     
     def get_discount_info_as_dict(self) -> dict:
+        date_format = "%Y-%m-%d" 
+
         return {
-            "discount_type": "Product Discount",
+            "discount_type": "ProductDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": self.starting_date,
-            "ending_date": self.ending_date,
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "percentage": self.percentage,
-            "predicate": self.predicate,
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None",
             "product_id": self.product_id,
             "store_id": self.store_id
         }
@@ -302,16 +309,18 @@ class AndDiscount(Discount):
         pass # we don't want to change the predicate of the composite discount
 
     def get_discount_info_as_dict(self) -> dict:
+        date_format = "%Y-%m-%d" 
+
         dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
         dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
         return {
-            "discount_type": "And Discount",
+            "discount_type": "AndDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": self.starting_date,
-            "ending_date": self.ending_date,
-            "discount_1_info": dict_of_disc1,
-            "discount_2_info": dict_of_disc2
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
+            "discount_id1": dict_of_disc1,
+            "discount_id2": dict_of_disc2
         }
     
 
@@ -368,16 +377,18 @@ class OrDiscount(Discount):
 
 
     def get_discount_info_as_dict(self) -> dict:
+        date_format = "%Y-%m-%d" 
+
         dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
         dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
         return {
-            "discount_type": "Or Discount",
+            "discount_type": "OrDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": self.starting_date,
-            "ending_date": self.ending_date,
-            "discount_1_info": dict_of_disc1,
-            "discount_2_info": dict_of_disc2
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
+            "discount_id1": dict_of_disc1,
+            "discount_id2": dict_of_disc2
         }
 
 # --------------- Xor Discount ---------------#
@@ -420,16 +431,18 @@ class XorDiscount(Discount):
         pass # we don't want to change the predicate of the composite discount
 
     def get_discount_info_as_dict(self) -> dict:
+        date_format = "%Y-%m-%d" 
+
         dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
         dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
         return {
-            "discount_type": "Xor Discount",
+            "discount_type": "XorDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": self.starting_date,
-            "ending_date": self.ending_date,
-            "discount_1_info": dict_of_disc1,
-            "discount_2_info": dict_of_disc2
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
+            "discount_id1": dict_of_disc1,
+            "discount_id2": dict_of_disc2
         }
 
 # --------------- Max Discount classes ---------------#
@@ -455,15 +468,17 @@ class MaxDiscount(Discount):
         pass # we don't want to change the predicate of the composite discount
 
     def get_discount_info_as_dict(self) -> dict:
+        date_format = "%Y-%m-%d" 
+
         discounts_info = dict()
         for discount in self.__ListDiscount:
             discounts_info[discount.discount_id] = discount.get_discount_info_as_dict()
         return {
-            "discount_type": "Max Discount",
+            "discount_type": "MaxDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": self.starting_date,
-            "ending_date": self.ending_date,
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "discounts_info": discounts_info
         }
 
@@ -491,14 +506,16 @@ class AdditiveDiscount(Discount):
         pass # we don't want to change the predicate of the composite discount
     
     def get_discount_info_as_dict(self) -> dict:
+        date_format = "%Y-%m-%d" 
+
         discounts_info = dict()
         for discount in self.__ListDiscount:
             discounts_info[discount.discount_id] = discount.get_discount_info_as_dict()
         return {
-            "discount_type": "Additive Discount",
+            "discount_type": "AdditiveDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": self.starting_date,
-            "ending_date": self.ending_date,
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "discounts_info": discounts_info
         }

@@ -1,6 +1,5 @@
 "use client";
 import api from '@/lib/api';
-import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ScrollArea';
 import {
@@ -11,9 +10,11 @@ import {
   DialogTrigger,
   DialogFooter
 } from "@/components/Dialog";
+import { format } from 'date-fns';
 import { Input } from "@/components/Input";
 import { Label } from "@/components/Label";
 import Button from "@/components/Button";
+import { MultiSelect } from 'react-multi-select-component';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/Select";
 import {
   AlertDialog,
@@ -26,34 +27,34 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/AlertDialog";
+import { DatePickerDemo } from "@/components/DatePickerDemo";
+
+
 const constraintTypes = [
   { value: 'age', label: 'Age constraint' },
   { value: 'time', label: 'Time constraint' },
   { value: 'location', label: 'Location constraint' },
-  { value: 'day_of_month', label: 'Day of month constraint' },
-  { value: 'day_of_week', label: 'Day of week constraint' },
+  { value: 'dayOfMonth', label: 'Day of month constraint' },
+  { value: 'dayOfWeek', label: 'Day of week constraint' },
   { value: 'season', label: 'Season constraint' },
-  { value: 'holidays_of_country', label: 'Holiday constraint' },
-  { value: 'price_basket', label: 'Basket price constraint' },
-  { value: 'price_product', label: 'Product price constraint' },
-  { value: 'price_category', label: 'Category price constraint' },
-  { value: 'amount_basket', label: 'Basket amount constraint' },
-  { value: 'amount_product', label: 'Product amount constraint' },
-  { value: 'amount_category', label: 'Category amount constraint' },
-  { value: 'weight_category', label: 'Category weight constraint' },
-  { value: 'weight_basket', label: 'Basket weight constraint' },
-  { value: 'weight_product', label: 'Product weight constraint' },
+  { value: 'holiday', label: 'Holiday constraint' },
+  { value: 'basketPrice', label: 'Basket price constraint' },
+  { value: 'productPrice', label: 'Product price constraint' },
+  { value: 'categoryPrice', label: 'Category price constraint' },
+  { value: 'basketAmount', label: 'Basket amount constraint' },
+  { value: 'productAmount', label: 'Product amount constraint' },
+  { value: 'categoryAmount', label: 'Category amount constraint' },
+  { value: 'categoryWeight', label: 'Category weight constraint' },
+  { value: 'basketWeight', label: 'Basket weight constraint' },
+  { value: 'productWeight', label: 'Product weight constraint' },
   { value: 'compositeConstraint', label: 'Composite Constraint' },
 ];
 
-const ManagePolicy = () => {
+const ManageDiscount = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
-  const searchParams = useSearchParams();
-  const store_id = searchParams.get('id');
-
-  // data required for the page
-  const [policies, setPolicies] = useState([]);
+  //data required for our page
+  const [discounts, setDiscounts] = useState([]);
   const [stores, setStores] = useState({});
   const [products_to_store, setProductsToStore] = useState([]);
   const [categories, setCategories] = useState({});
@@ -62,43 +63,55 @@ const ManagePolicy = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('');
   
-  const [newPolicyName, setNewPolicyName] = useState('');
 
-  // data for adding new composite policies
+  // data for adding new discount
+  const [newDiscountDescription, setNewDiscountDescription] = useState('');
+  const [newDiscountStartingDate, setNewDiscountStartingDate] = useState('');
+  const [newDiscountEndingDate, setNewDiscountEndingDate] = useState('');
+  const [newDiscountPercentage, setNewDiscountPercentage] = useState(null);
+  const [newIsSubApplied, setNewIsSubApplied] = useState(false);
+  
+  //data for composite discounts
+  const [selectedStore, setSelectedStore] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedLeftPolicy, setSelectedLeftPolicy] = useState('');
-  const [selectedRightPolicy, setSelectedRightPolicy] = useState('');
+  const [selectedLeftDiscount, setSelectedLeftDiscount] = useState('');
+  const [selectedRightDiscount, setSelectedRightDiscount] = useState('');
+  const [selectedMultipleDiscounts, setSelectedMultipleDiscounts] = useState([]);
 
-  // data for viewing policy data
-  const [expandedPolicies, setExpandedPolicies] = useState({});
-  const [expandedLeftPolicies, setExpandedLeftPolicies] = useState({});
-  const [expandedRightPolicies, setExpandedRightPolicies] = useState({});
+  const [expandedDiscounts, setExpandedDiscounts] = useState({});
+  const [expandedLeftDiscounts, setExpandedLeftDiscounts] = useState({});
+  const [expandedRightDiscounts, setExpandedRightDiscounts] = useState({});
   const [expandedConstraints, setExpandedConstraints] = useState({});
-  
+  const [expandedMultipleDiscounts, setExpandedMultipleDiscounts] = useState({});
 
-  // data required for adding constraints
   const [constraintDialogOpen, setConstraintDialogOpen] = useState(false);
   const [selectedConstraintType, setSelectedConstraintType] = useState('');
   const [constraintValues, setConstraintValues] = useState({});
-  const [currentPolicyId, setCurrentPolicyId] = useState(null);
+  const [currentDiscountId, setCurrentDiscountId] = useState(null);
 
-  //function for loading in all relevant data
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editDiscountDescription, setEditDiscountDescription] = useState('');
+  const [editDiscountPercentage, setEditDiscountPercentage] = useState('');
+  const [editDiscountType, setEditDiscountType] = useState('');
+
+
   useEffect(() => {
-    fetchPolicies();
+    fetchDiscounts();
     fetchStores();
     fetchCategories();
   }, []);
 
-  const fetchPolicies = async () => {
+
+  const fetchDiscounts = async () => {
     try {
-      const response = await api.post('/store/view_all_policies_of_store', { 'store_id': store_id });
+      const response = await api.post('/store/view_discounts_info',{});
       if(response.status !== 200){
-        console.error('Failed to fetch policies of store', response);
-        setErrorMessage('Failed to fetch policies');
+        console.error('Failed to fetch discounts', response);
+        setErrorMessage('Failed to fetch discounts');
         return;
       }
-      console.log("the policies of the store:", response.data.message)
+      console.log("the discounts of the system:", response.data.message)
       let data = response.data.message;
   
       if(data === null || data === undefined) {
@@ -106,55 +119,58 @@ const ManagePolicy = () => {
         setErrorMessage('Failed to fetch policies of store');
         return;
       }
-  
-      let productSpecificPolicies = [];
-      let categorySpecificPolicies = [];
-      let basketSpecificPolicies = [];
-      let andPolicies = [];
-      let orPolicies = [];
-      let conditionalPolicies = [];
 
-      
-  
+      let StoreDiscounts = [];
+      let CategoryDiscounts = [];
+      let ProductDiscounts = [];
+      let AndDiscounts = [];
+      let OrDiscounts = [];
+      let XorDiscounts = [];
+      let AdditiveDiscounts = [];
+      let MaxDiscounts = [];
+    
       for(let i = 0; i < data.length; i++){
-        console.log("the current policy:", data[i])
-        if(data[i].policy_type === "ProductSpecificPolicy"){
-          productSpecificPolicies.push(data[i]);
-        } else if(data[i].policy_type === "CategorySpecificPolicy"){
-          categorySpecificPolicies.push(data[i]);
-        } else if(data[i].policy_type === "BasketSpecificPolicy"){
-          basketSpecificPolicies.push(data[i]);
-        } else if(data[i].policy_type === "AndPolicy"){
-          andPolicies.push(data[i]);
-        } else if(data[i].policy_type === "OrPolicy"){
-          orPolicies.push(data[i]);
-        } else if(data[i].policy_type === "ConditionalPolicy"){
-          conditionalPolicies.push(data[i]);
-        } else {
-          console.error('Failed to fetch policies of store', response);
-          setErrorMessage('Failed to fetch policies of store');
-          return;
+        console.log("the current discount is:", data[i]);
+        if(data[i].discount_type === 'StoreDiscounts'){
+          StoreDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'CategoryDiscounts'){
+          CategoryDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'ProductDiscounts'){
+          ProductDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'AndDiscounts'){
+          AndDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'OrDiscounts'){
+          OrDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'XorDiscounts'){
+          XorDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'AdditiveDiscounts'){
+          AdditiveDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'MaxDiscounts'){
+          MaxDiscounts.push(data[i]);
+        }else{
+          console.error('Unknown discount type:', data[i].discount_type);
+          setErrorMessage('Unknown discount type');
         }
       }
-  
-      let policies = {
-        productSpecific: productSpecificPolicies, 
-        categorySpecific: categorySpecificPolicies, 
-        basketSpecific: basketSpecificPolicies, 
-        andPolicies: andPolicies, 
-        orPolicies: orPolicies, 
-        conditionalPolicies: conditionalPolicies
-      };
-  
-      setPolicies(policies);        
-  
+
+      let discounts = {
+        StoreDiscounts: StoreDiscounts,
+        CategoryDiscounts: CategoryDiscounts,
+        ProductDiscounts: ProductDiscounts,
+        AndDiscounts: AndDiscounts,
+        OrDiscounts: OrDiscounts,
+        XorDiscounts: XorDiscounts,
+        additiveDiscounts: AdditiveDiscounts,
+        MaxDiscounts: MaxDiscounts
+      }
+
+      setDiscounts(discounts);
     } catch (error) {
-      console.error('Failed to fetch policies', error);
-      setErrorMessage('Failed to fetch policies');
+      console.error('Failed to fetch discounts', error);
+      setErrorMessage('Failed to fetch discounts');
     }
   };
 
- 
   const fetchStores = async () => {
     try {
       const response = await api.get('/store/store_ids_to_names');
@@ -227,163 +243,288 @@ const ManagePolicy = () => {
       setErrorMessage('Failed to fetch categories');
     }
   };
-  
-  
 
 
-  //function responsible for adding a new policy
+
+
   const handleSaveChanges = () => {
-    if (!newPolicyName) {
-      setErrorMessage('Please enter a policy name.');
+    if (!newDiscountStartingDate || !newDiscountEndingDate) {
+      setErrorMessage('Please select both starting and ending dates.');
       return;
     }
+
+    const starting_date = format(newDiscountStartingDate, "yyyy-MM-dd");
+    const ending_date = format(newDiscountEndingDate, "yyyy-MM-dd");
+
+    if (!newDiscountDescription) {
+      setErrorMessage('Please enter a description.');
+      return;
+    }
+
     let data;
-    console.log("the dialog type:", dialogType)
+    console.log("the dialog type is:", dialogType);
     switch (dialogType) {
-      case 'productSpecific':
-        if (selectedProduct === null || selectedProduct === undefined || selectedProduct === "") {
-          setErrorMessage('Please select a product.');
+      case 'StoreDiscounts':
+        if (selectedStore === null || selectedStore === '' || selectedStore === undefined) {
+          setErrorMessage('Please select a store.');
           return;
         }
-        console.log("the selected product:", selectedProduct)
+
         data = {
-          "store_id": store_id,
-          "policy_name": newPolicyName,
-          "product_id": selectedProduct,
+          description: newDiscountDescription,
+          start_date: starting_date,
+          end_date: ending_date,
+          percentage: parseFloat(newDiscountPercentage),
+          store_id: selectedStore,
         };
         break;
-
-      case 'categorySpecific':
-        if (selectedCategory === null || selectedCategory === undefined || selectedCategory === "") {
+      case 'CategoryDiscounts':
+        if (selectedCategory === null || selectedCategory === '' || selectedCategory === undefined) {
           setErrorMessage('Please select a category.');
           return;
         }
-        console.log("the selected category:", selectedCategory)
+
         data = {
-          "store_id": store_id,
-          "policy_name": newPolicyName,
-          "category_id": selectedCategory,
+          description: newDiscountDescription,
+          start_date: starting_date,
+          end_date: ending_date,
+          percentage: parseFloat(newDiscountPercentage),
+          category_id: selectedCategory,
+          applied_to_sub: newIsSubApplied,
+        };
+        break;
+      case 'ProductDiscounts':
+        if (selectedProduct === null || selectedProduct === '' || selectedProduct === undefined) {
+          setErrorMessage('Please select a product.');
+          return;
+        }
+
+        if (selectedStore === null || selectedStore === '' || selectedStore === undefined) {
+          setErrorMessage('Please select a store.');
+          return;
+        }
+
+        data = {
+          description: newDiscountDescription,
+          start_date: starting_date,
+          end_date: ending_date,
+          percentage: parseInt(newDiscountPercentage),
+          product_id: selectedProduct,
+          store_id: selectedStore,
+        };
+        break;
+      case 'AndDiscounts':
+      case 'OrDiscounts':
+      case 'XorDiscounts':
+        if (selectedLeftDiscount === '' || !selectedRightDiscount === '') {
+          setErrorMessage('Please select both discounts.');
+          return;
+        }
+        let type_of_discount = 1;
+        if(dialogType === 'OrDiscounts'){
+          type_of_discount = 2;
+        }else if(dialogType === 'XorDiscounts'){
+          type_of_discount = 3;
+        }
+        data = {
+          description: newDiscountDescription,
+          start_date: starting_date,
+          end_date: ending_date,
+          discount_id1: parseInt(selectedLeftDiscount),
+          discount_id2: parseInt(selectedRightDiscount),
+          type_of_composite: type_of_discount
         };
         break;
 
-      case 'basketSpecific':
+
+      case 'AdditiveDiscounts':
+      case 'MaxDiscounts':
+        if (selectedMultipleDiscounts.length === 0) {
+          setErrorMessage('Please select at least one discount.');
+          return;
+        }
+        let type_of_composite =1;
+        if(dialogType === 'AdditiveDiscounts'){
+          type_of_composite = 2;
+        }
+
+        console.log("the selected multiple discounts:", selectedMultipleDiscounts);
         data = {
-          "store_id": store_id,
-          "policy_name": newPolicyName,
+          description: newDiscountDescription,
+          start_date: starting_date,
+          end_date: ending_date,
+          discount_ids: selectedMultipleDiscounts.map((value) => parseInt(value.value)),
+          type_of_composite: type_of_composite
         };
         break;
-      
-        case 'andPolicies':
-        case 'orPolicies':
-        case 'conditionalPolicies':
-          if (selectedLeftPolicy === '' || selectedRightPolicy === '') {
-            setErrorMessage('Please select both policies.');
-            return;
-          }
-          let type_of_composite = 1;
-          if (dialogType == 'orPolicies'){
-            type_of_composite = 2;
-          }else if(dialogType === 'conditionalPolicies'){
-            type_of_composite = 3;
-          }
-          data = { 
-            "store_id": store_id,
-            "policy_name": newPolicyName,
-            "policy_id1": selectedLeftPolicy,
-            "policy_id2": selectedRightPolicy,
-            "type_of_composite": type_of_composite
-          };
-          break;
       default:
         return;
     }
 
-    let newPolicy;
-    const savePolicy = async () => {
-      console.log("the data of the new policy:", data)
+    const saveDiscount = async () => {
       try {
-        console.log("the policy data:", data);
-        //case of the simple policies
-        if (dialogType === 'productSpecific' || dialogType === 'categorySpecific' || dialogType === 'basketSpecific') {
-          const response = await api.post(`/store/add_purchase_policy`, data);
-          if (response.status !== 200) {
-            setErrorMessage('Failed to save policy data');
+        console.log("the discount data: ", data)
+        if(dialogType === 'StoreDiscounts' || dialogType === 'CategoryDiscounts' || dialogType === 'ProductDiscounts'){
+          const response = await api.post('/store/add_discount', data);
+          if(response.status !== 200){
+            console.error('Failed to add discount', response);
+            setErrorMessage('Failed to add discount');
             return;
           }
-          console.log("the response id of the new policy:", response.data.policy_id)
-        } else {
-          // case of the composite policies
-          const response = await api.post(`/store/create_composite_purchase_policy`, data);
-          if (response.status !== 200) {
-            setErrorMessage('Failed to save policy data');
+          console.log("the response of adding discount:", response.data.message);
+        }else if(dialogType === 'AndDiscounts' || dialogType === 'OrDiscounts' || dialogType === 'XorDiscounts'){
+          const response = await api.post('/store/create_logical_composite', data);
+          if(response.status !== 200){
+            console.error('Failed to add discount', response);
+            setErrorMessage('Failed to add discount');
             return;
           }
-          console.log("the response id of the new policy:", response.data.policy_id)
+          console.log("the response of adding discount:", response.data.message);
+        } else if(dialogType === 'AdditiveDiscounts' || dialogType === 'MaxDiscounts'){
+          const response = await api.post('/store/create_numerical_composite', data);
+          if(response.status !== 200){
+            console.error('Failed to add discount', response);
+            setErrorMessage('Failed to add discount');
+            return;
+          }
+          console.log("the response of adding discount:", response.data.message);
         }
-        setErrorMessage(null);
-      } catch (error) {
-        console.error('Error adding store:', error);
-        setErrorMessage('Failed to save policy data');
+      }
+      catch (error) {
+        console.error('Failed to add discount', error);
+        setErrorMessage('Failed to add discount');
       }
     };
 
-    savePolicy();
+    saveDiscount();
     setIsDialogOpen(false);
-    setNewPolicyName('');
+    setNewDiscountDescription('');
+    setNewDiscountPercentage('');
+    setNewDiscountStartingDate('');
+    setNewDiscountEndingDate('');
+    setNewIsSubApplied(false);
     setSelectedProduct('');
     setSelectedCategory('');
-    setSelectedLeftPolicy('');
-    setSelectedRightPolicy('');
+    setSelectedLeftDiscount('');
+    setSelectedRightDiscount('');
+    setSelectedMultipleDiscounts([]);
     setErrorMessage('');
-    fetchPolicies();
-  };
-  
-  
-  //function responsible for removing a policy
-  const handleRemovePolicy = (type, policyId) => {
-    const removePolicy = async () => {
-      console.log("the policy id to remove:", policyId)
-      try {
-        const response = await api.post(`/store/remove_purchase_policy`, { "store_id": store_id, "policy_id": policyId });
-        if (response.status !== 200) {
-          setErrorMessage('Failed to remove policy data');
-          return;
-        }
-        fetchPolicies();
-        setErrorMessage(null);
-      } catch (error) {
-        console.error('Error removing policy:', error);
-        setErrorMessage('Failed to remove policy data');
-      }
-    };
-    removePolicy();
+    fetchDiscounts();
   };
 
-  //function responsible for opening the dialog for adding a new policy
+  const handleEditSaveChanges = () => {
+    const editDiscount = async () => {
+      let data;
+      if (editDiscountDescription !== ''){
+        data = {
+          discount_id: currentDiscountId,
+          description: editDiscountDescription,
+        }
+
+        try {
+          const response = await api.post('/store/change_discount_description', data);
+          if(response.status !== 200){
+            console.error('Failed to edit discount', response);
+            setErrorMessage('Failed to edit discount');
+            return;
+          }
+          console.log("the response of editing discount:", response.data.message);
+          fetchDiscounts();
+          setErrorMessage('');
+        }
+        catch (error) {
+          console.error('Failed to edit discount', error);
+          setErrorMessage('Failed to edit discount');
+        }
+      }
+
+      if (editDiscountPercentage !== ''){
+        data = {
+          discount_id: currentDiscountId,
+          percentage: parseFloat(editDiscountPercentage),
+        }
+
+        try {
+          const response = await api.post('/store/change_discount_percentage', data);
+          if(response.status !== 200){
+            console.error('Failed to edit discount', response);
+            setErrorMessage('Failed to edit discount');
+            return;
+          }
+          console.log("the response of editing discount:", response.data.message);
+          fetchDiscounts();
+          setErrorMessage('');
+        }
+        catch (error) {
+          console.error('Failed to edit discount', error);
+          setErrorMessage('Failed to edit discount');
+        }
+      }
+    }
+    
+    editDiscount();
+    setIsEditDialogOpen(false);
+    setEditDiscountDescription('');
+    setEditDiscountPercentage('');
+    setErrorMessage('');
+    fetchDiscounts();
+  };
+
+
+  const handleRemoveDiscount = (type, discountId) => {
+    const removeDiscount = async () => {
+      try {
+        const response = await api.post('/store/remove_discount', { discount_id: discountId });
+        if(response.status !== 200){
+          console.error('Failed to remove discount', response);
+          setErrorMessage('Failed to remove discount');
+          return;
+        }
+        console.log("the response of removing discount:", response.data.message);
+        fetchDiscounts();
+        setErrorMessage('');
+      } catch (error) {
+        console.error('Failed to remove discount', error);
+        setErrorMessage('Failed to remove discount');
+      }
+    };
+
+    removeDiscount();
+  };
+
+  
   const handleOpenDialog = (type) => {
     setDialogType(type);
     setIsDialogOpen(true);
   };
 
-  //function responsible for opening the dialog for adding a new constraint
-  const handleOpenConstraintDialog = (policyId) => {
-    setCurrentPolicyId(policyId);
+  const handleOpenEditDialog = (discountId, type) => {
+    const discount = discounts[type].find((discount) => discount.discount_id === discountId);
+    if (discount) {
+      setCurrentDiscountId(discountId);
+      setEditDiscountType(type);
+      setEditDiscountDescription(discount.description);
+      setEditDiscountPercentage(discount.percentage?.toString() || '');
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleOpenConstraintDialog = (discountId) => {
+    setCurrentDiscountId(discountId);
     setConstraintDialogOpen(true);
   };
 
-  //function responsible for changing the view for the adding a constraint type
   const handleConstraintTypeChange = (value) => {
     setSelectedConstraintType(value);
     setConstraintValues({});
   };
 
-  //function responsible for changing the values for the constraint we are adding
   const handleConstraintValueChange = (field, value) => {
     setConstraintValues({ ...constraintValues, [field]: value });
   };
 
- // Function responsible for adding a new constraint to a policy
-const handleSaveConstraint = async () => {
+ // Function responsible for adding a new constraint to a discount
+ const handleSaveConstraint = async () => {
   const parseConstraintString = (constraintStr) => {
     const splitRegex = /[\s,]+/;
   
@@ -438,8 +579,7 @@ const handleSaveConstraint = async () => {
   let data;
   if (selectedConstraintType === 'compositeConstraint') {
      data = {
-      store_id: store_id,
-      policy_id: currentPolicyId,
+      discount_id: currentDiscountId,
       predicate_builder: finalComposite,
     };
 
@@ -448,29 +588,27 @@ const handleSaveConstraint = async () => {
   }else if(selectedConstraintType === 'location'){
     let location = {'address': Object.values(constraintValues)[0], 'city': Object.values(constraintValues)[1], 'state': Object.values(constraintValues)[2], 'country': Object.values(constraintValues)[3], 'zip_code': Object.values(constraintValues)[4]}
     data = {
-      store_id: store_id,
-      policy_id: currentPolicyId,
+      discount_id: currentDiscountId,
       predicate_builder: [selectedConstraintType, location]
     }
 
   }else{
 
     data = {
-      store_id: store_id,
-      policy_id: currentPolicyId,
+      discount_id: currentDiscountId,
       predicate_builder: [selectedConstraintType, ...Object.values(constraintValues)],
     };
   }
    
-  console.log('predicate builder of current cnostraint we are trying to add:', data.predicate_builder);
+  console.log('predicate builder of current constraint we are trying to add:', data.predicate_builder);
 
   try {
-    const response = await api.post('/store/assign_predicate_to_purchase_policy', data);
+    const response = await api.post('/store/assign_predicate_to_discount', data);
     if (response.status !== 200) {
       setErrorMessage('Failed to save constraint');
       return;
     }
-    fetchPolicies();
+    fetchDiscounts();
     setConstraintDialogOpen(false);
     setSelectedConstraintType('');
     setConstraintValues({});
@@ -1037,74 +1175,98 @@ const renderConstraintFields = () => {
 };
 
 
-const handleToggle = (policyId, type) => {
-  setExpandedPolicies(prevState => ({
+const handleToggle = (discountId, type) => {
+  setExpandedDiscounts(prevState => ({
     ...prevState,
-    [type]: prevState[type] === policyId ? null : policyId
+    [type]: prevState[type] === discountId ? null : discountId
   }));
 };
 
-const handleToggleLeftPolicy = (policyId) => {
-  setExpandedLeftPolicies(prevState => ({
+
+const handleToggleLeftDiscount = (discountId) => {
+  setExpandedLeftDiscounts(prevState => ({
     ...prevState,
-    [policyId]: !prevState[policyId]
+    [discountId]: !prevState[discountId]
   }));
 };
 
-const handleToggleRightPolicy = (policyId) => {
-  setExpandedRightPolicies(prevState => ({
+const handleToggleRightDiscount = (discountId) => {
+  setExpandedRightDiscounts(prevState => ({
     ...prevState,
-    [policyId]: !prevState[policyId]
+    [discountId]: !prevState[discountId]
   }));
 };
 
-const handleToggleConstraint = (policyId) => {
+const handleToggleMultipleDiscounts = (discountId) => {
+  setExpandedMultipleDiscounts(prevState => ({
+    ...prevState,
+    [discountId]: !prevState[discountId]
+  }));
+};
+
+const handleToggleConstraint = (discountId) => {
   setExpandedConstraints(prevState => ({
     ...prevState,
-    [policyId]: !prevState[policyId]
+    [discountId]: !prevState[discountId]
   }));
 };
 
-const renderNestedPolicy = (policy) => {
-  if (!policy) return null;
+const renderNestedDiscount = (discount) => {
+  if (!discount) return null;
 
   return (
     <div className="ml-4">
-      <p><strong>Policy ID:</strong> {policy.policy_id}</p>
-      <p><strong>Store ID:</strong> {policy.store_id}</p>
-      <p><strong>Policy Name:</strong> {policy.policy_name}</p>
-      {policy.policy_type === 'ProductSpecificPolicy' && <p><strong>Product ID:</strong> {policy.product_id}</p>}
-      {policy.policy_type === 'CategorySpecificPolicy' && <p><strong>Category ID:</strong> {policy.category_id}</p>}
-      {['AndPolicy', 'OrPolicy', 'ConditionalPolicy'].includes(policy.policy_type) && (
+      <p><strong>Discount ID:</strong> {discount.discount_id}</p>
+      <p><strong>Description:</strong> {discount.description}</p>
+      <p><strong>Start Date:</strong> {discount.start_date}</p>
+      <p><strong>End Date:</strong> {discount.end_date}</p>
+      {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' || discount.discount_type === "CategoryDiscounts" &&  <p><strong>Percentage:</strong> {discount.percentage}</p>}
+      {discount.discount_type === 'ProductDiscounts' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
+      {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
+      {discount.discount_type === 'CategoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
+      {discount.discount_type === 'CategoryDiscounts' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
+      {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(discount.discount_type) && (
         <>
           <div className="flex justify-between">
-            <button onClick={() => handleToggleLeftPolicy(policy.policy_id)} className="mt-2">
-              {expandedLeftPolicies[policy.policy_id] ? 'Hide Left Policy' : 'Show Left Policy'}
+            <button onClick={() => handleToggleLeftDiscount(discount.discount_id)} className="mt-2">
+              {expandedLeftDiscounts[discount.discount_id] ? 'Hide Left Discount' : 'Show Left Discount'}
             </button>
-            <button onClick={() => handleToggleRightPolicy(policy.policy_id)} className="mt-2">
-              {expandedRightPolicies[policy.policy_id] ? 'Hide Right Policy' : 'Show Right Policy'}
+            <button onClick={() => handleToggleRightDiscount(discount.discount_id)} className="mt-2">
+              {expandedRightDiscounts[discount.discount_id] ? 'Hide Right Discount' : 'Show Right Discount'}
             </button>
           </div>
-          {expandedLeftPolicies[policy.policy_id] && policy.policy_left && (
+          {expandedLeftDiscounts[discount.discount_id] && discount.discount_id1 && (
             <div className="mt-2 ml-4">
-              {renderNestedPolicy(policy.policy_left)}
+              {renderNestedDiscount(discount.discount_id1)}
             </div>
           )}
-          {expandedRightPolicies[policy.policy_id] && policy.policy_right && (
+          {expandedRightDiscounts[discount.discount_id] && discount.discount_id2 && (
             <div className="mt-2 ml-4">
-              {renderNestedPolicy(policy.policy_right)}
+              {renderNestedDiscount(discount.discount_id2)}
             </div>
           )}
         </>
       )}
-      {['ProductSpecificPolicy', 'CategorySpecificPolicy', 'BasketSpecificPolicy'].includes(policy.policy_type) && policy.predicate && (
+      {['MaxDiscounts', 'AdditiveDiscounts'].includes(discount.discount_type) && (
         <>
-          <button onClick={() => handleToggleConstraint(policy.policy_id)} className="text-gray-500 mt-2">
-            {expandedConstraints[policy.policy_id] ? 'Hide Constraint' : 'Show Constraint'}
+          <button onClick={() => handleToggleMultipleDiscounts(discount.discount_id)} className="mt-2">
+            {expandedMultipleDiscounts[discount.discount_id] ? 'Hide Discounts' : 'Show Discounts'}
           </button>
-          {expandedConstraints[policy.policy_id] && (
+          {expandedMultipleDiscounts[discount.discount_id] && discount.discounts_info && (
+            <div className="mt-2 ml-4">
+              {Object.values(discount.discounts_info).map((discount) => renderNestedDiscount(discount))}
+            </div>
+          )}
+        </>
+      )}
+      {['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(discount.discount_type) && discount.predicate && (
+        <>
+          <button onClick={() => handleToggleConstraint(discount.discount_id)} className="text-gray-500 mt-2">
+            {expandedConstraints[discount.discount_id] ? 'Hide Constraint' : 'Show Constraint'}
+          </button>
+          {expandedConstraints[discount.discount_id] && (
             <div className="mt-2">
-              <p>{policy.predicate}</p>
+              <p>{discount.predicate}</p>
             </div>
           )}
         </>
@@ -1114,78 +1276,97 @@ const renderNestedPolicy = (policy) => {
 };
 
 
-// Function for rendering a policy
-const renderPolicy = (policy, type) => (
+// Function for rendering a Discount
+const renderDiscount = (discount, type) => (
+
   <div 
-    key={policy.policy_id} 
+    key={discount.discount_id} 
     className="mb-4 p-4 border-2 border-gray-300 rounded-md"
   >
     <button
-      onClick={() => handleToggle(policy.policy_id, type)}
+      onClick={() => handleToggle(discount.discount_id, type)}
       className="text-left w-full"
     >
-      {`Policy ID: ${policy.policy_id}`}
+      {`Discount ID: ${discount.discount_id}`}
     </button>
-    {expandedPolicies[type] === policy.policy_id && (
+    {expandedDiscounts[type] === discount.discount_id && (
       <div className="mt-2">
-        <p><strong>Store ID:</strong> {policy.store_id}</p>
-        <p><strong>Policy Name:</strong> {policy.policy_name}</p>
-        {type === 'productSpecific' && <p><strong>Product ID:</strong> {policy.product_id}</p>}
-        {type === 'categorySpecific' && <p><strong>Category ID:</strong> {policy.category_id}</p>}
-        {['andPolicies', 'orPolicies', 'conditionalPolicies'].includes(type) && (
+        <p><strong>Discount ID:</strong> {discount.discount_id}</p>
+        <p><strong>Description:</strong> {discount.description}</p>
+        <p><strong>Start Date:</strong> {discount.start_date}</p>
+        <p><strong>End Date:</strong> {discount.end_date}</p>
+        {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' || discount.discount_type === "CategoryDiscounts" &&  <p><strong>Percentage:</strong> {discount.percentage}</p>}
+        {discount.discount_type === 'ProductDiscounts' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
+        {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
+        {discount.discount_type === 'CategoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
+        {discount.discount_type === 'CategoryDiscounts' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
+        {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(type) && (
           <>
             <div className="flex justify-between">
-              <button onClick={() => handleToggleLeftPolicy(policy.policy_id)} className="mt-2">
-                {expandedLeftPolicies[policy.policy_id] ? 'Hide Left Policy' : 'Show Left Policy'}
+              <button onClick={() => handleToggleLeftDiscount(discount.discount_id)} className="mt-2">
+                {expandedLeftDiscounts[discount.discount_id] ? 'Hide Left Discount' : 'Show Left Discount'}
               </button>
-              <button onClick={() => handleToggleRightPolicy(policy.policy_id)} className="mt-2">
-                {expandedRightPolicies[policy.policy_id] ? 'Hide Right Policy' : 'Show Right Policy'}
+              <button onClick={() => handleToggleRightDiscount(discount.discount_id)} className="mt-2">
+                {expandedRightDiscounts[discount.discount_id] ? 'Hide Right Discount' : 'Show Right Discount'}
               </button>
             </div>
-            {expandedLeftPolicies[policy.policy_id] && policy.policy_left && (
+            {expandedLeftDiscounts[discount.discount_id] && discount.discount_id1 && (
               <div className="mt-2 ml-4">
-                {renderNestedPolicy(policy.policy_left)}
+                {renderNestedDiscount(discount.discount_id1)}
               </div>
             )}
-            {expandedRightPolicies[policy.policy_id] && policy.policy_right && (
+            {expandedRightDiscounts[discount.discount_id] && discount.discount_id2 && (
               <div className="mt-2 ml-4">
-                {renderNestedPolicy(policy.policy_right)}
+                {renderNestedDiscount(discount.discount_id2)}
               </div>
             )}
           </>
         )}
-        {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
+        {['MaxDiscounts', 'AdditiveDiscounts'].includes(type) && (
           <>
-            <button onClick={() => handleToggleConstraint(policy.policy_id)} className="text-gray-500 mt-2">
-              {expandedConstraints[policy.policy_id] ? 'Hide Constraint' : 'Show Constraint'}
+            <button onClick={() => handleToggleMultipleDiscounts(discount.discount_id)} className="mt-2">
+              {expandedMultipleDiscounts[discount.discount_id] ? 'Hide Discounts' : 'Show Discounts'}
             </button>
-            {expandedConstraints[policy.policy_id] && policy.predicate && (
-              <div className="mt-2">
-                <p>{policy.predicate}</p>
+            {expandedMultipleDiscounts[discount.discount_id] && discount.discounts_info && (
+              <div className="mt-2 ml-4">
+                {Object.values(discount.discounts_info).map((discount) => renderNestedDiscount(discount))}
               </div>
             )}
           </>
         )}
-        <div className={`flex ${['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
+        {['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(type) && (
+          <>
+            <button onClick={() => handleToggleConstraint(discount.discount_id)} className="text-gray-500 mt-2">
+              {expandedConstraints[discount.discount_id] ? 'Hide Constraint' : 'Show Constraint'}
+            </button>
+            {expandedConstraints[discount.discount_id] && discount.predicate && (
+              <div className="mt-2">
+                <p>{discount.predicate}</p>
+              </div>
+            )}
+          </>
+        )}
+        <div className={`flex ${['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Policy</Button>
+              <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Discount</Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-white">
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the policy.
+                  This action cannot be undone. This will permanently delete the discount.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => handleRemovePolicy(type, policy.policy_id)}>Yes, remove policy</AlertDialogAction>
+                <AlertDialogAction onClick={() => handleRemoveDiscount(type, discount.discount_id)}>Yes, remove discount </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
-            <Button onClick={() => handleOpenConstraintDialog(policy.policy_id)} className="ml-2">
+          <Button className="bg-green-500 text-white py-1 px-3 rounded" onClick={() => handleOpenEditDialog(discount.discount_id, type)}>Edit Discount</Button>
+          {['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(type) && (
+            <Button onClick={() => handleOpenConstraintDialog(discount.discount_id)} className="ml-2">
               Add Constraint
             </Button>
           )}
@@ -1195,369 +1376,254 @@ const renderPolicy = (policy, type) => (
   </div>
 );
 
-
 return (
   <div className="flex flex-wrap justify-center">
-    <div className="w-full max-w-md p-4">
-      <h2 className="text-center font-bold mb-4">Product Specific Policies</h2>
-      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.productSpecific && policies.productSpecific.map((policy) => renderPolicy(policy, 'productSpecific'))}
-      </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'productSpecific'} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('productSpecific')}>Add Product Policy</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] bg-white">
-          <DialogHeader>
-            <DialogTitle>Adding a product specific policy</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {errorMessage && (
-              <div className="text-red-500 text-sm">{errorMessage}</div>
-            )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-              <Input 
-                id="policy-name" 
-                placeholder="Policy Name"
-                value={newPolicyName}
-                onChange={(e) => setNewPolicyName(e.target.value)}
-                className="col-span-3 border border-black"
-              />
+    {/* Render all discount types here */}
+    {Object.keys(discounts).map((type) => (
+      <div key={type} className="w-full max-w-md p-4">
+        <h2 className="text-center font-bold mb-4">{type.replace(/([A-Z])/g, ' $1').trim()} Discounts</h2>
+        <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
+          {discounts[type].map((discount) => renderDiscount(discount, type))}
+        </ScrollArea>
+        <Dialog open={isDialogOpen && dialogType === type} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog(type)}>Add {type.replace(/([A-Z])/g, ' $1').trim()} Discount</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] bg-white">
+            <DialogHeader>
+              <DialogTitle>Adding a {type.replace(/([A-Z])/g, ' $1').trim()} discount</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {errorMessage && (
+                <div className="text-red-500 text-sm">{errorMessage}</div>
+              )}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="block mt-2">Description</Label>
+                <Input
+                  id="description"
+                  placeholder="Description"
+                  value={newDiscountDescription}
+                  onChange={(e) => setNewDiscountDescription(e.target.value)}
+                  className="col-span-3 border border-black"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="starting-date" className="block mt-2">Starting Date</Label>
+                <DatePickerDemo
+                  selectedDate={newDiscountStartingDate}
+                  onDateChange={setNewDiscountStartingDate}
+                  className="col-span-3 wider-date-picker"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="ending-date" className="block mt-2">Ending Date</Label>
+                <DatePickerDemo
+                  selectedDate={newDiscountEndingDate}
+                  onDateChange={setNewDiscountEndingDate}
+                  className="col-span-3 wider-date-picker"
+                />
+              </div>
+              {['StoreDiscounts', 'CategoryDiscounts', 'ProductDiscounts'].includes(type) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="percentage" className="block mt-2">Percentage</Label>
+                  <Input
+                    id="percentage"
+                    placeholder="Percentage"
+                    value={newDiscountPercentage}
+                    onChange={(e) => setNewDiscountPercentage(e.target.value)}
+                    className="col-span-3 border border-black"
+                  />
+                </div>
+              )}
+              {type === 'StoreDiscounts' && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
+                  <Select onValueChange={setSelectedStore}>
+                    <SelectTrigger className="col-span-3 border border-black bg-white">
+                      <SelectValue placeholder="Store ID" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      {Object.keys(stores).map((key) => (
+                        <SelectItem key={key} value={key}>
+                          {stores[key]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {type === 'CategoryDiscounts' && (
+                <>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="category-id" className="block mt-2">Category ID</Label>
+                    <Select onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Category ID" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {Object.values(categories).map((category) => (
+                          <SelectItem key={category.category_id} value={category.category_id}>
+                            {category.category_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="apply-sub-categories" className="block mt-2">Apply to Sub Categories</Label>
+                    <Select onValueChange={(value) => setNewIsSubApplied(value === 'yes')}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Apply to Sub Categories" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        <SelectItem value="yes">YES</SelectItem>
+                        <SelectItem value="no">NO</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              {type === 'ProductDiscounts' && (
+                <>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
+                    <Select onValueChange={setSelectedStore}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Store ID" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {Object.keys(stores).map((key) => (
+                          <SelectItem key={key} value={key}>
+                            {stores[key]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="product-id" className="block mt-2">Product ID</Label>
+                    <Select onValueChange={setSelectedProduct}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Product ID" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {products_to_store
+                          .filter((store) => store.store_id === selectedStore)
+                          .flatMap((store) => store.products)
+                          .map((product) => (
+                            <SelectItem key={product.product_id} value={product.product_id}>
+                              {product.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(type) && (
+                <>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="left-discount-id" className="block mt-2">Discount 1</Label>
+                    <Select onValueChange={setSelectedLeftDiscount}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Select Discount 1" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {Object.values(discounts).flat().map((discount) => (
+                          <SelectItem key={discount.discount_id} value={discount.discount_id}>
+                            {discount.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="right-discount-id" className="block mt-2">Discount 2</Label>
+                    <Select onValueChange={setSelectedRightDiscount}>
+                      <SelectTrigger className="col-span-3 border border-black bg-white">
+                        <SelectValue placeholder="Select Discount 2" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {Object.values(discounts).flat().map((discount) => (
+                          <SelectItem key={discount.discount_id} value={discount.discount_id}>
+                            {discount.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+              {['additiveDiscounts', 'MaxDiscounts'].includes(type) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="discounts" className="block mt-2">Discounts</Label>
+                  <MultiSelect
+                    options={Object.values(discounts).flat().map((discount) => ({
+                      label: discount.description,
+                      value: discount.discount_id.toString()
+                    }))}
+                    value={selectedMultipleDiscounts}
+                    onChange={setSelectedMultipleDiscounts}
+                    labelledBy="Select Discounts"
+                    className="wider-select"
+                  />
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="product" className="block mt-2">Choose Product</Label>
-              <Select onValueChange={setSelectedProduct}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Choose Product" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                {products_to_store.filter(store => parseInt(store.store_id) === parseInt(store_id)).flatMap(store => store.products).map(product => (
-                  <SelectItem key={product.product_id} value={product.product_id}>
-                    {product.name}
-                  </SelectItem>
-                ))}
-                  
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-
-    <div className="w-full max-w-md p-4">
-      <h2 className="text-center font-bold mb-4">Category Specific Policies</h2>
-      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.categorySpecific && policies.categorySpecific.map((policy) => renderPolicy(policy, 'categorySpecific'))}
-      </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'categorySpecific'} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('categorySpecific')}>Add Category Policy</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] bg-white">
+            <DialogFooter>
+              <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    ))}
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
-          <DialogTitle>Adding a category specific policy</DialogTitle>
+          <DialogTitle>Editing a discount</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {errorMessage && (
             <div className="text-red-500 text-sm">{errorMessage}</div>
           )}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-            <Input 
-              id="policy-name" 
-              placeholder="Policy Name"
-              value={newPolicyName}
-              onChange={(e) => setNewPolicyName(e.target.value)}
+            <Label htmlFor="edit-description" className="block mt-2">Change Description</Label>
+            <Input
+              id="edit-description"
+              placeholder="Change Description"
+              value={editDiscountDescription}
+              onChange={(e) => setEditDiscountDescription(e.target.value)}
               className="col-span-3 border border-black"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="block mt-2">Choose Category</Label>
-            <Select onValueChange={setSelectedCategory}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Please select a category" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="" disabled>Please select a category</SelectItem>
-                {Object.values(categories).map((category) => (
-                  <SelectItem key={category.category_id} value={category.category_id}>
-                    {category.category_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-        </DialogFooter>
-      </DialogContent>
-      </Dialog>
-    </div>
-
-    <div className="w-full max-w-md p-4">
-      <h2 className="text-center font-bold mb-4">Basket Specific Policies</h2>
-      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.basketSpecific && policies.basketSpecific.map((policy) => renderPolicy(policy, 'basketSpecific'))}
-      </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'basketSpecific'} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('basketSpecific')}>Add Basket Policy</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] bg-white">
-        
-        <DialogHeader>
-          <DialogTitle>Adding a category specific policy</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          {errorMessage && (
-            <div className="text-red-500 text-sm">{errorMessage}</div>
+          {['StoreDiscounts', 'CategoryDiscounts', 'ProductDiscounts'].includes(editDiscountType) && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-percentage" className="block mt-2">Change Percentage</Label>
+              <Input
+                id="edit-percentage"
+                placeholder="Change Percentage"
+                value={editDiscountPercentage}
+                onChange={(e) => setEditDiscountPercentage(e.target.value)}
+                className="col-span-3 border border-black"
+              />
+            </div>
           )}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-            <Input 
-              id="policy-name" 
-              placeholder="Policy Name"
-              value={newPolicyName}
-              onChange={(e) => setNewPolicyName(e.target.value)}
-              className="col-span-3 border border-black"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="block mt-2">Choose Category</Label>
-            <Select onValueChange={(value) => setSelectedCategory(value)} value={selectedCategory}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Please select a category" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="" disabled>Please select a category</SelectItem>
-                {Object.values(categories).map((category) => (
-                  <SelectItem key={category.category_id} value={category.category_id}>
-                    {category.category_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
         <DialogFooter>
-          <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
+          <Button type="button" onClick={handleEditSaveChanges}>Save changes</Button>
         </DialogFooter>
       </DialogContent>
-
-      </Dialog>
-    </div>
-
-    <div className="w-full max-w-md p-4">
-      <h2 className="text-center font-bold mb-4">And Policies</h2>
-      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.andPolicies && policies.andPolicies.map((policy) => renderPolicy(policy, 'andPolicies'))}
-      </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'andPolicies'} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('andPolicies')}>Add And Policy</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] bg-white">
-          <DialogHeader>
-            <DialogTitle>Adding an And policy</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {errorMessage && (
-              <div className="text-red-500 text-sm">{errorMessage}</div>
-            )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-              <Input 
-                id="policy-name" 
-                placeholder="Policy Name"
-                value={newPolicyName}
-                onChange={(e) => setNewPolicyName(e.target.value)}
-                className="col-span-3 border border-black"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
-              <Select onValueChange={setSelectedLeftPolicy}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 1" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy} value={policy.policy_id}>
-                      {policy.policy_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
-              <Select onValueChange={setSelectedRightPolicy}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 2" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy} value={policy.policy_id}>
-                      {policy.policy_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-
-    <div className="w-full max-w-md p-4">
-      <h2 className="text-center font-bold mb-4">Or Policies</h2>
-      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.orPolicies && policies.orPolicies.map((policy) => renderPolicy(policy, 'orPolicies'))}
-      </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'orPolicies'} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('orPolicies')}>Add Or Policy</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] bg-white">
-          <DialogHeader>
-            <DialogTitle>Adding an Or policy</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {errorMessage && (
-              <div className="text-red-500 text-sm">{errorMessage}</div>
-            )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-              <Input 
-                id="policy-name" 
-                placeholder="Policy Name"
-                value={newPolicyName}
-                onChange={(e) => setNewPolicyName(e.target.value)}
-                className="col-span-3 border border-black"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
-              <Select onValueChange={setSelectedLeftPolicy}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 1" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy} value={policy.policy_id}>
-                      {policy.policy_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
-              <Select onValueChange={setSelectedRightPolicy}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 2" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy} value={policy.policy_id}>
-                      {policy.policy_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-
-    <div className="w-full max-w-md p-4">
-      <h2 className="text-center font-bold mb-4">Conditional Policies</h2>
-      <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.conditionalPolicies && policies.conditionalPolicies.map((policy) => renderPolicy(policy, 'conditionalPolicies'))}
-      </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'conditionalPolicies'} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('conditionalPolicies')}>Add Conditional Policy</Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] bg-white">
-          <DialogHeader>
-            <DialogTitle>Adding a Conditional policy</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {errorMessage && (
-              <div className="text-red-500 text-sm">{errorMessage}</div>
-            )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="policy-name" className="block mt-2">Policy Name</Label>
-              <Input 
-                id="policy-name" 
-                placeholder="Policy Name"
-                value={newPolicyName}
-                onChange={(e) => setNewPolicyName(e.target.value)}
-                className="col-span-3 border border-black"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
-              <Select onValueChange={setSelectedLeftPolicy}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 1" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy} value={policy.policy_id}>
-                      {policy.policy_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
-              <Select onValueChange={setSelectedRightPolicy}>
-                <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 2" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {Object.values(policies).flat().map((policy) => (
-                    <SelectItem key={policy} value={policy.policy_id}>
-                      {policy.policy_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-
+    </Dialog>
     <Dialog open={constraintDialogOpen} onOpenChange={setConstraintDialogOpen}>
-    <DialogContent className="sm:max-w-[425px] bg-white">
-      <DialogHeader className="text-center">
-        <DialogTitle>Adding a constraint</DialogTitle>
-      </DialogHeader>
-      <div className="grid gap-4 py-4">
-        <div className="flex items-center">
-          <Label htmlFor="constraint-type" className="mr-2 whitespace-nowrap">Constraint Type</Label>
-          <Select onValueChange={handleConstraintTypeChange} className="flex-grow ml-2">
-            <SelectTrigger className="border border-black bg-white w-full">
+      <DialogContent className="sm:max-w-[425px] bg-white">
+        <DialogHeader>
+          <DialogTitle>Adding a constraint</DialogTitle>
+        </DialogHeader>
+      
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="constraint-type" className="block mt-2">Constraint Type</Label>
+          <Select onValueChange={handleConstraintTypeChange}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
               <SelectValue placeholder="Choose constraint type" />
             </SelectTrigger>
             <SelectContent className="bg-white">
@@ -1570,17 +1636,13 @@ return (
           </Select>
         </div>
         {renderConstraintFields()}
-      </div>
-      <DialogFooter className="flex justify-between items-center">
-        <div className="text-red-500 text-sm text-left flex-grow">{errorMessage}</div>
-        <Button type="button" onClick={handleSaveConstraint} className="ml-2 px-6">Save constraint</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
-
+        <DialogFooter>
+          <Button type="button" onClick={handleSaveConstraint}>Save constraint</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
   );
 };
 
-
-export default ManagePolicy;
+export default ManageDiscount;

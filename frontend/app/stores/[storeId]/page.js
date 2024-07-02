@@ -264,8 +264,11 @@ const StoreDetail = () => {
               </div>
             )}
           </div>
-          {permission['change_purchase_policy'] && 
-          <Link href="/manage_policy">
+          {(storeRole === 'StoreOwner' || permission['change_purchase_policy']) && 
+           <Link href={{
+              pathname: `/manage_policy/${store_id}`,
+              query: { id: store_id },
+            }}>
             <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">Policy Management</div>
           </Link>}
         </div>
