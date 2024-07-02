@@ -26,7 +26,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/AlertDialog";
-
 const constraintTypes = [
   { value: 'age', label: 'Age constraint' },
   { value: 'time', label: 'Time constraint' },
@@ -277,7 +276,7 @@ const ManagePolicy = () => {
         case 'andPolicies':
         case 'orPolicies':
         case 'conditionalPolicies':
-          if (!selectedLeftPolicy || !selectedRightPolicy) {
+          if (selectedLeftPolicy === '' || selectedRightPolicy === '') {
             setErrorMessage('Please select both policies.');
             return;
           }
@@ -385,13 +384,66 @@ const ManagePolicy = () => {
 
  // Function responsible for adding a new constraint to a policy
 const handleSaveConstraint = async () => {
+  const parseConstraintString = (constraintStr) => {
+    const splitRegex = /[\s,]+/;
+  
+    const convertToNumber = (s) => {
+      if (!isNaN(parseInt(s))) {
+        return parseInt(s);
+      }
+      if (!isNaN(parseFloat(s))) {
+        return parseFloat(s);
+      }
+      return s;
+    };
+  
+    const parse = (s) => {
+      const tokens = s.replace(/[()]/g, '').trim().split(splitRegex);
+      return tokens.map((token) => convertToNumber(token));
+    };
+  
+    const cleanStr = constraintStr.replace(/\s+/g, ' ').trim();
+    return parse(cleanStr);
+  };
+  
+  const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
+  
+  const simpleComponents = ['age', 'time', 'location', 'day_of_month', 'day_of_week', 'season', 'holidays_of_country', 'price_basket', 'price_product', 'price_category', 'amount_basket', 'amount_product', 'amount_category', 'weight_category', 'weight_basket', 'weight_product'];
+  const compositeComponents = ['and', 'or', 'xor', 'implies'];
+  
+  const buildNestedArray = (parsedComposite, index) => {
+    let properties = [];
+    let constraintType = '';
+    for (let i = index; i < parsedComposite.length; i++) {
+      if (compositeComponents.includes(parsedComposite[i])) {
+        let left, right, newIndex;
+        [left, newIndex] = buildNestedArray(parsedComposite, i + 1);
+        [right, newIndex] = buildNestedArray(parsedComposite, newIndex + 1);
+        return [[parsedComposite[i], left, right], newIndex];
+      } else if (simpleComponents.includes(parsedComposite[i])) {
+        if (constraintType === '') {
+          constraintType = parsedComposite[i];
+        } else {
+          return [[constraintType, ...properties], i - 1];
+        }
+      } else {
+        properties.push(parsedComposite[i]);
+      }
+    }
+    return [[constraintType, ...properties], parsedComposite.length];
+  };
+  
+  const [finalComposite] = buildNestedArray(parsedComposite, 0);
+  console.log("the final composite constraint:", finalComposite);
   let data;
   if (selectedConstraintType === 'compositeConstraint') {
-    data = {
+     data = {
       store_id: store_id,
       policy_id: currentPolicyId,
-      predicate_builder: [, ...Object.values(constraintValues)],
+      predicate_builder: finalComposite,
     };
+
+    console.log("the first variable of the predicate_builder is " + data.predicate_builder[0])
 
   }else if(selectedConstraintType === 'location'){
     let location = {'address': Object.values(constraintValues)[0], 'city': Object.values(constraintValues)[1], 'state': Object.values(constraintValues)[2], 'country': Object.values(constraintValues)[3], 'zip_code': Object.values(constraintValues)[4]}

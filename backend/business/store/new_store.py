@@ -1523,13 +1523,13 @@ class StoreFacade:
         * Returns: the predicated
         """
         if predicate_properties[0] not in self.constraint_types:
-            logger.warning('[StoreFacade] invalid predicate type')
-            raise DiscountAndConstraintsError('Invalid predicate type', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+            logger.warning(f'[StoreFacade] invalid predicate type: {predicate_properties[0]}')
+            raise DiscountAndConstraintsError(f'Invalid predicate type: {predicate_properties[0]}', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         
         predicate_type = self.constraint_types[predicate_properties[0]]
     
         if not isinstance(predicate_type, Constraint):
-            logger.warning('[StoreFacade] invalid predicate type')
+            logger.warning(f'[StoreFacade] invalid predicate type: {predicate_type}')
             
         if predicate_type == AndConstraint or predicate_type == OrConstraint or predicate_type == XorConstraint or predicate_type == ImpliesConstraint:
             if len(predicate_properties) < 3 and not isinstance(predicate_properties[1], tuple) and not isinstance(predicate_properties[2], tuple):
