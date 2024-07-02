@@ -34,7 +34,7 @@ export default function Login() {
       console.log('Token:', token); // Optional: log the token for debugging
       console.log('Admin:', admin); // Optional: log the admin status for debugging
       console.log('Notifications:', notifications); // Optional: log the notifications for debugging
-
+      sessionStorage.setItem('username', username);
       const socket = new SocketSingleton(token);
       socket.getInstance().on('connected', () => {
         window.location.href = '/';

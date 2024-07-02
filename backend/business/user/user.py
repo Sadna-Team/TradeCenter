@@ -336,13 +336,14 @@ class UserFacade:
         self.__get_user(user_id).change_suspend(True, None)
         self.__suspend_users[user_id] = None # Added the user to the suspended users list
 
-    def suspend_user_temporarily(self, user_id: int, date_details: dict):
+    def suspend_user_temporarily(self, user_id: int, date_details: dict, time_details: dict):
         """
         Suspend user for a specific time, only system manager can do this
         * user_id: the id of the user to suspend
-        * date_details: the date until the user is suspended (year, month, day, hour, minute)
+        * date_details: the date until the user is suspended (year, month, day)
+        * time_details: the time until the user is suspended (hour, minute)
         """
-        date = datetime(date_details["year"], date_details["month"], date_details["day"], date_details["hour"], date_details["minute"])    
+        date = datetime(int(date_details["year"]), int(date_details["month"]), int(date_details["day"]), int(time_details["hour"]), int(time_details["minute"]))    
         self.__get_user(user_id).change_suspend(True, date)
         self.__suspend_users[user_id] = date # Added the user to the suspended users list
 
