@@ -95,7 +95,7 @@ class LocationConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
-        return "Location constraint with location: " + str(self.__location)
+        return "Location constraint with location: " + "address: " + self.__location.address + ", city: " + self.__location.city + ", state: " + self.__location.state + ", country: " + self.__location.country + ", zip code: " + self.__location.zip_code
     
 
 # --------------- time constraint class ---------------#
@@ -246,7 +246,11 @@ class SeasonConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
-        return "Season constraint with start month: " + str(self.__start_month) + " and start day of month: " + str(self.__start_day_of_month) + " and end month: " + str(self.__end_month) + " and end day of month: " + str(self.__end_day_of_month)
+        season = ""
+        for key, value in seasons.items():
+            if value == (self.__start_day_of_month, self.__start_month, self.__end_day_of_month, self.__end_month):
+                season = key
+        return "Season constraint of season: " + season
 
 
 # --------------- holiday constraint class ---------------#

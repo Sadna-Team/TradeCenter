@@ -1605,6 +1605,11 @@ class StoreFacade:
                     logger.warning('[StoreFacade] min price is greater than max price')
                     raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[1] != -1 and predicate_properties[2] > predicate_properties[1]) or predicate_properties[2] < 0:
+                    logger.warning('[StoreFacade] min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min price, max price or category id is not valid')
                 raise DiscountAndConstraintsError('Min price, max price or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
@@ -1614,6 +1619,11 @@ class StoreFacade:
                     logger.warning('[StoreFacade] min price is greater than max price')
                     raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min price, max price, product id or store id is not valid')
                 raise DiscountAndConstraintsError('Min price, max price, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
@@ -1623,6 +1633,11 @@ class StoreFacade:
                     logger.warning('[StoreFacade] min price is greater than max price')
                     raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min price, max price or store id is not valid')
                 raise DiscountAndConstraintsError('Min price, max price or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
@@ -1632,6 +1647,11 @@ class StoreFacade:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
                     raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min weight, max weight or category id is not valid')
                 raise DiscountAndConstraintsError('Min weight, max weight or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
@@ -1641,6 +1661,11 @@ class StoreFacade:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
                     raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min weight, max weight, product id or store id is not valid')
                 raise DiscountAndConstraintsError('Min weight, max weight, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
@@ -1650,6 +1675,11 @@ class StoreFacade:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
                     raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min weight, max weight or store id is not valid')
                 raise DiscountAndConstraintsError('Min weight, max weight or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
