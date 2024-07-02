@@ -303,198 +303,173 @@ def test_get_purchase_by_id_doesnt_exist(purchase_facade):
     assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_purchase_id
     
     
-# bid tests: 
-      
-def test_store_owner_manager_accept_offer(bid_purchase, purchase_facade):
-    create_bid_purchase_default(bid_purchase)
+#bid tests: 
+
+def test_store_owner_manager_accept_offer(bid_purchase):
     bid_purchase.store_owner_manager_accept_offer(default_user_id)
-    assert bid_purchase.status == PurchaseStatus.accepted
-    
-    
-    
-def test_store_owner_manager_accept_offer_failed(bid_purchase, purchase_facade):
-    create_bid_purchase_default(purchase_facade)
+    assert default_user_id in bid_purchase.list_of_store_owners_managers_that_accepted_offer
+
+
+def test_store_owner_manager_accept_offer_failed(bid_purchase):
+    bid_purchase.store_owner_manager_accept_offer(default_user_id)
     with pytest.raises(PurchaseError) as e:
-        bid_purchase.store_owner_manager_accept_offer(default_user_id + 1)
+        bid_purchase.store_owner_manager_accept_offer(default_user_id)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.store_owner_manager_already_accepted_offer
+
+
+def test_store_reject_offer(bid_purchase):
+    user_id = bid_purchase.store_reject_offer(default_user_id)
+    assert bid_purchase.status == PurchaseStatus.offer_rejected
+    assert user_id == default_user_id
+
+
+def test_store_accept_offer(bid_purchase):
+    bid_purchase.store_owner_manager_accept_offer(default_user_id)
+    assert bid_purchase.store_accept_offer([default_user_id]) == True
+    assert bid_purchase.status == PurchaseStatus.accepted
+
+
+
+
+def test_store_counter_offer(bid_purchase):
+    bid_purchase.store_counter_offer(default_user_id, default_price + 10)
+    assert bid_purchase.proposed_price == default_price + 10
+    assert bid_purchase.is_offer_to_store == False
+    
+    
+def test_store_counter_offer_failed(bid_purchase):
+    with pytest.raises(PurchaseError) as e:
+        bid_purchase.store_counter_offer(default_user_id, - 10)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_proposed_price
+
+
+def test_user_accept_counter_offer(bid_purchase):
+    bid_purchase.store_counter_offer(default_user_id, default_price + 10)
+    bid_purchase.user_accept_counter_offer(default_user_id)
+    assert bid_purchase.is_offer_to_store == True
+
+
+def test_user_accept_counter_offer_failed(bid_purchase):
+    bid_purchase.store_counter_offer(default_user_id, default_price + 10)
+    with pytest.raises(PurchaseError) as e:
+        bid_purchase.user_accept_counter_offer(default_user_id + 1)
+    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_user_id
+
+
+def test_user_reject_counter_offer(bid_purchase):
+    bid_purchase.store_counter_offer(default_user_id, default_price + 10)
+    bid_purchase.user_reject_counter_offer(default_user_id)
+    assert bid_purchase.status == PurchaseStatus.offer_rejected
+    
+def test_user_reject_counter_offer_failed(bid_purchase):
+    bid_purchase.store_counter_offer(default_user_id, default_price + 10)
+    with pytest.raises(PurchaseError) as e:
+        bid_purchase.user_reject_counter_offer(default_user_id + 1)
     assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_user_id
     
-    
-     
-def test_store_reject_offer(bid_purchase, purchase_facade):
-    create_bid_purchase_default(purchase_facade)
-    bid_purchase.store_reject_offer(default_user_id)
-    
-          
-def test_store_accept_offer(bid_purchase, purchase_facade):
-    create_bid_purchase_default(purchase_facade)
-    bid_purchase.store_accept_offer([default_user_id])
-    assert bid_purchase.status == PurchaseStatus.accepted
-    
-       
-def test_store_counter_offer(bid_purchase, purchase_facade):
-    create_bid_purchase_default(purchase_facade)
-    bid_purchase.store_counter_offer(default_user_id, default_price)
-    assert bid_purchase.status == PurchaseStatus.onGoing
-    
-def test_store_counter_offer_failed_invalid_proposed_price(bid_purchase, purchase_facade):
-    create_bid_purchase_default(purchase_facade)
-    with pytest.raises(PurchaseError) as e:
-        bid_purchase.store_counter_offer(default_user_id, -1)
-    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_proposed_price
-    
-    
-    
-         
-def test_user_accept_counter_offer(bid_purchase, purchase_facade):
-    create_bid_purchase_default(purchase_facade)
-    bid_purchase.store_counter_offer(default_user_id, default_price)
-    bid_purchase.user_accept_counter_offer(default_user_id)
-    assert bid_purchase.status == PurchaseStatus.accepted
-    
-    
-      
-def test_user_reject_counter_offer(bid_purchase, purchase_facade):
-    create_bid_purchase_default(purchase_facade)
-    bid_purchase.store_counter_offer(default_user_id, default_price)
-    bid_purchase.user_reject_counter_offer(default_user_id)
-    assert len(purchase_facade._purchases) == 0
-    
-    
-      
-def test_user_counter_offer(bid_purchase, purchase_facade):
-    create_bid_purchase_default(purchase_facade)
-    bid_purchase.store_counter_offer(default_user_id, default_price)
-    bid_purchase.user_counter_offer(default_user_id, default_price)
-    assert bid_purchase.status == PurchaseStatus.onGoing
-    
-def test_user_counter_offer_failed_invalid_proposed_price(bid_purchase, purchase_facade):
-    create_bid_purchase_default(purchase_facade)
-    bid_purchase.store_counter_offer(default_user_id, default_price)
-    with pytest.raises(PurchaseError) as e:
-        bid_purchase.user_counter_offer(default_user_id, -1)
-    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_proposed_price
-    
-   
-    
-def test_accept(bid_purchase):
+
+def test_user_counter_offer(bid_purchase):
+    bid_purchase.store_counter_offer(default_user_id, default_price + 10)
+    bid_purchase.user_counter_offer(default_user_id, default_price + 15)
+    assert bid_purchase.proposed_price == default_price + 15
+    assert bid_purchase.is_offer_to_store == True
+    assert bid_purchase.list_of_store_owners_managers_that_accepted_offer == []
+
+
+def test_accept_bid_purchase(bid_purchase):
     bid_purchase.accept()
     assert bid_purchase.status == PurchaseStatus.accepted
-    
-    
-    
-def test_complete(accepted_bid_purchase):
+    assert bid_purchase.total_price == default_price
+    assert bid_purchase.total_price_after_discounts == default_price
+    assert bid_purchase.date_of_purchase is not None
+
+
+def test_complete_bid_purchase(accepted_bid_purchase):
     accepted_bid_purchase.complete()
     assert accepted_bid_purchase.status == PurchaseStatus.completed
-    
-def test_complete(completed_bid_purchase):
-    assert completed_bid_purchase.status == PurchaseStatus.completed
-       
-       
-# facade tests for bid:
+
+
+#purchaseFacade tests:
+
 def test_create_bid_purchase(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
+    create_bid_purchase_default(purchase_facade)
     assert len(purchase_facade._purchases) == 1
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    assert len(purchase_facade._purchases) == 2
-    
-def test_create_bid_purchase_failed_invalid_price(purchase_facade):
-    with pytest.raises(PurchaseError) as e:
-        purchase_facade.create_bid_purchase(default_user_id, -1, default_store_id, default_products_list[0].product_id)
-    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_proposed_price
-    
-     
-def test_facade_store_owner_manager_accept_offer(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
+
+
+def test_store_owner_manager_accept_offer_facade(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
     purchase_facade.store_owner_manager_accept_offer(0, default_user_id)
+    assert default_user_id in purchase_facade._purchases[0].list_of_store_owners_managers_that_accepted_offer
+
+
+def test_store_reject_offer_facade(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
+    user_id = purchase_facade.store_reject_offer(0, default_user_id)
+    assert purchase_facade._purchases[0].status == PurchaseStatus.offer_rejected
+    assert user_id == default_user_id
+
+
+def test_store_accept_offer_facade(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
+    purchase_facade.store_owner_manager_accept_offer(0, default_user_id)
+    assert purchase_facade.store_accept_offer(0, [default_user_id]) == True
     assert purchase_facade._purchases[0].status == PurchaseStatus.accepted
-    
-def test_facade_store_owner_manager_accept_offer_failed(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    with pytest.raises(PurchaseError) as e:
-        purchase_facade.store_owner_manager_accept_offer(0, default_user_id + 1)
-    assert e.value.purchase_error_type == PurchaseErrorTypes.invalid_user_id
-    
-    
-     
-     
-def test_facade_store_reject_offer(purchase_facade):
-    purchase_facade.store_reject_offer(default_bid_purchase_id, default_user_id)
-    assert len(purchase_facade._purchases) == 0
-    
-    
-     
-     
-def test_facade_store_accept_offer(purchase_facade):
-    purchase_facade.store_accept_offer(default_bid_purchase_id, [default_user_id])
-    assert purchase_facade._purchases[default_bid_purchase_id-1].status == PurchaseStatus.accepted
-    
-
-     
-     
-def test_facade_store_counter_offer(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    purchase_facade.store_counter_offer(0, default_user_id, default_price)
-    assert purchase_facade._purchases[0].status == PurchaseStatus.onGoing
 
 
+def test_store_counter_offer_facade(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
+    purchase_facade.store_counter_offer(0, default_user_id, default_price + 10)
+    assert purchase_facade._purchases[0].proposed_price == default_price + 10
 
-def test_facade_user_accept_counter_offer(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    purchase_facade.store_counter_offer(0, default_user_id, default_price)
+
+def test_user_accept_counter_offer_facade(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
+    purchase_facade.store_counter_offer(0, default_user_id, default_price + 10)
     purchase_facade.user_accept_counter_offer(0, default_user_id)
-    assert purchase_facade._purchases[0].status == PurchaseStatus.accepted
-    
-      
-def test_facade_user_reject_counter_offer(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    purchase_facade.store_counter_offer(0, default_user_id, default_price)
+    assert purchase_facade._purchases[0].is_offer_to_store == True
+
+
+def test_user_reject_counter_offer_facade(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
+    purchase_facade.store_counter_offer(0, default_user_id, default_price + 10)
     purchase_facade.user_reject_counter_offer(0, default_user_id)
-    assert len(purchase_facade._purchases) == 0
-    
-     
-def test_facade_user_counter_offer(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    purchase_facade.store_counter_offer(0, default_user_id, default_price)
-    purchase_facade.user_counter_offer(0, default_user_id, default_price)
-    assert purchase_facade._purchases[0].status == PurchaseStatus.onGoing
-    
- 
-      
-      
-def test_facade_get_bid_purchases_of_user(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    assert len(purchase_facade.get_bid_purchases_of_user(default_user_id)) == 2
-    purchase_facade.create_bid_purchase(default_user_id + 1, default_price, default_store_id, default_products_list[0].product_id)
-    assert len(purchase_facade.get_bid_purchases_of_user(default_user_id)) == 2
-    
-      
-def test_facade_get_bid_purchases_of_store(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    assert len(purchase_facade.get_bid_purchases_of_store(default_store_id)) == 2
-    purchase_facade.create_bid_purchase(default_user_id + 1, default_price, default_store_id, default_products_list[0].product_id)
-    assert len(purchase_facade.get_bid_purchases_of_store(default_store_id)) == 2
-    
-     
-def test_facade_ccept_purchase(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
+    assert purchase_facade._purchases[0].status == PurchaseStatus.offer_rejected
+
+
+def test_user_counter_offer_facade(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
+    purchase_facade.store_counter_offer(0, default_user_id, default_price + 10)
+    purchase_facade.user_counter_offer(0, default_user_id, default_price + 15)
+    assert purchase_facade._purchases[0].proposed_price == default_price + 15
+    assert purchase_facade._purchases[0].is_offer_to_store == True
+    assert purchase_facade._purchases[0].list_of_store_owners_managers_that_accepted_offer == []
+
+
+def test_get_bid_purchases_of_user(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
+    bid_purchases = purchase_facade.get_bid_purchases_of_user(default_user_id)
+    assert len(bid_purchases) == 1
+
+
+def test_get_bid_purchases_of_store(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
+    bid_purchases = purchase_facade.get_bid_purchases_of_store(default_store_id)
+    assert len(bid_purchases) == 1
+
+
+def test_accept_bid_purchase_facade(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
     purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
     assert purchase_facade._purchases[0].status == PurchaseStatus.accepted
-    
 
-     
-def test_facade_reject_purchase(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
-    purchase_facade.reject_purchase(0)
-    assert len(purchase_facade._purchases) == 0
-    
-      
-def test_facade_complete_purchase(purchase_facade):
-    purchase_facade.create_bid_purchase(default_user_id, default_price, default_store_id, default_products_list[0].product_id)
+
+def test_complete_bid_purchase_facade(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
     purchase_facade.accept_purchase(0, datetime.now() + timedelta(days=1))
     purchase_facade.complete_purchase(0)
     assert purchase_facade._purchases[0].status == PurchaseStatus.completed
+
+
 
 
 def clean_data():
