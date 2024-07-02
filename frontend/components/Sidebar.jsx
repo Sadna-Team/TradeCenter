@@ -87,7 +87,7 @@ export default function Sidebar({ isOpen, onClose, hasStores, isSystemManager })
       <Link href="/bid-status" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
         Bid Status
       </Link>
-      <Link href="/date_discount" className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
+      <Link href="/discounts" className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
         Manage Discounts
       </Link>
     </div>
