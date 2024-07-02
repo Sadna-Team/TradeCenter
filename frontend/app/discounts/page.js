@@ -79,9 +79,10 @@ const ManageDiscount = () => {
   const [selectedMultipleDiscounts, setSelectedMultipleDiscounts] = useState([]);
 
   const [expandedDiscounts, setExpandedDiscounts] = useState({});
-  const [expandedLeftDiscount, setExpandedLeftDiscount] = useState(null);
-  const [expandedRightDiscount, setExpandedRightDiscount] = useState(null);
-  const [expandedConstraint, setExpandedConstraint] = useState(null);
+  const [expandedLeftDiscount, setExpandedLeftDiscounts] = useState({});
+  const [expandedRightDiscount, setExpandedRightDiscounts] = useState({});
+  const [expandedConstraint, setExpandedConstraints] = useState({});
+  const [expandedMultipleDiscounts, setExpandedMultipleDiscounts] = useState({});
 
   const [constraintDialogOpen, setConstraintDialogOpen] = useState(false);
   const [selectedConstraintType, setSelectedConstraintType] = useState('');
@@ -401,30 +402,64 @@ const ManageDiscount = () => {
     fetchDiscounts();
   };
 
-  //CONNECT THE EDIT TO THE BACKEND
   const handleEditSaveChanges = () => {
-    if (!editDiscountDescription) {
-      setErrorMessage('Please enter a description.');
-      return;
-    }
+    const editDiscount = async () => {
+      let data;
+      if (editDiscountDescription !== ''){
+        data = {
+          discount_id: currentDiscountId,
+          description: editDiscountDescription,
+        }
 
-    const updatedDiscounts = { ...discounts };
-    const discountIndex = updatedDiscounts[editDiscountType].findIndex(
-      (discount) => discount.discount_id === currentDiscountId
-    );
+        try {
+          const response = await api.post('/store/change_discount_description', data);
+          if(response.status !== 200){
+            console.error('Failed to edit discount', response);
+            setErrorMessage('Failed to edit discount');
+            return;
+          }
+          console.log("the response of editing discount:", response.data.message);
+          fetchDiscounts();
+          setErrorMessage('');
+        }
+        catch (error) {
+          console.error('Failed to edit discount', error);
+          setErrorMessage('Failed to edit discount');
+        }
+      }
 
-    if (discountIndex !== -1) {
-      updatedDiscounts[editDiscountType][discountIndex].description = editDiscountDescription;
-      if (editDiscountType === 'storeDiscounts' || editDiscountType === 'categoryDiscounts' || editDiscountType === 'productDiscounts') {
-        updatedDiscounts[editDiscountType][discountIndex].percentage = parseInt(editDiscountPercentage);
+      if (editDiscountPercentage !== ''){
+        data = {
+          discount_id: currentDiscountId,
+          percentage: parseFloat(editDiscountPercentage),
+        }
+
+        try {
+          const response = await api.post('/store/change_discount_percentage', data);
+          if(response.status !== 200){
+            console.error('Failed to edit discount', response);
+            setErrorMessage('Failed to edit discount');
+            return;
+          }
+          console.log("the response of editing discount:", response.data.message);
+          fetchDiscounts();
+          setErrorMessage('');
+        }
+        catch (error) {
+          console.error('Failed to edit discount', error);
+          setErrorMessage('Failed to edit discount');
+        }
       }
     }
-
-    setDiscounts(updatedDiscounts);
+    
+    editDiscount();
     setIsEditDialogOpen(false);
     setEditDiscountDescription('');
     setEditDiscountPercentage('');
+    setErrorMessage('');
+    fetchDiscounts();
   };
+
 
   const handleRemoveDiscount = (type, discountId) => {
     const removeDiscount = async () => {
@@ -453,7 +488,6 @@ const ManageDiscount = () => {
     setIsDialogOpen(true);
   };
 
-  //TODO: CHECK IF THIS WORKS
   const handleOpenEditDialog = (discountId, type) => {
     const discount = discounts[type].find((discount) => discount.discount_id === discountId);
     if (discount) {
@@ -1132,22 +1166,39 @@ const renderConstraintFields = () => {
 
 
 const handleToggle = (discountId, type) => {
-  setExpandedDiscounts({
-    ...expandedDiscounts,
-    [type]: expandedDiscounts[type] === discountId ? null : discountId
-  });
+  setExpandedDiscounts(prevState => ({
+    ...prevState,
+    [type]: prevState[type] === discountId ? null : discountId
+  }));
 };
 
+
 const handleToggleLeftDiscount = (discountId) => {
-  setExpandedLeftDiscount(expandedLeftDiscount === discountId ? null : discountId);
+  setExpandedLeftDiscounts(prevState => ({
+    ...prevState,
+    [discountId]: !prevState[discountId]
+  }));
 };
 
 const handleToggleRightDiscount = (discountId) => {
-  setExpandedRightDiscount(expandedRightDiscount === discountId ? null : discountId);
+  setExpandedRightDiscounts(prevState => ({
+    ...prevState,
+    [discountId]: !prevState[discountId]
+  }));
+};
+
+const handleToggleMultipleDiscounts = (discountId) => {
+  setExpandedMultipleDiscounts(prevState => ({
+    ...prevState,
+    [discountId]: !prevState[discountId]
+  }));
 };
 
 const handleToggleConstraint = (discountId) => {
-  setExpandedConstraint(expandedConstraint === discountId ? null : discountId);
+  setExpandedConstraints(prevState => ({
+    ...prevState,
+    [discountId]: !prevState[discountId]
+  }));
 };
 
 
@@ -1196,9 +1247,9 @@ const renderDiscount = (discount, type) => (
           </>
         )}
         {['additiveDiscounts', 'maxDiscounts'].includes(type) && (
-          <button className="mt-2" onClick={() => handleToggleConstraint(discount.discount_id)}>Show Discounts</button>
+          <button className="mt-2" onClick={() => handleToggleMultipleDiscounts(discount.discount_id)}>Show Discounts</button>
         )}
-        {expandedConstraint === discount.discount_id && discount.discounts && (
+        {expandedDiscounts === discount.discount_id && discount.discounts && (
           <div className="mt-2">
             {discount.discounts.map((id) => renderNestedDiscount(id))}
           </div>
