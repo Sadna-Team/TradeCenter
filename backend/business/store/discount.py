@@ -22,9 +22,9 @@ class Discount(ABC):
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint]):
         if isinstance(starting_date,str):
-            starting_date = datetime.strptime(starting_date, '%a, %d %b %Y %H:%M:%S %Z')
+            starting_date = datetime.strptime(starting_date, '%Y-%m-%d')
         if isinstance(ending_date,str):
-            ending_date = datetime.strptime(ending_date, '%a, %d %b %Y %H:%M:%S %Z')
+            ending_date = datetime.strptime(ending_date, '%Y-%m-%d')
         if starting_date > ending_date:
             logger.error("[Discount] Invalid dates")
             raise DiscountAndConstraintsError("invalid dates", DiscountAndConstraintsErrorTypes.invalid_date)
@@ -141,17 +141,18 @@ class CategoryDiscount(Discount):
     
     def get_discount_info_as_dict(self) -> dict:
         date_format = "%Y-%m-%d" 
+        is_applied = "Yes" if self.applied_to_subcategories else "No"
         
         return {
-            "discount_type": "CategoryDiscount",
+            "discount_type": "CategoryDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": str(self.starting_date.strftime(date_format)),
-            "ending_date": str(self.ending_date.strftime(date_format)),
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "percentage": self.percentage,
-            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else None,
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None",
             "category_id": self.category_id,
-            "applied_to_subcategories": self.applied_to_subcategories
+            "applied_to_subcategories": is_applied
         }
 
 
@@ -196,13 +197,13 @@ class StoreDiscount(Discount):
         date_format = "%Y-%m-%d" 
 
         return {
-            "discount_type": "StoreDiscount",
+            "discount_type": "StoreDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": str(self.starting_date.strftime(date_format)),
-            "ending_date": str(self.ending_date.strftime(date_format)),
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "percentage": self.percentage,
-            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else None,
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None",
             "store_id": self.store_id
         }
 
@@ -252,13 +253,13 @@ class ProductDiscount(Discount):
         date_format = "%Y-%m-%d" 
 
         return {
-            "discount_type": "ProductDiscount",
+            "discount_type": "ProductDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": str(self.starting_date.strftime(date_format)),
-            "ending_date": str(self.ending_date.strftime(date_format)),
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "percentage": self.percentage,
-            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else None,
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None",
             "product_id": self.product_id,
             "store_id": self.store_id
         }
@@ -313,13 +314,13 @@ class AndDiscount(Discount):
         dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
         dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
         return {
-            "discount_type": "AndDiscount",
-            "discount_id": self.__discount_id,
-            "discount_description": self.__discount_description,
-            "starting_date": str(self.starting_date.strftime(date_format)),
-            "ending_date": str(self.ending_date.strftime(date_format)),
-            "discount_1_info": dict_of_disc1,
-            "discount_2_info": dict_of_disc2
+            "discount_type": "AndDiscounts",
+            "discount_id": self.discount_id,
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
+            "discount_id1": dict_of_disc1,
+            "discount_id2": dict_of_disc2
         }
     
 
@@ -381,13 +382,13 @@ class OrDiscount(Discount):
         dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
         dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
         return {
-            "discount_type": "OrDiscount",
+            "discount_type": "OrDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": str(self.starting_date.strftime(date_format)),
-            "ending_date": str(self.ending_date.strftime(date_format)),
-            "discount_1_info": dict_of_disc1,
-            "discount_2_info": dict_of_disc2
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
+            "discount_id1": dict_of_disc1,
+            "discount_id2": dict_of_disc2
         }
 
 # --------------- Xor Discount ---------------#
@@ -435,13 +436,13 @@ class XorDiscount(Discount):
         dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
         dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
         return {
-            "discount_type": "XorDiscount",
+            "discount_type": "XorDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": str(self.starting_date.strftime(date_format)),
-            "ending_date": str(self.ending_date.strftime(date_format)),
-            "discount_1_info": dict_of_disc1,
-            "discount_2_info": dict_of_disc2
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
+            "discount_id1": dict_of_disc1,
+            "discount_id2": dict_of_disc2
         }
 
 # --------------- Max Discount classes ---------------#
@@ -473,11 +474,11 @@ class MaxDiscount(Discount):
         for discount in self.__ListDiscount:
             discounts_info[discount.discount_id] = discount.get_discount_info_as_dict()
         return {
-            "discount_type": "MaxDiscount",
+            "discount_type": "MaxDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": str(self.starting_date.strftime(date_format)),
-            "ending_date": str(self.ending_date.strftime(date_format)),
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "discounts_info": discounts_info
         }
 
@@ -511,10 +512,10 @@ class AdditiveDiscount(Discount):
         for discount in self.__ListDiscount:
             discounts_info[discount.discount_id] = discount.get_discount_info_as_dict()
         return {
-            "discount_type": "AdditiveDiscount",
+            "discount_type": "AdditiveDiscounts",
             "discount_id": self.discount_id,
-            "discount_description": self.discount_description,
-            "starting_date": str(self.starting_date.strftime(date_format)),
-            "ending_date": str(self.ending_date.strftime(date_format)),
+            "description": self.discount_description,
+            "start_date": str(self.starting_date.strftime(date_format)),
+            "end_date": str(self.ending_date.strftime(date_format)),
             "discounts_info": discounts_info
         }

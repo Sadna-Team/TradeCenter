@@ -105,7 +105,7 @@ class StoreService:
             View information about all discounts in the system
         """
         try:
-            info = self.__market_facade.view_all_discount_information(user_id)
+            info: dict = self.__market_facade.view_all_discount_information(user_id)
             logger.info('discount info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:

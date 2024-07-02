@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/AlertDialog";
+import { DatePickerDemo } from "@/components/DatePickerDemo";
 
 
 const constraintTypes = [
@@ -104,7 +105,7 @@ const ManageDiscount = () => {
 
   const fetchDiscounts = async () => {
     try {
-      const response = await api.get('/store/view_discounts_info');
+      const response = await api.post('/store/view_discounts_info',{});
       if(response.status !== 200){
         console.error('Failed to fetch discounts', response);
         setErrorMessage('Failed to fetch discounts');
@@ -130,21 +131,21 @@ const ManageDiscount = () => {
     
       for(let i = 0; i < data.length; i++){
         console.log("the current discount is:", data[i]);
-        if(data[i].discount_type === 'StoreDiscount'){
+        if(data[i].discount_type === 'StoreDiscounts'){
           StoreDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'CategoryDiscount'){
+        }else if(data[i].discount_type === 'CategoryDiscounts'){
           CategoryDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'ProductDiscount'){
+        }else if(data[i].discount_type === 'ProductDiscounts'){
           ProductDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'AndDiscount'){
+        }else if(data[i].discount_type === 'AndDiscounts'){
           AndDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'OrDiscount'){
+        }else if(data[i].discount_type === 'OrDiscounts'){
           OrDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'XorDiscount'){
+        }else if(data[i].discount_type === 'XorDiscounts'){
           XorDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'AdditiveDiscount'){
+        }else if(data[i].discount_type === 'AdditiveDiscounts'){
           AdditiveDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'MaxDiscount'){
+        }else if(data[i].discount_type === 'MaxDiscounts'){
           MaxDiscounts.push(data[i]);
         }else{
           console.error('Unknown discount type:', data[i].discount_type);
@@ -153,14 +154,14 @@ const ManageDiscount = () => {
       }
 
       let discounts = {
-        storeDiscounts: StoreDiscounts,
-        categoryDiscounts: CategoryDiscounts,
-        productDiscounts: ProductDiscounts,
-        andDiscounts: AndDiscounts,
-        orDiscounts: OrDiscounts,
-        xorDiscounts: XorDiscounts,
+        StoreDiscounts: StoreDiscounts,
+        CategoryDiscounts: CategoryDiscounts,
+        ProductDiscounts: ProductDiscounts,
+        AndDiscounts: AndDiscounts,
+        OrDiscounts: OrDiscounts,
+        XorDiscounts: XorDiscounts,
         additiveDiscounts: AdditiveDiscounts,
-        maxDiscounts: MaxDiscounts
+        MaxDiscounts: MaxDiscounts
       }
 
       setDiscounts(discounts);
@@ -247,6 +248,14 @@ const ManageDiscount = () => {
 
 
   const handleSaveChanges = () => {
+    if (!newDiscountStartingDate || !newDiscountEndingDate) {
+      setErrorMessage('Please select both starting and ending dates.');
+      return;
+    }
+
+    const starting_date = format(newDiscountStartingDate, "yyyy-MM-dd");
+    const ending_date = format(newDiscountEndingDate, "yyyy-MM-dd");
+
     if (!newDiscountDescription) {
       setErrorMessage('Please enter a description.');
       return;
@@ -255,7 +264,7 @@ const ManageDiscount = () => {
     let data;
     console.log("the dialog type is:", dialogType);
     switch (dialogType) {
-      case 'storeDiscounts':
+      case 'StoreDiscounts':
         if (selectedStore === null || selectedStore === '' || selectedStore === undefined) {
           setErrorMessage('Please select a store.');
           return;
@@ -263,13 +272,13 @@ const ManageDiscount = () => {
 
         data = {
           description: newDiscountDescription,
-          start_date: newDiscountStartingDate,
-          end_date: newDiscountEndingDate,
+          start_date: starting_date,
+          end_date: ending_date,
           percentage: parseFloat(newDiscountPercentage),
           store_id: selectedStore,
         };
         break;
-      case 'categoryDiscounts':
+      case 'CategoryDiscounts':
         if (selectedCategory === null || selectedCategory === '' || selectedCategory === undefined) {
           setErrorMessage('Please select a category.');
           return;
@@ -277,14 +286,14 @@ const ManageDiscount = () => {
 
         data = {
           description: newDiscountDescription,
-          start_date: newDiscountStartingDate,
-          end_date: newDiscountEndingDate,
+          start_date: starting_date,
+          end_date: ending_date,
           percentage: parseFloat(newDiscountPercentage),
           category_id: selectedCategory,
           applied_to_sub: newIsSubApplied,
         };
         break;
-      case 'productDiscounts':
+      case 'ProductDiscounts':
         if (selectedProduct === null || selectedProduct === '' || selectedProduct === undefined) {
           setErrorMessage('Please select a product.');
           return;
@@ -297,30 +306,30 @@ const ManageDiscount = () => {
 
         data = {
           description: newDiscountDescription,
-          start_date: newDiscountStartingDate,
-          end_date: newDiscountEndingDate,
+          start_date: starting_date,
+          end_date: ending_date,
           percentage: parseInt(newDiscountPercentage),
           product_id: selectedProduct,
           store_id: selectedStore,
         };
         break;
-      case 'andDiscounts':
-      case 'orDiscounts':
-      case 'xorDiscounts':
+      case 'AndDiscounts':
+      case 'OrDiscounts':
+      case 'XorDiscounts':
         if (selectedLeftDiscount === '' || !selectedRightDiscount === '') {
           setErrorMessage('Please select both discounts.');
           return;
         }
         let type_of_discount = 1;
-        if(dialogType === 'orDiscounts'){
+        if(dialogType === 'OrDiscounts'){
           type_of_discount = 2;
-        }else if(dialogType === 'xorDiscounts'){
+        }else if(dialogType === 'XorDiscounts'){
           type_of_discount = 3;
         }
         data = {
           description: newDiscountDescription,
-          start_date: newDiscountStartingDate,
-          end_date: newDiscountEndingDate,
+          start_date: starting_date,
+          end_date: ending_date,
           discount_id1: parseInt(selectedLeftDiscount),
           discount_id2: parseInt(selectedRightDiscount),
           type_of_composite: type_of_discount
@@ -328,22 +337,23 @@ const ManageDiscount = () => {
         break;
 
 
-      case 'additiveDiscounts':
-      case 'maxDiscounts':
+      case 'AdditiveDiscounts':
+      case 'MaxDiscounts':
         if (selectedMultipleDiscounts.length === 0) {
           setErrorMessage('Please select at least one discount.');
           return;
         }
         let type_of_composite =1;
-        if(dialogType === 'additiveDiscounts'){
+        if(dialogType === 'AdditiveDiscounts'){
           type_of_composite = 2;
         }
 
+        console.log("the selected multiple discounts:", selectedMultipleDiscounts);
         data = {
           description: newDiscountDescription,
-          start_date: newDiscountStartingDate,
-          end_date: newDiscountEndingDate,
-          discount_ids: selectedMultipleDiscounts.map((value) => parseInt(value)),
+          start_date: starting_date,
+          end_date: ending_date,
+          discount_ids: selectedMultipleDiscounts.map((value) => parseInt(value.value)),
           type_of_composite: type_of_composite
         };
         break;
@@ -354,7 +364,7 @@ const ManageDiscount = () => {
     const saveDiscount = async () => {
       try {
         console.log("the discount data: ", data)
-        if(dialogType === 'storeDiscounts' || dialogType === 'categoryDiscounts' || dialogType === 'productDiscounts'){
+        if(dialogType === 'StoreDiscounts' || dialogType === 'CategoryDiscounts' || dialogType === 'ProductDiscounts'){
           const response = await api.post('/store/add_discount', data);
           if(response.status !== 200){
             console.error('Failed to add discount', response);
@@ -362,7 +372,7 @@ const ManageDiscount = () => {
             return;
           }
           console.log("the response of adding discount:", response.data.message);
-        }else if(dialogType === 'andDiscounts' || dialogType === 'orDiscounts' || dialogType === 'xorDiscounts'){
+        }else if(dialogType === 'AndDiscounts' || dialogType === 'OrDiscounts' || dialogType === 'XorDiscounts'){
           const response = await api.post('/store/create_logical_composite', data);
           if(response.status !== 200){
             console.error('Failed to add discount', response);
@@ -370,7 +380,7 @@ const ManageDiscount = () => {
             return;
           }
           console.log("the response of adding discount:", response.data.message);
-        } else if(dialogType === 'additiveDiscounts' || dialogType === 'maxDiscounts'){
+        } else if(dialogType === 'AdditiveDiscounts' || dialogType === 'MaxDiscounts'){
           const response = await api.post('/store/create_numerical_composite', data);
           if(response.status !== 200){
             console.error('Failed to add discount', response);
@@ -513,7 +523,7 @@ const ManageDiscount = () => {
     setConstraintValues({ ...constraintValues, [field]: value });
   };
 
- // Function responsible for adding a new constraint to a policy
+ // Function responsible for adding a new constraint to a discount
  const handleSaveConstraint = async () => {
   const parseConstraintString = (constraintStr) => {
     const splitRegex = /[\s,]+/;
@@ -1201,35 +1211,64 @@ const handleToggleConstraint = (discountId) => {
   }));
 };
 
-
-const renderNestedDiscount = (discountId) => {
-  const discountType = Object.keys(discounts).find(type => 
-    discounts[type].some(d => d.discount_id === discountId)
-  );
-
-  if (!discountType) {
-    return <p>Discount not found</p>;
-  }
-
-  const nestedDiscount = discounts[discountType].find(d => d.discount_id === discountId);
-
-  if (!nestedDiscount) {
-    return <p>Discount not found</p>;
-  }
+const renderNestedDiscount = (discount) => {
+  if (!discount) return null;
 
   return (
     <div className="ml-4">
-      <p><strong>Discount ID:</strong> {nestedDiscount.discount_id}</p>
-      <p><strong>Description:</strong> {nestedDiscount.description}</p>
-      <p><strong>Starting Date:</strong> {nestedDiscount.starting_date}</p>
-      <p><strong>Ending Date:</strong> {nestedDiscount.ending_date}</p>
-      {nestedDiscount.percentage && <p><strong>Percentage:</strong> {nestedDiscount.percentage}%</p>}
-      {discountType === 'storeDiscounts' && <p><strong>Store ID:</strong> {nestedDiscount.store_id}</p>}
-      {discountType === 'categoryDiscounts' && <p><strong>Category ID:</strong> {nestedDiscount.category_id}</p>}
-      {discountType === 'productDiscounts' && (
+      <p><strong>Discount ID:</strong> {discount.discount_id}</p>
+      <p><strong>Description:</strong> {discount.description}</p>
+      <p><strong>Start Date:</strong> {discount.start_date}</p>
+      <p><strong>End Date:</strong> {discount.end_date}</p>
+      {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' || discount.discount_type === "CategoryDiscounts" &&  <p><strong>Percentage:</strong> {discount.percentage}</p>}
+      {discount.discount_type === 'ProductDiscounts' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
+      {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
+      {discount.discount_type === 'CategoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
+      {discount.discount_type === 'CategoryDiscounts' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
+      {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(discount.discount_type) && (
         <>
-          <p><strong>Product ID:</strong> {nestedDiscount.product_id}</p>
-          <p><strong>Store ID:</strong> {nestedDiscount.store_id}</p>
+          <div className="flex justify-between">
+            <button onClick={() => handleToggleLeftDiscount(discount.discount_id)} className="mt-2">
+              {expandedLeftDiscounts[discount.discount_id] ? 'Hide Left Discount' : 'Show Left Discount'}
+            </button>
+            <button onClick={() => handleToggleRightDiscount(discount.discount_id)} className="mt-2">
+              {expandedRightDiscounts[discount.discount_id] ? 'Hide Right Discount' : 'Show Right Discount'}
+            </button>
+          </div>
+          {expandedLeftDiscounts[discount.discount_id] && discount.discount_id1 && (
+            <div className="mt-2 ml-4">
+              {renderNestedDiscount(discount.discount_id1)}
+            </div>
+          )}
+          {expandedRightDiscounts[discount.discount_id] && discount.discount_id2 && (
+            <div className="mt-2 ml-4">
+              {renderNestedDiscount(discount.discount_id2)}
+            </div>
+          )}
+        </>
+      )}
+      {['MaxDiscounts', 'AdditiveDiscounts'].includes(discount.discount_type) && (
+        <>
+          <button onClick={() => handleToggleMultipleDiscounts(discount.discount_id)} className="mt-2">
+            {expandedMultipleDiscounts[discount.discount_id] ? 'Hide Discounts' : 'Show Discounts'}
+          </button>
+          {expandedMultipleDiscounts[discount.discount_id] && discount.discounts_info && (
+            <div className="mt-2 ml-4">
+              {Object.values(discount.discounts_info).map((discount) => renderNestedDiscount(discount))}
+            </div>
+          )}
+        </>
+      )}
+      {['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(discount.discount_type) && discount.predicate && (
+        <>
+          <button onClick={() => handleToggleConstraint(discount.discount_id)} className="text-gray-500 mt-2">
+            {expandedConstraints[discount.discount_id] ? 'Hide Constraint' : 'Show Constraint'}
+          </button>
+          {expandedConstraints[discount.discount_id] && (
+            <div className="mt-2">
+              <p>{discount.predicate}</p>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -1237,8 +1276,9 @@ const renderNestedDiscount = (discountId) => {
 };
 
 
-
+// Function for rendering a Discount
 const renderDiscount = (discount, type) => (
+
   <div 
     key={discount.discount_id} 
     className="mb-4 p-4 border-2 border-gray-300 rounded-md"
@@ -1251,64 +1291,62 @@ const renderDiscount = (discount, type) => (
     </button>
     {expandedDiscounts[type] === discount.discount_id && (
       <div className="mt-2">
+        <p><strong>Discount ID:</strong> {discount.discount_id}</p>
         <p><strong>Description:</strong> {discount.description}</p>
-        <p><strong>Starting Date:</strong> {discount.starting_date}</p>
-        <p><strong>Ending Date:</strong> {discount.ending_date}</p>
-        {discount.percentage && <p><strong>Percentage:</strong> {discount.percentage}%</p>}
-        {type === 'storeDiscounts' && <p><strong>Store ID:</strong> {discount.store_id}</p>}
-        {type === 'categoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
-        {type === 'productDiscounts' && (
-          <>
-            <p><strong>Product ID:</strong> {discount.product_id}</p>
-            <p><strong>Store ID:</strong> {discount.store_id}</p>
-          </>
-        )}
-        {['andDiscounts', 'orDiscounts', 'xorDiscounts'].includes(type) && (
+        <p><strong>Start Date:</strong> {discount.start_date}</p>
+        <p><strong>End Date:</strong> {discount.end_date}</p>
+        {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' || discount.discount_type === "CategoryDiscounts" &&  <p><strong>Percentage:</strong> {discount.percentage}</p>}
+        {discount.discount_type === 'ProductDiscounts' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
+        {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
+        {discount.discount_type === 'CategoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
+        {discount.discount_type === 'CategoryDiscounts' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
+        {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(type) && (
           <>
             <div className="flex justify-between">
-              <button onClick={() => handleToggleLeftDiscount(discount.discount_id)} className="mt-2">Show Left Discount</button>
-              <button onClick={() => handleToggleRightDiscount(discount.discount_id)} className="mt-2">Show Right Discount</button>
+              <button onClick={() => handleToggleLeftDiscount(discount.discount_id)} className="mt-2">
+                {expandedLeftDiscounts[discount.discount_id] ? 'Hide Left Discount' : 'Show Left Discount'}
+              </button>
+              <button onClick={() => handleToggleRightDiscount(discount.discount_id)} className="mt-2">
+                {expandedRightDiscounts[discount.discount_id] ? 'Hide Right Discount' : 'Show Right Discount'}
+              </button>
             </div>
-            {expandedLeftDiscounts[discount.discount_id] && (
-              <div className="mt-2">
-                {renderNestedDiscount(discount.left_discount_id)}
+            {expandedLeftDiscounts[discount.discount_id] && discount.discount_id1 && (
+              <div className="mt-2 ml-4">
+                {renderNestedDiscount(discount.discount_id1)}
               </div>
             )}
-            {expandedRightDiscounts[discount.discount_id] && (
-              <div className="mt-2">
-                {renderNestedDiscount(discount.right_discount_id)}
-              </div>
-            )}
-          </>
-        )}
-        {['additiveDiscounts', 'maxDiscounts'].includes(type) && (
-          <>
-            <button className="mt-2" onClick={() => handleToggleMultipleDiscounts(discount.discount_id)}>Show Discounts</button>
-            {expandedMultipleDiscounts[discount.discount_id] && discount.discounts && (
-              <div className="mt-2">
-                {discount.discounts.map((id) => renderNestedDiscount(id))}
+            {expandedRightDiscounts[discount.discount_id] && discount.discount_id2 && (
+              <div className="mt-2 ml-4">
+                {renderNestedDiscount(discount.discount_id2)}
               </div>
             )}
           </>
         )}
-        {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(type) && (
+        {['MaxDiscounts', 'AdditiveDiscounts'].includes(type) && (
           <>
-            <button onClick={() => handleToggleConstraint(discount.discount_id)} className="mt-2">
-              {expandedConstraints[discount.discount_id] ? 'Hide Constraints' : 'Show Constraints'}
+            <button onClick={() => handleToggleMultipleDiscounts(discount.discount_id)} className="mt-2">
+              {expandedMultipleDiscounts[discount.discount_id] ? 'Hide Discounts' : 'Show Discounts'}
             </button>
-            {expandedConstraints[discount.discount_id] && discount.constraints && (
-              <div className="mt-2">
-                {discount.constraints.map((constraint, index) => (
-                  <p key={index}>{constraint.type}: {constraint.details}</p>
-                ))}
+            {expandedMultipleDiscounts[discount.discount_id] && discount.discounts_info && (
+              <div className="mt-2 ml-4">
+                {Object.values(discount.discounts_info).map((discount) => renderNestedDiscount(discount))}
               </div>
             )}
           </>
         )}
-        <div className="flex justify-between mt-4">
-          {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(type) && (
-            <Button className="bg-blue-500 text-white py-1 px-3 rounded" onClick={() => handleOpenConstraintDialog(discount.discount_id)}>Add Constraint</Button>
-          )}
+        {['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(type) && (
+          <>
+            <button onClick={() => handleToggleConstraint(discount.discount_id)} className="text-gray-500 mt-2">
+              {expandedConstraints[discount.discount_id] ? 'Hide Constraint' : 'Show Constraint'}
+            </button>
+            {expandedConstraints[discount.discount_id] && discount.predicate && (
+              <div className="mt-2">
+                <p>{discount.predicate}</p>
+              </div>
+            )}
+          </>
+        )}
+        <div className={`flex ${['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Discount</Button>
@@ -1322,17 +1360,21 @@ const renderDiscount = (discount, type) => (
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => handleRemoveDiscount(type, discount.discount_id)}>Yes, remove discount</AlertDialogAction>
+                <AlertDialogAction onClick={() => handleRemoveDiscount(type, discount.discount_id)}>Yes, remove discount </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
           <Button className="bg-green-500 text-white py-1 px-3 rounded" onClick={() => handleOpenEditDialog(discount.discount_id, type)}>Edit Discount</Button>
+          {['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(type) && (
+            <Button onClick={() => handleOpenConstraintDialog(discount.discount_id)} className="ml-2">
+              Add Constraint
+            </Button>
+          )}
         </div>
       </div>
     )}
   </div>
 );
-
 
 return (
   <div className="flex flex-wrap justify-center">
@@ -1381,7 +1423,7 @@ return (
                   className="col-span-3 wider-date-picker"
                 />
               </div>
-              {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(type) && (
+              {['StoreDiscounts', 'CategoryDiscounts', 'ProductDiscounts'].includes(type) && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="percentage" className="block mt-2">Percentage</Label>
                   <Input
@@ -1393,7 +1435,7 @@ return (
                   />
                 </div>
               )}
-              {type === 'storeDiscounts' && (
+              {type === 'StoreDiscounts' && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
                   <Select onValueChange={setSelectedStore}>
@@ -1410,7 +1452,7 @@ return (
                   </Select>
                 </div>
               )}
-              {type === 'categoryDiscounts' && (
+              {type === 'CategoryDiscounts' && (
                 <>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="category-id" className="block mt-2">Category ID</Label>
@@ -1419,9 +1461,9 @@ return (
                         <SelectValue placeholder="Category ID" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
-                        {Object.keys(categories).map((key) => (
-                          <SelectItem key={key} value={key}>
-                            {categories[key]}
+                        {Object.values(categories).map((category) => (
+                          <SelectItem key={category.category_id} value={category.category_id}>
+                            {category.category_name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -1441,7 +1483,7 @@ return (
                   </div>
                 </>
               )}
-              {type === 'productDiscounts' && (
+              {type === 'ProductDiscounts' && (
                 <>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
@@ -1478,7 +1520,7 @@ return (
                   </div>
                 </>
               )}
-              {['andDiscounts', 'orDiscounts', 'xorDiscounts'].includes(type) && (
+              {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(type) && (
                 <>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="left-discount-id" className="block mt-2">Discount 1</Label>
@@ -1512,7 +1554,7 @@ return (
                   </div>
                 </>
               )}
-              {['additiveDiscounts', 'maxDiscounts'].includes(type) && (
+              {['additiveDiscounts', 'MaxDiscounts'].includes(type) && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="discounts" className="block mt-2">Discounts</Label>
                   <MultiSelect
@@ -1554,7 +1596,7 @@ return (
               className="col-span-3 border border-black"
             />
           </div>
-          {['storeDiscounts', 'categoryDiscounts', 'productDiscounts'].includes(editDiscountType) && (
+          {['StoreDiscounts', 'CategoryDiscounts', 'ProductDiscounts'].includes(editDiscountType) && (
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-percentage" className="block mt-2">Change Percentage</Label>
               <Input
