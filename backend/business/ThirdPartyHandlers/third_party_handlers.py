@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Callable
+from typing import Dict, Tuple, Callable, List
 from datetime import datetime, timedelta
 import time
 import threading
@@ -37,6 +37,7 @@ class BogoPayment(PaymentAdapter):
 
 class PaymentHandler:
     __instance: bool = None
+    EXISTING_PAYMENT_METHODS = ["bogo", "gold", "bricks", "dead presidents"]  # NOTE: << should make the requested value a constant >>
 
     def __new__(cls):
         if PaymentHandler.__instance is None:
@@ -105,8 +106,21 @@ class PaymentHandler:
         
         if method_name not in self.payment_config:
             raise ThirdPartyHandlerError("payment method not supported", ThirdPartyHandlerErrorTypes.payment_method_not_supported)
+        logger.info(f"Removing payment method {method_name}")
         del self.payment_config[method_name]
         logger.info(f"Removed payment method {method_name}")
+
+    def get_payment_methods(self)-> List[str]:
+        """
+            * get_payment_methods is a method that returns the list of supported payment methods.
+        """
+        return self.EXISTING_PAYMENT_METHODS
+    
+    def get_active_payment_methods(self) -> List[str]:
+        """
+            * get_active_payment_methods is a method that returns the active payment methods.
+        """
+        return list(self.payment_config.keys())
 
 
 class SupplyAdapter(ABC):
@@ -147,6 +161,7 @@ class BogoSupply(SupplyAdapter):
 # ----------------------------------------- Will be used for address validation using Google Maps API later on ----------------------------------------- #
 class SupplyHandler:
     __instance = None
+    EXISTING_SUPPLY_METHODS = ["bogo", "throwing", "teleportation", "drone", "rocket", "submarine"]
 
     def __new__(cls):
         if SupplyHandler.__instance is None:
@@ -252,3 +267,15 @@ class SupplyHandler:
             raise ThirdPartyHandlerError("supply method not supported", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         del self.supply_config[method_name]
         logger.info(f"Removed supply method {method_name}")
+
+    def get_supply_methods(self) -> List[str]:
+        """
+            * get_supply_methods is a method that returns the list of supported supply methods.
+        """
+        return self.EXISTING_SUPPLY_METHODS
+    
+    def get_active_supply_methods(self) -> List[str]:
+        """
+            * get_active_supply_methods is a method that returns the active supply methods.
+        """
+        return list(self.supply_config.keys())

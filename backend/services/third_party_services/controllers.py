@@ -39,6 +39,30 @@ class PaymentService(ThirdPartyService):
     def __init__(self):
         super().__init__()
 
+    def get_all_methods(self, user_id: int):
+        """
+            Get all payment methods in the system
+        """
+        try:
+            methods = self._market_facade.get_payment_methods(user_id)
+            logger.info('Payment methods retrieved successfully')
+            return jsonify({'message': methods}), 200
+        except Exception as e:
+            logger.error('Failed to retrieve payment methods')
+            return jsonify({'message': str(e)}), 400
+        
+    def get_all_active_methods(self, user_id: int):
+        """
+            Get all active payment methods in the system
+        """
+        try:
+            methods = self._market_facade.get_active_payment_methods(user_id)
+            logger.info('Active payment methods retrieved successfully')
+            return jsonify({'message': methods}), 200
+        except Exception as e:
+            logger.error('Failed to retrieve active payment methods')
+            return jsonify({'message': str(e)}), 400
+
     def add_third_party_service(self, user_id: int, method_name: str, config: Dict):
         """
             Add a third party service to be supported by the platform
@@ -79,6 +103,30 @@ class PaymentService(ThirdPartyService):
 class SupplyService(ThirdPartyService):
     def __init__(self):
         super().__init__()
+
+    def get_all_methods(self, user_id: int):
+        """
+            Get all supply methods in the system
+        """
+        try:
+            methods = self._market_facade.get_supply_methods(user_id)
+            logger.info('Supply methods retrieved successfully')
+            return jsonify({'message': methods}), 200
+        except Exception as e:
+            logger.error('Failed to retrieve supply methods')
+            return jsonify({'message': str(e)}), 400
+        
+    def get_all_active_methods(self, user_id: int):
+        """
+            Get all active supply methods in the system
+        """
+        try:
+            methods = self._market_facade.get_active_supply_methods(user_id)
+            logger.info('Active supply methods retrieved successfully')
+            return jsonify({'message': methods}), 200
+        except Exception as e:
+            logger.error('Failed to retrieve active supply methods')
+            return jsonify({'message': str(e)}), 400
 
     def add_third_party_service(self, user_id: int, method_name: str, config: Dict):
         """

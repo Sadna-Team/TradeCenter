@@ -1110,6 +1110,41 @@ class MarketFacade:
         return self.purchase_facade.get_purchases_of_store(store_id)
 
 
+    def get_payment_methods(self, user_id: int)-> List[str]:
+        """
+        * Parameters: userId
+        * This function returns the payment methods of a user
+        * Returns a list of strings
+        """
+        if not self.roles_facade.is_system_manager(user_id):
+            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        return PaymentHandler().get_payment_methods()
+    
+    def get_active_payment_methods(self, user_id: int)-> List[str]:
+        """
+        * Parameters: userId
+        * This function returns the active payment methods of a user
+        * Returns a list of strings
+        """
+        return PaymentHandler().get_active_payment_methods()
+
+    def get_supply_methods(self, user_id: int) -> List[str]:
+        """
+        * Parameters: userId
+        * This function returns the supply methods of a user
+        * Returns a list of strings
+        """
+        if not self.roles_facade.is_system_manager(user_id):
+            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        return SupplyHandler().get_supply_methods()
+    
+    def get_active_supply_methods(self, user_id: int) -> List[str]:
+        """
+        * Parameters: userId
+        * This function returns the active supply methods of a user
+        * Returns a list of strings
+        """
+        return SupplyHandler().get_active_supply_methods()
     
 
     '''def view_purchases_of_user_in_store(self, user_id: int, store_id: int) -> str:
