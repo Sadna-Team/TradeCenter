@@ -1,6 +1,7 @@
 from datetime import datetime
 import pytest
 from backend.business import MarketFacade, UserFacade, Authentication, PurchaseFacade
+from backend.business.DTOs import BidPurchaseDTO
 from backend.business.roles import RolesFacade
 from typing import List, Optional
 from flask import Flask
@@ -521,6 +522,103 @@ def test_change_discount_description_no_permission(default_set_up):
         market_facade.change_discount_description(user_id1+1, discount_id1, 'new description')
     assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
     assert market_facade.store_facade.discounts.get(discount_id1).discount_description != 'new description'
+    
+#-----------------------------------------------------------
+
+#tests for bid purchase:
+
+      
+def test_user_bid_offer(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    assert len(market_facade.store_facade.get_store_by_id(store_id1).purchase_policy)==0
+    policy_id1 = market_facade.user_bid_offer(user_id1, 10, store_id1, product_id11)
+    assert policy_id1 in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    
+      
+def test_worker_accept_bid(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    policy_id1 = market_facade.user_bid_offer(user_id1, 10, store_id1, product_id11)
+    market_facade.store_worker_accept_bid(store_id1, user_id1, policy_id1)
+    assert policy_id1 not in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    
+
+def test_worker_decline_bid(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    policy_id1 = market_facade.user_bid_offer(user_id1, 10, store_id1, product_id11)
+    market_facade.store_worker_decline_bid(store_id1, user_id1, policy_id1)
+    assert policy_id1 not in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    
+     
+def test_worker_counter_bid(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    policy_id1 = market_facade.user_bid_offer(user_id1, 10, store_id1, product_id11)
+    market_facade.store_worker_counter_bid(store_id1, user_id1, policy_id1, 20)
+    assert policy_id1 in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    
+      
+def test_user_counter_bid_accept(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    policy_id1 = market_facade.user_bid_offer(user_id1, 10, store_id1, product_id11)
+    market_facade.store_worker_counter_bid(store_id1, user_id1, policy_id1, 20)
+    market_facade.user_counter_bid_accept(user_id1, policy_id1)
+    assert policy_id1 not in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    
+      
+def test_user_counter_bid_decline(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    policy_id1 = market_facade.user_bid_offer(user_id1, 10, store_id1, product_id11)
+    market_facade.store_worker_counter_bid(store_id1, user_id1, policy_id1, 20)
+    market_facade.user_counter_bid_decline(user_id1, policy_id1)
+    assert policy_id1 not in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    
+       
+def test_user_counter_bid(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    policy_id1 = market_facade.user_bid_offer(user_id1, 10, store_id1, product_id11)
+    market_facade.store_worker_counter_bid(store_id1, user_id1, policy_id1, 20)
+    market_facade.user_counter_bid(user_id1, policy_id1, 15)
+    assert policy_id1 in market_facade.store_facade.get_store_by_id(store_id1).purchase_policy
+    
+     
+def test_show_user_bids(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    policy_id1 = market_facade.user_bid_offer(user_id1, 10, store_id1, product_id11)
+    assert market_facade.show_user_bids(0, user_id1) == [BidPurchaseDTO(policy_id1, 10, store_id1, product_id11)]
+    
+       
+def test_show_store_bids(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id11 = products[0][0]
+    policy_id1 = market_facade.user_bid_offer(user_id1, 10, store_id1, product_id11)
+    assert market_facade.show_store_bids(user_id1, store_id1) == [BidPurchaseDTO(policy_id1, 10, store_id1, product_id11)]
+    
+    
     
 
 

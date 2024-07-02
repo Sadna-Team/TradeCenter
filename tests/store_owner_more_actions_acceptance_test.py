@@ -360,3 +360,40 @@ def test_assign_predicate_to_purchase_policy_invalid_policy_id(client12, init_st
     headers = {'Authorization': 'Bearer ' + owner_token11}
     response = client12.post('store/assign_predicate_to_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400
+    
+#bid tests:
+    
+def test_user_bid_offer(client12, init_store, owner_token11, clean11):
+    
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + owner_token11}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+    
+def test_user_bid_offer_no_owner_permission(client12, client33,guest_token10, owner_token11, init_store, clean11):
+        
+        data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+        headers = {'Authorization': 'Bearer ' + guest_token10}
+        response = client33.post('market/user_bid_offer', headers=headers, json=data)
+        assert response.status_code == 400
+        
+        
+def test_user_bid_offer_invalid_price(client12, init_store, owner_token11, clean11):
+        
+        data = {"proposed_price": -5, "store_id": 0, "product_id": 0}
+        headers = {'Authorization': 'Bearer ' + owner_token11}
+        response = client12.post('market/user_bid_offer', headers=headers, json=data)
+        assert response.status_code == 400
+        
+    
+
+def test_store_worker_accept_bid(client12, init_store, owner_token11, clean11):
+   
+   
+    data = {"store_id": 0, "bid_id": 0}
+    headers = {'Authorization': 'Bearer ' + owner_token11}
+    response = client12.post('store/store_worker_accept_bid', headers=headers, json=data)
+    assert response.status_code == 200
+    
+
+ 
