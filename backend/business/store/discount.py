@@ -141,7 +141,7 @@ class CategoryDiscount(Discount):
     
     def get_discount_info_as_dict(self) -> dict:
         return {
-            "discount_type": "Category Discount",
+            "discount_type": "CategoryDiscount",
             "discount_id": self.discount_id,
             "discount_description": self.discount_description,
             "starting_date": self.starting_date,
@@ -192,7 +192,7 @@ class StoreDiscount(Discount):
     
     def get_discount_info_as_dict(self) -> dict:
         return {
-            "discount_type": "Store Discount",
+            "discount_type": "StoreDiscount",
             "discount_id": self.discount_id,
             "discount_description": self.discount_description,
             "starting_date": self.starting_date,
@@ -246,7 +246,7 @@ class ProductDiscount(Discount):
     
     def get_discount_info_as_dict(self) -> dict:
         return {
-            "discount_type": "Product Discount",
+            "discount_type": "ProductDiscount",
             "discount_id": self.discount_id,
             "discount_description": self.discount_description,
             "starting_date": self.starting_date,
@@ -305,7 +305,7 @@ class AndDiscount(Discount):
         dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
         dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
         return {
-            "discount_type": "And Discount",
+            "discount_type": "AndDiscount",
             "discount_id": self.discount_id,
             "discount_description": self.discount_description,
             "starting_date": self.starting_date,
@@ -371,7 +371,7 @@ class OrDiscount(Discount):
         dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
         dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
         return {
-            "discount_type": "Or Discount",
+            "discount_type": "OrDiscount",
             "discount_id": self.discount_id,
             "discount_description": self.discount_description,
             "starting_date": self.starting_date,
@@ -423,7 +423,7 @@ class XorDiscount(Discount):
         dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
         dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
         return {
-            "discount_type": "Xor Discount",
+            "discount_type": "XorDiscount",
             "discount_id": self.discount_id,
             "discount_description": self.discount_description,
             "starting_date": self.starting_date,
@@ -459,7 +459,7 @@ class MaxDiscount(Discount):
         for discount in self.__ListDiscount:
             discounts_info[discount.discount_id] = discount.get_discount_info_as_dict()
         return {
-            "discount_type": "Max Discount",
+            "discount_type": "MaxDiscount",
             "discount_id": self.discount_id,
             "discount_description": self.discount_description,
             "starting_date": self.starting_date,
@@ -495,7 +495,7 @@ class AdditiveDiscount(Discount):
         for discount in self.__ListDiscount:
             discounts_info[discount.discount_id] = discount.get_discount_info_as_dict()
         return {
-            "discount_type": "Additive Discount",
+            "discount_type": "AdditiveDiscount",
             "discount_id": self.discount_id,
             "discount_description": self.discount_description,
             "starting_date": self.starting_date,

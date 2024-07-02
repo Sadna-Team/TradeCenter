@@ -1,6 +1,7 @@
 "use client";
+import api from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ScrollArea';
 import {
   Dialog,
@@ -27,113 +28,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/AlertDialog";
 
-// Mock data for discounts
-const mockDiscounts = {
-  storeDiscounts: [
-    {
-      discount_id: 1,
-      description: "Store Discount 1",
-      starting_date: "2024-01-01",
-      ending_date: "2024-12-31",
-      percentage: 10,
-      store_id: "store1",
-      constraints: []
-    }
-  ],
-  categoryDiscounts: [
-    {
-      discount_id: 2,
-      description: "Category Discount 1",
-      starting_date: "2024-01-01",
-      ending_date: "2024-12-31",
-      percentage: 15,
-      category_id: "category1",
-      apply_to_sub_categories: true,
-      constraints: []
-    }
-  ],
-  productDiscounts: [
-    {
-      discount_id: 3,
-      description: "Product Discount 1",
-      starting_date: "2024-01-01",
-      ending_date: "2024-12-31",
-      percentage: 20,
-      product_id: "product1",
-      store_id: "store1",
-      constraints: []
-    }
-  ],
-  andDiscounts: [
-    {
-      discount_id: 4,
-      description: "And Discount 1",
-      starting_date: "2024-01-01",
-      ending_date: "2024-12-31",
-      left_discount_id: 1,
-      right_discount_id: 2
-    }
-  ],
-  orDiscounts: [
-    {
-      discount_id: 5,
-      description: "Or Discount 1",
-      starting_date: "2024-01-01",
-      ending_date: "2024-12-31",
-      left_discount_id: 2,
-      right_discount_id: 3
-    }
-  ],
-  xorDiscounts: [
-    {
-      discount_id: 6,
-      description: "Xor Discount 1",
-      starting_date: "2024-01-01",
-      ending_date: "2024-12-31",
-      left_discount_id: 3,
-      right_discount_id: 1
-    }
-  ],
-  additiveDiscounts: [
-    {
-      discount_id: 7,
-      description: "Additive Discount 1",
-      starting_date: "2024-01-01",
-      ending_date: "2024-12-31",
-      discounts: [1, 2, 3]
-    }
-  ],
-  maxDiscounts: [
-    {
-      discount_id: 8,
-      description: "Max Discount 1",
-      starting_date: "2024-01-01",
-      ending_date: "2024-12-31",
-      discounts: [2, 3, 4]
-    }
-  ]
-};
-
-// Mock data for products
-const mockProducts = [
-  { value: 'product1', label: 'Product 1' },
-  { value: 'product2', label: 'Product 2' },
-  // Add more mock products as needed
-];
-
-// Mock data for categories
-const mockCategories = [
-  { value: 'category1', label: 'Category 1' },
-  { value: 'category2', label: 'Category 2' },
-  // Add more mock categories as needed
-];
-
-// Mock data for stores
-const mockStores = [
-  { value: 'store1', label: 'Store 1' },
-  { value: 'store2', label: 'Store 2' },
-  // Add more mock stores as needed
-];
 
 const constraintTypes = [
   { value: 'age', label: 'Age constraint' },
@@ -156,39 +50,200 @@ const constraintTypes = [
 ];
 
 const ManageDiscount = () => {
-  const searchParams = useSearchParams();
-  const id = searchParams.get('id');
-  const [discounts, setDiscounts] = useState(mockDiscounts);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  //data required for our page
+  const [discounts, setDiscounts] = useState([]);
+  const [stores, setStores] = useState({});
+  const [products_to_store, setProductsToStore] = useState([]);
+  const [categories, setCategories] = useState({});
+
+  // states for our dialog
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState('');
+  
+
+  // data for adding new discount
+  const [newDiscountDescription, setNewDiscountDescription] = useState('');
+  const [newDiscountStartingDate, setNewDiscountStartingDate] = useState('');
+  const [newDiscountEndingDate, setNewDiscountEndingDate] = useState('');
+  const [newDiscountPercentage, setNewDiscountPercentage] = useState(null);
+  const [newIsSubApplied, setNewIsSubApplied] = useState(false);
+  
+  //data for composite discounts
+  const [selectedStore, setSelectedStore] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedLeftDiscount, setSelectedLeftDiscount] = useState('');
   const [selectedRightDiscount, setSelectedRightDiscount] = useState('');
   const [selectedMultipleDiscounts, setSelectedMultipleDiscounts] = useState([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState('');
-  const [newDiscountDescription, setNewDiscountDescription] = useState('');
-  const [newDiscountStartingDate, setNewDiscountStartingDate] = useState('');
-  const [newDiscountEndingDate, setNewDiscountEndingDate] = useState('');
-  const [newDiscountPercentage, setNewDiscountPercentage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+
   const [expandedDiscounts, setExpandedDiscounts] = useState({});
   const [expandedLeftDiscount, setExpandedLeftDiscount] = useState(null);
   const [expandedRightDiscount, setExpandedRightDiscount] = useState(null);
   const [expandedConstraint, setExpandedConstraint] = useState(null);
+
   const [constraintDialogOpen, setConstraintDialogOpen] = useState(false);
   const [selectedConstraintType, setSelectedConstraintType] = useState('');
   const [constraintValues, setConstraintValues] = useState({});
   const [currentDiscountId, setCurrentDiscountId] = useState(null);
-  const [constraintError, setConstraintError] = useState('');
+
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editDiscountDescription, setEditDiscountDescription] = useState('');
   const [editDiscountPercentage, setEditDiscountPercentage] = useState('');
   const [editDiscountType, setEditDiscountType] = useState('');
 
-  const generateUniqueId = () => {
-    // Generate a unique ID based on the current timestamp and a random number
-    return Date.now() + Math.floor(Math.random() * 1000);
+
+  useEffect(() => {
+    fetchDiscounts();
+    fetchStores();
+    fetchCategories();
+  }, []);
+
+
+  const fetchDiscounts = async () => {
+    try {
+      const response = await api.post('/store/view_discounts_info', {});
+      if(response.status !== 200){
+        console.error('Failed to fetch discounts', response);
+        setErrorMessage('Failed to fetch discounts');
+        return;
+      }
+      console.log("the discounts of the system:", response.data.message)
+      let data = response.data.message;
+  
+      if(data === null || data === undefined) {
+        console.error('Failed to fetch policies of store', response);
+        setErrorMessage('Failed to fetch policies of store');
+        return;
+      }
+
+      let StoreDiscounts = [];
+      let CategoryDiscounts = [];
+      let ProductDiscounts = [];
+      let AndDiscounts = [];
+      let OrDiscounts = [];
+      let XorDiscounts = [];
+      let AdditiveDiscounts = [];
+      let MaxDiscounts = [];
+    
+      for(let i = 0; i < data.length; i++){
+        console.log("the current discount is:", data[i]);
+        if(data[i].discount_type === 'StoreDiscount'){
+          StoreDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'CategoryDiscount'){
+          CategoryDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'ProductDiscount'){
+          ProductDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'AndDiscount'){
+          AndDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'OrDiscount'){
+          OrDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'XorDiscount'){
+          XorDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'AdditiveDiscount'){
+          AdditiveDiscounts.push(data[i]);
+        }else if(data[i].discount_type === 'MaxDiscount'){
+          MaxDiscounts.push(data[i]);
+        }else{
+          console.error('Unknown discount type:', data[i].discount_type);
+          setErrorMessage('Unknown discount type');
+        }
+      }
+
+      let discounts = {
+        storeDiscounts: StoreDiscounts,
+        categoryDiscounts: CategoryDiscounts,
+        productDiscounts: ProductDiscounts,
+        andDiscounts: AndDiscounts,
+        orDiscounts: OrDiscounts,
+        xorDiscounts: XorDiscounts,
+        additiveDiscounts: AdditiveDiscounts,
+        maxDiscounts: MaxDiscounts
+      }
+
+      setDiscounts(discounts);
+    } catch (error) {
+      console.error('Failed to fetch discounts', error);
+      setErrorMessage('Failed to fetch discounts');
+    }
   };
+
+  const fetchStores = async () => {
+    try {
+      const response = await api.get('/store/store_ids_to_names');
+      if(response.status !== 200){
+        console.error('Failed to fetch stores', response);
+        setErrorMessage('Failed to fetch stores');
+        return;
+      }
+      console.log("the stores:", response.data.message);
+      let data = response.data.message;
+  
+      if(data === null || data === undefined) {
+        console.error('Failed to fetch stores', response);
+        setErrorMessage('Failed to fetch stores');
+        return;
+      }
+  
+      setStores(data);
+
+      //fetching the products of each store
+      let products_data = [];
+      console.log("Trying to add the products of each store");
+      for(let key of Object.keys(data)){
+        console.log("Adding products of store:", key)
+        const product_response = await api.post(`/store/store_products`, { 'store_id': key });
+        if(product_response.status !== 200){
+          console.error('Failed to fetch products of store', product_response);
+          setErrorMessage('Failed to fetch products');
+          return;
+        }
+        console.log("the products of the store:", product_response.data.message);
+        let product_data = product_response.data.message;
+
+        if(product_data === null || product_data === undefined) {
+          console.error('Failed to fetch products of store', product_response);
+          setErrorMessage('Failed to fetch products of store');
+          return;
+        }
+        products_data.push({ store_id: key, products: product_data });
+      }
+
+      setProductsToStore(products_data);
+
+    } catch (error) {
+      console.error('Failed to fetch stores', error);
+      setErrorMessage('Failed to fetch stores');
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get('/store/category_ids_to_names');
+      if(response.status !== 200){
+        console.error('Failed to fetch categories', response);
+        setErrorMessage('Failed to fetch categories');
+        return;
+      }
+      console.log("the categories:", response.data.message);
+      let data = response.data.message;
+  
+      if(data === null || data === undefined) {
+        console.error('Failed to fetch categories', response);
+        setErrorMessage('Failed to fetch categories');
+        return;
+      }
+  
+      setCategories(data);
+    } catch (error) {
+      console.error('Failed to fetch categories', error);
+      setErrorMessage('Failed to fetch categories');
+    }
+  };
+
+
+
 
   const handleSaveChanges = () => {
     if (!newDiscountDescription) {
@@ -196,129 +251,157 @@ const ManageDiscount = () => {
       return;
     }
 
-    let newDiscountId = generateUniqueId();
-    let newDiscount;
+    let data;
+    console.log("the dialog type is:", dialogType);
     switch (dialogType) {
       case 'storeDiscounts':
-        newDiscount = {
-          discount_id: newDiscountId,
+        if (selectedStore === null || selectedStore === '' || selectedStore === undefined) {
+          setErrorMessage('Please select a store.');
+          return;
+        }
+
+        data = {
           description: newDiscountDescription,
-          starting_date: newDiscountStartingDate,
-          ending_date: newDiscountEndingDate,
-          percentage: parseInt(newDiscountPercentage),
-          store_id: selectedProduct,
-          constraints: []
+          start_date: newDiscountStartingDate,
+          end_date: newDiscountEndingDate,
+          percentage: parseFloat(newDiscountPercentage),
+          store_id: selectedStore,
         };
         break;
       case 'categoryDiscounts':
-        newDiscount = {
-          discount_id: newDiscountId,
+        if (selectedCategory === null || selectedCategory === '' || selectedCategory === undefined) {
+          setErrorMessage('Please select a category.');
+          return;
+        }
+
+        data = {
           description: newDiscountDescription,
-          starting_date: newDiscountStartingDate,
-          ending_date: newDiscountEndingDate,
-          percentage: parseInt(newDiscountPercentage),
+          start_date: newDiscountStartingDate,
+          end_date: newDiscountEndingDate,
+          percentage: parseFloat(newDiscountPercentage),
           category_id: selectedCategory,
-          apply_to_sub_categories: selectedLeftDiscount === 'yes',
-          constraints: []
+          applied_to_sub: newIsSubApplied,
         };
         break;
       case 'productDiscounts':
-        newDiscount = {
-          discount_id: newDiscountId,
+        if (selectedProduct === null || selectedProduct === '' || selectedProduct === undefined) {
+          setErrorMessage('Please select a product.');
+          return;
+        }
+
+        if (selectedStore === null || selectedStore === '' || selectedStore === undefined) {
+          setErrorMessage('Please select a store.');
+          return;
+        }
+
+        data = {
           description: newDiscountDescription,
-          starting_date: newDiscountStartingDate,
-          ending_date: newDiscountEndingDate,
+          start_date: newDiscountStartingDate,
+          end_date: newDiscountEndingDate,
           percentage: parseInt(newDiscountPercentage),
           product_id: selectedProduct,
-          store_id: selectedRightDiscount,
-          constraints: []
+          store_id: selectedStore,
         };
         break;
       case 'andDiscounts':
       case 'orDiscounts':
       case 'xorDiscounts':
-        if (!selectedLeftDiscount || !selectedRightDiscount) {
+        if (selectedLeftDiscount === '' || !selectedRightDiscount === '') {
           setErrorMessage('Please select both discounts.');
           return;
         }
-        newDiscount = {
-          discount_id: newDiscountId,
+        let type_of_discount = 1;
+        if(dialogType === 'orDiscounts'){
+          type_of_discount = 2;
+        }else if(dialogType === 'xorDiscounts'){
+          type_of_discount = 3;
+        }
+        data = {
           description: newDiscountDescription,
-          starting_date: newDiscountStartingDate,
-          ending_date: newDiscountEndingDate,
-          left_discount_id: parseInt(selectedLeftDiscount),
-          right_discount_id: parseInt(selectedRightDiscount)
+          start_date: newDiscountStartingDate,
+          end_date: newDiscountEndingDate,
+          discount_id1: parseInt(selectedLeftDiscount),
+          discount_id2: parseInt(selectedRightDiscount),
+          type_of_composite: type_of_discount
         };
-
-        // Remove the selected discounts
-        setDiscounts((prevDiscounts) => {
-          const updatedDiscounts = { ...prevDiscounts };
-          Object.keys(updatedDiscounts).forEach((type) => {
-            updatedDiscounts[type] = updatedDiscounts[type].filter(
-              (discount) =>
-                discount.discount_id !== parseInt(selectedLeftDiscount) &&
-                discount.discount_id !== parseInt(selectedRightDiscount)
-            );
-          });
-          return updatedDiscounts;
-        });
         break;
+
+
       case 'additiveDiscounts':
       case 'maxDiscounts':
         if (selectedMultipleDiscounts.length === 0) {
           setErrorMessage('Please select at least one discount.');
           return;
         }
-        newDiscount = {
-          discount_id: newDiscountId,
-          description: newDiscountDescription,
-          starting_date: newDiscountStartingDate,
-          ending_date: newDiscountEndingDate,
-          discounts: selectedMultipleDiscounts.map((value) => parseInt(value))
-        };
+        let type_of_composite =1;
+        if(dialogType === 'additiveDiscounts'){
+          type_of_composite = 2;
+        }
 
-        // Remove the selected discounts
-        setDiscounts((prevDiscounts) => {
-          const updatedDiscounts = { ...prevDiscounts };
-          selectedMultipleDiscounts.forEach((selectedDiscountId) => {
-            Object.keys(updatedDiscounts).forEach((type) => {
-              updatedDiscounts[type] = updatedDiscounts[type].filter(
-                (discount) => discount.discount_id !== parseInt(selectedDiscountId)
-              );
-            });
-          });
-          return updatedDiscounts;
-        });
+        data = {
+          description: newDiscountDescription,
+          start_date: newDiscountStartingDate,
+          end_date: newDiscountEndingDate,
+          discount_ids: selectedMultipleDiscounts.map((value) => parseInt(value)),
+          type_of_composite: type_of_composite
+        };
         break;
       default:
         return;
     }
 
-    if (!['andDiscounts', 'orDiscounts', 'xorDiscounts', 'additiveDiscounts', 'maxDiscounts'].includes(dialogType)) {
-      setDiscounts((prevDiscounts) => ({
-        ...prevDiscounts,
-        [dialogType]: [...prevDiscounts[dialogType], newDiscount],
-      }));
-    } else {
-      setDiscounts((prevDiscounts) => ({
-        ...prevDiscounts,
-        [dialogType]: [...prevDiscounts[dialogType], newDiscount],
-      }));
-    }
+    const saveDiscount = async () => {
+      try {
+        console.log("the discount data: ", data)
+        if(dialogType === 'storeDiscounts' || dialogType === 'categoryDiscounts' || dialogType === 'productDiscounts'){
+          const response = await api.post('/store/add_discount', data);
+          if(response.status !== 200){
+            console.error('Failed to add discount', response);
+            setErrorMessage('Failed to add discount');
+            return;
+          }
+          console.log("the response of adding discount:", response.data.message);
+        }else if(dialogType === 'andDiscounts' || dialogType === 'orDiscounts' || dialogType === 'xorDiscounts'){
+          const response = await api.post('/store/create_logical_composite', data);
+          if(response.status !== 200){
+            console.error('Failed to add discount', response);
+            setErrorMessage('Failed to add discount');
+            return;
+          }
+          console.log("the response of adding discount:", response.data.message);
+        } else if(dialogType === 'additiveDiscounts' || dialogType === 'maxDiscounts'){
+          const response = await api.post('/store/create_numerical_composite', data);
+          if(response.status !== 200){
+            console.error('Failed to add discount', response);
+            setErrorMessage('Failed to add discount');
+            return;
+          }
+          console.log("the response of adding discount:", response.data.message);
+        }
+      }
+      catch (error) {
+        console.error('Failed to add discount', error);
+        setErrorMessage('Failed to add discount');
+      }
+    };
 
+    saveDiscount();
     setIsDialogOpen(false);
     setNewDiscountDescription('');
     setNewDiscountPercentage('');
     setNewDiscountStartingDate('');
     setNewDiscountEndingDate('');
+    setNewIsSubApplied(false);
     setSelectedProduct('');
     setSelectedCategory('');
     setSelectedLeftDiscount('');
     setSelectedRightDiscount('');
     setSelectedMultipleDiscounts([]);
     setErrorMessage('');
+    fetchDiscounts();
   };
 
+  //CONNECT THE EDIT TO THE BACKEND
   const handleEditSaveChanges = () => {
     if (!editDiscountDescription) {
       setErrorMessage('Please enter a description.');
@@ -344,36 +427,33 @@ const ManageDiscount = () => {
   };
 
   const handleRemoveDiscount = (type, discountId) => {
-    setDiscounts({
-      ...discounts,
-      [type]: discounts[type].filter(discount => discount.discount_id !== discountId)
-    });
+    const removeDiscount = async () => {
+      try {
+        const response = await api.post('/store/remove_discount', { discount_id: discountId });
+        if(response.status !== 200){
+          console.error('Failed to remove discount', response);
+          setErrorMessage('Failed to remove discount');
+          return;
+        }
+        console.log("the response of removing discount:", response.data.message);
+        fetchDiscounts();
+        setErrorMessage('');
+      } catch (error) {
+        console.error('Failed to remove discount', error);
+        setErrorMessage('Failed to remove discount');
+      }
+    };
+
+    removeDiscount();
   };
 
-  const handleToggle = (discountId, type) => {
-    setExpandedDiscounts({
-      ...expandedDiscounts,
-      [type]: expandedDiscounts[type] === discountId ? null : discountId
-    });
-  };
-
-  const handleToggleLeftDiscount = (discountId) => {
-    setExpandedLeftDiscount(expandedLeftDiscount === discountId ? null : discountId);
-  };
-
-  const handleToggleRightDiscount = (discountId) => {
-    setExpandedRightDiscount(expandedRightDiscount === discountId ? null : discountId);
-  };
-
-  const handleToggleConstraint = (discountId) => {
-    setExpandedConstraint(expandedConstraint === discountId ? null : discountId);
-  };
-
+  
   const handleOpenDialog = (type) => {
     setDialogType(type);
     setIsDialogOpen(true);
   };
 
+  //TODO: CHECK IF THIS WORKS
   const handleOpenEditDialog = (discountId, type) => {
     const discount = discounts[type].find((discount) => discount.discount_id === discountId);
     if (discount) {
@@ -399,593 +479,678 @@ const ManageDiscount = () => {
     setConstraintValues({ ...constraintValues, [field]: value });
   };
 
-
-  const handleSaveConstraint = () => {
-    // Validation logic
-    if (selectedConstraintType === 'age' && isNaN(constraintValues.ageLimit)) {
-      setConstraintError('Age limit must be a number.');
-      return;
-    }
+ // Function responsible for adding a new constraint to a policy
+ const handleSaveConstraint = async () => {
+  const parseConstraintString = (constraintStr) => {
+    const splitRegex = /[\s,]+/;
   
-    // Add other validation checks for different constraint types here...
+    const convertToNumber = (s) => {
+      if (!isNaN(parseInt(s))) {
+        return parseInt(s);
+      }
+      if (!isNaN(parseFloat(s))) {
+        return parseFloat(s);
+      }
+      return s;
+    };
   
-    const updatedDiscounts = { ...discounts };
-    const discountType = Object.keys(updatedDiscounts).find(type => 
-      updatedDiscounts[type].some(discount => discount.discount_id === currentDiscountId)
-    );
+    const parse = (s) => {
+      const tokens = s.replace(/[()]/g, '').trim().split(splitRegex);
+      return tokens.map((token) => convertToNumber(token));
+    };
   
-    const discountIndex = updatedDiscounts[discountType].findIndex(discount => 
-      discount.discount_id === currentDiscountId
-    );
-  
-    updatedDiscounts[discountType][discountIndex].constraints = [{
-      type: selectedConstraintType,
-      details: JSON.stringify(constraintValues)
-    }];
-  
-    setDiscounts(updatedDiscounts);
-    setConstraintDialogOpen(false);
-    setConstraintError('');
+    const cleanStr = constraintStr.replace(/\s+/g, ' ').trim();
+    return parse(cleanStr);
   };
   
-  const renderConstraintFields = () => {
-    switch (selectedConstraintType) {
-      case 'age':
-        return (
-          <>
-            <Input
-              id="age-limit"
-              placeholder="Enter age limit"
-              value={constraintValues.ageLimit || ''}
-              onChange={(e) => handleConstraintValueChange('ageLimit', e.target.value)}
-              className="col-span-3 border border-black mt-2"
-            />
-            <div className="mt-8">
-              {constraintValues.ageLimit && isNaN(constraintValues.ageLimit) && <p className="text-red-500">Not a number</p>}
-            </div>
-          </>
-        );
-      case 'time':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('startingHour', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Starting hour" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(24).keys()].map((hour) => (
-                  <SelectItem key={hour} value={hour}>
-                    {hour}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('endingHour', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Ending hour" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(24).keys()].map((hour) => (
-                  <SelectItem key={hour} value={hour}>
-                    {hour}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('startingMinute', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Starting minute" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(60).keys()].map((minute) => (
-                  <SelectItem key={minute} value={minute}>
-                    {minute}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('endingMinute', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Ending minute" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(60).keys()].map((minute) => (
-                  <SelectItem key={minute} value={minute}>
-                    {minute}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        );
-      case 'location':
-        return (
-          <>
-            <Input
-              id="address"
-              placeholder="Address"
-              value={constraintValues.address || ''}
-              onChange={(e) => handleConstraintValueChange('address', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <Input
-              id="city"
-              placeholder="City"
-              value={constraintValues.city || ''}
-              onChange={(e) => handleConstraintValueChange('city', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <Input
-              id="state"
-              placeholder="State"
-              value={constraintValues.state || ''}
-              onChange={(e) => handleConstraintValueChange('state', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <Input
-              id="country"
-              placeholder="Country"
-              value={constraintValues.country || ''}
-              onChange={(e) => handleConstraintValueChange('country', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <Input
-              id="zip-code"
-              placeholder="Zip-code"
-              value={constraintValues.zipCode || ''}
-              onChange={(e) => handleConstraintValueChange('zipCode', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <div className="mt-2">
-              {constraintValues.zipCode && isNaN(constraintValues.zipCode) && <p className="text-red-500">Not a number</p>}
-            </div>
-          </>
-        );
-      case 'dayOfMonth':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('startingDay', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Starting day" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(31).keys()].map((day) => (
-                  <SelectItem key={day + 1} value={day + 1}>
-                    {day + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('endingDay', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Ending day" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(31).keys()].map((day) => (
-                  <SelectItem key={day + 1} value={day + 1}>
-                    {day + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        );
-      case 'dayOfWeek':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('startingDay', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Starting day" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(7).keys()].map((day) => (
-                  <SelectItem key={day + 1} value={day + 1}>
-                    {day + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('endingDay', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Ending day" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {[...Array(7).keys()].map((day) => (
-                  <SelectItem key={day + 1} value={day + 1}>
-                    {day + 1}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        );
-      case 'season':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('season', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Select season..." />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {['summer', 'winter', 'autumn', 'spring'].map((season) => (
-                  <SelectItem key={season} value={season}>
-                    {season}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        );
-      case 'holiday':
-        return (
-          <>
-            <Select onValueChange={(value) => handleConstraintValueChange('countryCode', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Country code" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="IL">IL</SelectItem>
-              </SelectContent>
-            </Select>
-          </>
-        );
-      case 'basketPrice':
-        return (
-          <>
-            <Input
-              id="min-price"
-              placeholder="Min price (in dollars)"
-              value={constraintValues.minPrice || ''}
-              onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <div className="mt-2">
-              {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
-            </div>
-            <Input
-              id="max-price"
-              placeholder="Max price (in dollars)"
-              value={constraintValues.maxPrice || ''}
-              onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <div className="mt-2">
-              {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
-            </div>
-            <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Select store..." />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {mockStores.map((store) => (
-                  <SelectItem key={store.value} value={store.value}>
-                    {store.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        );
-      case 'productPrice':
-        return (
-          <>
-            <Input
-              id="min-price"
-              placeholder="Min price (in dollars)"
-              value={constraintValues.minPrice || ''}
-              onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <div className="mt-2">
-              {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
-            </div>
-            <Input
-              id="max-price"
-              placeholder="Max price (in dollars)"
-              value={constraintValues.maxPrice || ''}
-              onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <div className="mt-2">
-              {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
-            </div>
-            <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Select store..." />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {mockStores.map((store) => (
-                  <SelectItem key={store.value} value={store.value}>
-                    {store.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
+  const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
+  
+  const simpleComponents = ['age', 'time', 'location', 'day_of_month', 'day_of_week', 'season', 'holidays_of_country', 'price_basket', 'price_product', 'price_category', 'amount_basket', 'amount_product', 'amount_category', 'weight_category', 'weight_basket', 'weight_product'];
+  const compositeComponents = ['and', 'or', 'xor', 'implies'];
+  
+  const buildNestedArray = (parsedComposite, index) => {
+    let properties = [];
+    let constraintType = '';
+    for (let i = index; i < parsedComposite.length; i++) {
+      if (compositeComponents.includes(parsedComposite[i])) {
+        let left, right, newIndex;
+        [left, newIndex] = buildNestedArray(parsedComposite, i + 1);
+        [right, newIndex] = buildNestedArray(parsedComposite, newIndex + 1);
+        return [[parsedComposite[i], left, right], newIndex];
+      } else if (simpleComponents.includes(parsedComposite[i])) {
+        if (constraintType === '') {
+          constraintType = parsedComposite[i];
+        } else {
+          return [[constraintType, ...properties], i - 1];
+        }
+      } else {
+        properties.push(parsedComposite[i]);
+      }
+    }
+    return [[constraintType, ...properties], parsedComposite.length];
+  };
+  
+  const [finalComposite] = buildNestedArray(parsedComposite, 0);
+  console.log("the final composite constraint:", finalComposite);
+  let data;
+  if (selectedConstraintType === 'compositeConstraint') {
+     data = {
+      discount_id: currentDiscountId,
+      predicate_builder: finalComposite,
+    };
+
+    console.log("the first variable of the predicate_builder is " + data.predicate_builder[0])
+
+  }else if(selectedConstraintType === 'location'){
+    let location = {'address': Object.values(constraintValues)[0], 'city': Object.values(constraintValues)[1], 'state': Object.values(constraintValues)[2], 'country': Object.values(constraintValues)[3], 'zip_code': Object.values(constraintValues)[4]}
+    data = {
+      discount_id: currentDiscountId,
+      predicate_builder: [selectedConstraintType, location]
+    }
+
+  }else{
+
+    data = {
+      discount_id: currentDiscountId,
+      predicate_builder: [selectedConstraintType, ...Object.values(constraintValues)],
+    };
+  }
+   
+  console.log('predicate builder of current constraint we are trying to add:', data.predicate_builder);
+
+  try {
+    const response = await api.post('/store/assign_predicate_to_discount', data);
+    if (response.status !== 200) {
+      setErrorMessage('Failed to save constraint');
+      return;
+    }
+    fetchDiscounts();
+    setConstraintDialogOpen(false);
+    setSelectedConstraintType('');
+    setConstraintValues({});
+  } catch (error) {
+    console.error('Error saving constraint:', error);
+    setErrorMessage('Failed to save constraint');
+  }
+};
+
+
+const renderConstraintFields = () => {
+  switch (selectedConstraintType) {
+    case 'age':
+      return (
+        <>
+          <Input
+            id="age-limit"
+            placeholder="Enter age limit"
+            value={constraintValues.age || ''}
+            onChange={(e) => handleConstraintValueChange('age', parseInt(e.target.value))}
+            className="col-span-3 border border-black mt-2"
+          />
+          {constraintValues.age && isNaN(constraintValues.age) && <p className="text-red-500">Not a number</p>}
+        </>
+      );
+
+    case 'time':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('startingHour', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Starting hour" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(24).keys()].map((hour) => (
+                <SelectItem key={hour} value={hour}>
+                  {hour}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('startingMinute', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Starting minute" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(60).keys()].map((minute) => (
+                <SelectItem key={minute} value={minute}>
+                  {minute}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('endingHour', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Ending hour" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(24).keys()].map((hour) => (
+                <SelectItem key={hour} value={hour}>
+                  {hour}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('endingMinute', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Ending minute" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(60).keys()].map((minute) => (
+                <SelectItem key={minute} value={minute}>
+                  {minute}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'location':
+      return (
+        <>
+          <Input
+            id="address"
+            placeholder="Address"
+            value={constraintValues.address || ''}
+            onChange={(e) => handleConstraintValueChange('address', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          <Input
+            id="city"
+            placeholder="City"
+            value={constraintValues.city || ''}
+            onChange={(e) => handleConstraintValueChange('city', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          <Input
+            id="state"
+            placeholder="State"
+            value={constraintValues.state || ''}
+            onChange={(e) => handleConstraintValueChange('state', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          <Input
+            id="country"
+            placeholder="Country"
+            value={constraintValues.country || ''}
+            onChange={(e) => handleConstraintValueChange('country', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+          <Input
+            id="zip-code"
+            placeholder="Zip-code"
+            value={constraintValues.zipCode || ''}
+            onChange={(e) => handleConstraintValueChange('zipCode', parseInt(e.target.value))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.zipCode && isNaN(constraintValues.zipCode) && <p className="text-red-500">Not a number</p>}
+        </>
+      );
+
+    case 'day_of_month':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('startingDay', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Starting day" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(31).keys()].map((day) => (
+                <SelectItem key={day + 1} value={day + 1}>
+                  {day + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('endingDay', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Ending day" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(31).keys()].map((day) => (
+                <SelectItem key={day + 1} value={day + 1}>
+                  {day + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'day_of_week':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('startingDay', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Starting day" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(7).keys()].map((day) => (
+                <SelectItem key={day + 1} value={day + 1}>
+                  {day + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => handleConstraintValueChange('endingDay', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Ending day" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {[...Array(7).keys()].map((day) => (
+                <SelectItem key={day + 1} value={day + 1}>
+                  {day + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'season':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('season', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select season..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {['summer', 'winter', 'autumn', 'spring'].map((season) => (
+                <SelectItem key={season} value={season}>
+                  {season}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'holidays_of_country':
+      return (
+        <>
+          <Select onValueChange={(value) => handleConstraintValueChange('countryCode', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Country code" />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              <SelectItem value="IL">IL</SelectItem>
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'price_basket':
+      return (
+        <>
+          <Input
+            id="min-price"
+            placeholder="Min price (in dollars)"
+            value={constraintValues.minPrice || ''}
+            onChange={(e) => handleConstraintValueChange('minPrice', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-price"
+            placeholder="Max price (in dollars)"
+            value={constraintValues.maxPrice || ''}
+            onChange={(e) => handleConstraintValueChange('maxPrice', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'price_product':
+      return (
+        <>
+          <Input
+            id="min-price"
+            placeholder="Min price (in dollars)"
+            value={constraintValues.minPrice || ''}
+            onChange={(e) => handleConstraintValueChange('minPrice', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-price"
+            placeholder="Max price (in dollars)"
+            value={constraintValues.maxPrice || ''}
+            onChange={(e) => handleConstraintValueChange('maxPrice', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(constraintValues.store !== null || constraintValues.store !== '' || constraintValues.store !== undefined) && (
+            <Select onValueChange={(value) => handleConstraintValueChange('product', parseInt(value))}>
               <SelectTrigger className="col-span-3 border border-black bg-white">
                 <SelectValue placeholder="Select product..." />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                {mockProducts.map((product) => (
-                  <SelectItem key={product.value} value={product.value}>
-                    {product.label}
-                  </SelectItem>
-                ))}
+                {products_to_store
+                  .filter((store) => parseInt(store.store_id) === constraintValues.store)
+                  .flatMap((store) => store.products)
+                  .map((product) => (
+                    <SelectItem key={product.product_id} value={product.product_id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
-          </>
-        );
-      case 'categoryPrice':
-        return (
-          <>
-            <Input
-              id="min-price"
-              placeholder="Min price (in dollars)"
-              value={constraintValues.minPrice || ''}
-              onChange={(e) => handleConstraintValueChange('minPrice', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <div className="mt-2">
-              {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
-            </div>
-            <Input
-              id="max-price"
-              placeholder="Max price (in dollars)"
-              value={constraintValues.maxPrice || ''}
-              onChange={(e) => handleConstraintValueChange('maxPrice', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <div className="mt-2">
-              {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
-            </div>
-            <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
+          )}
+        </>
+      );
+
+    case 'price_category':
+      return (
+        <>
+          <Input
+            id="min-price"
+            placeholder="Min price (in dollars)"
+            value={constraintValues.minPrice || ''}
+            onChange={(e) => handleConstraintValueChange('minPrice', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minPrice && isNaN(constraintValues.minPrice) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-price"
+            placeholder="Max price (in dollars)"
+            value={constraintValues.maxPrice || ''}
+            onChange={(e) => handleConstraintValueChange('maxPrice', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxPrice && isNaN(constraintValues.maxPrice) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('category', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select category..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.values(categories).map((category) => (
+                <SelectItem key={category.category_id} value={category.category_id}>
+                  {category.category_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'amount_basket':
+      return (
+        <>
+          <Input
+            id="min-amount"
+            placeholder="Min amount"
+            value={constraintValues.minAmount || ''}
+            onChange={(e) => handleConstraintValueChange('minAmount', parseInt(e.target.value))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'amount_product':
+      return (
+        <>
+          <Input
+            id="min-amount"
+            placeholder="Min amount"
+            value={constraintValues.minAmount || ''}
+            onChange={(e) => handleConstraintValueChange('minAmount', parseInt(e.target.value))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(constraintValues.store !== null || constraintValues.store !== '' || constraintValues.store !== undefined ) && (
+            <Select onValueChange={(value) => handleConstraintValueChange('product', parseInt(value))}>
               <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Select category..." />
+                <SelectValue placeholder="Select product..." />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                {mockCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
+                {products_to_store
+                  .filter((store) => parseInt(store.store_id) === constraintValues.store)
+                  .flatMap((store) => store.products)
+                  .map((product) => (
+                    <SelectItem key={product.product_id} value={product.product_id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
-          </>
-        );
-      case 'basketAmount':
-        return (
-          <>
-            <Input
-              id="min-amount"
-              placeholder="Min amount"
-              value={constraintValues.minAmount || ''}
-              onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
-              className="col-span-3 border border-black"
-            />
-            <div className="mt-2">
-              {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
-            </div>
-            <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
+          )}
+        </>
+      );
+
+    case 'amount_category':
+      return (
+        <>
+          <Input
+            id="min-amount"
+            placeholder="Min amount"
+            value={constraintValues.minAmount || ''}
+            onChange={(e) => handleConstraintValueChange('minAmount', parseInt(e.target.value))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select category..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.values(categories).map((category) => (
+                <SelectItem key={category.category_id} value={category.category_id}>
+                  {category.category_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'weight_category':
+      return (
+        <>
+          <Input
+            id="min-weight"
+            placeholder="Min weight (in kg)"
+            value={constraintValues.minWeight || ''}
+            onChange={(e) => handleConstraintValueChange('minWeight', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-weight"
+            placeholder="Max weight (in kg)"
+            value={constraintValues.maxWeight || ''}
+            onChange={(e) => handleConstraintValueChange('maxWeight', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('category', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select category..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+            {Object.values(categories).map((category) => (
+                  <SelectItem key={category.category_id} value={category.category_id}>
+                    {category.category_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'weight_basket':
+      return (
+        <>
+          <Input
+            id="min-weight"
+            placeholder="Min weight (in kg)"
+            value={constraintValues.minWeight || ''}
+            onChange={(e) => handleConstraintValueChange('minWeight', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-weight"
+            placeholder="Max weight (in kg)"
+            value={constraintValues.maxWeight || ''}
+            onChange={(e) => handleConstraintValueChange('maxWeight', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </>
+      );
+
+    case 'weight_product':
+      return (
+        <>
+          <Input
+            id="min-weight"
+            placeholder="Min weight (in kg)"
+            value={constraintValues.minWeight || ''}
+            onChange={(e) => handleConstraintValueChange('minWeight', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
+          <Input
+            id="max-weight"
+            placeholder="Max weight (in kg)"
+            value={constraintValues.maxWeight || ''}
+            onChange={(e) => handleConstraintValueChange('maxWeight', parseFloat(parseFloat(e.target.value).toFixed(1)))}
+            className="col-span-3 border border-black"
+          />
+          {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
+          <Select onValueChange={(value) => handleConstraintValueChange('store', parseInt(value))}>
+            <SelectTrigger className="col-span-3 border border-black bg-white">
+              <SelectValue placeholder="Select store..." />
+            </SelectTrigger>
+            <SelectContent className="bg-white">
+              {Object.keys(stores).map((key) => (
+                <SelectItem key={key} value={key}>
+                  {stores[key]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {(constraintValues.store !== null || constraintValues.store !== '' || constraintValues.store !== undefined)&& (
+            <Select onValueChange={(value) => handleConstraintValueChange('product', parseInt(value))}>
               <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Select store..." />
+                <SelectValue placeholder="Select product..." />
               </SelectTrigger>
               <SelectContent className="bg-white">
-                {mockStores.map((store) => (
-                  <SelectItem key={store.value} value={store.value}>
-                    {store.label}
-                  </SelectItem>
-                ))}
+                {products_to_store
+                  .filter((store) => parseInt(store.store_id) === constraintValues.store)
+                  .flatMap((store) => store.products)
+                  .map((product) => (
+                    <SelectItem key={product.product_id} value={product.product_id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
-          </>
-        );
+          )}
+        </>
+      );
 
+    case 'compositeConstraint':
+      return (
+        <>
+          <Input
+            id="composite-constraint"
+            placeholder="composite constraint: (and,(and (age 17), (or (time, 23, 00, 14, 00), (season, summer)))) "
+            value={constraintValues.compositeConstraint || ''}
+            onChange={(e) => handleConstraintValueChange('compositeConstraint', e.target.value)}
+            className="col-span-3 border border-black"
+          />
+        </>
+      );
 
-        case 'productAmount':
-  return (
-    <>
-      <Input
-        id="min-amount"
-        placeholder="Min amount"
-        value={constraintValues.minAmount || ''}
-        onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select store..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {mockStores.map((store) => (
-            <SelectItem key={store.value} value={store.value}>
-              {store.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select product..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {mockProducts.map((product) => (
-            <SelectItem key={product.value} value={product.value}>
-              {product.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'categoryAmount':
-  return (
-    <>
-      <Input
-        id="min-amount"
-        placeholder="Min amount"
-        value={constraintValues.minAmount || ''}
-        onChange={(e) => handleConstraintValueChange('minAmount', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minAmount && isNaN(constraintValues.minAmount) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select category..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {mockCategories.map((category) => (
-            <SelectItem key={category.value} value={category.value}>
-              {category.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'categoryWeight':
-  return (
-    <>
-      <Input
-        id="min-weight"
-        placeholder="Min weight (in kg)"
-        value={constraintValues.minWeight || ''}
-        onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Input
-        id="max-weight"
-        placeholder="Max weight (in kg)"
-        value={constraintValues.maxWeight || ''}
-        onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('category', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select category..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {mockCategories.map((category) => (
-            <SelectItem key={category.value} value={category.value}>
-              {category.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'basketWeight':
-  return (
-    <>
-      <Input
-        id="min-weight"
-        placeholder="Min weight (in kg)"
-        value={constraintValues.minWeight || ''}
-        onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Input
-        id="max-weight"
-        placeholder="Max weight (in kg)"
-        value={constraintValues.maxWeight || ''}
-        onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select store..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {mockStores.map((store) => (
-            <SelectItem key={store.value} value={store.value}>
-              {store.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'productWeight':
-  return (
-    <>
-      <Input
-        id="min-weight"
-        placeholder="Min weight (in kg)"
-        value={constraintValues.minWeight || ''}
-        onChange={(e) => handleConstraintValueChange('minWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.minWeight && isNaN(constraintValues.minWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Input
-        id="max-weight"
-        placeholder="Max weight (in kg)"
-        value={constraintValues.maxWeight || ''}
-        onChange={(e) => handleConstraintValueChange('maxWeight', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-      <div className="mt-2">
-        {constraintValues.maxWeight && isNaN(constraintValues.maxWeight) && <p className="text-red-500">Not a number</p>}
-      </div>
-      <Select onValueChange={(value) => handleConstraintValueChange('store', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select store..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {mockStores.map((store) => (
-            <SelectItem key={store.value} value={store.value}>
-              {store.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select onValueChange={(value) => handleConstraintValueChange('product', value)}>
-        <SelectTrigger className="col-span-3 border border-black bg-white">
-          <SelectValue placeholder="Select product..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {mockProducts.map((product) => (
-            <SelectItem key={product.value} value={product.value}>
-              {product.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </>
-  );
-case 'compositeConstraint':
-  return (
-    <>
-      <Input
-        id="composite-constraint"
-        placeholder="Composite constraint: (and, (age, 17), (or, (time, 23, 00, 14, 00), (season, summer)))"
-        value={constraintValues.compositeConstraint || ''}
-        onChange={(e) => handleConstraintValueChange('compositeConstraint', e.target.value)}
-        className="col-span-3 border border-black"
-      />
-    </>
-  );
-default:
-  return null;
+    default:
+      return null;
   }
 };
+
+
+const handleToggle = (discountId, type) => {
+  setExpandedDiscounts({
+    ...expandedDiscounts,
+    [type]: expandedDiscounts[type] === discountId ? null : discountId
+  });
+};
+
+const handleToggleLeftDiscount = (discountId) => {
+  setExpandedLeftDiscount(expandedLeftDiscount === discountId ? null : discountId);
+};
+
+const handleToggleRightDiscount = (discountId) => {
+  setExpandedRightDiscount(expandedRightDiscount === discountId ? null : discountId);
+};
+
+const handleToggleConstraint = (discountId) => {
+  setExpandedConstraint(expandedConstraint === discountId ? null : discountId);
+};
+
+
 
 const renderDiscount = (discount, type) => (
   <div 

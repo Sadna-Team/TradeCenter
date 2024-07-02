@@ -178,10 +178,18 @@ def add_discount():
         start_date: datetime = data['start_date']
         end_date: datetime = data['end_date']
         percentage: float = float(data['percentage'])
-        store_id: Optional[int] = data['store_id']
-        product_id: Optional[int] = data['product_id']
-        category_id: Optional[int] = data['category_id']
-        applied_to_sub: Optional[bool] = data['applied_to_sub']
+        store_id = None 
+        if 'store_id' in data:
+            store_id = int(data['store_id'])
+        product_id = None
+        if 'product_id' in data:
+            product_id = int(data['product_id'])
+        category_id = None
+        if 'category_id' in data:
+            category_id = int(data['category_id'])
+        applied_to_sub: Optional[bool] = None
+        if 'applied_to_sub' in data:
+            applied_to_sub = data['applied_to_sub']
        
     except Exception as e:
         logger.error('add_discount - ', str(e))
@@ -311,7 +319,7 @@ def change_discount_description():
 
     return store_service.change_discount_description(user_id, discount_id, description)
 
-@store_bp.route('/view_discounts_info', methods=['GET'])
+@store_bp.route('/view_discounts_info', methods=['GET', 'POST'])
 @jwt_required()
 def view_discounts_info():
     """

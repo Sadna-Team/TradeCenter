@@ -107,7 +107,7 @@ class StoreService:
         try:
             info = self.__market_facade.view_all_discount_information(user_id)
             logger.info('discount info was sent successfully')
-            return jsonify({'discounts': info}), 200
+            return jsonify({'message': info}), 200
         except Exception as e:
             logger.error('discount info was not sent')
             return jsonify({'message': str(e)}), 400
