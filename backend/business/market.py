@@ -682,7 +682,7 @@ class MarketFacade:
         else:
             logger.info(f"User {user_id} has failed to remove a discount")
 
-    def view_all_discount_information(self, user_id: int) -> List[Dict]:
+    def view_all_discount_information(self, user_id: int) -> dict:
         """
         * This function returns all the discount information
         * Returns a list of dictionaries

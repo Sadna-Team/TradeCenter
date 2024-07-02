@@ -104,7 +104,7 @@ const ManageDiscount = () => {
 
   const fetchDiscounts = async () => {
     try {
-      const response = await api.post('/store/view_discounts_info', {});
+      const response = await api.get('/store/view_discounts_info');
       if(response.status !== 200){
         console.error('Failed to fetch discounts', response);
         setErrorMessage('Failed to fetch discounts');

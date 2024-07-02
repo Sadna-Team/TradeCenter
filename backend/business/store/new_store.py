@@ -1799,15 +1799,14 @@ class StoreFacade:
         # TODO: implement this function
         return None
     '''
-    def view_all_discount_information(self) -> List[Dict]:
+    def view_all_discount_information(self) -> List[dict]:
         """
         * Parameters: none
         * This function is used for converting all the discounts into a List of dictionaries for our frontend to manage the discounts
         * Returns: a list of dictionaries
         """
         discount_info = []
-        for discount_id in self.__discounts:
-            discount = self.__discounts[discount_id]
+        for discount in self.__discounts.values():
             discount_info.append(discount.get_discount_info_as_dict())
         return discount_info
 
