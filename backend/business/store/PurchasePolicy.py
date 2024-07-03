@@ -76,11 +76,11 @@ class ProductSpecificPurchasePolicy(PurchasePolicy):
 
     def get_policy_info_as_dict(self) -> dict:
         return {
-            "policy_type": "ProductSpecificPolicy",
+            "policy_type": "productSpecificPolicy",
             "policy_id": self.purchase_policy_id,
-            "store_id": self.store_id,
             "policy_name": self.policy_name,
             "product_id": self.product_id,
+            "store_id": self.store_id,
             "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
         }
     
@@ -115,9 +115,9 @@ class CategorySpecificPurchasePolicy(PurchasePolicy):
     
     def get_policy_info_as_dict(self) -> dict:
         return {
-            "policy_type": "CategorySpecificPolicy",
-            "policy_name": self.policy_name,
+            "policy_type": "categorySpecificPolicy",
             "policy_id": self.purchase_policy_id,
+            "policy_name": self.policy_name,
             "store_id": self.store_id,
             "category_id": self.category_id,
             "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
@@ -145,9 +145,9 @@ class BasketSpecificPurchasePolicy(PurchasePolicy):
 
     def get_policy_info_as_dict(self) -> dict:
         return {
-            "policy_type": "BasketSpecificPolicy",
-            "policy_name": self.policy_name,
+            "policy_type": "basketSpecificPolicy",
             "policy_id": self.purchase_policy_id,
+            "policy_name": self.policy_name,
             "store_id": self.store_id,
             "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
         }
@@ -186,13 +186,12 @@ class AndPurchasePolicy(PurchasePolicy):
         policy_left = self.policy_left.get_policy_info_as_dict()
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {
-            "policy_type": "AndPolicy",
+            "policy_type": "andPolicy",
             "policy_id": self.purchase_policy_id,
-            "store_id": self.store_id,
             "policy_name": self.policy_name,
+            "store_id": self.store_id,
             "policy_left": policy_left,
             "policy_right": policy_right,
-            "predicate": "None"
         }
 
 # --------------- CompositePolicy class ---------------#
@@ -227,13 +226,12 @@ class OrPurchasePolicy(PurchasePolicy):
         policy_left = self.policy_left.get_policy_info_as_dict()
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {
-            "policy_type": "OrPolicy",
+            "policy_type": "orPolicy",
             "policy_id": self.purchase_policy_id,
-            "store_id": self.store_id,
             "policy_name": self.policy_name,
+            "store_id": self.store_id,
             "policy_left": policy_left,
             "policy_right": policy_right,
-            "predicate": "None"
         }
 
 # --------------- CompositePolicy class ---------------#
@@ -271,11 +269,10 @@ class ConditioningPurchasePolicy(PurchasePolicy):
         policy_left = self.policy_left.get_policy_info_as_dict()
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {
-            "policy_type": "ConditionalPolicy",
+            "policy_type": "conditionalPolicy",
             "policy_id": self.purchase_policy_id,
-            "store_id": self.store_id,
             "policy_name": self.policy_name,
+            "store_id": self.store_id,
             "policy_left": policy_left,
             "policy_right": policy_right,
-            "predicate": "None"
         }

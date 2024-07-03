@@ -31,8 +31,8 @@ import { DatePickerDemo } from "@/components/DatePickerDemo";
 
 const constraintTypes = [
   { value: 'age', label: 'Age constraint' },
-  { value: 'time', label: 'Time constraint' },
   { value: 'location', label: 'Location constraint' },
+  { value: 'time', label: 'Time constraint' },
   { value: 'day_of_month', label: 'Day of month constraint' },
   { value: 'day_of_week', label: 'Day of week constraint' },
   { value: 'season', label: 'Season constraint' },
@@ -40,15 +40,14 @@ const constraintTypes = [
   { value: 'price_basket', label: 'Basket price constraint' },
   { value: 'price_product', label: 'Product price constraint' },
   { value: 'price_category', label: 'Category price constraint' },
+  { value: 'weight_basket', label: 'Basket weight constraint' },
+  { value: 'weight_product', label: 'Product weight constraint' },
+  { value: 'weight_category', label: 'Category weight constraint' },
   { value: 'amount_basket', label: 'Basket amount constraint' },
   { value: 'amount_product', label: 'Product amount constraint' },
   { value: 'amount_category', label: 'Category amount constraint' },
-  { value: 'weight_category', label: 'Category weight constraint' },
-  { value: 'weight_basket', label: 'Basket weight constraint' },
-  { value: 'weight_product', label: 'Product weight constraint' },
   { value: 'compositeConstraint', label: 'Composite Constraint' },
 ];
-
 
 const ManageDiscount = () => {
   const [errorMessage, setErrorMessage] = useState('');
@@ -120,33 +119,33 @@ const ManageDiscount = () => {
         return;
       }
 
-      let StoreDiscounts = [];
-      let CategoryDiscounts = [];
-      let ProductDiscounts = [];
-      let AndDiscounts = [];
-      let OrDiscounts = [];
-      let XorDiscounts = [];
-      let AdditiveDiscounts = [];
-      let MaxDiscounts = [];
+      let storeDiscount = [];
+      let categoryDiscount = [];
+      let productDiscount = [];
+      let andDiscount = [];
+      let orDiscount = [];
+      let xorDiscount = [];
+      let additiveDiscount = [];
+      let maxDiscount = [];
     
       for(let i = 0; i < data.length; i++){
         console.log("the current discount is:", data[i]);
-        if(data[i].discount_type === 'StoreDiscounts'){
-          StoreDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'CategoryDiscounts'){
-          CategoryDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'ProductDiscounts'){
-          ProductDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'AndDiscounts'){
-          AndDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'OrDiscounts'){
-          OrDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'XorDiscounts'){
-          XorDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'AdditiveDiscounts'){
-          AdditiveDiscounts.push(data[i]);
-        }else if(data[i].discount_type === 'MaxDiscounts'){
-          MaxDiscounts.push(data[i]);
+        if(data[i].discount_type === 'storeDiscount'){
+          storeDiscount.push(data[i]);
+        }else if(data[i].discount_type === 'categoryDiscount'){
+          categoryDiscount.push(data[i]);
+        }else if(data[i].discount_type === 'productDiscount'){
+          productDiscount.push(data[i]);
+        }else if(data[i].discount_type === 'andDiscount'){
+          andDiscount.push(data[i]);
+        }else if(data[i].discount_type === 'orDiscount'){
+          orDiscount.push(data[i]);
+        }else if(data[i].discount_type === 'xorDiscount'){
+          xorDiscount.push(data[i]);
+        }else if(data[i].discount_type === 'additiveDiscount'){
+          additiveDiscount.push(data[i]);
+        }else if(data[i].discount_type === 'maxDiscount'){
+          maxDiscount.push(data[i]);
         }else{
           console.error('Unknown discount type:', data[i].discount_type);
           setErrorMessage('Unknown discount type');
@@ -154,14 +153,14 @@ const ManageDiscount = () => {
       }
 
       let discounts = {
-        StoreDiscounts: StoreDiscounts,
-        CategoryDiscounts: CategoryDiscounts,
-        ProductDiscounts: ProductDiscounts,
-        AndDiscounts: AndDiscounts,
-        OrDiscounts: OrDiscounts,
-        XorDiscounts: XorDiscounts,
-        additiveDiscounts: AdditiveDiscounts,
-        MaxDiscounts: MaxDiscounts
+        storeDiscount: storeDiscount,
+        categoryDiscount: categoryDiscount,
+        productDiscount: productDiscount,
+        andDiscount: andDiscount,
+        orDiscount: orDiscount,
+        xorDiscount: xorDiscount,
+        additiveDiscount: additiveDiscount,
+        maxDiscount: maxDiscount
       }
 
       setDiscounts(discounts);
@@ -245,13 +244,28 @@ const ManageDiscount = () => {
   };
 
 
-
-
+  // Function responsible for adding a new discount
   const handleSaveChanges = () => {
     if (!newDiscountStartingDate || !newDiscountEndingDate) {
       setErrorMessage('Please select both starting and ending dates.');
       return;
     }
+
+    let percentage;
+    if (dialogType === 'productDiscount' || dialogType === 'categoryDiscount' || dialogType === 'storeDiscount') {
+      if (newDiscountPercentage === '' || isNaN(parseFloat(newDiscountPercentage))) {
+        setErrorMessage('Please enter a percentage.');
+        return;
+      }
+      percentage = parseFloat(newDiscountPercentage);
+      if(percentage < 0 || percentage > 100){
+        setErrorMessage('Please enter a percentage between 0 and 100.');
+        return;
+      }
+
+      percentage = percentage/100;
+    }
+    
 
     const starting_date = format(newDiscountStartingDate, "yyyy-MM-dd");
     const ending_date = format(newDiscountEndingDate, "yyyy-MM-dd");
@@ -264,7 +278,7 @@ const ManageDiscount = () => {
     let data;
     console.log("the dialog type is:", dialogType);
     switch (dialogType) {
-      case 'StoreDiscounts':
+      case 'storeDiscount':
         if (selectedStore === null || selectedStore === '' || selectedStore === undefined) {
           setErrorMessage('Please select a store.');
           return;
@@ -274,11 +288,11 @@ const ManageDiscount = () => {
           description: newDiscountDescription,
           start_date: starting_date,
           end_date: ending_date,
-          percentage: parseFloat(newDiscountPercentage),
+          percentage: percentage,
           store_id: selectedStore,
         };
         break;
-      case 'CategoryDiscounts':
+      case 'categoryDiscount':
         if (selectedCategory === null || selectedCategory === '' || selectedCategory === undefined) {
           setErrorMessage('Please select a category.');
           return;
@@ -288,12 +302,12 @@ const ManageDiscount = () => {
           description: newDiscountDescription,
           start_date: starting_date,
           end_date: ending_date,
-          percentage: parseFloat(newDiscountPercentage),
+          percentage: percentage,
           category_id: selectedCategory,
           applied_to_sub: newIsSubApplied,
         };
         break;
-      case 'ProductDiscounts':
+      case 'productDiscount':
         if (selectedProduct === null || selectedProduct === '' || selectedProduct === undefined) {
           setErrorMessage('Please select a product.');
           return;
@@ -308,22 +322,22 @@ const ManageDiscount = () => {
           description: newDiscountDescription,
           start_date: starting_date,
           end_date: ending_date,
-          percentage: parseInt(newDiscountPercentage),
+          percentage: percentage,
           product_id: selectedProduct,
           store_id: selectedStore,
         };
         break;
-      case 'AndDiscounts':
-      case 'OrDiscounts':
-      case 'XorDiscounts':
+      case 'andDiscount':
+      case 'orDiscount':
+      case 'xorDiscount':
         if (selectedLeftDiscount === '' || !selectedRightDiscount === '') {
           setErrorMessage('Please select both discounts.');
           return;
         }
         let type_of_discount = 1;
-        if(dialogType === 'OrDiscounts'){
+        if(dialogType === 'orDiscount'){
           type_of_discount = 2;
-        }else if(dialogType === 'XorDiscounts'){
+        }else if(dialogType === 'xorDiscount'){
           type_of_discount = 3;
         }
         data = {
@@ -337,14 +351,14 @@ const ManageDiscount = () => {
         break;
 
 
-      case 'AdditiveDiscounts':
-      case 'MaxDiscounts':
+      case 'additiveDiscount':
+      case 'maxDiscount':
         if (selectedMultipleDiscounts.length === 0) {
           setErrorMessage('Please select at least one discount.');
           return;
         }
         let type_of_composite =1;
-        if(dialogType === 'AdditiveDiscounts'){
+        if(dialogType === 'additiveDiscount'){
           type_of_composite = 2;
         }
 
@@ -364,7 +378,7 @@ const ManageDiscount = () => {
     const saveDiscount = async () => {
       try {
         console.log("the discount data: ", data)
-        if(dialogType === 'StoreDiscounts' || dialogType === 'CategoryDiscounts' || dialogType === 'ProductDiscounts'){
+        if(dialogType === 'storeDiscount' || dialogType === 'categoryDiscount' || dialogType === 'productDiscount'){
           const response = await api.post('/store/add_discount', data);
           if(response.status !== 200){
             console.error('Failed to add discount', response);
@@ -372,7 +386,7 @@ const ManageDiscount = () => {
             return;
           }
           console.log("the response of adding discount:", response.data.message);
-        }else if(dialogType === 'AndDiscounts' || dialogType === 'OrDiscounts' || dialogType === 'XorDiscounts'){
+        }else if(dialogType === 'andDiscount' || dialogType === 'orDiscount' || dialogType === 'xorDiscount'){
           const response = await api.post('/store/create_logical_composite', data);
           if(response.status !== 200){
             console.error('Failed to add discount', response);
@@ -380,7 +394,7 @@ const ManageDiscount = () => {
             return;
           }
           console.log("the response of adding discount:", response.data.message);
-        } else if(dialogType === 'AdditiveDiscounts' || dialogType === 'MaxDiscounts'){
+        } else if(dialogType === 'additiveDiscount' || dialogType === 'maxDiscount'){
           const response = await api.post('/store/create_numerical_composite', data);
           if(response.status !== 200){
             console.error('Failed to add discount', response);
@@ -412,6 +426,7 @@ const ManageDiscount = () => {
     fetchDiscounts();
   };
 
+  //function responsible for editing a discount
   const handleEditSaveChanges = () => {
     const editDiscount = async () => {
       let data;
@@ -439,9 +454,16 @@ const ManageDiscount = () => {
       }
 
       if (editDiscountPercentage !== ''){
+        let percentage = parseFloat(editDiscountPercentage);
+        if(percentage < 0 || percentage > 100){
+          setErrorMessage('Please enter a percentage between 0 and 100.');
+          return;
+        }
+
+        percentage = percentage/100;
         data = {
           discount_id: currentDiscountId,
-          percentage: parseFloat(editDiscountPercentage),
+          percentage: percentage,
         }
 
         try {
@@ -547,7 +569,6 @@ const ManageDiscount = () => {
     return parse(cleanStr);
   };
   
-  const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
   
   const simpleComponents = ['age', 'time', 'location', 'day_of_month', 'day_of_week', 'season', 'holidays_of_country', 'price_basket', 'price_product', 'price_category', 'amount_basket', 'amount_product', 'amount_category', 'weight_category', 'weight_basket', 'weight_product'];
   const compositeComponents = ['and', 'or', 'xor', 'implies'];
@@ -574,15 +595,18 @@ const ManageDiscount = () => {
     return [[constraintType, ...properties], parsedComposite.length];
   };
   
-  const [finalComposite] = buildNestedArray(parsedComposite, 0);
-  console.log("the final composite constraint:", finalComposite);
   let data;
   if (selectedConstraintType === 'compositeConstraint') {
-     data = {
+    const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
+  
+    const [finalComposite] = buildNestedArray(parsedComposite, 0);
+    console.log("the final composite constraint:", finalComposite);
+   
+    data = {
       discount_id: currentDiscountId,
       predicate_builder: finalComposite,
     };
-
+    
     console.log("the first variable of the predicate_builder is " + data.predicate_builder[0])
 
   }else if(selectedConstraintType === 'location'){
@@ -1221,12 +1245,12 @@ const renderNestedDiscount = (discount) => {
       <p><strong>Description:</strong> {discount.description}</p>
       <p><strong>Start Date:</strong> {discount.start_date}</p>
       <p><strong>End Date:</strong> {discount.end_date}</p>
-      {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' || discount.discount_type === "CategoryDiscounts" &&  <p><strong>Percentage:</strong> {discount.percentage}</p>}
-      {discount.discount_type === 'ProductDiscounts' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
-      {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
-      {discount.discount_type === 'CategoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
-      {discount.discount_type === 'CategoryDiscounts' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
-      {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(discount.discount_type) && (
+      {(discount.discount_type === 'productDiscount' || discount.discount_type === 'storeDiscount' || discount.discount_type === "categoryDiscount") &&  <p><strong>Percentage:</strong> {discount.percentage*100}%</p>}
+      {discount.discount_type === 'productDiscount' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
+      {discount.discount_type === 'productDiscount' || discount.discount_type === 'storeDiscount' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
+      {discount.discount_type === 'categoryDiscount' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
+      {discount.discount_type === 'categoryDiscount' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
+      {['andDiscount', 'orDiscount', 'xorDiscount'].includes(discount.discount_type) && (
         <>
           <div className="flex justify-between">
             <button onClick={() => handleToggleLeftDiscount(discount.discount_id)} className="mt-2">
@@ -1248,7 +1272,7 @@ const renderNestedDiscount = (discount) => {
           )}
         </>
       )}
-      {['MaxDiscounts', 'AdditiveDiscounts'].includes(discount.discount_type) && (
+      {['maxDiscount', 'additiveDiscount'].includes(discount.discount_type) && (
         <>
           <button onClick={() => handleToggleMultipleDiscounts(discount.discount_id)} className="mt-2">
             {expandedMultipleDiscounts[discount.discount_id] ? 'Hide Discounts' : 'Show Discounts'}
@@ -1260,7 +1284,7 @@ const renderNestedDiscount = (discount) => {
           )}
         </>
       )}
-      {['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(discount.discount_type) && discount.predicate && (
+      {['productDiscount', 'storeDiscount', 'categoryDiscount'].includes(discount.discount_type) && discount.predicate && (
         <>
           <button onClick={() => handleToggleConstraint(discount.discount_id)} className="text-gray-500 mt-2">
             {expandedConstraints[discount.discount_id] ? 'Hide Constraint' : 'Show Constraint'}
@@ -1296,13 +1320,13 @@ const renderDiscount = (discount, type) => (
         <p><strong>Description:</strong> {discount.description}</p>
         <p><strong>Start Date:</strong> {discount.start_date}</p>
         <p><strong>End Date:</strong> {discount.end_date}</p>
-        {discount.discount_type === 'ProductDiscounts' || discount.discount_type === 'StoreDiscounts' || discount.discount_type === "CategoryDiscounts" &&  <p><strong>Percentage:</strong> {discount.percentage}</p>}
-        {discount.discount_type === 'ProductDiscounts' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
-        {discount.discount_type === 'ProductDiscounts' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
-        {discount.discount_type === 'StoreDiscounts' && <p><strong>Store ID:</strong> {discount.store_id}</p>}
-        {discount.discount_type === 'CategoryDiscounts' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
-        {discount.discount_type === 'CategoryDiscounts' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
-        {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(type) && (
+        {(discount.discount_type === 'productDiscount' || discount.discount_type === 'storeDiscount' || discount.discount_type === "categoryDiscount") &&  <p><strong>Percentage:</strong> {discount.percentage*100}%</p>}
+        {discount.discount_type === 'productDiscount' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
+        {discount.discount_type === 'productDiscount' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
+        {discount.discount_type === 'storeDiscount' && <p><strong>Store ID:</strong> {discount.store_id}</p>}
+        {discount.discount_type === 'categoryDiscount' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
+        {discount.discount_type === 'categoryDiscount' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
+        {['andDiscount', 'orDiscount', 'xorDiscount'].includes(type) && (
           <>
             <div className="flex justify-between">
               <button onClick={() => handleToggleLeftDiscount(discount.discount_id)} className="mt-2">
@@ -1324,7 +1348,7 @@ const renderDiscount = (discount, type) => (
             )}
           </>
         )}
-        {['MaxDiscounts', 'AdditiveDiscounts'].includes(type) && (
+        {['maxDiscount', 'additiveDiscount'].includes(type) && (
           <>
             <button onClick={() => handleToggleMultipleDiscounts(discount.discount_id)} className="mt-2">
               {expandedMultipleDiscounts[discount.discount_id] ? 'Hide Discounts' : 'Show Discounts'}
@@ -1336,7 +1360,7 @@ const renderDiscount = (discount, type) => (
             )}
           </>
         )}
-        {['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(type) && (
+        {['productDiscount', 'storeDiscount', 'categoryDiscount'].includes(type) && (
           <>
             <button onClick={() => handleToggleConstraint(discount.discount_id)} className="text-gray-500 mt-2">
               {expandedConstraints[discount.discount_id] ? 'Hide Constraint' : 'Show Constraint'}
@@ -1348,7 +1372,7 @@ const renderDiscount = (discount, type) => (
             )}
           </>
         )}
-        <div className={`flex ${['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
+        <div className={`flex ${['productDiscount', 'storeDiscount', 'categoryDiscount'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Discount</Button>
@@ -1367,7 +1391,7 @@ const renderDiscount = (discount, type) => (
             </AlertDialogContent>
           </AlertDialog>
           <Button className="bg-green-500 text-white py-1 px-3 rounded" onClick={() => handleOpenEditDialog(discount.discount_id, type)}>Edit Discount</Button>
-          {['ProductDiscounts', 'StoreDiscounts', 'CategoryDiscounts'].includes(type) && (
+          {['productDiscount', 'storeDiscount', 'categoryDiscount'].includes(type) && (
             <Button onClick={() => handleOpenConstraintDialog(discount.discount_id)} className="ml-2">
               Add Constraint
             </Button>
@@ -1425,7 +1449,7 @@ return (
                   className="col-span-3 wider-date-picker"
                 />
               </div>
-              {['StoreDiscounts', 'CategoryDiscounts', 'ProductDiscounts'].includes(type) && (
+              {['storeDiscount', 'categoryDiscount', 'productDiscount'].includes(type) && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="percentage" className="block mt-2">Percentage</Label>
                   <Input
@@ -1437,7 +1461,7 @@ return (
                   />
                 </div>
               )}
-              {type === 'StoreDiscounts' && (
+              {type === 'storeDiscount' && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
                   <Select onValueChange={setSelectedStore}>
@@ -1454,7 +1478,7 @@ return (
                   </Select>
                 </div>
               )}
-              {type === 'CategoryDiscounts' && (
+              {type === 'categoryDiscount' && (
                 <>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="category-id" className="block mt-2">Category ID</Label>
@@ -1485,7 +1509,7 @@ return (
                   </div>
                 </>
               )}
-              {type === 'ProductDiscounts' && (
+              {type === 'productDiscount' && (
                 <>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
@@ -1522,7 +1546,7 @@ return (
                   </div>
                 </>
               )}
-              {['AndDiscounts', 'OrDiscounts', 'XorDiscounts'].includes(type) && (
+              {['andDiscount', 'orDiscount', 'xorDiscount'].includes(type) && (
                 <>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="left-discount-id" className="block mt-2">Discount 1</Label>
@@ -1556,7 +1580,7 @@ return (
                   </div>
                 </>
               )}
-              {['additiveDiscounts', 'MaxDiscounts'].includes(type) && (
+              {['additiveDiscount', 'maxDiscount'].includes(type) && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="discounts" className="block mt-2">Discounts</Label>
                   <MultiSelect
@@ -1598,7 +1622,7 @@ return (
               className="col-span-3 border border-black"
             />
           </div>
-          {['StoreDiscounts', 'CategoryDiscounts', 'ProductDiscounts'].includes(editDiscountType) && (
+          {['storeDiscount', 'categoryDiscount', 'productDiscount'].includes(editDiscountType) && (
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-percentage" className="block mt-2">Change Percentage</Label>
               <Input
@@ -1616,16 +1640,17 @@ return (
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
     <Dialog open={constraintDialogOpen} onOpenChange={setConstraintDialogOpen}>
-      <DialogContent className="sm:max-w-[425px] bg-white">
-        <DialogHeader>
-          <DialogTitle>Adding a constraint</DialogTitle>
-        </DialogHeader>
-      
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="constraint-type" className="block mt-2">Constraint Type</Label>
-          <Select onValueChange={handleConstraintTypeChange}>
-            <SelectTrigger className="col-span-3 border border-black bg-white">
+    <DialogContent className="sm:max-w-[425px] bg-white">
+      <DialogHeader className="text-center">
+        <DialogTitle>Adding a constraint</DialogTitle>
+      </DialogHeader>
+      <div className="grid gap-4 py-4">
+        <div className="flex items-center">
+          <Label htmlFor="constraint-type" className="mr-2 whitespace-nowrap">Constraint Type</Label>
+          <Select onValueChange={handleConstraintTypeChange} className="flex-grow ml-2">
+            <SelectTrigger className="border border-black bg-white w-full">
               <SelectValue placeholder="Choose constraint type" />
             </SelectTrigger>
             <SelectContent className="bg-white">
@@ -1638,13 +1663,14 @@ return (
           </Select>
         </div>
         {renderConstraintFields()}
-        <DialogFooter>
-          <Button type="button" onClick={handleSaveConstraint}>Save constraint</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  </div>
-  );
+      </div>
+      <DialogFooter className="flex justify-between items-center">
+        <div className="text-red-500 text-sm text-left flex-grow">{errorMessage}</div>
+        <Button type="button" onClick={handleSaveConstraint} className="ml-2 px-6">Save constraint</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+</div>);
 };
 
 export default ManageDiscount;

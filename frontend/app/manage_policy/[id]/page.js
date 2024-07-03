@@ -26,10 +26,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/AlertDialog";
+
 const constraintTypes = [
   { value: 'age', label: 'Age constraint' },
-  { value: 'time', label: 'Time constraint' },
   { value: 'location', label: 'Location constraint' },
+  { value: 'time', label: 'Time constraint' },
   { value: 'day_of_month', label: 'Day of month constraint' },
   { value: 'day_of_week', label: 'Day of week constraint' },
   { value: 'season', label: 'Season constraint' },
@@ -37,12 +38,12 @@ const constraintTypes = [
   { value: 'price_basket', label: 'Basket price constraint' },
   { value: 'price_product', label: 'Product price constraint' },
   { value: 'price_category', label: 'Category price constraint' },
+  { value: 'weight_basket', label: 'Basket weight constraint' },
+  { value: 'weight_product', label: 'Product weight constraint' },
+  { value: 'weight_category', label: 'Category weight constraint' },
   { value: 'amount_basket', label: 'Basket amount constraint' },
   { value: 'amount_product', label: 'Product amount constraint' },
   { value: 'amount_category', label: 'Category amount constraint' },
-  { value: 'weight_category', label: 'Category weight constraint' },
-  { value: 'weight_basket', label: 'Basket weight constraint' },
-  { value: 'weight_product', label: 'Product weight constraint' },
   { value: 'compositeConstraint', label: 'Composite Constraint' },
 ];
 
@@ -118,17 +119,17 @@ const ManagePolicy = () => {
   
       for(let i = 0; i < data.length; i++){
         console.log("the current policy:", data[i])
-        if(data[i].policy_type === "ProductSpecificPolicy"){
+        if(data[i].policy_type === "productSpecificPolicy"){
           productSpecificPolicies.push(data[i]);
-        } else if(data[i].policy_type === "CategorySpecificPolicy"){
+        } else if(data[i].policy_type === "categorySpecificPolicy"){
           categorySpecificPolicies.push(data[i]);
-        } else if(data[i].policy_type === "BasketSpecificPolicy"){
+        } else if(data[i].policy_type === "basketSpecificPolicy"){
           basketSpecificPolicies.push(data[i]);
-        } else if(data[i].policy_type === "AndPolicy"){
+        } else if(data[i].policy_type === "andPolicy"){
           andPolicies.push(data[i]);
-        } else if(data[i].policy_type === "OrPolicy"){
+        } else if(data[i].policy_type === "orPolicy"){
           orPolicies.push(data[i]);
-        } else if(data[i].policy_type === "ConditionalPolicy"){
+        } else if(data[i].policy_type === "conditionalPolicy"){
           conditionalPolicies.push(data[i]);
         } else {
           console.error('Failed to fetch policies of store', response);
@@ -138,12 +139,12 @@ const ManagePolicy = () => {
       }
   
       let policies = {
-        productSpecific: productSpecificPolicies, 
-        categorySpecific: categorySpecificPolicies, 
-        basketSpecific: basketSpecificPolicies, 
-        andPolicies: andPolicies, 
-        orPolicies: orPolicies, 
-        conditionalPolicies: conditionalPolicies
+        productSpecificPolicy: productSpecificPolicies, 
+        categorySpecificPolicy: categorySpecificPolicies, 
+        basketSpecificPolicy: basketSpecificPolicies, 
+        andPolicy: andPolicies, 
+        orPolicy: orPolicies, 
+        conditionalPolicy: conditionalPolicies
       };
   
       setPolicies(policies);        
@@ -240,7 +241,7 @@ const ManagePolicy = () => {
     let data;
     console.log("the dialog type:", dialogType)
     switch (dialogType) {
-      case 'productSpecific':
+      case 'productSpecificPolicy':
         if (selectedProduct === null || selectedProduct === undefined || selectedProduct === "") {
           setErrorMessage('Please select a product.');
           return;
@@ -253,7 +254,7 @@ const ManagePolicy = () => {
         };
         break;
 
-      case 'categorySpecific':
+      case 'categorySpecificPolicy':
         if (selectedCategory === null || selectedCategory === undefined || selectedCategory === "") {
           setErrorMessage('Please select a category.');
           return;
@@ -266,24 +267,24 @@ const ManagePolicy = () => {
         };
         break;
 
-      case 'basketSpecific':
+      case 'basketSpecificPolicy':
         data = {
           "store_id": store_id,
           "policy_name": newPolicyName,
         };
         break;
       
-        case 'andPolicies':
-        case 'orPolicies':
-        case 'conditionalPolicies':
+        case 'andPolicy':
+        case 'orPolicy':
+        case 'conditionalPolicy':
           if (selectedLeftPolicy === '' || selectedRightPolicy === '') {
             setErrorMessage('Please select both policies.');
             return;
           }
           let type_of_composite = 1;
-          if (dialogType == 'orPolicies'){
+          if (dialogType == 'orPolicy'){
             type_of_composite = 2;
-          }else if(dialogType === 'conditionalPolicies'){
+          }else if(dialogType === 'conditionalPolicy'){
             type_of_composite = 3;
           }
           data = { 
@@ -304,7 +305,7 @@ const ManagePolicy = () => {
       try {
         console.log("the policy data:", data);
         //case of the simple policies
-        if (dialogType === 'productSpecific' || dialogType === 'categorySpecific' || dialogType === 'basketSpecific') {
+        if (dialogType === 'productSpecificPolicy' || dialogType === 'categorySpecificPolicy' || dialogType === 'basketSpecificPolicy') {
           const response = await api.post(`/store/add_purchase_policy`, data);
           if (response.status !== 200) {
             setErrorMessage('Failed to save policy data');
@@ -383,7 +384,7 @@ const ManagePolicy = () => {
   };
 
  // Function responsible for adding a new constraint to a policy
-const handleSaveConstraint = async () => {
+const handleSaveConstraint = () => {
   const parseConstraintString = (constraintStr) => {
     const splitRegex = /[\s,]+/;
   
@@ -406,7 +407,6 @@ const handleSaveConstraint = async () => {
     return parse(cleanStr);
   };
   
-  const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
   
   const simpleComponents = ['age', 'time', 'location', 'day_of_month', 'day_of_week', 'season', 'holidays_of_country', 'price_basket', 'price_product', 'price_category', 'amount_basket', 'amount_product', 'amount_category', 'weight_category', 'weight_basket', 'weight_product'];
   const compositeComponents = ['and', 'or', 'xor', 'implies'];
@@ -433,12 +433,17 @@ const handleSaveConstraint = async () => {
     return [[constraintType, ...properties], parsedComposite.length];
   };
   
-  const [finalComposite] = buildNestedArray(parsedComposite, 0);
-  console.log("the final composite constraint:", finalComposite);
+
   let data;
+  let store_id_int = parseInt(store_id);
   if (selectedConstraintType === 'compositeConstraint') {
-     data = {
-      store_id: store_id,
+    
+    const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
+    const [finalComposite] = buildNestedArray(parsedComposite, 0);
+    console.log("the final composite constraint:", finalComposite);
+
+    data = {
+      store_id: store_id_int,
       policy_id: currentPolicyId,
       predicate_builder: finalComposite,
     };
@@ -448,36 +453,41 @@ const handleSaveConstraint = async () => {
   }else if(selectedConstraintType === 'location'){
     let location = {'address': Object.values(constraintValues)[0], 'city': Object.values(constraintValues)[1], 'state': Object.values(constraintValues)[2], 'country': Object.values(constraintValues)[3], 'zip_code': Object.values(constraintValues)[4]}
     data = {
-      store_id: store_id,
+      store_id: store_id_int,
       policy_id: currentPolicyId,
       predicate_builder: [selectedConstraintType, location]
     }
 
   }else{
-
+    console.log("the current policy id is:", currentPolicyId)
     data = {
-      store_id: store_id,
+      store_id: store_id_int,
       policy_id: currentPolicyId,
       predicate_builder: [selectedConstraintType, ...Object.values(constraintValues)],
     };
   }
-   
+  
+  console.log('data we are trying to add:', data)
   console.log('predicate builder of current cnostraint we are trying to add:', data.predicate_builder);
 
-  try {
-    const response = await api.post('/store/assign_predicate_to_purchase_policy', data);
-    if (response.status !== 200) {
+  const saveConstraint = async () => {
+    try {
+      const response = await api.post(`/store/assign_predicate_to_purchase_policy`, data);
+      if (response.status !== 200) {
+        setErrorMessage('Failed to save constraint');
+        return;
+      }
+      fetchPolicies();
+      setConstraintDialogOpen(false);
+      setSelectedConstraintType('');
+      setConstraintValues({});
+    } catch (error) {
+      console.error('Error saving constraint:', error);
       setErrorMessage('Failed to save constraint');
-      return;
     }
-    fetchPolicies();
-    setConstraintDialogOpen(false);
-    setSelectedConstraintType('');
-    setConstraintValues({});
-  } catch (error) {
-    console.error('Error saving constraint:', error);
-    setErrorMessage('Failed to save constraint');
   }
+
+  saveConstraint();
 };
 
 
@@ -1073,9 +1083,9 @@ const renderNestedPolicy = (policy) => {
       <p><strong>Policy ID:</strong> {policy.policy_id}</p>
       <p><strong>Store ID:</strong> {policy.store_id}</p>
       <p><strong>Policy Name:</strong> {policy.policy_name}</p>
-      {policy.policy_type === 'ProductSpecificPolicy' && <p><strong>Product ID:</strong> {policy.product_id}</p>}
-      {policy.policy_type === 'CategorySpecificPolicy' && <p><strong>Category ID:</strong> {policy.category_id}</p>}
-      {['AndPolicy', 'OrPolicy', 'ConditionalPolicy'].includes(policy.policy_type) && (
+      {policy.policy_type === 'productSpecificPolicy' && <p><strong>Product ID:</strong> {policy.product_id}</p>}
+      {policy.policy_type === 'categorySpecificPolicy' && <p><strong>Category ID:</strong> {policy.category_id}</p>}
+      {['andPolicy', 'orPolicy', 'conditionalPolicy'].includes(policy.policy_type) && (
         <>
           <div className="flex justify-between">
             <button onClick={() => handleToggleLeftPolicy(policy.policy_id)} className="mt-2">
@@ -1097,7 +1107,7 @@ const renderNestedPolicy = (policy) => {
           )}
         </>
       )}
-      {['ProductSpecificPolicy', 'CategorySpecificPolicy', 'BasketSpecificPolicy'].includes(policy.policy_type) && policy.predicate && (
+      {['productSpecificPolicy', 'categorySpecificPolicy', 'basketSpecificPolicy'].includes(policy.policy_type) && policy.predicate && (
         <>
           <button onClick={() => handleToggleConstraint(policy.policy_id)} className="text-gray-500 mt-2">
             {expandedConstraints[policy.policy_id] ? 'Hide Constraint' : 'Show Constraint'}
@@ -1128,11 +1138,11 @@ const renderPolicy = (policy, type) => (
     </button>
     {expandedPolicies[type] === policy.policy_id && (
       <div className="mt-2">
-        <p><strong>Store ID:</strong> {policy.store_id}</p>
         <p><strong>Policy Name:</strong> {policy.policy_name}</p>
-        {type === 'productSpecific' && <p><strong>Product ID:</strong> {policy.product_id}</p>}
-        {type === 'categorySpecific' && <p><strong>Category ID:</strong> {policy.category_id}</p>}
-        {['andPolicies', 'orPolicies', 'conditionalPolicies'].includes(type) && (
+        <p><strong>Store ID:</strong> {policy.store_id}</p>
+        {type === 'productSpecificPolicy' && <p><strong>Product ID:</strong> {policy.product_id}</p>}
+        {type === 'categorySpecificPolicy' && <p><strong>Category ID:</strong> {policy.category_id}</p>}
+        {['andPolicy', 'orPolicy', 'conditionalPolicy'].includes(type) && (
           <>
             <div className="flex justify-between">
               <button onClick={() => handleToggleLeftPolicy(policy.policy_id)} className="mt-2">
@@ -1154,7 +1164,7 @@ const renderPolicy = (policy, type) => (
             )}
           </>
         )}
-        {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
+        {['productSpecificPolicy', 'categorySpecificPolicy', 'basketSpecificPolicy'].includes(type) && (
           <>
             <button onClick={() => handleToggleConstraint(policy.policy_id)} className="text-gray-500 mt-2">
               {expandedConstraints[policy.policy_id] ? 'Hide Constraint' : 'Show Constraint'}
@@ -1166,7 +1176,7 @@ const renderPolicy = (policy, type) => (
             )}
           </>
         )}
-        <div className={`flex ${['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
+        <div className={`flex ${['productSpecificPolicy', 'categorySpecificPolicy', 'basketSpecificPolicy'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Policy</Button>
@@ -1184,7 +1194,7 @@ const renderPolicy = (policy, type) => (
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          {['productSpecific', 'categorySpecific', 'basketSpecific'].includes(type) && (
+          {['productSpecificPolicy', 'categorySpecificPolicy', 'basketSpecificPolicy'].includes(type) && (
             <Button onClick={() => handleOpenConstraintDialog(policy.policy_id)} className="ml-2">
               Add Constraint
             </Button>
@@ -1201,11 +1211,11 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Product Specific Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.productSpecific && policies.productSpecific.map((policy) => renderPolicy(policy, 'productSpecific'))}
+        {policies.productSpecificPolicy && policies.productSpecificPolicy.map((policy) => renderPolicy(policy, 'productSpecificPolicy'))}
       </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'productSpecific'} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen && dialogType === 'productSpecificPolicy'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('productSpecific')}>Add Product Policy</Button>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('productSpecificPolicy')}>Add Product Policy</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
@@ -1252,11 +1262,11 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Category Specific Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.categorySpecific && policies.categorySpecific.map((policy) => renderPolicy(policy, 'categorySpecific'))}
+        {policies.categorySpecificPolicy && policies.categorySpecificPolicy.map((policy) => renderPolicy(policy, 'categorySpecificPolicy'))}
       </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'categorySpecific'} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen && dialogType === 'categorySpecificPolicy'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('categorySpecific')}>Add Category Policy</Button>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('categorySpecificPolicy')}>Add Category Policy</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
@@ -1303,16 +1313,16 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Basket Specific Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.basketSpecific && policies.basketSpecific.map((policy) => renderPolicy(policy, 'basketSpecific'))}
+        {policies.basketSpecificPolicy && policies.basketSpecificPolicy.map((policy) => renderPolicy(policy, 'basketSpecificPolicy'))}
       </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'basketSpecific'} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen && dialogType === 'basketSpecificPolicy'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('basketSpecific')}>Add Basket Policy</Button>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('basketSpecificPolicy')}>Add Basket Policy</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-white">
         
         <DialogHeader>
-          <DialogTitle>Adding a category specific policy</DialogTitle>
+          <DialogTitle>Adding a basket specific policy</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {errorMessage && (
@@ -1328,22 +1338,6 @@ return (
               className="col-span-3 border border-black"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="block mt-2">Choose Category</Label>
-            <Select onValueChange={(value) => setSelectedCategory(value)} value={selectedCategory}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Please select a category" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="" disabled>Please select a category</SelectItem>
-                {Object.values(categories).map((category) => (
-                  <SelectItem key={category.category_id} value={category.category_id}>
-                    {category.category_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
         <DialogFooter>
           <Button type="button" onClick={handleSaveChanges}>Save changes</Button>
@@ -1356,11 +1350,11 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">And Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.andPolicies && policies.andPolicies.map((policy) => renderPolicy(policy, 'andPolicies'))}
+        {policies.andPolicy && policies.andPolicy.map((policy) => renderPolicy(policy, 'andPolicy'))}
       </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'andPolicies'} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen && dialogType === 'andPolicy'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('andPolicies')}>Add And Policy</Button>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('andPolicy')}>Add And Policy</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
@@ -1384,7 +1378,7 @@ return (
               <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
               <Select onValueChange={setSelectedLeftPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 1" />
+                  <SelectValue placeholder="Select the first policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1399,7 +1393,7 @@ return (
               <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
               <Select onValueChange={setSelectedRightPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 2" />
+                  <SelectValue placeholder="Select the second policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1421,11 +1415,11 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Or Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.orPolicies && policies.orPolicies.map((policy) => renderPolicy(policy, 'orPolicies'))}
+        {policies.orPolicy && policies.orPolicy.map((policy) => renderPolicy(policy, 'orPolicy'))}
       </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'orPolicies'} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen && dialogType === 'orPolicy'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('orPolicies')}>Add Or Policy</Button>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('orPolicy')}>Add Or Policy</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
@@ -1449,7 +1443,7 @@ return (
               <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
               <Select onValueChange={setSelectedLeftPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 1" />
+                  <SelectValue placeholder="Select the first policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1464,7 +1458,7 @@ return (
               <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
               <Select onValueChange={setSelectedRightPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 2" />
+                  <SelectValue placeholder="Select the second policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1486,11 +1480,11 @@ return (
     <div className="w-full max-w-md p-4">
       <h2 className="text-center font-bold mb-4">Conditional Policies</h2>
       <ScrollArea className="h-[300px] w-full border-2 border-gray-800 p-4 rounded-md">
-        {policies.conditionalPolicies && policies.conditionalPolicies.map((policy) => renderPolicy(policy, 'conditionalPolicies'))}
+        {policies.conditionalPolicy && policies.conditionalPolicy.map((policy) => renderPolicy(policy, 'conditionalPolicy'))}
       </ScrollArea>
-      <Dialog open={isDialogOpen && dialogType === 'conditionalPolicies'} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen && dialogType === 'conditionalPolicy'} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('conditionalPolicies')}>Add Conditional Policy</Button>
+          <Button variant="outline" className="w-full mt-2" onClick={() => handleOpenDialog('conditionalPolicy')}>Add Conditional Policy</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
@@ -1514,7 +1508,7 @@ return (
               <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
               <Select onValueChange={setSelectedLeftPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 1" />
+                  <SelectValue placeholder="Select the first policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1529,7 +1523,7 @@ return (
               <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
               <Select onValueChange={setSelectedRightPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 2" />
+                  <SelectValue placeholder="Select the second policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (

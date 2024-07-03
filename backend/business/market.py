@@ -771,8 +771,9 @@ class MarketFacade:
     
     def assign_predicate_to_purchase_policy(self, user_id: int, store_id: int, policy_id: int, predicate_properties: Tuple) -> None:
         if self.user_facade.suspended(user_id):
+            logger.warn(f"User {user_id} is suspended")
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if self.roles_facade.has_change_purchase_policy_permission(policy_id, user_id):
+        if self.roles_facade.has_change_purchase_policy_permission(store_id, user_id):
             self.store_facade.assign_predicate_to_purchase_policy(store_id, policy_id, predicate_properties)
         else:
             raise UserError("User does not have the necessary permissions to assign a predicate to a policy in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
