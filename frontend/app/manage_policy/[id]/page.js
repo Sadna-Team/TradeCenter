@@ -384,7 +384,7 @@ const ManagePolicy = () => {
   };
 
  // Function responsible for adding a new constraint to a policy
-const handleSaveConstraint = async () => {
+const handleSaveConstraint = () => {
   const parseConstraintString = (constraintStr) => {
     const splitRegex = /[\s,]+/;
   
@@ -435,6 +435,7 @@ const handleSaveConstraint = async () => {
   
 
   let data;
+  let store_id_int = parseInt(store_id);
   if (selectedConstraintType === 'compositeConstraint') {
     
     const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
@@ -442,7 +443,7 @@ const handleSaveConstraint = async () => {
     console.log("the final composite constraint:", finalComposite);
 
     data = {
-      store_id: store_id,
+      store_id: store_id_int,
       policy_id: currentPolicyId,
       predicate_builder: finalComposite,
     };
@@ -452,36 +453,41 @@ const handleSaveConstraint = async () => {
   }else if(selectedConstraintType === 'location'){
     let location = {'address': Object.values(constraintValues)[0], 'city': Object.values(constraintValues)[1], 'state': Object.values(constraintValues)[2], 'country': Object.values(constraintValues)[3], 'zip_code': Object.values(constraintValues)[4]}
     data = {
-      store_id: store_id,
+      store_id: store_id_int,
       policy_id: currentPolicyId,
       predicate_builder: [selectedConstraintType, location]
     }
 
   }else{
-
+    console.log("the current policy id is:", currentPolicyId)
     data = {
-      store_id: store_id,
+      store_id: store_id_int,
       policy_id: currentPolicyId,
       predicate_builder: [selectedConstraintType, ...Object.values(constraintValues)],
     };
   }
-   
+  
+  console.log('data we are trying to add:', data)
   console.log('predicate builder of current cnostraint we are trying to add:', data.predicate_builder);
 
-  try {
-    const response = await api.post('/store/assign_predicate_to_purchase_policy', data);
-    if (response.status !== 200) {
+  const saveConstraint = async () => {
+    try {
+      const response = await api.post(`/store/assign_predicate_to_purchase_policy`, data);
+      if (response.status !== 200) {
+        setErrorMessage('Failed to save constraint');
+        return;
+      }
+      fetchPolicies();
+      setConstraintDialogOpen(false);
+      setSelectedConstraintType('');
+      setConstraintValues({});
+    } catch (error) {
+      console.error('Error saving constraint:', error);
       setErrorMessage('Failed to save constraint');
-      return;
     }
-    fetchPolicies();
-    setConstraintDialogOpen(false);
-    setSelectedConstraintType('');
-    setConstraintValues({});
-  } catch (error) {
-    console.error('Error saving constraint:', error);
-    setErrorMessage('Failed to save constraint');
   }
+
+  saveConstraint();
 };
 
 
@@ -1316,7 +1322,7 @@ return (
         <DialogContent className="sm:max-w-[425px] bg-white">
         
         <DialogHeader>
-          <DialogTitle>Adding a category specific policy</DialogTitle>
+          <DialogTitle>Adding a basket specific policy</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {errorMessage && (
@@ -1331,22 +1337,6 @@ return (
               onChange={(e) => setNewPolicyName(e.target.value)}
               className="col-span-3 border border-black"
             />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="block mt-2">Choose Category</Label>
-            <Select onValueChange={(value) => setSelectedCategory(value)} value={selectedCategory}>
-              <SelectTrigger className="col-span-3 border border-black bg-white">
-                <SelectValue placeholder="Please select a category" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="" disabled>Please select a category</SelectItem>
-                {Object.values(categories).map((category) => (
-                  <SelectItem key={category.category_id} value={category.category_id}>
-                    {category.category_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
         <DialogFooter>
@@ -1388,7 +1378,7 @@ return (
               <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
               <Select onValueChange={setSelectedLeftPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 1" />
+                  <SelectValue placeholder="Select the first policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1403,7 +1393,7 @@ return (
               <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
               <Select onValueChange={setSelectedRightPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 2" />
+                  <SelectValue placeholder="Select the second policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1453,7 +1443,7 @@ return (
               <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
               <Select onValueChange={setSelectedLeftPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 1" />
+                  <SelectValue placeholder="Select the first policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1468,7 +1458,7 @@ return (
               <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
               <Select onValueChange={setSelectedRightPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 2" />
+                  <SelectValue placeholder="Select the second policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1518,7 +1508,7 @@ return (
               <Label htmlFor="left-policy" className="block mt-2">Policy 1</Label>
               <Select onValueChange={setSelectedLeftPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 1" />
+                  <SelectValue placeholder="Select the first policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
@@ -1533,7 +1523,7 @@ return (
               <Label htmlFor="right-policy" className="block mt-2">Policy 2</Label>
               <Select onValueChange={setSelectedRightPolicy}>
                 <SelectTrigger className="col-span-3 border border-black bg-white">
-                  <SelectValue placeholder="Policy 2" />
+                  <SelectValue placeholder="Select the second policy" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {Object.values(policies).flat().map((policy) => (
