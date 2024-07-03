@@ -1640,16 +1640,17 @@ return (
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
     <Dialog open={constraintDialogOpen} onOpenChange={setConstraintDialogOpen}>
-      <DialogContent className="sm:max-w-[425px] bg-white">
-        <DialogHeader>
-          <DialogTitle>Adding a constraint</DialogTitle>
-        </DialogHeader>
-      
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="constraint-type" className="block mt-2">Constraint Type</Label>
-          <Select onValueChange={handleConstraintTypeChange}>
-            <SelectTrigger className="col-span-3 border border-black bg-white">
+    <DialogContent className="sm:max-w-[425px] bg-white">
+      <DialogHeader className="text-center">
+        <DialogTitle>Adding a constraint</DialogTitle>
+      </DialogHeader>
+      <div className="grid gap-4 py-4">
+        <div className="flex items-center">
+          <Label htmlFor="constraint-type" className="mr-2 whitespace-nowrap">Constraint Type</Label>
+          <Select onValueChange={handleConstraintTypeChange} className="flex-grow ml-2">
+            <SelectTrigger className="border border-black bg-white w-full">
               <SelectValue placeholder="Choose constraint type" />
             </SelectTrigger>
             <SelectContent className="bg-white">
@@ -1662,13 +1663,14 @@ return (
           </Select>
         </div>
         {renderConstraintFields()}
-        <DialogFooter>
-          <Button type="button" onClick={handleSaveConstraint}>Save constraint</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  </div>
-  );
+      </div>
+      <DialogFooter className="flex justify-between items-center">
+        <div className="text-red-500 text-sm text-left flex-grow">{errorMessage}</div>
+        <Button type="button" onClick={handleSaveConstraint} className="ml-2 px-6">Save constraint</Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+</div>);
 };
 
 export default ManageDiscount;
