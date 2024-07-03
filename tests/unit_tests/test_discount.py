@@ -28,10 +28,11 @@ default_predicate: Optional[Constraint] = None
     
 #Constraints:
 default_min_amount: int = 5
+default_max_amount: int = -1
 default_product_id: int = 0
 default_store_id: int = 0
 
-default_AmountProductConstraint: Constraint = AmountProductConstraint(default_min_amount, default_product_id, default_store_id)
+default_AmountProductConstraint: Constraint = AmountProductConstraint(default_min_amount,default_max_amount, default_product_id, default_store_id)
 #-----------------------------------
 
 #CategoryDiscount default vars:

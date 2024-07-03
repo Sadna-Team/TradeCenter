@@ -323,6 +323,8 @@ class PriceBasketConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
+        if self.__max_price == -1:
+            return "Price basket constraint with min price: " + str(self.__min_price) + " in store: " + str(self.__store_id)
         return "Price basket constraint with min price: " + str(self.__min_price) + " and max price: " + str(self.__max_price) + " in store: " + str(self.__store_id)
 
 # --------------- price product constraint class  ---------------#
@@ -375,6 +377,8 @@ class PriceProductConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
+        if self.__max_price == -1:
+            return "Price product constraint with min price: " + str(self.__min_price) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
         return "Price product constraint with min price: " + str(self.__min_price) + " and max price: " + str(self.__max_price) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
 
 
@@ -426,13 +430,16 @@ class PriceCategoryConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
+        if self.__max_price == -1:
+            return "Price category constraint with min price: " + str(self.__min_price) + " of category: " + str(self.__category_id)
         return "Price category constraint with min price: " + str(self.__min_price) + " and max price: " + str(self.__max_price) + " of category: " + str(self.__category_id)
 
 
 # --------------- amount basket constraint class  ---------------#
 class AmountBasketConstraint(Constraint):
-    def __init__(self, min_amount: int, store_id: int):
+    def __init__(self, min_amount: int, max_amount: int, store_id: int):
         self.__min_amount = min_amount #if min_amount is 0, then there is no lower limit
+        self.__max_amount = max_amount #if max_amount is -1, then there is no upper limit
         self.__store_id = store_id
         logger.info("[AmountBasketConstraint]: Amount basket constraint created!")
 
@@ -444,13 +451,19 @@ class AmountBasketConstraint(Constraint):
         if basket_information.store_id != self.__store_id:
             logger.warning("[AmountBasketConstraint]: Store id does not match the store id of the basket")
             return False
-        
         logger.info("[AmountBasketConstraint]: Checking if the amount of products in the basket fulfills the constraint")
-        return self.__min_amount <= amount_in_basket
+        if self.__max_amount == -1:
+            return self.__min_amount <= amount_in_basket
+        else:
+            return self.__min_amount <= amount_in_basket <= self.__max_amount
     
     @property
     def min_amount(self):
         return self.__min_amount
+    
+    @property
+    def max_amount(self):
+        return self.__max_amount
     
     @property
     def store_id(self):
@@ -460,16 +473,20 @@ class AmountBasketConstraint(Constraint):
         return {
             "constraint_type": "amount_basket_constraint",
             "min_amount": self.__min_amount,
+            "max_amount": self.__max_amount,
             "store_id": self.__store_id
             }
 
     def get_constraint_info_as_string(self) -> str:
-        return "Amount basket constraint with min amount: " + str(self.__min_amount) + " in store: " + str(self.__store_id)
+        if self.__max_amount == -1:
+            return "Amount basket constraint with min amount: " + str(self.__min_amount) + " in store: " + str(self.__store_id)
+        return "Amount basket constraint with min amount: " + str(self.__min_amount) + "and max amount" + str(self.__min_amount) +" in store: " + str(self.__store_id)
 
 # --------------- amount product constraint class  ---------------#
 class AmountProductConstraint(Constraint):
-    def __init__(self, min_amount: int, product_id: int, store_id: int):
+    def __init__(self, min_amount: int, max_amount: int, product_id: int, store_id: int):
         self.__min_amount = min_amount #if min_amount is 0, then there is no lower limit
+        self.__max_amount = max_amount #if max_amount is -1, then there is no upper limit
         self.__product_id = product_id
         self.__store_id = store_id
         logger.info("[AmountProductConstraint]: Amount product constraint created!")
@@ -482,7 +499,10 @@ class AmountProductConstraint(Constraint):
         for product in basket_information.products:
             if product.product_id == self.__product_id:
                 logger.info("[AmountProductConstraint]: Checking if the amount of the product fulfills the constraint")
-                return self.__min_amount <= product.amount
+                if self.__max_amount == -1:
+                    return self.__min_amount <= product.amount
+                else:
+                    return self.__min_amount <= product.amount <= self.__max_amount
         
         logger.warn("[WeightProductConstraint]: Product not found in basket")
         return False
@@ -490,6 +510,10 @@ class AmountProductConstraint(Constraint):
     @property
     def min_amount(self):
         return self.__min_amount
+    
+    @property
+    def max_amount(self):
+        return self.__max_amount
     
     @property
     def product_id(self):
@@ -503,17 +527,21 @@ class AmountProductConstraint(Constraint):
         return {
             "constraint_type": "amount_product_constraint",
             "min_amount": self.__min_amount,
+            "max_amount": self.__max_amount,
             "product_id": self.__product_id,
             "store_id": self.__store_id
             }
     
     def get_constraint_info_as_string(self) -> str:
-        return "Amount product constraint with min amount: " + str(self.__min_amount) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
-    
+        if self.__max_amount == -1:
+            return "Amount product constraint with min amount: " + str(self.__min_amount) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
+        return "Amount product constraint with min amount: " + str(self.__min_amount) + " and max amount: " + str(self.__max_amount) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
+
 # --------------- amount category constraint class  ---------------#
 class AmountCategoryConstraint(Constraint):
-    def __init__(self, min_amount: int, category_id: int):
+    def __init__(self, min_amount: int, max_amount: int, category_id: int):
         self.__min_amount = min_amount #if min_amount is 0, then there is no lower limit
+        self.__max_amount = max_amount #if max_amount is -1, then there is no upper limit
         self.__category_id = category_id
         logger.info("[AmountCategoryConstraint]: Amount category constraint created!")
 
@@ -528,8 +556,12 @@ class AmountCategoryConstraint(Constraint):
                 for product in products:
                     category_total_amount += product.amount
 
+
                 logger.info("[AmountCategoryConstraint]: Checking if the amount of products in the category fulfills the constraint")
-                return self.__min_amount <= category_total_amount
+                if self.__max_amount == -1:
+                    return self.__min_amount <= category_total_amount
+                else:
+                    return self.__min_amount <= category_total_amount <= self.__max_amount
             
         logger.warn("[AmountCategoryConstraint]: Category not found in basket")
         return False    
@@ -538,6 +570,10 @@ class AmountCategoryConstraint(Constraint):
         return self.__min_amount
     
     @property
+    def max_amount(self):    
+        return self.__max_amount
+
+    @property
     def category_id(self):
         return self.__category_id
     
@@ -545,11 +581,14 @@ class AmountCategoryConstraint(Constraint):
         return {
             "constraint_type": "amount_category_constraint",
             "min_amount": self.__min_amount,
+            "max_amount": self.__max_amount,
             "category_id": self.__category_id
             }
     
     def get_constraint_info_as_string(self) -> str:
-        return "Amount category constraint with min amount: " + str(self.__min_amount) + " of category: " + str(self.__category_id)
+        if self.__max_amount == -1:
+            return "Amount category constraint with min amount: " + str(self.__min_amount) + " of category: " + str(self.__category_id)
+        return "Amount category constraint with min amount: " + str(self.__min_amount) + " and max amount: " + str(self.__max_amount) + " of category: " + str(self.__category_id)
 
 # --------------- weight basket constraint class  ---------------#
 class WeightBasketConstraint(Constraint):
@@ -595,6 +634,8 @@ class WeightBasketConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
+        if self.__max_weight == -1:
+            return "Weight basket constraint with min weight: " + str(self.__min_weight) + " in store: " + str(self.__store_id)
         return "Weight basket constraint with min weight: " + str(self.__min_weight) + " and max weight: " + str(self.__max_weight) + " in store: " + str(self.__store_id)
 
 # --------------- weight product constraint class  ---------------#
@@ -648,6 +689,8 @@ class WeightProductConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
+        if self.__max_weight == -1:
+            return "Weight product constraint with min weight: " + str(self.__min_weight) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
         return "Weight product constraint with min weight: " + str(self.__min_weight) + " and max weight: " + str(self.__max_weight) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
     
 
@@ -699,6 +742,8 @@ class WeightCategoryConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
+        if self.__max_weight == -1:
+            return "Weight category constraint with min weight: " + str(self.__min_weight) + " of category: " + str(self.__category_id)
         return "Weight category constraint with min weight: " + str(self.__min_weight) + " and max weight: " + str(self.__max_weight) + " of category: " + str(self.__category_id)
 
 
