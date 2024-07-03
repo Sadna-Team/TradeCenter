@@ -31,12 +31,13 @@ default_predicate: Optional[Constraint] = None
     
 #Constraints:
 default_min_amount: int = 2
+default_max_amount: int = -1
 default_product_id: int = 0
 default_store_id: int = 0
 default_age_limit: int = 18
 
 default_AgeConstraint: Constraint = AgeConstraint(default_age_limit)
-default_AmountProductConstraint: Constraint = AmountProductConstraint(default_min_amount, default_product_id, default_store_id)
+default_AmountProductConstraint: Constraint = AmountProductConstraint(default_min_amount, default_max_amount, default_product_id, default_store_id)
 default_day_of_month_constraint: Constraint = DayOfMonthConstraint(1, 31)
 default_day_of_week_constraint = DayOfWeekConstraint(0, 6)
 default_season_constraint = SeasonConstraint("winter")

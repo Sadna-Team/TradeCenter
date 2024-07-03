@@ -334,7 +334,7 @@ def test_assign_predicate_to_purchase_policy(client12, init_store, owner_token11
     response = client12.post('store/add_purchase_policy', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"store_id": 0, "policy_id": 0, 'predicate_builder': ("amount_product", 2,0,0)}
+    data = {"store_id": 0, "policy_id": 0, 'predicate_builder': ("amount_product", 2, -1, 0,0)}
     headers = {'Authorization': 'Bearer ' + owner_token11}
     response = client12.post('store/assign_predicate_to_purchase_policy', headers=headers, json=data)
     assert response.status_code == 200
@@ -345,7 +345,7 @@ def test_assign_predicate_to_purchase_policy_no_permission(client12, client33,gu
     response = client12.post('store/add_purchase_policy', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"store_id": 0, "policy_id": 0, 'predicate_builder': ("amount_product", 2,0,0)}
+    data = {"store_id": 0, "policy_id": 0, 'predicate_builder': ("amount_product", 2,-1, 0,0)}
     headers = {'Authorization': 'Bearer ' + guest_token10}
     response = client33.post('store/assign_predicate_to_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400
@@ -356,7 +356,7 @@ def test_assign_predicate_to_purchase_policy_invalid_policy_id(client12, init_st
     response = client12.post('store/add_purchase_policy', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"store_id": 0, "policy_id": 100, 'predicate_builder': ("amount_product", 2,0,0)}
+    data = {"store_id": 0, "policy_id": 100, 'predicate_builder': ("amount_product", 2,-1,0,0)}
     headers = {'Authorization': 'Bearer ' + owner_token11}
     response = client12.post('store/assign_predicate_to_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400

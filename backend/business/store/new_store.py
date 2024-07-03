@@ -1684,29 +1684,29 @@ class StoreFacade:
                 logger.warning('[StoreFacade] min weight, max weight or store id is not valid')
                 raise DiscountAndConstraintsError('Min weight, max weight or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == AmountCategoryConstraint:
-            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
-                if predicate_properties[1] < 0:
-                    logger.warning('[StoreFacade] min amount is a negative value')
-                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
-                return predicate_type(predicate_properties[1], predicate_properties[2])
-            else:
-                logger.warning('[StoreFacade] min amount or category id is not valid')
-                raise DiscountAndConstraintsError('Min amount or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
-        elif predicate_type == AmountProductConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
                     raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
-                logger.warning('[StoreFacade] min amount, product id or store id is not valid')
-                raise DiscountAndConstraintsError('Min amount, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
-        elif predicate_type == AmountBasketConstraint:
-            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
+                logger.warning('[StoreFacade] min amount or category id is not valid')
+                raise DiscountAndConstraintsError('Min amount or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+        elif predicate_type == AmountProductConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
                     raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
-                return predicate_type(predicate_properties[1], predicate_properties[2])
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
+            else:
+                logger.warning('[StoreFacade] min amount, product id or store id is not valid')
+                raise DiscountAndConstraintsError('Min amount, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+        elif predicate_type == AmountBasketConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if predicate_properties[1] < 0:
+                    logger.warning('[StoreFacade] min amount is a negative value')
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min amount or store id is not valid')
                 raise DiscountAndConstraintsError('Min amount or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)

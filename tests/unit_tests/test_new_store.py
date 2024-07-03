@@ -347,10 +347,10 @@ def test_apply_baked_goods_discount(store_facade):
     store_facade.get_store_by_id(store_id).restock_product(product_id2, 50)
     #bread discount
     temp1 = store_facade.add_discount('bread_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_005,None,store_id,product_id1,None)
-    store_facade.assign_predicate_to_discount(temp1, ('amount_product', 5, product_id1, store_id))
+    store_facade.assign_predicate_to_discount(temp1, ('amount_product', 5, -1,product_id1, store_id))
     #cake discount
     temp2 = store_facade.add_discount('cake_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_005,None,store_id,product_id2,None)
-    store_facade.assign_predicate_to_discount(temp2, ('amount_product', 2, product_id2, store_id))
+    store_facade.assign_predicate_to_discount(temp2, ('amount_product', 2, -1, product_id2, store_id))
     
     
     discount_id = store_facade.create_logical_composite_discount('bread_and_cake', datetime(2020, 1, 1), datetime(2050, 1, 2), -1, temp1, temp2, 1)
@@ -389,7 +389,7 @@ def test_apply_milk_discount(store_facade):
     store_facade.get_store_by_id(store_id).restock_product(product_id3, 50)
     #milk discount
     discount_id = store_facade.add_discount('milk_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_005,category_id,None,None,False)
-    store_facade.assign_predicate_to_discount(discount_id, ('or', ('amount_product', 2, product_id3, store_id) ,('amount_product', 3, product_id2, store_id)))
+    store_facade.assign_predicate_to_discount(discount_id, ('or', ('amount_product', 2, -1, product_id3, store_id) ,('amount_product', 3,-1, product_id2, store_id)))
     
     shopping_basket= {product_id2:1, product_id3:1}
     total_price_of_basket=shopping_basket[product_id2]*product_price_10+shopping_basket[product_id3]*product_price_10
@@ -426,7 +426,7 @@ def test_apply_milk_discount2(store_facade):
     store_facade.get_store_by_id(store_id).restock_product(product_id3, 50)
     #pasta discount
     discount_id = store_facade.add_discount('milk_discount', datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_005,category_id,None,None,False)
-    store_facade.assign_predicate_to_discount(discount_id, ('and', ('amount_product', 3, product_id2, store_id), ('price_basket', 100.0, -1.0, store_id)))
+    store_facade.assign_predicate_to_discount(discount_id, ('and', ('amount_product', 3,-1, product_id2, store_id), ('price_basket', 100.0, -1.0, store_id)))
     
     shopping_basket= {product_id1:1, product_id2:1, product_id3:1}
     total_price_of_basket=shopping_basket[product_id1]*product_price_10 + shopping_basket[product_id2]*product_price_10 + shopping_basket[product_id3]*product_price_20
@@ -1244,7 +1244,7 @@ def test_create_simple_purchase_policy_to_store5(store_facade):
     policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'at_least_2_corn', None, product_id2)
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 2, product_id2, store_id))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 2, -1, product_id2, store_id))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'and policy', policy_id1, policy_id2, 1)
 
@@ -1264,7 +1264,7 @@ def test_create_simple_purchase_policy_to_store5_5(store_facade):
     policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'at_least_2_corn', None, product_id2)
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 2, product_id2, store_id))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 2,-1, product_id2, store_id))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'and policy', policy_id1, policy_id2, 1)
 
@@ -1306,7 +1306,7 @@ def test_create_simple_purchase_policy_to_store7(store_facade):
     policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_eggplants', None, product_id2)
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 1, product_id2, store_id))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 1, -1, product_id2, store_id))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'condition policy', policy_id1, policy_id2, 3)
 
@@ -1324,7 +1324,7 @@ def test_create_simple_purchase_policy_to_store75(store_facade):
     policy_id1=store_facade.add_purchase_policy_to_store(store_id, 'no_more_than_5_kg_tomatoes',None, product_id)
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_eggplants', None, product_id2)
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 1, product_id2, store_id))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('amount_product', 1, -1, product_id2, store_id))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'condition policy', policy_id1, policy_id2, 3)
 
@@ -1343,7 +1343,7 @@ def test_create_simple_purchase_policy_to_store8(store_facade):
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
         
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, -1, product_id2, store_id), ('holidays_of_country', 'IL')))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
 
@@ -1364,7 +1364,7 @@ def test_create_simple_purchase_policy_to_store9(store_facade):
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
         
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, -1, product_id2, store_id), ('holidays_of_country', 'IL')))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
 
@@ -1383,7 +1383,7 @@ def test_create_composite_purchase_policy_to_store (store_facade):
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
         
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, -1, product_id2, store_id), ('holidays_of_country', 'IL')))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
 
@@ -1403,7 +1403,7 @@ def test_validate_purchase_policies(store_facade):
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
         
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, -1, product_id2, store_id), ('holidays_of_country', 'IL')))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
 
@@ -1421,7 +1421,7 @@ def test_validate_purchase_policies2(store_facade):
     policy_id2=store_facade.add_purchase_policy_to_store(store_id, 'must_have_2_eggplants_or_holiday', None, None)
         
     store_facade.assign_predicate_to_purchase_policy(store_id, policy_id1, ('weight_product', 0.0, 5.0, product_id, store_id ))
-    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, product_id2, store_id), ('holidays_of_country', 'IL')))
+    store_facade.assign_predicate_to_purchase_policy(store_id, policy_id2, ('or' ,('amount_product', 2, -1, product_id2, store_id), ('holidays_of_country', 'IL')))
     
     new_policy=store_facade.create_composite_purchase_policy_to_store(store_id,'or policy', policy_id1, policy_id2, 1)
 

@@ -189,7 +189,7 @@ def test_checkout_failed_policy_not_met(client1, client2, user_token, owner_toke
     response = client1.post('store/add_purchase_policy', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"store_id": 0, "policy_id": 0, 'predicate_builder': ("amount_product", 2,0,0)}
+    data = {"store_id": 0, "policy_id": 0, 'predicate_builder': ("amount_product", 2,-1, 0,0)}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client1.post('store/assign_predicate_to_purchase_policy', headers=headers, json=data)
     assert response.status_code == 200
