@@ -15,6 +15,7 @@ export default function EditProductCategoriesPage() {
     const [addedCategories, setAddedCategories] = useState([]);
     const [removedCategories, setRemovedCategories] = useState([]);
     const [successMessage, setSuccessMessage] = useState('');
+    const [rerender, setRerender] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -49,6 +50,29 @@ export default function EditProductCategoriesPage() {
         };
         fetchData();
     }, [storeId, productId]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await api.post("/store/get_product_categories", { store_id: storeId, product_id: productId });
+                if (response.status !== 200) {
+                    console.error('Failed to fetch product categories:', response);
+                    setErrorMessage('Failed to fetch product categories');
+                    setSuccessMessage('');
+                    return;
+                }
+                setCategories(response.data.message);
+                setAddedCategories([]);
+                setRemovedCategories([]);
+            } catch (error) {
+                console.error('Failed to fetch product categories:', error);
+                setErrorMessage('Failed to fetch product categories');
+                setSuccessMessage('');
+            }
+        };
+        fetchData();
+    }, [rerender]);
+
 
     const handleAddCategory = (categoryId) => {
         if (Object.keys(categories).includes(categoryId)) {
@@ -88,6 +112,9 @@ export default function EditProductCategoriesPage() {
 
     const onSubmit = async () => {
         try {
+            console.log('categories:', categories);
+            console.log('added categories:', addedCategories);
+            console.log('removed categories:', removedCategories);
             for (const categoryId of addedCategories) {
                 const response = await api.post("/store/assign_product_to_category", { store_id: storeId, product_id: productId, category_id: categoryId });
                 if (response.status !== 200) {
@@ -115,6 +142,7 @@ export default function EditProductCategoriesPage() {
             }
             setSuccessMessage('Product categories updated successfully');
             setErrorMessage('');
+            setRerender(!rerender);
         }
         catch (error) {
             console.error('Failed to remove product category:', error);

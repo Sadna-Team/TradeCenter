@@ -19,9 +19,9 @@ class StoreService:
             Add a discount to the system
         """
         try:
-            self.__market_facade.add_discount(user_id, description, start_date, end_date, percentage, store_id, product_id, category_id, applied_to_sub)
+            discount_id = self.__market_facade.add_discount(user_id, description, start_date, end_date, percentage, store_id, product_id, category_id, applied_to_sub)
             logger.info('discount was added successfully')
-            return jsonify({'message': 'discount was added successfully'}), 200
+            return jsonify({'discount_id': discount_id}), 200
         except Exception as e:
             logger.error('discount was not added')
             return jsonify({'message': str(e)}), 400
@@ -105,7 +105,7 @@ class StoreService:
             View information about all discounts in the system
         """
         try:
-            info = self.__market_facade.get_all_discount_info(user_id)
+            info: dict = self.__market_facade.view_all_discount_information(user_id)
             logger.info('discount info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:
@@ -114,9 +114,9 @@ class StoreService:
 
     def add_purchase_policy(self, user_id: int, store_id: int, policy_name: str, category_id: Optional[int] = None, product_id: Optional[int] = None):
         try:
-            self.__market_facade.add_purchase_policy(user_id, store_id, policy_name, category_id, product_id)
+            policy_id = self.__market_facade.add_purchase_policy(user_id, store_id, policy_name, category_id, product_id)
             logger.info('purchase policy was added successfully')
-            return jsonify({'message': 'purchase policy was added successfully'}), 200
+            return jsonify({'policy_id': policy_id}), 200
         except Exception as e:
             logger.error('purchase policy was not added')
             return jsonify({'message': str(e)}), 400
@@ -135,7 +135,7 @@ class StoreService:
         try:
             composite_policy_id = self.__market_facade.create_composite_purchase_policy(user_id, store_id, policy_name, policy_id1, policy_id2, type_of_composite)
             logger.info('composite purchase policy was created successfully')
-            return jsonify({'message': composite_policy_id}), 200
+            return jsonify({'policy_id': composite_policy_id}), 200
         except Exception as e:
             logger.error('composite purchase policy was not created')
             return jsonify({'message': str(e)}), 400
@@ -148,6 +148,15 @@ class StoreService:
             return jsonify({'message': 'predicate was assigned successfully'}), 200
         except Exception as e:
             logger.error('predicate was not assigned')
+            return jsonify({'message': str(e)}), 400
+    
+    def view_all_policies_of_store(self, user_id: int, store_id: int):
+        try:
+            data = self.__market_facade.view_all_policies_of_store(user_id, store_id)
+            logger.info('policies info was sent successfully')
+            return jsonify({'message': data}), 200
+        except Exception as e:
+            logger.error('policies info was not sent')
             return jsonify({'message': str(e)}), 400
 
 
@@ -197,9 +206,9 @@ class StoreService:
             Show products of a store
         """
         try:
-            info = [p.get() for p in self.__market_facade.get_store_product_info(store_id)]
+            data = [p.get() for p in self.__market_facade.get_store_product_info(store_id)]
             logger.info('store products info was sent successfully')
-            return jsonify({'message': info}), 200
+            return jsonify({'message': data}), 200
         except Exception as e:
             logger.error('store products info was not sent')
             return jsonify({'message': str(e)}), 400

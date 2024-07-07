@@ -78,6 +78,11 @@ export default function Sidebar({ isOpen, onClose, hasStores, isSystemManager })
           System Manager Page
         </Link>
       )}
+      {isSystemManager && (
+        <Link href="/discounts" className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
+        Manage Discounts
+        </Link>
+      )}
       <Link href="/purchase-history" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
         Purchase History
       </Link>
