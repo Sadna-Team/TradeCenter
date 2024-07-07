@@ -1,6 +1,8 @@
 from datetime import datetime
 import pytest
 from backend.business import MarketFacade, UserFacade, Authentication, PurchaseFacade
+from backend.business.DTOs import BidPurchaseDTO
+from backend.business.purchase.purchase import PurchaseStatus
 from backend.business.roles import RolesFacade
 from typing import List, Optional
 from flask import Flask
@@ -522,9 +524,130 @@ def test_change_discount_description_no_permission(default_set_up):
     assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
     assert market_facade.store_facade.discounts.get(discount_id1).discount_description != 'new description'
     
-
-
 #-----------------------------------------------------------
+
+#tests for bid purchase:
+
+'''
+
+
+def test_user_bid_offer(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id1 = products[0][0]
+
+    bid_id = market_facade.user_bid_offer(user_id1, 10.0, store_id1, product_id1)
+    assert isinstance(bid_id, int)
+    assert bid_id in [bid.purchase_id for bid in purchase_facade.get_bid_purchases_of_user(user_id1)]
+
+def test_store_worker_accept_bid(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id1 = products[0][0]
+    bid_id = market_facade.user_bid_offer(user_id1, 10.0, store_id1, product_id1)
+
+    market_facade.store_worker_accept_bid(store_id1, user_id1, bid_id)
+
+    bid = user_facade.get_bid_purchase(bid_id)
+    assert bid.status == PurchaseStatus.accepted
+
+def test_store_worker_decline_bid(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    product_id1 = products[0][0]
+    bid_id = market_facade.user_bid_offer(user_id2, 10.0, store_id1, product_id1)
+
+    rejected_by = market_facade.store_worker_decline_bid(store_id1, user_id1, bid_id)
+    assert rejected_by == user_id1
+
+    bid = user_facade.get_bid_purchase(bid_id)
+    assert bid.status == PurchaseStatus.offer_rejected
+
+def test_store_worker_counter_bid(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    product_id1 = products[0][0]
+    bid_id = market_facade.user_bid_offer(user_id2, 10.0, store_id1, product_id1)
+
+    market_facade.store_worker_counter_bid(store_id1, user_id1, bid_id, 12.0)
+
+    bid = user_facade.get_bid_purchase(bid_id)
+    assert bid.status == PurchaseStatus.COUNTERED
+
+def test_user_counter_bid_accept(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    product_id1 = products[0][0]
+    bid_id = market_facade.user_bid_offer(user_id2, 10.0, store_id1, product_id1)
+
+    market_facade.store_worker_counter_bid(store_id1, user_id1, bid_id, 12.0)
+
+    market_facade.user_counter_bid_accept(user_id2, bid_id)
+
+    bid = user_facade.get_bid_purchase(bid_id)
+    assert bid.status == PurchaseStatus.accepted
+
+def test_user_counter_bid_decline(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    product_id1 = products[0][0]
+    bid_id = market_facade.user_bid_offer(user_id2, 10.0, store_id1, product_id1)
+
+    market_facade.store_worker_counter_bid(store_id1, user_id1, bid_id, 12.0)
+
+    market_facade.user_counter_bid_decline(user_id2, bid_id)
+
+    bid = user_facade.get_bid_purchase(bid_id)
+    assert bid.status == PurchaseStatus.offer_rejected
+
+def test_user_counter_bid(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    product_id1 = products[0][0]
+    bid_id = market_facade.user_bid_offer(user_id2, 10.0, store_id1, product_id1)
+
+    market_facade.store_worker_counter_bid(store_id1, user_id1, bid_id, 12.0)
+
+    market_facade.user_counter_bid(user_id2, bid_id, 11.0)
+
+    bid = user_facade.get_bid_purchase(bid_id)
+    assert bid.status == PurchaseStatus.COUNTERED
+
+def test_show_user_bids(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    store_id1 = store_ids[0]
+    product_id1 = products[0][0]
+    bid_id = market_facade.user_bid_offer(user_id1, 10.0, store_id1, product_id1)
+
+    bids = market_facade.show_user_bids(0, user_id1)
+    assert bids[0].status == PurchaseStatus.onGoing
+
+def test_show_store_bids(default_set_up):
+    user_ids, store_ids, products, discount_ids = default_set_up
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    product_id1 = products[0][0]
+    bid_id = market_facade.user_bid_offer(user_id2, 10.0, store_id1, product_id1)
+
+    bids = market_facade.show_store_bids(user_id1, store_id1)
+    assert bids[0].status == PurchaseStatus.onGoing
+    
+
+'''
 
 
 

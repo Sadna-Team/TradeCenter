@@ -1,7 +1,7 @@
 from .user import UserFacade
 from .authentication.authentication import Authentication
 from .roles import RolesFacade
-from .DTOs import AddressDTO, NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO, \
+from .DTOs import AddressDTO, BidPurchaseDTO, NotificationDTO, PurchaseDTO, PurchaseProductDTO, StoreDTO, ProductDTO, UserDTO, \
     PurchaseUserDTO, UserInformationForConstraintDTO, RoleNominationDTO, NominationDTO, CategoryDTO
 from .store import StoreFacade
 from .purchase import PurchaseFacade
@@ -1034,8 +1034,142 @@ class MarketFacade:
         self.store_facade.remove_product_from_category(category_id, store_id, product_id)
         logger.info(f"User {user_id} has removed a product from category {category_id}")
 
-    # -------------PurchaseFacade methods:-------------------#
+    # -------------Bid Related methods:-------------------#
+    def bid_checkout(self, user_id: int, bid_id: int,  payment_details: Dict, supply_method: str, address: Dict):
+        pass  #TODO: implement
+    
+    #TODO: send a notification to all store workers under the store_id to accept/decline/counter the bid
+    def user_bid_offer(self, user_id: int, proposed_price: float, store_id: int, product_id: int) -> int:
+        """
+        Parameters: userId, proposedPrice, storeId, productId
+        This function creates a bid purchase
+        Returns the id of the bid purchase
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        pur_id = self.purchase_facade.create_bid_purchase(user_id, proposed_price, product_id, store_id)
+        logger.info(f"User {user_id} has created a bid purchase")
+        return pur_id
+        
+    
+    def store_worker_accept_bid(self, store_id: int, store_worker_id: int, bid_id: int) -> None:
+        """
+        Parameters: store_worker_id, bidId
+        This function accepts a bid
+        Returns None
+        """
+        if self.user_facade.suspended(store_worker_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.roles_facade.has_get_bid_permission(store_id, store_worker_id):
+            self.purchase_facade.store_owner_manager_accept_offer(bid_id, store_worker_id)
+            logger.info(f"Store worker {store_worker_id} has accepted a bid")
+            
+            #checking if all store owners/managers accepted the bid now
+            list_of_workers_in_store_with_bid_permissions = self.roles_facade.get_store_workers_with_bid_permissions(store_id) #TODO
+            if self.purchase_facade.store_accept_offer(bid_id, list_of_workers_in_store_with_bid_permissions):
+                self.purchase_facade.accept_purchase(bid_id)
+                logger.info(f"Store {store_id} has accepted the bid") #TODO SEND A NOTIF TO USER THAT STORE ACCEPTED AND TO PROCEED TO CHECKOUT
 
+        else:
+            raise UserError("User does not have the necessary permissions to accept a bid", UserErrorTypes.user_does_not_have_necessary_permissions)
+        
+    
+    #TODO: remove all notifications of store workers who have not yet accepted the bid and send to them all that the bid is declined, also send a notif to the user that the bid is declined
+    def store_worker_decline_bid(self, store_id: int, store_worker_id: int, bid_id: int) -> int:
+        """
+        Parameters: store_worker_id, bidId
+        This function declines a bid
+        Returns the id of the user who rejected the bid
+        """
+        if self.user_facade.suspended(store_worker_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.roles_facade.has_get_bid_permission(store_id, store_worker_id):
+            rejected = self.purchase_facade.store_reject_offer(bid_id, store_worker_id)
+            logger.info(f"Store worker {store_worker_id} has declined a bid")
+            return rejected
+        else:
+            raise UserError("User does not have the necessary permissions to decline a bid", UserErrorTypes.user_does_not_have_necessary_permissions)
+    
+    
+    #TODO: send a notification to the user that the bid is counter offered and ask the user to accept/decline the counter offer, also remove all notifications of store workers who have not yet accepted the bid and send to them all that the bid is counter offered
+    def store_worker_counter_bid(self, store_id: int, store_worker_id: int, bid_id: int, counter_price: float) -> None:
+        """
+        Parameters: store_worker_id, bidId, counterPrice
+        This function counter offers a bid
+        Returns None
+        """
+        if self.user_facade.suspended(store_worker_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.roles_facade.has_get_bid_permission(store_id, store_worker_id):
+            self.purchase_facade.store_counter_offer(bid_id, store_worker_id, counter_price)
+            logger.info(f"Store worker {store_worker_id} has counter offered a bid")
+        else:
+            raise UserError("User does not have the necessary permissions to counter offer a bid", UserErrorTypes.user_does_not_have_necessary_permissions)
+
+    #TODO send a notification to all store workers under the store_id to accept/decline/counter the new proposed bid, 
+    #TODO NO NEED TO SEND TO THE STORE_WORKER THAT HAS COUNTERED THE BID THE NOTIFICATION.
+    def user_counter_bid_accept(self, user_id: int, bid_id: int) -> None:
+        """
+        Parameters: userId, bidId
+        This function accepts a counter bid
+        Returns None
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        self.purchase_facade.user_accept_counter_offer(bid_id, user_id)
+        logger.info(f"User {user_id} has accepted a counter bid")
+        
+    
+    #TODO send a notification to the store that the bid is declined
+    def user_counter_bid_decline(self, user_id: int, bid_id: int) -> None:
+        """
+        Parameters: userId, bidId
+        This function declines a counter bid
+        Returns None
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        self.purchase_facade.user_decline_counter_offer(bid_id, user_id)
+        logger.info(f"User {user_id} has declined a counter bid")
+        
+        
+    #TODO send a notification to the store that the bid is accepted and ask the store to proceed to checkout
+    def user_counter_bid(self, user_id: int, bid_id: int, counter_price: float) -> None:
+        """
+        Parameters: userId, bidId, counterPrice
+        This function counter offers a counter bid
+        Returns None
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        self.purchase_facade.user_counter_offer(bid_id, user_id, counter_price)
+        logger.info(f"User {user_id} has counter offered a counter bid")
+        
+    
+    def show_user_bids(self, system_manager_id: int, user_id: int) -> List[BidPurchaseDTO]:
+        """
+        Parameters: userId
+        This function shows the bids of a user
+        Returns a list of bids
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if not self.roles_facade.is_system_manager(system_manager_id):
+            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        return self.purchase_facade.get_bids_of_user(user_id)
+        
+    def show_store_bids(self, user_id: int, store_id: int) -> List[BidPurchaseDTO]:
+        """
+        Parameters: userId, storeId
+        This function shows the bids of a store
+        Returns a list of bids
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if not self.roles_facade.has_get_bid_permission(store_id, user_id):
+            raise UserError("User does not have the necessary permissions to get the bids of the store", UserErrorTypes.user_does_not_have_necessary_permissions)
+        return self.purchase_facade.get_bids_of_store(store_id)
+        
     # -------------Purchase management related methods-------------------#
 
     '''def create_bid_purchase(self, user_id: int, proposed_price: float, product_id: int, store_id: int):

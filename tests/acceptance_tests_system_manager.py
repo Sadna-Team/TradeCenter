@@ -149,13 +149,13 @@ def init_store(client1, owner_token):
 #test 2.6.4.a
 def test_getting_info_about_purchase_history_of_a_member(client, admin_token, client2, user_token, init_store, clean):
     # add discounts:
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,-1,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -182,63 +182,63 @@ def test_getting_info_about_purchase_history_of_a_member(client, admin_token, cl
 #test 2.____
 
 def test_add_discount(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
 def test_add_discount_no_permission(client, user_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
     
 def test_add_discount_wrong_store(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 1, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 1, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
     
 def test_add_discount_wrong_percentage(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 1.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 1.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
     
 def test_add_discount_wrong_dates(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2020,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2020,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
     
 def test_add_discount_wrong_dates2(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2023,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2023,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
     
     
 def test_add_discount_invalid_store_id(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2023,1,23), "percentage": 0.1, "store_id": 69, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 69, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
     
 def test_add_discount_invalid_product_id(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2023,1,23), "percentage": 0.1, "store_id": 0, "product_id": 69, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": 69, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
     
 def test_add_discount_invalid_category_id(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2023,1,23), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": 69, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": 69, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
         
     
 def test_add_discount_invalid_start_date(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2020,1,23), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2020,1,23).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
@@ -247,7 +247,7 @@ def test_add_discount_invalid_start_date(client, admin_token, init_store, clean)
 
     
 def test_remove_discount(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -258,7 +258,7 @@ def test_remove_discount(client, admin_token, init_store, clean):
     assert response.status_code == 200
     
 def test_remove_discount_no_permission(client, user_token, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -276,91 +276,91 @@ def test_remove_discount_no_discount(client, admin_token, init_store, clean):
     
     
 def test_create_logical_composite_discount(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"description": 'hara2', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.2, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara2', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.2, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
     
-    data = {"description": "hi", "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "discount_id1": 0, "discount_id2": 1, "type_of_composite": 1}
+    data = {"description": "hi", "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "discount_id1": 0, "discount_id2": 1, "type_of_composite": 1}
     response = client.post('store/create_logical_composite', headers=headers, json=data)
     assert response.status_code == 200
     
 def test_create_logical_composite_discount_no_permission(client,admin_token, user_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"description": 'hara2', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.2, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara2', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.2, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"description": "hi", "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "discount_id1": 0, "discount_id2": 1, "type_of_composite": 1}
+    data = {"description": "hi", "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "discount_id1": 0, "discount_id2": 1, "type_of_composite": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client.post('store/create_logical_composite', headers=headers, json=data)
     assert response.status_code == 400
     
 def test_create_logical_composite_discount_no_discounts(client, admin_token, init_store, clean):
-    data = {"description": "hi", "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "discount_id1": 0, "discount_id2": 1, "type_of_composite": 1}
+    data = {"description": "hi", "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "discount_id1": 0, "discount_id2": 1, "type_of_composite": 1}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/create_logical_composite', headers=headers, json=data)
     assert response.status_code == 400
     
     
 def test_create_numerical_composite_discount(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"description": 'hara2', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.2, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara2', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.2, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
     
-    data = {"description": "hi", "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "discount_ids": [0,1], "type_of_composite": 1}
+    data = {"description": "hi", "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "discount_ids": [0,1], "type_of_composite": 1}
     response = client.post('store/create_numerical_composite', headers=headers, json=data)
     assert response.status_code == 200
     
 def test_create_numerical_composite_discount_no_permission(client, admin_token,user_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"description": 'hara2', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.2, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara2', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.2, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"description": "hi", "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "discount_ids": [0,1], "type_of_composite": 1}
+    data = {"description": "hi", "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "discount_ids": [0,1], "type_of_composite": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client.post('store/create_numerical_composite', headers=headers, json=data)
     assert response.status_code == 400
     
 def test_create_discount_no_discounts(client, admin_token, init_store, clean):
-    data = {"description": "hi", "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "discount_ids": [0,1], "type_of_composite": 1}
+    data = {"description": "hi", "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "discount_ids": [0,1], "type_of_composite": 1}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/create_numerical_composite', headers=headers, json=data)
     assert response.status_code == 400
     
     
 def test_assign_predicate_to_discount(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,-1,0,0)}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
     
 def test_assign_predicate_to_discount_no_permission(client, user_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 400
@@ -385,7 +385,7 @@ def test_assign_predicate_to_discount_wrong_predicate(client, admin_token, init_
 
     
 def test_change_discount_percentage(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -409,7 +409,7 @@ def test_change_discount_invalid_percentage(client, admin_token, init_store, cle
     
     
 def test_change_discount_percentage_no_permission(client, user_token,admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -420,7 +420,7 @@ def test_change_discount_percentage_no_permission(client, user_token,admin_token
     assert response.status_code == 400
     
 def test_change_discount_description(client, admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -444,7 +444,7 @@ def test_change_discount_invalid_description(client, admin_token, init_store, cl
     
     
 def test_change_discount_description_no_permission(client, user_token,admin_token, init_store, clean):
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200   
@@ -461,13 +461,13 @@ def test_change_discount_description_no_permission(client, user_token,admin_toke
 #test 2.6.4.b wrong member credentials:
 def test_getting_info_about_purchase_history_of_a_member_wrong_credentials(client, admin_token, client2,client3, user_token, guest_token, init_store, clean):
     # add discounts:
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,-1,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -492,13 +492,13 @@ def test_getting_info_about_purchase_history_of_a_member_wrong_credentials(clien
 #test 2.6.4.a (in a store)
 def test_getting_info_about_purchase_history_of_a_store(client, admin_token, client2, user_token, guest_token, client3, init_store, clean):
     # add discounts:
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,-1,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -537,13 +537,13 @@ def test_getting_info_about_purchase_history_of_a_store(client, admin_token, cli
 #test 2.6.4.b (in a store- wrong store credentials) 
 def test_getting_info_about_purchase_history_of_a_store_wrong_store_credentials(client, admin_token, client2, user_token, init_store, clean):
     # add discounts:
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,-1,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -570,13 +570,13 @@ def test_getting_info_about_purchase_history_of_a_store_wrong_store_credentials(
 #test 2.4.13.a: A member is trying to view his purchase history
 def test_getting_info_about_purchase_history_of_a_user_in_store(client, admin_token, client2, user_token, init_store, clean):
     # add discounts:    
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,-1,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200
@@ -602,13 +602,13 @@ def test_getting_info_about_purchase_history_of_a_user_in_store(client, admin_to
 #test 2.4.13.b: A member is trying to view his purchase history with wrong credentials
 def test_getting_info_about_purchase_history_of_a_user_in_store_wrong_credentials(client, admin_token, client2, user_token, guest_token, init_store, clean):
     # add discounts:
-    data = {"description": 'hara', "start_date": datetime(2023,1,23), "end_date": datetime(2040,1,1), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
+    data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
     #assign_discount_predicate
-    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,0,0)}
+    data = {"discount_id": 0, 'predicate_builder':("amount_product", 2,-1,0,0)}
     headers = {'Authorization': 'Bearer ' + admin_token}
     response = client.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 200

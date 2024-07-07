@@ -360,3 +360,143 @@ def test_assign_predicate_to_purchase_policy_invalid_policy_id(client12, init_st
     headers = {'Authorization': 'Bearer ' + owner_token11}
     response = client12.post('store/assign_predicate_to_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400
+    
+
+#bid tests:
+
+'''
+def test_user_bid_offer(client12, init_store, user_token, clean11):
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+
+
+def test_store_worker_accept_bid(client12, init_store, owner_token11, user_token, clean11):
+    #the user makes a bid offer
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #the owner accepts the bid
+    data = {"store_id": 0, "bid_id": 0}
+    headers = {'Authorization': 'Bearer ' + owner_token11}
+    response = client12.post('market/store_worker_accept_bid', headers=headers, json=data)
+    assert response.status_code == 200
+
+
+def test_store_worker_decline_bid(client12, init_store, owner_token11, user_token, clean11):
+    #the user makes a bid offer
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #the iwner declines the bid
+    data = {"store_id": 0, "bid_id": 0}
+    headers = {'Authorization': 'Bearer ' + owner_token11}
+    response = client12.post('market/store_worker_decline_bid', headers=headers, json=data)
+    assert response.status_code == 200
+
+
+def test_store_worker_counter_bid(client12, init_store, owner_token11, user_token, clean11):
+    #the user makes a bid offer
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #the uwner makes a counter bid
+    data = {"store_id": 0, "bid_id": 0, "proposed_price": 6}
+    headers = {'Authorization': 'Bearer ' + owner_token11}
+    response = client12.post('market/store_worker_counter_bid', headers=headers, json=data)
+    assert response.status_code == 200
+
+
+def test_user_counter_bid_accept(client12, init_store, owner_token11, user_token, clean11):
+    #the user makes a bid offer
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #the owner makes a counter bid
+    data = {"store_id": 0, "bid_id": 0, "proposed_price": 6}
+    headers = {'Authorization': 'Bearer ' + owner_token11}
+    response = client12.post('market/store_worker_counter_bid', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #the user accepts the counter bid
+    data = {"bid_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_counter_bid_accept', headers=headers, json=data)
+    assert response.status_code == 200
+
+def test_user_counter_bid_decline(client12, init_store, owner_token11, user_token, clean11):
+    #the user makes a bid offer
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+    bid_id = response.get_json().get('bid_id', 0)
+
+    #the owner makes a counter bid
+    data = {"store_id": 0, "bid_id": bid_id, "proposed_price": 6}
+    headers = {'Authorization': 'Bearer ' + owner_token11}
+    response = client12.post('market/store_worker_counter_bid', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #the user declines the counter bid
+    data = {"bid_id": bid_id}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_counter_bid_decline', headers=headers, json=data)
+    assert response.status_code == 200
+
+
+def test_user_counter_bid(client12, init_store, owner_token11, user_token, clean11):
+    #user makes a bid offer
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #owner makes a counter bid
+    data = {"store_id": 0, "bid_id": 0, "proposed_price": 6}
+    headers = {'Authorization': 'Bearer ' + owner_token11}
+    response = client12.post('market/store_worker_counter_bid', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #user makes another counter bid
+    data = {"bid_id": 0, "proposed_price": 7}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_counter_bid', headers=headers, json=data)
+    assert response.status_code == 200
+
+def test_show_user_bids(client12, user_token, init_store, clean11):
+    #the user makes a bid offer
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+
+    #the user checks their bids
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.get('market/show_user_bids', headers=headers, json={"user_id": 0})
+    assert response.status_code == 200
+
+
+
+def test_show_store_bids(client12, owner_token11, user_token, init_store, clean11):
+    data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client12.post('market/user_bid_offer', headers=headers, json=data)
+    assert response.status_code == 200
+
+    data = {"store_id": 0}
+    headers = {'Authorization': 'Bearer ' + owner_token11}
+    response = client12.get('market/show_store_bids', headers=headers, json=data)
+    assert response.status_code == 200
+'''
+
+
