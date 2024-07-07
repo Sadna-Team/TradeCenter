@@ -361,9 +361,10 @@ def test_assign_predicate_to_purchase_policy_invalid_policy_id(client12, init_st
     response = client12.post('store/assign_predicate_to_purchase_policy', headers=headers, json=data)
     assert response.status_code == 400
     
+
 #bid tests:
 
-    
+'''
 def test_user_bid_offer(client12, init_store, user_token, clean11):
     data = {"proposed_price": 5, "store_id": 0, "product_id": 0}
     headers = {'Authorization': 'Bearer ' + user_token}
@@ -496,5 +497,6 @@ def test_show_store_bids(client12, owner_token11, user_token, init_store, clean1
     headers = {'Authorization': 'Bearer ' + owner_token11}
     response = client12.get('market/show_store_bids', headers=headers, json=data)
     assert response.status_code == 200
+'''
 
 

@@ -83,7 +83,8 @@ def show_user_purchase_history():
         data = request.get_json()
         store_id = None
         if 'store_id' in data:
-            store_id = int(data['store_id'])
+            if data['store_id'] is not None:
+                store_id = int(data['store_id'])
         user_id = int(data['user_id'])
 
     except Exception as e:
@@ -124,7 +125,8 @@ def search_products_by_category():
         # check if store_id is provided
         store_id = None
         if 'store_id' in data:
-            store_id = int(data['store_id'])
+            if data['store_id'] is not None:
+                store_id = int(data['store_id'])
     except Exception as e:
         logger.error('search_products - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -150,7 +152,8 @@ def search_products_by_tags():
         tags = [str(tag) for tag in tags_helper]
         # check if store_id is provided
         if 'store_id' in data:
-            store_id = int(data.get('store_id'))
+            if data['store_id'] is not None:
+                store_id = int(data['store_id'])
         else:
             store_id = None
     except Exception as e:
@@ -173,7 +176,8 @@ def search_products_by_name():
         name = str(data['name'])
         # check if store_id is provided
         if 'store_id' in data:
-            store_id = int(data['store_id'])
+            if data['store_id'] is not None:
+                store_id = int(data['store_id'])
         else:
             store_id = None
     except Exception as e:

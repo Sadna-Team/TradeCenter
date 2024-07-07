@@ -180,16 +180,20 @@ def add_discount():
         percentage: float = float(data['percentage'])
         store_id = None 
         if 'store_id' in data:
-            store_id = int(data['store_id'])
+            if data['store_id'] is not None:
+                store_id = int(data['store_id'])
         product_id = None
         if 'product_id' in data:
-            product_id = int(data['product_id'])
+            if data['product_id'] is not None:
+                product_id = int(data['product_id'])
         category_id = None
         if 'category_id' in data:
-            category_id = int(data['category_id'])
+            if data['category_id'] is not None:
+                category_id = int(data['category_id'])
         applied_to_sub: Optional[bool] = None
         if 'applied_to_sub' in data:
-            applied_to_sub = data['applied_to_sub']
+            if data['applied_to_sub'] is not None:
+                applied_to_sub = data['applied_to_sub']
        
     except Exception as e:
         logger.error('add_discount - ', str(e))
@@ -471,7 +475,8 @@ def add_product_to_store():
         tags = [str(tag) for tag in tags_helper]
         amount=0
         if 'amount' in data:
-            amount = int(data['amount'])
+            if data['amount'] is not None:
+                amount = int(data['amount'])
     except Exception as e:
         logger.error('add_product - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -564,7 +569,8 @@ def edit_product_in_store():
         tags = [str(tag) for tag in tags_helper]
         amount=0
         if 'amount' in data:
-            amount = int(data['amount'])
+            if data['amount'] is not None:
+                amount = int(data['amount'])
     except Exception as e:
         logger.error('edit_product - ', str(e))
         return jsonify({'message': str(e)}), 400
@@ -1007,12 +1013,14 @@ def add_purchase_policy():
         data = request.get_json()
         store_id = int(data['store_id'])
         policy_name = str(data['policy_name'])
-        category_id: Optional[int] = None
-        product_id: Optional[int] = None
+        category_id = None
+        product_id = None
         if 'category_id' in data:
-            category_id = int(data['category_id'])
+            if data['category_id'] is not None:
+                category_id = int(data['category_id'])
         elif 'product_id' in data:
-            product_id = int(data['product_id'])
+            if data['product_id'] is not None:
+                product_id = int(data['product_id'])
     except Exception as e:
         logger.error('add_purchase_policy - ', str(e))
         return jsonify({'message': str(e)}), 400
