@@ -39,3 +39,17 @@ best online store for selling your products! <br/>
   * https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss
 * `npm install` to install all dependencies
 * to start server: `npm run dev`
+
+## Docker
+* copy the file .env.example to .env and update the relevant fields
+* GUID: <container-id> is web/db
+* Build and Run the Docker Containers:
+  * All the containers: `docker-compose up -d`
+  * One container: `docker-compose up -d <container-id>`
+  add `--build` to rebuild the image (if docker-compose.yml is changed)
+* see the logs:
+  * `docker-compose logs <container-id>`
+* stop the containers:
+  * `docker-compose down`
+* access a running container:
+  * `docker-compose exec <container-id> sh`
