@@ -7,54 +7,59 @@ backend - INFO - Starting app...
 werkzeug - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
 werkzeug - WARNING -  * Debugger is active!
 werkzeug - INFO -  * Debugger PIN: 143-222-006
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:44:10] "[33mGET / HTTP/1.1[0m" 404 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:44:11] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
 myapp - INFO - recieved request from a guest to enter the app
 myapp - INFO - guest entered the app successfully - user_id: 1
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:42:52] "GET /auth/ HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:42:52] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:44:49] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:44:49] "OPTIONS /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - received request to get stores
 myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:42:52] "POST /store/get_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:05] "OPTIONS /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:44:50] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:44:58] "OPTIONS /auth/login HTTP/1.1" 200 -
 myapp - INFO - received request to login a user
 myapp - INFO - User logged in successfully
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:06] "POST /auth/login HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:06] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2OAQmg HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:06] "GET /socket.io/?EIO=4&transport=polling&t=P2OAQmg HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:06] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2OAQrg&sid=quaw2ZOVeL4xr5_OAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:06] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2OAQrj&sid=quaw2ZOVeL4xr5_OAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:44:59] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:44:59] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2Oq3C5 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:00] "GET /socket.io/?EIO=4&transport=polling&t=P2Oq3C5 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:00] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2Oq3JB&sid=YPHs_fdBMWzNp2n9AAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:00] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2Oq3JE&sid=YPHs_fdBMWzNp2n9AAAA HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
 myapp - INFO - Client 0 connected
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:06] "POST /socket.io/?EIO=4&transport=polling&t=P2OAQrg&sid=quaw2ZOVeL4xr5_OAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:07] "GET /socket.io/?EIO=4&transport=polling&t=P2OAQrj&sid=quaw2ZOVeL4xr5_OAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:00] "POST /socket.io/?EIO=4&transport=polling&t=P2Oq3JB&sid=YPHs_fdBMWzNp2n9AAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:00] "GET /socket.io/?EIO=4&transport=polling&t=P2Oq3JE&sid=YPHs_fdBMWzNp2n9AAAA HTTP/1.1" 200 -
 myapp - INFO - Connect data: 0
 myapp - INFO - Client 0 connected
 myapp - INFO - Client joining room 0
 myapp - INFO - Client None disconnected
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:07] "GET /socket.io/?EIO=4&transport=websocket&sid=quaw2ZOVeL4xr5_OAAAA HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:08] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "OPTIONS /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:01] "GET /socket.io/?EIO=4&transport=websocket&sid=YPHs_fdBMWzNp2n9AAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:02] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2OARNW HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2Oq3oQ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "OPTIONS /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user is a system manager
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "GET /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "GET /user/is_system_manager HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "GET /store/my_stores HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "GET /socket.io/?EIO=4&transport=polling&t=P2OARNW HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "GET /socket.io/?EIO=4&transport=polling&t=P2Oq3oQ HTTP/1.1" 200 -
 myapp - INFO - received request to get stores
 myapp - INFO - stores were sent successfully
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "POST /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user is a system manager
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "GET /user/is_system_manager HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2OARYY&sid=TpYDka_jaM_ZKAWAAAAC HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:09] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2OARYc&sid=TpYDka_jaM_ZKAWAAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:03] "GET /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:04] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2Oq46u&sid=o_jsOtwou-cpizrhAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:04] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2Oq46_&sid=o_jsOtwou-cpizrhAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:04] "GET /socket.io/?EIO=4&transport=polling&t=P2Oq46_&sid=o_jsOtwou-cpizrhAAAC HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
 myapp - INFO - Client 0 connected
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:10] "POST /socket.io/?EIO=4&transport=polling&t=P2OARYY&sid=TpYDka_jaM_ZKAWAAAAC HTTP/1.1" 200 -
-werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 18:43:10] "GET /socket.io/?EIO=4&transport=polling&t=P2OARYc&sid=TpYDka_jaM_ZKAWAAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:04] "POST /socket.io/?EIO=4&transport=polling&t=P2Oq46u&sid=o_jsOtwou-cpizrhAAAC HTTP/1.1" 200 -
 myapp - INFO - Connect data: 0
 myapp - INFO - Client 0 connected
 myapp - INFO - Client joining room 0
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:19] "GET /socket.io/?EIO=4&transport=websocket&sid=o_jsOtwou-cpizrhAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [09/Jul/2024 21:45:19] "OPTIONS /auth/logout HTTP/1.1" 200 -
