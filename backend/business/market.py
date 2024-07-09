@@ -291,7 +291,9 @@ class MarketFacade:
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ThirdPartyHandlerError("Payment method not specified", ThirdPartyHandlerErrorTypes.payment_not_specified)
 
-            if not PaymentHandler().process_payment(total_price_after_discounts, payment_details):
+            payment_id = PaymentHandler().process_payment(total_price_after_discounts, payment_details)
+
+            if payment_id == -1:
                 # invalidate Purchase
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ThirdPartyHandlerError("Payment failed", ThirdPartyHandlerErrorTypes.payment_failed)
@@ -303,7 +305,11 @@ class MarketFacade:
             if package_detail.get("supply method") not in SupplyHandler().supply_config:
                 raise ThirdPartyHandlerError("Invalid supply method", ThirdPartyHandlerErrorTypes.invalid_supply_method)
             on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
-            SupplyHandler().process_supply(package_detail, user_id, on_arrival)
+            supply_id = SupplyHandler().process_supply(package_detail, user_id, on_arrival)
+            if supply_id == -1:
+                # invalidate Purchase
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                raise ThirdPartyHandlerError("Supply failed", ThirdPartyHandlerErrorTypes.supply_failed)
 
             # notify the store owners
             for store_id in cart.keys():
@@ -321,6 +327,10 @@ class MarketFacade:
                 self.purchase_facade.cancel_accepted_purchase(pur_id)
             if basket_cleared:
                 self.user_facade.restore_basket(user_id, cart)
+            if payment_id != -1:
+                PaymentHandler().process_payment_cancel(payment_id)
+            if supply_id != -1:
+                SupplyHandler().process_supply_cancel(package_detail, supply_id)
             raise e
 
     def get_stores(self, page: int, limit: int) -> Dict[int, StoreDTO]:
