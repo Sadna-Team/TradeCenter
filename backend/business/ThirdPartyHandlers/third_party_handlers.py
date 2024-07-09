@@ -60,13 +60,13 @@ class PaymentHandler:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized: bool = True
-            self.payment_config: Dict = {"bogo": {}}
+            self.payment_config: Dict = {"bogo": {}, "external payment": {}}
 
     def reset(self) -> None:
         """
             * reset is a method that resets the PaymentHandler's payment_config attribute.
         """
-        self.payment_config = {"bogo": {}}
+        self.payment_config = {"bogo": {}, "external payment": {}}
 
     def _resolve_payment_strategy(self, payment_details: Dict) -> PaymentAdapter:
         """

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BogoDetails from '@/components/BogoDetails';
+import CreditCardForm from '@/components/ExternalPaymentDetails';
 import api from "@/lib/api";
 import Popup from "@/components/Popup"; // Assuming Popup component is imported correctly
 
@@ -21,11 +22,17 @@ const Checkout = () => {
   const router = useRouter();
 
   const [supplyMethod, setSupplyMethod] = useState('');
+  const [additionalPaymentDetails, setAdditionalPaymentDetails] = useState({});
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState('');
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  const handleAdditionalPaymentDetailsChange = (details) => {
+    console.log('Details:', details);
+    setAdditionalPaymentDetails(details);
+  };
 
   const validate = () => {
     const newErrors = {};
@@ -52,6 +59,10 @@ const Checkout = () => {
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePaymentDetailsChange = (details) => {
+    setAdditionalPaymentDetails(details);
   };
 
   useEffect(() => {
@@ -154,6 +165,8 @@ const Checkout = () => {
         </div>
 
         {paymentMethod === 'bogo' && <BogoDetails />}
+        {paymentMethod === 'external payment' && <CreditCardForm handleChange={handleAdditionalPaymentDetailsChange} />}
+
 
         <div className="form-group">
           <h2>Supply Method</h2>
