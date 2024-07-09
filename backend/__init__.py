@@ -11,6 +11,8 @@ from flask_cors import CORS
 from backend.config import config  # Import the config object
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy import create_engine
 
 # -------------logging configuration----------------
 import logging
@@ -65,6 +67,16 @@ def create_app(mode='development'):
     cors.init_app(app)
     cors.origins = ['http://localhost:3000']
     socketio_manager.init_app(app, cors_allowed_origins="*")
+
+    # Ensure the test database is created
+    if mode == 'testing':
+        test_db_url = app.config['SQLALCHEMY_DATABASE_URI']
+        engine = create_engine(test_db_url)
+        if not database_exists(engine.url):
+            create_database(engine.url)
+            print(f"Test database created at {test_db_url}")
+        else:
+            print(f"Test database already exists at {test_db_url}")
 
     with app.app_context():
         # Ensure that the database tables are created

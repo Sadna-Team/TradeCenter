@@ -13,28 +13,26 @@ class Config:
 
 class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('DEV_DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DEV_DATABASE_URL', 'postgresql://user:password@localhost:5432/mydatabase')
 
 class DockerDevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('DOCKER_DEV_DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DOCKER_DEV_DATABASE_URL', 'postgresql://user:password@db:5432/mydatabase')
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL')
-
-class DockerTestingConfig(Config):
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.getenv('DOCKER_TEST_DATABASE_URL')
+    if os.getenv('DOCKER_ENV') == 'true':
+        SQLALCHEMY_DATABASE_URI = os.getenv('DOCKER_TEST_DATABASE_URL', 'postgresql://user:password@db:5432/test_database')
+    else:
+        SQLALCHEMY_DATABASE_URI = os.getenv('TEST_DATABASE_URL', 'postgresql://user:password@localhost:5432/test_database')
 
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.getenv('DOCKER_DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://user:password@localhost:5432/prod_database')
 
 config = {
     'development': DevelopmentConfig,
     'docker_development': DockerDevelopmentConfig,
     'testing': TestingConfig,
-    'docker_testing': DockerTestingConfig,
     'production': ProductionConfig,
     'default': DevelopmentConfig
 }
