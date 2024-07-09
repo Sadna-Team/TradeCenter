@@ -1,15 +1,17 @@
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
-import secrets
 from backend.business.market import MarketFacade
 from backend.business.authentication.authentication import Authentication
 from backend.business.notifier.notifier import Notifier
 from backend.business.DTOs import NotificationDTO
 from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
-from flask_socketio import SocketIO, join_room, leave_room, send, emit
+from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask_cors import CORS
-import threading
+from backend.config import config  # Import the config object
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
 # -------------logging configuration----------------
 import logging
 
@@ -19,6 +21,8 @@ logger = logging.getLogger('myapp')
 bcrypt = Bcrypt()
 jwt = JWTManager()
 socketio_manager = SocketIO()
+db = SQLAlchemy()
+migrate = Migrate()
 cors = CORS(origin='http://localhost:3000', supports_credentials=True)
 
 @socketio_manager.on('connect')
@@ -27,9 +31,8 @@ def handle_connect(data):
     logger.info(f"Connect data: {data}")
     logger.info(f"Client {get_jwt_identity()} connected")
 
-
 @socketio_manager.on('disconnect')
-def handle_disconnect(id = None):
+def handle_disconnect(id=None):
     logger.info(f"Client {id} disconnected")
 
 @socketio_manager.on('join')
@@ -43,7 +46,6 @@ def handle_join():
     # Send a message to the client
     emit('connected', {'data': 'Connected to the server'}, room=room)
 
-
 @socketio_manager.on('leave')
 @jwt_required()
 def handle_leave():
@@ -52,20 +54,22 @@ def handle_leave():
     leave_room(room)
     handle_disconnect(room)
 
-class Config:
-    SECRET_KEY = secrets.token_urlsafe(32)  # Generate a random secret key
-    JWT_SECRET_KEY = SECRET_KEY  # Use the same key for JWT if preferred
-    JWT_TOKEN_LOCATION = ['headers']
-
-
 def create_app(mode='development'):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config[mode])  # Load the appropriate configuration
+
     bcrypt.init_app(app)
     jwt.init_app(app)
+    db.init_app(app)
+    migrate.init_app(app, db)
     cors.init_app(app)
     cors.origins = ['http://localhost:3000']
     socketio_manager.init_app(app, cors_allowed_origins="*")
+
+    with app.app_context():
+        # Ensure that the database tables are created
+        db.create_all()
+
     authentication = Authentication()
     authentication.set_jwt(jwt, bcrypt)
 
@@ -73,14 +77,6 @@ def create_app(mode='development'):
     notifier.set_socketio_manager(socketio_manager)
 
     MarketFacade()
-
-    # if mode == 'development':
-    #     # initialize default market data(for frontend tests)
-    #     default_setup = input("Do you want to setup default data? (y/n): ")
-    #     default_setup = default_setup.lower()
-    #     default_setup = True if default_setup == 'y' else False
-    #     if default_setup:
-    #         MarketFacade().default_setup()
 
     from backend.services.user_services.routes import auth_bp, user_bp
     from backend.services.ecommerce_services.routes import market_bp
@@ -98,7 +94,6 @@ def create_app(mode='development'):
         return authentication.check_if_token_in_blacklist(jwt_header, jwt_payload)
 
     return app
-
 
 def clean_data():
     MarketFacade().clean_data()

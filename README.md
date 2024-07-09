@@ -41,6 +41,7 @@ best online store for selling your products! <br/>
 * to start server: `npm run dev`
 
 ## Docker
+* install docker and run the docker daemon (by just opening the docker desktop)
 * copy the file .env.example to .env and update the relevant fields
 * GUID: <container-id> is web/db
 * Build and Run the Docker Containers:
@@ -53,3 +54,10 @@ best online store for selling your products! <br/>
   * `docker-compose down`
 * access a running container:
   * `docker-compose exec <container-id> sh`
+* running tests:
+  * to run each test manually, start the database container:
+    * `docker-compose up -d db`
+    then run the tests individually as you wish (test config is in .env)
+  * to run all the test together (not recommended):
+    * `docker-compose -f docker-compose.test.yml build`
+    * `docker-compose -f docker-compose.test.yml up`
