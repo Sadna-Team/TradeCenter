@@ -20,3 +20,4 @@ backend/services/store_services/__pycache__/
 backend/services/user_services/__pycache__/
 backend/services/third_party_services/__pycache__/
 backend/app.log
+.env

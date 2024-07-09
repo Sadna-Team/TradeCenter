@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: test_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+
+  web:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: /app/backend/run_tests.sh
+    environment:
+      FLASK_APP: backend.app
+      FLASK_CONFIG: testing
+      PYTHONPATH: /app
+      TEST_DATABASE_URL: ${TEST_DATABASE_URL}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      DOCKER_ENV: 'true'
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+      - ./tests:/tests  # Mount the tests directory
+
+volumes:
+  postgres_test_data:
