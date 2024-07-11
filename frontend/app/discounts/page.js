@@ -747,7 +747,6 @@ const ManageDiscount = () => {
 };
 
 const renderConstraintFields = () => {
-  console.log("the current selected constraint type is:", selectedConstraintType);
   switch (selectedConstraintType) {
     case 'age':
       return (
@@ -852,7 +851,7 @@ const renderConstraintFields = () => {
             id="zip-code"
             placeholder="Zip-code"
             value={constraintValues.zipCode || ''}
-            onChange={(e) => handleConstraintValueChange('zipCode', parseInt(e.target.value))}
+            onChange={(e) => handleConstraintValueChange('zipCode', e.target.value)}
             className="col-span-3 border border-black"
           />
           {isNaN(constraintValues.zipCode) && <p className="text-red-500">Not a number</p>}

@@ -436,39 +436,156 @@ const handleSaveConstraint = () => {
 
   let data;
   let store_id_int = parseInt(store_id);
-  if (selectedConstraintType === 'compositeConstraint') {
-    
-    const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
-    const [finalComposite] = buildNestedArray(parsedComposite, 0);
-    console.log("the final composite constraint:", finalComposite);
-
-    data = {
-      store_id: store_id_int,
-      policy_id: currentPolicyId,
-      predicate_builder: finalComposite,
-    };
-
-    console.log("the first variable of the predicate_builder is " + data.predicate_builder[0])
-
-  }else if(selectedConstraintType === 'location'){
-    let location = {'address': Object.values(constraintValues)[0], 'city': Object.values(constraintValues)[1], 'state': Object.values(constraintValues)[2], 'country': Object.values(constraintValues)[3], 'zip_code': Object.values(constraintValues)[4]}
-    data = {
-      store_id: store_id_int,
-      policy_id: currentPolicyId,
-      predicate_builder: [selectedConstraintType, location]
-    }
-
-  }else{
-    console.log("the current policy id is:", currentPolicyId)
-    data = {
-      store_id: store_id_int,
-      policy_id: currentPolicyId,
-      predicate_builder: [selectedConstraintType, ...Object.values(constraintValues)],
-    };
-  }
+  switch(selectedConstraintType){
+    case 'compositeConstraint':
+      const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
   
-  console.log('data we are trying to add:', data)
-  console.log('predicate builder of current cnostraint we are trying to add:', data.predicate_builder);
+      const [finalComposite] = buildNestedArray(parsedComposite, 0);
+      console.log("the final composite constraint:", finalComposite);
+    
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: finalComposite,
+      };
+
+      console.log("the first variable of the predicate_builder is " + data.predicate_builder[0])
+      break;
+
+    case 'age': 
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['age']],
+      };
+      break;
+    
+    case 'time':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['startingHour'], constraintValues['startingMinute'], constraintValues['endingHour'], constraintValues['endingMinute']],
+      };
+      break;
+
+    case 'location':
+      let location = {'address': constraintValues['address'], 'city': constraintValues['city'], 'state': constraintValues['state'], 'country': constraintValues['country'], 'zip_code': constraintValues['zipCode']}
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, location],
+      };
+      break;
+
+    case 'day_of_month':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['startingDay'], constraintValues['endingDay']],
+      };
+      break;
+
+    case 'day_of_week':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['startingDay'], constraintValues['endingDay']],
+      };
+      break;
+
+    case 'season':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['season']],
+      };
+      break;
+
+    case 'holidays_of_country':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['countryCode']],
+      };
+      break;
+
+    case 'price_basket':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['minPrice'], constraintValues['maxPrice'], constraintValues['store']],
+      };
+      break;
+
+    case 'price_product':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['minPrice'], constraintValues['maxPrice'], constraintValues['product'], constraintValues['store']],
+      };
+      break;
+
+    case 'price_category':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['minPrice'], constraintValues['maxPrice'], constraintValues['category']],
+      };
+      break;
+
+    case 'amount_basket':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['minAmount'], constraintValues['maxAmount'], constraintValues['store']],
+      };
+      break;
+
+    case 'amount_product':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['minAmount'], constraintValues['maxAmount'], constraintValues['product'], constraintValues['store']],
+      };
+      break;
+
+    case 'amount_category':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['minAmount'], constraintValues['maxAmount'], constraintValues['category']],
+      };
+      break;
+
+    case 'weight_category':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['minWeight'], constraintValues['maxWeight'], constraintValues['category']],
+      };
+      break;
+
+    case 'weight_basket':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['minWeight'], constraintValues['maxWeight'], constraintValues['store']],
+      };
+      break;
+
+    case 'weight_product':
+      data = {
+        store_id: store_id_int,
+        policy_id: currentPolicyId,
+        predicate_builder: [selectedConstraintType, constraintValues['minWeight'], constraintValues['maxWeight'], constraintValues['product'], constraintValues['store']],
+      };
+      break;
+
+    default:
+      return;
+  }
+    
+  console.log(`predicate builder of current constraint of type ${selectedConstraintType} we are trying to add is: ${data.predicate_builder}`);
 
   const saveConstraint = async () => {
     try {
@@ -596,7 +713,7 @@ const renderConstraintFields = () => {
             id="zip-code"
             placeholder="Zip-code"
             value={constraintValues.zipCode || ''}
-            onChange={(e) => handleConstraintValueChange('zipCode', parseInt(e.target.value))}
+            onChange={(e) => handleConstraintValueChange('zipCode', e.target.value)}
             className="col-span-3 border border-black"
           />
           {constraintValues.zipCode && isNaN(constraintValues.zipCode) && <p className="text-red-500">Not a number</p>}
