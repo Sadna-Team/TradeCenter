@@ -15,7 +15,8 @@ external_payment_details = {"payment method": "external payment",
                                 "year": "2025",
                                 "holder": "michael adar", 
                                 "cvv": "123",
-                                "id": "1234567890"
+                                "id": "1234567890", 
+                                "currency": "USD"
                             }}
 external_supply_details = {"supply method": "external supply",
                             "purchase id": 6,

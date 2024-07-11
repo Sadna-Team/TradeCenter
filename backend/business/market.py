@@ -124,7 +124,7 @@ class MarketFacade:
 
         default_payment_method = {'payment method': 'bogo'}
 
-        default_supply_method = "bogo"
+        default_supply_method = {'supply method': 'bogo'}
 
         default_address_checkout = { 'address': 'randomstreet 34th', 
                                     'city': 'arkham', 

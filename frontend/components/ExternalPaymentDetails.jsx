@@ -4,7 +4,7 @@ const CreditCardForm = ({ handleChange }) => {
   const [cardNumber, setCardNumber] = useState('');
   const [expiryMonth, setExpiryMonth] = useState('');
   const [expiryYear, setExpiryYear] = useState('');
-  const [ccv, setCcv] = useState('');
+  const [cvv, setCvv] = useState('');
   const [holderName, setHolderName] = useState('');
   const [holderId, setHolderId] = useState('');
 
@@ -13,11 +13,11 @@ const CreditCardForm = ({ handleChange }) => {
       "card_number": cardNumber,
       "month": expiryMonth,
       "year": expiryYear,
-      "ccv": ccv,
+      "cvv": cvv,
       "holder": holderName,
       "id": holderId,
     });
-    }, [cardNumber, expiryMonth, expiryYear, ccv, holderName, holderId]);
+    }, [cardNumber, expiryMonth, expiryYear, cvv, holderName, holderId]);
 
     return (
         <div
@@ -113,14 +113,14 @@ const CreditCardForm = ({ handleChange }) => {
             </label>
         </div>
         <div style={{ marginBottom: '15px' }}>
-            <label htmlFor="ccv" style={{ marginBottom: '5px', display: 'block' }}>
-            CCV:
+            <label htmlFor="cvv" style={{ marginBottom: '5px', display: 'block' }}>
+            cvv:
             <input
                 type="text"
-                id="ccv"
-                value={ccv}
-                onChange={(e) => setCcv(e.target.value)}
-                placeholder='CCV'
+                id="cvv"
+                value={cvv}
+                onChange={(e) => setCvv(e.target.value)}
+                placeholder='cvv'
                 required
                 style={{
                 width: 'calc(100% - 10px)',

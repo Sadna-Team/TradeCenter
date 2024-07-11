@@ -66,7 +66,6 @@ class ExternalPayment(PaymentAdapter):
         response = requests.post(self.URL, json=self.HANDSHAKE)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
-        print("response: ", response.reason, response.ok, response.reason == "OK")
         if not response.ok or not response.reason == "OK":
             raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         # add to payment_config the PAY
@@ -74,6 +73,7 @@ class ExternalPayment(PaymentAdapter):
         payment_config["amount"] = str(amount)
         payment_config = payment_config | self.PAY
         response = requests.post(self.URL, data=payment_config)
+        print(payment_config)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to process payment", ThirdPartyHandlerErrorTypes.external_payment_failed)
         if not 10000 <= response.json() <= 100000:

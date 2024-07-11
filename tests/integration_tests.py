@@ -86,7 +86,8 @@ default_payment_additional_details = {"currency": "USD",
                                     "year": "2025",
                                     "holder": "michael adar", 
                                     "cvv": "123",
-                                    "id": "1234567890"}
+                                    "id": "1234567890", 
+                                    "currency": "USD"}
 
 default_supply_method = {'supply method': 'bogo'}
 

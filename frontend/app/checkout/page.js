@@ -32,8 +32,11 @@ const Checkout = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleAdditionalPaymentDetailsChange = (details) => {
-    console.log('Details:', details);
     setAdditionalPaymentDetails(details);
+  };
+
+  const handleAdditionalSupplyDetailsChange = (details) => {
+    setAdditionalSupplyDetails(details);
   };
 
   const validate = () => {
@@ -59,12 +62,33 @@ const Checkout = () => {
     if (!supplyMethod) {
       newErrors.supplyMethod = 'Supply method is required';
     }
+    if (paymentMethod === 'external payment') {
+      if (!additionalPaymentDetails.card_number) {
+        newErrors.externalPaymentMethod = 'Card number is required';
+      }
+      else if (!additionalPaymentDetails.month) {
+        newErrors.externalPaymentMethod = 'Expiry month is required';
+      }
+      else if (!additionalPaymentDetails.year) {
+        newErrors.externalPaymentMethod = 'Expiry year is required';
+      }
+      else if (!additionalPaymentDetails.cvv) {
+        newErrors.externalPaymentMethod = 'CVV is required';
+      }
+      else if (!additionalPaymentDetails.holder) {
+        newErrors.externalPaymentMethod = 'Holder name is required';
+      }
+      else if (!additionalPaymentDetails.id) {
+        newErrors.externalPaymentMethod = 'Holder ID is required';
+      }
+    }
+    if (supplyMethod === 'external supply') {
+      if (!additionalSupplyDetails.name) {
+        newErrors.externalSupplyMethod = 'name is required';
+      }
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handlePaymentDetailsChange = (details) => {
-    setAdditionalPaymentDetails(details);
   };
 
   useEffect(() => {
@@ -119,11 +143,28 @@ const Checkout = () => {
     e.preventDefault();
     if (validate()) {
       // Submit the form
-      const data = {
-        "payment_details" : {'payment method' : paymentMethod, 'additional details': additionalPaymentDetails},
+      let data = {
+        "payment_details" : {'payment method' : paymentMethod},
         'address' : fullAddress,
         'supply_method' : supplyMethod
       };
+      if (paymentMethod === 'external payment') {
+        const paymentDataToSend = {
+          ...additionalPaymentDetails,
+          "currency": "USD" // Assuming currency is always USD
+        };
+        data['payment_additional_details'] = paymentDataToSend;
+      }
+      if (supplyMethod === 'external supply') {
+        const supplyDataToSend = {
+          ...additionalSupplyDetails, 
+          "address": fullAddress.address,
+          "city": fullAddress.city,  
+          "country": fullAddress.country,
+          "zip": fullAddress.zip_code                     
+        };
+        data['supply_additional_details'] = supplyDataToSend;
+      }
 
       api.post('/market/checkout', data)
         .then((response) => {
@@ -168,6 +209,7 @@ const Checkout = () => {
 
         {paymentMethod === 'bogo' && <BogoDetails />}
         {paymentMethod === 'external payment' && <CreditCardForm handleChange={handleAdditionalPaymentDetailsChange} />}
+        {errors.externalPaymentMethod && <p className="error">{errors.externalPaymentMethod}</p>}
 
 
         <div className="form-group">
@@ -189,7 +231,8 @@ const Checkout = () => {
           </select>
           {errors.supplyMethod && <p className="error">{errors.supplyMethod}</p>}
           {supplyMethod === 'bogo' && <BogoDetails />}
-          {supplyMethod === 'external supply' && <SupplyForm handleChange={handleAdditionalPaymentDetailsChange} />}
+          {supplyMethod === 'external supply' && <SupplyForm handleChange={handleAdditionalSupplyDetailsChange} />}
+          {errors.externalSupplyMethod && <p className="error">{errors.externalSupplyMethod}</p>}
         </div>
 
         <h2>Shipping Address</h2>
@@ -344,6 +387,6 @@ const Checkout = () => {
       `}</style>
     </div>
   );
-}
+};
 
 export default Checkout;
