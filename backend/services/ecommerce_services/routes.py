@@ -61,7 +61,7 @@ def checkout():
         logger.error('checkout - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.checkout(user_id, payment_details, supply_method, address)
+    return purchase_service.checkout(user_id, payment_details, supply_details, address)
 
 
 @market_bp.route('/store_purchase_history', methods=['GET', 'POST'])

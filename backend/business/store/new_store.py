@@ -637,7 +637,9 @@ class Store:
         * Returns: none
         """
         try:
-            self.__store_products.pop(product_id)
+            self.acquire_products_lock([product_id])
+            product = self.__store_products.pop(product_id)
+            product.release_lock()
             logger.info('Successfully removed product from store with id: {self.__store_id}')
         except KeyError:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
@@ -1226,14 +1228,7 @@ class StoreFacade:
         * Returns: none
         """
         store = self.__get_store_by_id(store_id)
-        store.acquire_lock()
-        try:
-            tags = store.get_product_by_id(product_id).tags
-            store.remove_product(product_id)
-            store.release_lock()
-        except Exception as e:
-            store.release_lock()
-            raise e
+        store.remove_product(product_id)
 
     def add_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
