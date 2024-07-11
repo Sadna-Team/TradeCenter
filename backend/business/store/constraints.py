@@ -95,7 +95,7 @@ class LocationConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
-        return "Location constraint with location: " + "address: " + self.__location.address + ", city: " + self.__location.city + ", state: " + self.__location.state + ", country: " + self.__location.country + ", zip code: " + self.__location.zip_code
+        return "Location constraint with location: " + "address: " + self.__location.address + ", city: " + self.__location.city + ", state: " + self.__location.state + ", country: " + self.__location.country + ", zip code: " + str(self.__location.zip_code)
     
 
 # --------------- time constraint class ---------------#
@@ -480,7 +480,7 @@ class AmountBasketConstraint(Constraint):
     def get_constraint_info_as_string(self) -> str:
         if self.__max_amount == -1:
             return "Amount basket constraint with min amount: " + str(self.__min_amount) + " in store: " + str(self.__store_id)
-        return "Amount basket constraint with min amount: " + str(self.__min_amount) + "and max amount" + str(self.__min_amount) +" in store: " + str(self.__store_id)
+        return "Amount basket constraint with min amount: " + str(self.__min_amount) + "and max amount" + str(self.__max_amount) +" in store: " + str(self.__store_id)
 
 # --------------- amount product constraint class  ---------------#
 class AmountProductConstraint(Constraint):

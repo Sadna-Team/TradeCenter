@@ -596,35 +596,139 @@ const ManageDiscount = () => {
   };
   
   let data;
-  if (selectedConstraintType === 'compositeConstraint') {
-    const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
+  switch(selectedConstraintType){
+    case 'compositeConstraint':
+      const parsedComposite = parseConstraintString(`(${constraintValues.compositeConstraint})`);
   
-    const [finalComposite] = buildNestedArray(parsedComposite, 0);
-    console.log("the final composite constraint:", finalComposite);
-   
-    data = {
-      discount_id: currentDiscountId,
-      predicate_builder: finalComposite,
-    };
+      const [finalComposite] = buildNestedArray(parsedComposite, 0);
+      console.log("the final composite constraint:", finalComposite);
     
-    console.log("the first variable of the predicate_builder is " + data.predicate_builder[0])
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: finalComposite,
+      };
 
-  }else if(selectedConstraintType === 'location'){
-    let location = {'address': Object.values(constraintValues)[0], 'city': Object.values(constraintValues)[1], 'state': Object.values(constraintValues)[2], 'country': Object.values(constraintValues)[3], 'zip_code': Object.values(constraintValues)[4]}
-    data = {
-      discount_id: currentDiscountId,
-      predicate_builder: [selectedConstraintType, location]
-    }
+      console.log("the first variable of the predicate_builder is " + data.predicate_builder[0])
+      break;
 
-  }else{
+    case 'age': 
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['age']],
+      };
+      break;
+    
+    case 'time':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['startingHour'], constraintValues['startingMinute'], constraintValues['endingHour'], constraintValues['endingMinute']],
+      };
+      break;
 
-    data = {
-      discount_id: currentDiscountId,
-      predicate_builder: [selectedConstraintType, ...Object.values(constraintValues)],
-    };
+    case 'location':
+      let location = {'address': constraintValues['address'], 'city': constraintValues['city'], 'state': constraintValues['state'], 'country': constraintValues['country'], 'zip_code': constraintValues['zipCode']}
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, location],
+      };
+      break;
+
+    case 'day_of_month':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['startingDay'], constraintValues['endingDay']],
+      };
+      break;
+
+    case 'day_of_week':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['startingDay'], constraintValues['endingDay']],
+      };
+      break;
+
+    case 'season':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['season']],
+      };
+      break;
+
+    case 'holidays_of_country':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['countryCode']],
+      };
+      break;
+
+    case 'price_basket':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['minPrice'], constraintValues['maxPrice'], constraintValues['store']],
+      };
+      break;
+
+    case 'price_product':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['minPrice'], constraintValues['maxPrice'], constraintValues['product'], constraintValues['store']],
+      };
+      break;
+
+    case 'price_category':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['minPrice'], constraintValues['maxPrice'], constraintValues['category']],
+      };
+      break;
+
+    case 'amount_basket':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['minAmount'], constraintValues['maxAmount'], constraintValues['store']],
+      };
+      break;
+
+    case 'amount_product':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['minAmount'], constraintValues['maxAmount'], constraintValues['product'], constraintValues['store']],
+      };
+      break;
+
+    case 'amount_category':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['minAmount'], constraintValues['maxAmount'], constraintValues['category']],
+      };
+      break;
+
+    case 'weight_category':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['minWeight'], constraintValues['maxWeight'], constraintValues['category']],
+      };
+      break;
+
+    case 'weight_basket':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['minWeight'], constraintValues['maxWeight'], constraintValues['store']],
+      };
+      break;
+
+    case 'weight_product':
+      data = {
+        discount_id: currentDiscountId,
+        predicate_builder: [selectedConstraintType, constraintValues['minWeight'], constraintValues['maxWeight'], constraintValues['product'], constraintValues['store']],
+      };
+      break;
+
+    default:
+      return;
   }
-   
-  console.log('predicate builder of current constraint we are trying to add:', data.predicate_builder);
+    
+  console.log(`predicate builder of current constraint of type ${selectedConstraintType} we are trying to add is: ${data.predicate_builder}`);
 
   try {
     const response = await api.post('/store/assign_predicate_to_discount', data);
