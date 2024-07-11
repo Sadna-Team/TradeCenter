@@ -478,7 +478,7 @@ def add_product_to_store():
             if data['amount'] is not None:
                 amount = int(data['amount'])
     except Exception as e:
-        logger.error('add_product - ', str(e))
+        logger.error(f'add_product - {str(e)}')
         return jsonify({'message': str(e)}), 400
 
     return store_service.add_product_to_store(user_id, store_id, product_name, description, price, weight, tags, amount)

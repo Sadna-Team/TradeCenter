@@ -110,6 +110,10 @@ class ThirdPartyHandlerErrorTypes(Enum):
     payment_not_specified = 12
     payment_failed = 13
     support_not_specified = 14
+    supply_failed = 15
+    handshake_failed = 16
+    external_payment_failed = 17
+    external_supply_failed = 18
 
 class DiscountAndConstraintsErrorTypes(Enum):
     discount_not_found = 1
@@ -128,6 +132,7 @@ class ServiceLayerErrorTypes(Enum):
     address_not_dict = 2
     tags_not_list = 3
     config_not_dict = 4
+    additional_details_not_dict = 5
 
 
 # -------------------------------------- StoreErrors --------------------------------------

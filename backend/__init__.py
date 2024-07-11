@@ -90,6 +90,11 @@ def create_app(mode='development'):
 
     MarketFacade()
 
+    if mode == 'development':
+        use_default_data = input("Would you like to use default data? (y/n): ")
+        if use_default_data == 'y':
+            MarketFacade().default_setup()
+
     from backend.services.user_services.routes import auth_bp, user_bp
     from backend.services.ecommerce_services.routes import market_bp
     from backend.services.store_services.routes import store_bp

@@ -80,7 +80,22 @@ default_product_tags = [[[default_tags[0], default_tags[1]],
 
 default_payment_method = {'payment method': 'bogo'}
 
-default_supply_method = "bogo"
+default_payment_additional_details = {"currency": "USD",
+                                    "card_number": "1111222233334444",
+                                    "month": "12",
+                                    "year": "2025",
+                                    "holder": "michael adar", 
+                                    "cvv": "123",
+                                    "id": "1234567890", 
+                                    "currency": "USD"}
+
+default_supply_method = {'supply method': 'bogo'}
+
+default_supply_additional_details = {"name": "michael adar",
+                                    "address": "Rager 130 13",
+                                    "city": "Beer Sheva",
+                                    "zip": "123456",
+                                    "country": "Israel"}
 
 default_address_checkout = {'address': 'randomstreet 34th', 'city': 'arkham', 'state': 'gotham', 'country': 'Wakanda', 'zip_code': '12345'}
 
@@ -252,6 +267,114 @@ def test_checkout(default_user_cart):
     sleep(7)  # wait for bogo supply method to complete the purchase
 
     assert purchase_facade.check_if_purchase_completed(pur_id)
+
+def test_checkout_extended_payment(default_user_cart):
+    user_ids, store_ids, products = default_user_cart
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    store_id2 = store_ids[1]
+    quantity_before = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
+        products[0][0]].amount
+    
+    non_default_payment_method = default_payment_method.copy()
+    non_default_payment_method["additional details"] = default_payment_additional_details.copy()
+    
+    pur_id = market_facade.checkout(user_id1, non_default_payment_method, default_supply_method, default_address_checkout)
+
+    assert not (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
+                ._ShoppingCart__shopping_baskets)
+    assert len(purchase_facade.get_purchases_of_user(user_id1)) == 2  # two stores so two receipts
+    assert len(purchase_facade.get_purchases_of_store(store_id1)) == 1
+    assert len(purchase_facade.get_purchases_of_store(store_id2)) == 1
+    quantity_after = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
+        products[0][0]].amount
+    assert quantity_before > quantity_after
+    assert purchase_facade._PurchaseFacade__check_if_purchase_exists(pur_id)
+
+    # user notification part
+    assert len(market_facade.show_notifications(user_id1)) == 1
+    assert len(market_facade.show_notifications(user_id2)) == 1
+    # notifications cleared
+    assert len(market_facade.show_notifications(user_id1)) == 0
+    assert len(market_facade.show_notifications(user_id2)) == 0
+
+    sleep(7)  # wait for bogo supply method to complete the purchase
+
+    assert purchase_facade.check_if_purchase_completed(pur_id)
+
+def test_checkout_extended_supply(default_user_cart):
+    user_ids, store_ids, products = default_user_cart
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    store_id2 = store_ids[1]
+    quantity_before = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
+        products[0][0]].amount
+    
+    non_default_supply_method = default_supply_method.copy()
+    non_default_supply_method["additional details"] = default_supply_additional_details.copy()
+    
+    pur_id = market_facade.checkout(user_id1, default_payment_method, non_default_supply_method, default_address_checkout)
+
+    assert not (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
+                ._ShoppingCart__shopping_baskets)
+    assert len(purchase_facade.get_purchases_of_user(user_id1)) == 2  # two stores so two receipts
+    assert len(purchase_facade.get_purchases_of_store(store_id1)) == 1
+    assert len(purchase_facade.get_purchases_of_store(store_id2)) == 1
+    quantity_after = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
+        products[0][0]].amount
+    assert quantity_before > quantity_after
+    assert purchase_facade._PurchaseFacade__check_if_purchase_exists(pur_id)
+
+    # user notification part
+    assert len(market_facade.show_notifications(user_id1)) == 1
+    assert len(market_facade.show_notifications(user_id2)) == 1
+    # notifications cleared
+    assert len(market_facade.show_notifications(user_id1)) == 0
+    assert len(market_facade.show_notifications(user_id2)) == 0
+
+    sleep(7)  # wait for bogo supply method to complete the purchase
+
+    assert purchase_facade.check_if_purchase_completed(pur_id)
+
+def test_checkout_extended_payment_supply(default_user_cart):
+    user_ids, store_ids, products = default_user_cart
+    user_id1 = user_ids[0]
+    user_id2 = user_ids[1]
+    store_id1 = store_ids[0]
+    store_id2 = store_ids[1]
+    quantity_before = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
+        products[0][0]].amount
+    
+    non_default_payment_method = default_payment_method.copy()
+    non_default_payment_method["additional details"] = default_payment_additional_details.copy()
+    non_default_supply_method = default_supply_method.copy()
+    non_default_supply_method["additional details"] = default_supply_additional_details.copy()
+    
+    pur_id = market_facade.checkout(user_id1, non_default_payment_method, non_default_supply_method, default_address_checkout)
+
+    assert not (market_facade.user_facade._UserFacade__get_user(user_id1)._User__shopping_cart
+                ._ShoppingCart__shopping_baskets)
+    assert len(purchase_facade.get_purchases_of_user(user_id1)) == 2  # two stores so two receipts
+    assert len(purchase_facade.get_purchases_of_store(store_id1)) == 1
+    assert len(purchase_facade.get_purchases_of_store(store_id2)) == 1
+    quantity_after = market_facade.store_facade._StoreFacade__get_store_by_id(store_id1)._Store__store_products[
+        products[0][0]].amount
+    assert quantity_before > quantity_after
+    assert purchase_facade._PurchaseFacade__check_if_purchase_exists(pur_id)
+
+    # user notification part
+    assert len(market_facade.show_notifications(user_id1)) == 1
+    assert len(market_facade.show_notifications(user_id2)) == 1
+    # notifications cleared
+    assert len(market_facade.show_notifications(user_id1)) == 0
+    assert len(market_facade.show_notifications(user_id2)) == 0
+
+    sleep(7)  # wait for bogo supply method to complete the purchase
+
+    assert purchase_facade.check_if_purchase_completed(pur_id)
+
 
 
 def test_checkout_failed_shopping_cart_empty(default_set_up):
