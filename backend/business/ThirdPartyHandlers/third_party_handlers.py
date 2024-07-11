@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import time
 import threading
 from backend.error_types import *
+import requests
 
 
 import logging
@@ -47,6 +48,45 @@ class BogoPayment(PaymentAdapter):
             * For testing purposes, BogoPayment cancel_payment always returns True.
         """
         return 1
+    
+class ExternalPayment(PaymentAdapter):
+    HANDSHAKE = {"action_type": "handshake"}
+    PAY = {"action_type": "pay"}
+    CANCEL = {"action_type": "cancel_pay"}
+    URL = "https://damp-lynna-wsep-1984852e.koyeb.app/"
+    def pay(self, amount: float, payment_config: Dict) -> int:
+        """
+            * makes POST request to external payment gateway to process payment.
+            * first sends a handshake request to the gateway to confirm connection, expects "OK" message.
+            * then sends a payment request to the gateway to process the payment. expect integer in the range [10000, 100000].
+            * if -1, payment failed.
+        """
+        logger.info(f"Processing payment of {amount} with details {payment_config}")
+        response = requests.post(self.URL, json=self.HANDSHAKE)
+        if response.status_code != 200:
+            logger.info(response.json())
+            raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
+        if response.json() != "OK":
+            logger.info(response.json())
+            raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
+        # add to payment_config the PAY
+        payment_config["amount"] = amount
+        payment_config = payment_config | self.PAY
+        response = requests.post(self.URL, json=payment_config)
+        if response.status_code != 200:
+            logger.info(response.json())
+            raise ThirdPartyHandlerError("Failed to process payment", ThirdPartyHandlerErrorTypes.external_payment_failed)
+        if not 10000 <= response.json() <= 100000:
+            logger.info(response.json())
+            raise ThirdPartyHandlerError("Failed to process payment", ThirdPartyHandlerErrorTypes.external_payment_failed)
+        return response.json()
+        
+    
+    def cancel_payment(self, payment_id: int) -> int:
+        """
+            * For testing purposes, ExternalPayment cancel_payment always returns True.
+        """
+        return 1
 
 class PaymentHandler:
     __instance: bool = None
@@ -88,8 +128,14 @@ class PaymentHandler:
         """
    
         logger.info(f"Processing payment of {amount} with details {payment_details}")
-        return (self._resolve_payment_strategy(payment_details)
-                .pay(amount, self.payment_config[payment_details.get("payment method")]))
+        handler = self._resolve_payment_strategy(payment_details)
+        if payment_details.get("payment method") == "bogo":
+            return handler.pay(amount, {})
+        elif payment_details.get("payment method") == "external payment":
+            print("external payment")
+            return handler.pay(amount, payment_details.get("additional details"))
+        else:
+            raise ThirdPartyHandlerError("Invalid payment method", ThirdPartyHandlerErrorTypes.invalid_payment_method)
 
     def process_payment_cancel(self, payment_details: Dict, payment_id: int) -> int:
         """
@@ -207,14 +253,14 @@ class SupplyHandler:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized: bool = True
-            self.supply_config: Dict = {"bogo": {}}
+            self.supply_config: Dict = {"bogo": {}, "external supply": {}}
             self.active_shipments: Dict[int, Tuple[int, datetime]] = {}
 
     def reset(self) -> None:
         """
             * reset is a method that resets the SupplyHandler's supply_config attribute.
         """
-        self.supply_config = {"bogo": {}}
+        self.supply_config = {"bogo": {}, "external supply": {}}
 
     def _validate_supply_method(self, method_name: str, address: dict) -> bool:
         """

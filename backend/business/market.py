@@ -222,6 +222,7 @@ class MarketFacade:
         logger.info(f"User {user_id} has removed {amount} of product {product_id} from the basket")
 
     def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict) -> int:
+        print("starting checkout!")
         products_removed = False
         purchase_accepted = False
         basket_cleared = False
@@ -291,6 +292,7 @@ class MarketFacade:
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ThirdPartyHandlerError("Payment method not specified", ThirdPartyHandlerErrorTypes.payment_not_specified)
 
+            print("payment_details: ", payment_details)
             payment_id = PaymentHandler().process_payment(total_price_after_discounts, payment_details)
 
             if payment_id == -1:

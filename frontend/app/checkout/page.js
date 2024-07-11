@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BogoDetails from '@/components/BogoDetails';
 import CreditCardForm from '@/components/ExternalPaymentDetails';
+import SupplyForm from '@/components/ExternalSupplyDetails';
 import api from "@/lib/api";
 import Popup from "@/components/Popup"; // Assuming Popup component is imported correctly
 
@@ -23,6 +24,7 @@ const Checkout = () => {
 
   const [supplyMethod, setSupplyMethod] = useState('');
   const [additionalPaymentDetails, setAdditionalPaymentDetails] = useState({});
+  const [additionalSupplyDetails, setAdditionalSupplyDetails] = useState({});
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState('');
@@ -118,7 +120,7 @@ const Checkout = () => {
     if (validate()) {
       // Submit the form
       const data = {
-        "payment_details" : {'payment method' : paymentMethod},
+        "payment_details" : {'payment method' : paymentMethod, 'additional details': additionalPaymentDetails},
         'address' : fullAddress,
         'supply_method' : supplyMethod
       };
@@ -187,6 +189,7 @@ const Checkout = () => {
           </select>
           {errors.supplyMethod && <p className="error">{errors.supplyMethod}</p>}
           {supplyMethod === 'bogo' && <BogoDetails />}
+          {supplyMethod === 'external supply' && <SupplyForm handleChange={handleAdditionalPaymentDetailsChange} />}
         </div>
 
         <h2>Shipping Address</h2>
