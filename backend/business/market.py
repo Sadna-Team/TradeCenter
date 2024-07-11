@@ -303,9 +303,10 @@ class MarketFacade:
                 self.purchase_facade.cancel_accepted_purchase(pur_id)
             if basket_cleared:
                 self.user_facade.restore_basket(user_id, cart)
-            if payment_id != -1:
+            # check if payment_id is defined
+            if "payment_id" in locals() and payment_id != -1:
                 PaymentHandler().process_payment_cancel(payment_id)
-            if supply_id != -1:
+            if "supply_id" in locals() and supply_id != -1:
                 SupplyHandler().process_supply_cancel(supply_details, supply_id)
             raise e
 

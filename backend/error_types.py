@@ -132,6 +132,7 @@ class ServiceLayerErrorTypes(Enum):
     address_not_dict = 2
     tags_not_list = 3
     config_not_dict = 4
+    additional_details_not_dict = 5
 
 
 # -------------------------------------- StoreErrors --------------------------------------
