@@ -113,6 +113,7 @@ class ThirdPartyHandlerErrorTypes(Enum):
     supply_failed = 15
     handshake_failed = 16
     external_payment_failed = 17
+    external_supply_failed = 18
 
 class DiscountAndConstraintsErrorTypes(Enum):
     discount_not_found = 1
