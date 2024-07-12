@@ -1,0 +1,108 @@
+{
+    "actions": [
+        {
+            "action": "create_user",
+            "username": "u1",
+            "password": "1234",
+            "email": "test1@mail.com",
+            "phone": "0501234567",
+            "day": 1,
+            "month": 1,
+            "year": 1990
+        },
+        {
+            "action": "set_admin",
+            "username": "u1"
+        },
+        {
+            "action": "create_user",
+            "username": "u2",
+            "password": "1234",
+            "email": "test2@mail.com",
+            "phone": "0501234567",
+            "day": 1,
+            "month": 1,
+            "year": 1990
+        },
+        {
+            "action": "create_user",
+            "username": "u3",
+            "password": "1234",
+            "email": "test3@mail.com",
+            "phone": "0501234567",
+            "day": 1,
+            "month": 1,
+            "year": 1990
+        },
+        {
+            "action": "create_user",
+            "username": "u4",
+            "password": "1234",
+            "email": "test4@mail.com",
+            "phone": "0501234567",
+            "day": 1,
+            "month": 1,
+            "year": 1990
+        },
+        {
+            "action": "create_user",
+            "username": "u5",
+            "password": "1234",
+            "email": "test5@mail.com",
+            "phone": "0501234567",
+            "day": 1,
+            "month": 1,
+            "year": 1990
+        },
+        {
+            "action": "create_user",
+            "username": "u6",
+            "password": "1234",
+            "email": "test6@mail.com",
+            "phone": "0501234567",
+            "day": 1,
+            "month": 1,
+            "year": 1990
+        },
+        {
+            "action": "login",
+            "username": "u2"
+        },
+        {
+            "action": "create_store",
+            "username": "u2",
+            "store_name": "s1"
+        },
+        {
+            "action": "add_product",
+            "username": "u2",
+            "store_name": "s1",
+            "product_name": "Bamba",
+            "price": 30,
+            "quantity": 20
+        },
+        {
+            "action": "assign_manager",
+            "username": "u2",
+            "target_username": "u3",
+            "store_name": "s1",
+            "permissions": ["edit_inventory"]
+        },
+        {
+            "action": "assign_owner",
+            "username": "u2",
+            "target_username": "u4",
+            "store_name": "s1"
+        },
+        {
+            "action": "assign_owner",
+            "username": "u2",
+            "target_username": "u5",
+            "store_name": "s1"
+        },
+        {
+            "action": "logout",
+            "username": "u2"
+        }
+    ]
+}
