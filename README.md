@@ -42,7 +42,7 @@ best online store for selling your products! <br/>
 
 ## Docker
 * install docker and run the docker daemon (by just opening the docker desktop)
-* copy the content of the file .env.example to a new file called .env and update the relevant fields ()
+* copy the content of the file .env.example to a new file called .env and update the relevant fields (username and password - can leave it as is if you want)
 * GUIDE: <container-id> is web/db
 * Build and Run the Docker Containers:
   * All the containers: `docker-compose up -d`
