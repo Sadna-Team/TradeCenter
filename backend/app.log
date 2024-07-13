@@ -3,7 +3,66 @@ flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 New Store Logger - INFO - successfully created storeFacade
 myapp - INFO - [PurchaseFacade] successfully created purchase facade object
 Market logger - INFO - Admin was created
+New Store Logger - INFO - [Store] successfully created store with id: 0
+New Store Logger - INFO - Successfully added store: store1
+New Store Logger - INFO - Successfully added product: product1 to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 0
+New Store Logger - INFO - [Product] successfully added tag to product with id: 0
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
 backend - INFO - Starting app...
 werkzeug - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
 werkzeug - WARNING -  * Debugger is active!
 werkzeug - INFO -  * Debugger PIN: 143-222-006
+werkzeug - INFO - 127.0.0.1 - - [13/Jul/2024 22:46:00] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2jeNuz HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [13/Jul/2024 22:46:00] "GET /socket.io/?EIO=4&transport=polling&t=P2jeNuz HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [13/Jul/2024 22:46:01] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2jeO21&sid=SDRL5rbMrphNhMQlAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [13/Jul/2024 22:46:01] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P2jeO23&sid=SDRL5rbMrphNhMQlAAAA HTTP/1.1" 200 -
+engineio.server - ERROR - message handler error
+Traceback (most recent call last):
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\engineio\server.py", line 434, in run_handler
+    return self.handlers[event](*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\socketio\server.py", line 640, in _handle_eio_message
+    self._handle_connect(eio_sid, pkt.namespace, pkt.data)
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\socketio\server.py", line 534, in _handle_connect
+    success = self._trigger_event(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\socketio\server.py", line 611, in _trigger_event
+    return handler(*args)
+           ^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\flask_socketio\__init__.py", line 282, in _handler
+    return self._handle_event(handler, message, namespace, sid,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\flask_socketio\__init__.py", line 823, in _handle_event
+    ret = handler(auth)
+          ^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\flask_jwt_extended\view_decorators.py", line 167, in decorator
+    verify_jwt_in_request(
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\flask_jwt_extended\view_decorators.py", line 94, in verify_jwt_in_request
+    jwt_data, jwt_header, jwt_location = _decode_jwt_from_request(
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\flask_jwt_extended\view_decorators.py", line 340, in _decode_jwt_from_request
+    decoded_token = decode_token(encoded_token, csrf_token)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\flask_jwt_extended\utils.py", line 128, in decode_token
+    return jwt_manager._decode_jwt_from_config(encoded_token, csrf_value, allow_expired)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\flask_jwt_extended\jwt_manager.py", line 556, in _decode_jwt_from_config
+    return _decode_jwt(**kwargs, allow_expired=allow_expired)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\flask_jwt_extended\tokens.py", line 95, in _decode_jwt
+    decoded_token = jwt.decode(
+                    ^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\jwt\api_jwt.py", line 210, in decode
+    decoded = self.decode_complete(
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\jwt\api_jwt.py", line 151, in decode_complete
+    decoded = api_jws.decode_complete(
+              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\jwt\api_jws.py", line 209, in decode_complete
+    self._verify_signature(signing_input, header, signature, key, algorithms)
+  File "C:\Users\danel\Code\PycharmProjects\TradeCenter\.venv\Lib\site-packages\jwt\api_jws.py", line 310, in _verify_signature
+    raise InvalidSignatureError("Signature verification failed")
+jwt.exceptions.InvalidSignatureError: Signature verification failed
+werkzeug - INFO - 127.0.0.1 - - [13/Jul/2024 22:46:01] "POST /socket.io/?EIO=4&transport=polling&t=P2jeO21&sid=SDRL5rbMrphNhMQlAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [13/Jul/2024 22:46:01] "GET /socket.io/?EIO=4&transport=polling&t=P2jeO23&sid=SDRL5rbMrphNhMQlAAAA HTTP/1.1" 200 -

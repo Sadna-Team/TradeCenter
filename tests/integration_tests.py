@@ -14,6 +14,8 @@ from backend.error_types import *
 
 from backend.business.store.constraints import AgeConstraint
 
+app = None
+
 market_facade: Optional[MarketFacade] = None
 user_facade: Optional[UserFacade] = None
 purchase_facade: Optional[PurchaseFacade] = None
@@ -93,13 +95,19 @@ default_store_zip_code = '139'
 @pytest.fixture(scope='session', autouse=True)
 def app():
     # Setup: Create the Flask app
-    app = Flask(__name__)
+    """app = Flask(__name__)
     app.config['SECRET_KEY'] = 'test_secret_key'  # Set a test secret key
     jwt = JWTManager(app)
     bcrypt = Bcrypt(app)
     auth = Authentication()
     auth.clean_data()
-    auth.set_jwt(jwt, bcrypt)
+    auth.set_jwt(jwt, bcrypt)"""
+    global app
+
+    from backend import create_app
+    app = create_app(mode='testing')
+    from backend import app as app2
+    app2.app = app
 
     # Push application context for testing
     app_context = app.app_context()
@@ -249,7 +257,7 @@ def test_checkout(default_user_cart):
     assert len(market_facade.show_notifications(user_id1)) == 0
     assert len(market_facade.show_notifications(user_id2)) == 0
 
-    sleep(7)  # wait for bogo supply method to complete the purchase
+    sleep(10)  # wait for bogo supply method to complete the purchase
 
     assert purchase_facade.check_if_purchase_completed(pur_id)
 
