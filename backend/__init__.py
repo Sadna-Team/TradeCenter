@@ -9,6 +9,8 @@ from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
 from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask_cors import CORS
 from backend.config import config  # Import the config object
+from backend.services import initial_state
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy_utils import database_exists, create_database
@@ -89,11 +91,7 @@ def create_app(mode='development'):
     notifier.set_socketio_manager(socketio_manager)
 
     MarketFacade()
-
-    if mode == 'development':
-        use_default_data = input("Would you like to use default data? (y/n): ")
-        if use_default_data == 'y':
-            MarketFacade().default_setup()
+    initial_state().init_system_from_file()
 
     from backend.services.user_services.routes import auth_bp, user_bp
     from backend.services.ecommerce_services.routes import market_bp

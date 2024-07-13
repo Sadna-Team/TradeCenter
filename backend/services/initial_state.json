@@ -86,7 +86,7 @@
             "username": "u2",
             "target_username": "u3",
             "store_name": "s1",
-            "permissions": ["edit_inventory"]
+            "permissions": ["add_product"]
         },
         {
             "action": "assign_owner",

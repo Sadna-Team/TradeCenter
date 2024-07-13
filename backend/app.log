@@ -1,9 +1,0 @@
-flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
-flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
-New Store Logger - INFO - successfully created storeFacade
-myapp - INFO - [PurchaseFacade] successfully created purchase facade object
-Market logger - INFO - Admin was created
-backend - INFO - Starting app...
-werkzeug - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
-werkzeug - WARNING -  * Debugger is active!
-werkzeug - INFO -  * Debugger PIN: 143-222-006
