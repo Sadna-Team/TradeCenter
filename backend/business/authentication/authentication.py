@@ -121,4 +121,4 @@ class Authentication:
 
     def get_user_id(self, token):
         decoded = decode_token(token)
-        return decoded['identity']
+        return decoded['sub']
