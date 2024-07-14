@@ -323,7 +323,7 @@ class BidPurchase(Purchase):
     _product_id = db.Column(db.Integer)
     _store_id = db.Column(db.Integer)
     _is_offer_to_store = db.Column(db.Boolean)
-    _list_of_store_owners_managers_that_accepted_offer = db.Column(db.PickleType)
+    _list_of_store_owners_managers_that_accepted_offer_demo = db.Column(db.String)
     _user_who_rejected_id = db.Column(db.Integer)
 
     __mapper_args__ = {
@@ -342,7 +342,7 @@ class BidPurchase(Purchase):
         self._product_id: int = product_id
         self._store_id: int = store_id
         self._is_offer_to_store: bool = True
-        self._list_of_store_owners_managers_that_accepted_offer: List[int] = []
+        self._list_of_store_owners_managers_that_accepted_offer_demo: str = ""
         self._user_who_rejected_id: int = -1
         logger.info('[BidPurchase] successfully created bid purchase object with purchase id: %s',
                     self.id)
@@ -365,8 +365,31 @@ class BidPurchase(Purchase):
         return self._is_offer_to_store
 
     @property
+    def _list_of_store_owners_managers_that_accepted_offer(self):
+        if self._list_of_store_owners_managers_that_accepted_offer_demo == "":
+            return []
+        return [int(x) for x in self._list_of_store_owners_managers_that_accepted_offer_demo.split(",")]
+
+    @property
     def list_of_store_owners_managers_that_accepted_offer(self) -> List[int]:
         return self._list_of_store_owners_managers_that_accepted_offer
+
+    @_list_of_store_owners_managers_that_accepted_offer.setter
+    def _list_of_store_owners_managers_that_accepted_offer(self, store_worker_ids: List[int]) -> None:
+        if len(store_worker_ids) == 0:
+            self._list_of_store_owners_managers_that_accepted_offer_demo = ""
+        else:
+            self._list_of_store_owners_managers_that_accepted_offer_demo = ','.join([str(x) for x in store_worker_ids])
+
+    @list_of_store_owners_managers_that_accepted_offer.setter
+    def list_of_store_owners_managers_that_accepted_offer(self, store_worker_ids: List[int]) -> None:
+        self._list_of_store_owners_managers_that_accepted_offer = store_worker_ids
+
+    def add_to_list_of_store_owners_managers_that_accepted_offer(self, store_worker_id: int) -> None:
+        if len(self._list_of_store_owners_managers_that_accepted_offer_demo) == 0:
+            self._list_of_store_owners_managers_that_accepted_offer_demo += str(store_worker_id)
+        else:
+            self._list_of_store_owners_managers_that_accepted_offer_demo += "," + str(store_worker_id)
 
     @property
     def user_who_rejected_id(self):
@@ -388,7 +411,7 @@ class BidPurchase(Purchase):
                 raise PurchaseError("Offer is not to store", PurchaseErrorTypes.offer_not_to_store)
 
             if store_worker_id not in self._list_of_store_owners_managers_that_accepted_offer:
-                self._list_of_store_owners_managers_that_accepted_offer.append(store_worker_id)
+                self.add_to_list_of_store_owners_managers_that_accepted_offer(store_worker_id)
                 logger.info(
                     '[BidPurchase] store owner/manager with store worker id: %s accepted offer of bid purchase with'
                     ' purchase id: %s',
@@ -487,7 +510,7 @@ class BidPurchase(Purchase):
                 raise PurchaseError("Proposed price is invalid", PurchaseErrorTypes.invalid_proposed_price)
 
             self._list_of_store_owners_managers_that_accepted_offer = []
-            self._list_of_store_owners_managers_that_accepted_offer.append(user_who_counter_offer)
+            self.add_to_list_of_store_owners_managers_that_accepted_offer(user_who_counter_offer)
             self._proposed_price = proposed_price
             self._is_offer_to_store = False
 
@@ -1239,7 +1262,7 @@ class PurchaseFacade:
         Returns: list of BidPurchase objects
         """
         purchases: List[BidPurchaseDTO] = []
-        for purchase in db.query(BidPurchase).all():
+        for purchase in db.session.query(BidPurchase).all():
             if isinstance(purchase, BidPurchase):
                 if purchase.user_id == user_id:
                     purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,
@@ -1257,7 +1280,7 @@ class PurchaseFacade:
         Returns: list of BidPurchase objects
         """
         purchases: List[BidPurchaseDTO] = []
-        for purchase in db.query(BidPurchase).all():
+        for purchase in db.session.query(BidPurchase).all():
             if isinstance(purchase, BidPurchase):
                 if purchase.store_id == store_id:
                     purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,

@@ -987,6 +987,8 @@ def test_remove_product_from_category_no_permission(default_set_up):
     category_products_tuples =market_facade.store_facade.get_category_by_id(category_id).category_products
     product_ids = [product_id for store_id, product_id in category_products_tuples]
     assert product_id11 in product_ids
-    
+
+def test_clear_all_data():
+    market_facade.clean_data()
     
     
