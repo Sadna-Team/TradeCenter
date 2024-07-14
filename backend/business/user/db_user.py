@@ -3,11 +3,11 @@ from typing import List, Optional, Dict
 from backend.business.user.user import UserError, UserErrorTypes, User, PurchaseUserDTO, UserDTO
 from backend.error_types import StoreError, StoreErrorTypes
 from . import c
-from flask_sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
-from flask_sqlalchemy.orm import relationship, backref, declarative_base
-from flask_sqlalchemy.ext.declarative import declared_attr
-from flask_sqlalchemy import create_engine
-from flask_sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
+from sqlalchemy.orm import relationship, backref, declarative_base
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
