@@ -2,6 +2,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from backend.business import MarketFacade
+from backend.business.store import StoreFacade
 from flask import jsonify
 
 import logging
@@ -12,6 +13,7 @@ logger = logging.getLogger('myapp')
 class StoreService:
     def __init__(self):
         self.__market_facade = MarketFacade()
+        self.__store_facade = StoreFacade()
 
     def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float, 
                         store_id: Optional[int] = None, product_id: Optional[int] = None, category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None):
@@ -613,4 +615,16 @@ class StoreService:
             return jsonify({'message': categories}), 200
         except Exception as e:
             logger.error('product categories were not sent')
+            return jsonify({'message': str(e)}), 400
+
+    def get_store_id(self, store_name: str):
+        """
+            Get the id of a store
+        """
+        try:
+            store_id = self.__store_facade.get_store_id(store_name)
+            logger.info('store id was sent successfully')
+            return jsonify({'message': store_id}), 200
+        except Exception as e:
+            logger.error('store id was not sent')
             return jsonify({'message': str(e)}), 400

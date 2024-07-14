@@ -2308,3 +2308,9 @@ class StoreFacade:
         * Returns: a dict from store_id to storeDTO
         """
         return {store_id: store.create_store_dto() for store_id, store in self.__stores.items()}
+
+    def get_store_id(self, store_name):
+        for store_id, store in self.__stores.items():
+            if store.store_name == store_name:
+                return store_id
+        return None

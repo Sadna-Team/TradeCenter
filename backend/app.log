@@ -3,7 +3,51 @@ flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 New Store Logger - INFO - successfully created storeFacade
 myapp - INFO - [PurchaseFacade] successfully created purchase facade object
 Market logger - INFO - Admin was created
+myapp - INFO - guest entered the app successfully - user_id: 1
+myapp - INFO - User registered successfully
+Market logger - INFO - User 0 has added user 1 as a system manager
+myapp - INFO - guest entered the app successfully - user_id: 2
+myapp - INFO - User registered successfully
+myapp - INFO - guest entered the app successfully - user_id: 3
+myapp - INFO - User registered successfully
+myapp - INFO - guest entered the app successfully - user_id: 4
+myapp - INFO - User registered successfully
+myapp - INFO - guest entered the app successfully - user_id: 5
+myapp - INFO - User registered successfully
+myapp - INFO - guest entered the app successfully - user_id: 6
+myapp - INFO - User registered successfully
+myapp - INFO - User logged in successfully
+New Store Logger - INFO - [Store] successfully created store with id: 0
+New Store Logger - INFO - Successfully added store: s1
+myapp - INFO - store was added successfully
+myapp - INFO - store id was sent successfully
+New Store Logger - INFO - Successfully added product: Bamba to store with the id: 0
+New Store Logger - INFO - [Product] successfully created product with id: 0
+New Store Logger - INFO - [Store] successfully added product to store with id: 0
+myapp - INFO - product was added successfully
+myapp - INFO - store id was sent successfully
+Market logger - INFO - User 2 has nominated user 3 to be the manager of store 0
+myapp - INFO - store manager was added successfully
+Roles Logger - INFO - User 3 accepted the nomination 0 in store 0
+myapp - INFO - promotion accepted successfully
+Market logger - INFO - User 2 has changed the permissions of user 3 in store 0
+myapp - INFO - manager permissions were edited successfully
+myapp - INFO - store id was sent successfully
+Market logger - INFO - User 2 has nominated user 4 to be the owner of store 0
+myapp - INFO - store owner was added successfully
+Roles Logger - INFO - User 4 accepted the nomination 1 in store 0
+myapp - INFO - promotion accepted successfully
+myapp - INFO - store id was sent successfully
+Market logger - INFO - User 2 has nominated user 5 to be the owner of store 0
+myapp - INFO - store owner was added successfully
+Roles Logger - INFO - User 5 accepted the nomination 2 in store 0
+myapp - INFO - promotion accepted successfully
+myapp - INFO - guest entered the app successfully - user_id: 7
+myapp - INFO - User logged out successfully
 backend - INFO - Starting app...
 werkzeug - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
-werkzeug - WARNING -  * Debugger is active!
-werkzeug - INFO -  * Debugger PIN: 143-222-006
+werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.249:5000
+werkzeug - INFO - [33mPress CTRL+C to quit[0m
