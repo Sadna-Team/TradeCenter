@@ -46,6 +46,8 @@ class MarketFacade:
             # create the admin?
             self.__create_admin()
 
+            # self.default_setup2()
+
     def test(self,user_id):
         self.notifier.send_real_time_notification(user_id, NotificationDTO(-1, "test", datetime.now()))
         logger.info("test notification sent")
@@ -74,8 +76,41 @@ class MarketFacade:
         # create the admin?
         self.__create_admin()
 
+    def default_setup2(self):
+        uid1 = self.user_facade.create_user("USD")
+
+        uc1 = {
+            "username": "user1",
+            "password": "1234",
+            "email": "example1@gmail.com",
+            "year": 2001,
+            "month": 2,
+            "day": 2,
+            "phone": "0522222222"
+        }
+
+        default_payment_method = {'payment method': 'bogo'}
+
+        default_supply_method = "bogo"
+
+        default_address_checkout = {'address': 'randomstreet 34th',
+                                    'city': 'arkham',
+                                    'state': 'gotham',
+                                    'country': 'Wakanda',
+                                    'zip_code': '12345'}
+
+        self.auth_facade.register_user(uid1, uc1)
+
+        store_id = self.add_store(uid1, "Rager 130", "Beer Sheva", "Israel", "Israel", "12345678", "store1")
+        product1 = self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
+
+        #self.add_product_to_basket(0, store_id, 0, 1)
+
+        #self.checkout(0, default_payment_method, default_supply_method, default_address_checkout)
+
     def default_setup(self):
         self.clean_data()
+
         # users:
         uid1 = self.user_facade.create_user("USD")
         uid2 = self.user_facade.create_user("USD")
@@ -278,7 +313,7 @@ class MarketFacade:
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ThirdPartyHandlerError("Payment failed", ThirdPartyHandlerErrorTypes.payment_failed)
 
-            on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
+            on_arrival = lambda purchase_id: self.on_arrival_lambda(purchase_id)
             supply_details["arrival time"] = delivery_date
             supply_details["purchase id"] = pur_id
             supply_id = SupplyHandler().process_supply(supply_details, user_id, on_arrival)
@@ -309,6 +344,11 @@ class MarketFacade:
             if "supply_id" in locals() and supply_id != -1:
                 SupplyHandler().process_supply_cancel(supply_details, supply_id)
             raise e
+
+    def on_arrival_lambda(self, purchase_id: int):
+        from backend.app import app
+        with app.app_context():
+            self.purchase_facade.complete_purchase(purchase_id)
 
     def get_stores(self, page: int, limit: int) -> Dict[int, StoreDTO]:
         return self.store_facade.get_stores(page, limit)

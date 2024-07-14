@@ -14,6 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy import create_engine
+from backend.database import db
 
 # -------------logging configuration----------------
 import logging
@@ -24,7 +25,6 @@ logger = logging.getLogger('myapp')
 bcrypt = Bcrypt()
 jwt = JWTManager()
 socketio_manager = SocketIO()
-db = SQLAlchemy()
 migrate = Migrate()
 cors = CORS(origin='http://localhost:3000', supports_credentials=True)
 
@@ -78,6 +78,7 @@ def create_app(mode='development'):
             print(f"Test database created at {test_db_url}")
         else:
             print(f"Test database already exists at {test_db_url}")
+
 
     with app.app_context():
         # Ensure that the database tables are created
