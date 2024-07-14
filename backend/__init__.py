@@ -92,7 +92,7 @@ def create_app(mode='development'):
             notifier.set_socketio_manager(socketio_manager)
 
             MarketFacade()
-            InitialState(app).init_system_from_file()
+            InitialState(app, db).init_system_from_file()
             # MarketFacade().default_setup()
 
             from backend.services.user_services.routes import auth_bp, user_bp
