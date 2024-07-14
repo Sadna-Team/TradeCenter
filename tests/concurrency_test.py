@@ -4,7 +4,7 @@ import json
 import threading
 import queue
 
-ITERATION_NUM = 50
+ITERATION_NUM = 1000
 
 
 register_credentials = { 
@@ -247,8 +247,8 @@ def test_concurrent_checkout_close_store(client1, client2, owner_token, user_tok
     result2 = results.get()
 
     assert ((result1.status_code == 200 and result2.status_code == 200) or
-            (result1.status_code == 400 and result1.get_json()['message'] == 'Store not found' and result2.status_code == 200) or
-            (result1.status_code == 200 and result2.status_code == 400 and result2.get_json()['message'] == 'Store not found'))
+            (result1.status_code == 400 and result1.get_json()['message'] == 'Store is not active' and result2.status_code == 200) or
+            (result1.status_code == 200 and result2.status_code == 400 and result2.get_json()['message'] == 'Store is not active'))
     results.queue.clear()
 
 @pytest.mark.parametrize("iteration", range(ITERATION_NUM))

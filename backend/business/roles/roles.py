@@ -563,3 +563,15 @@ class RolesFacade:
             raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
         with self.__stores_locks[store_id]:
             return list(self.__stores_to_roles[store_id].keys())
+
+    def get_bid_owners_managers(self, store_id: int) -> List[int]:
+        if store_id not in self.__stores_to_roles:
+            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+        with self.__stores_locks[store_id]:
+            owners_managers = []
+            for user_id, role in self.__stores_to_roles[store_id].items():
+                if isinstance(role, StoreOwner):
+                    owners_managers.append(user_id)
+                elif isinstance(role, StoreManager) and role.permissions.get_bid:
+                    owners_managers.append(user_id)
+            return owners_managers

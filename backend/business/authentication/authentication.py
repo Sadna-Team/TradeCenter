@@ -1,6 +1,6 @@
 from datetime import timedelta
 from .. import UserFacade
-from flask_jwt_extended import create_access_token, decode_token, get_jwt_identity
+from flask_jwt_extended import create_access_token, decode_token,get_jwt_identity
 from backend.error_types import *
 import logging
 
@@ -118,3 +118,7 @@ class Authentication:
 
     def is_logged_in(self, user_id):
         return user_id in self.logged_in
+
+    def get_user_id(self, token):
+        decoded = decode_token(token)
+        return decoded['sub']

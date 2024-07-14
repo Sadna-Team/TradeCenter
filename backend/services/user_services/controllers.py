@@ -617,3 +617,21 @@ class AuthenticationService:
         except Exception as e:
             logger.error('logout_guest - ' + str(e))
             return jsonify({'message': str(e)}), 400
+
+    def get_user_id(self, token: str):
+        """
+            Get the user id of a user
+
+            Args:
+                token (str): token of the user
+
+            Returns:
+                user_id (int): id of the user
+        """
+        try:
+            user_id = self.authentication.get_user_id(token)
+            return jsonify({'user_id': user_id}), 200
+
+        except Exception as e:
+            logger.error('get_user_id - ' + str(e))
+            return jsonify({'message': str(e)}), 400

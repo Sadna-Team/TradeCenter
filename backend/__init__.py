@@ -4,11 +4,12 @@ from flask_jwt_extended import JWTManager
 from backend.business.market import MarketFacade
 from backend.business.authentication.authentication import Authentication
 from backend.business.notifier.notifier import Notifier
-from backend.business.DTOs import NotificationDTO
 from flask_jwt_extended import get_jwt_identity, jwt_required, get_jwt
 from flask_socketio import SocketIO, join_room, leave_room, emit
 from flask_cors import CORS
 from backend.config import config  # Import the config object
+from backend.services import InitialState
+
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy_utils import database_exists, create_database
@@ -83,30 +84,32 @@ def create_app(mode='development'):
         # Ensure that the database tables are created
         db.create_all()
 
-        # PurchaseFacade().initialize_counter()
+        if not hasattr(app, 'initialization_done'):
+            app.initialization_done = True
+            authentication = Authentication()
+            authentication.set_jwt(jwt, bcrypt)
 
-    authentication = Authentication()
-    authentication.set_jwt(jwt, bcrypt)
+            notifier = Notifier()
+            notifier.set_socketio_manager(socketio_manager)
 
-    notifier = Notifier()
-    notifier.set_socketio_manager(socketio_manager)
+            MarketFacade()
+            InitialState(app, db).init_system_from_file()
+            # MarketFacade().default_setup()
 
-    MarketFacade()
+            from backend.services.user_services.routes import auth_bp, user_bp
+            from backend.services.ecommerce_services.routes import market_bp
+            from backend.services.store_services.routes import store_bp
+            from backend.services.third_party_services.routes import third_party_bp
 
-    from backend.services.user_services.routes import auth_bp, user_bp
-    from backend.services.ecommerce_services.routes import market_bp
-    from backend.services.store_services.routes import store_bp
-    from backend.services.third_party_services.routes import third_party_bp
+            app.register_blueprint(auth_bp, url_prefix='/auth')
+            app.register_blueprint(user_bp, url_prefix='/user')
+            app.register_blueprint(market_bp, url_prefix='/market')
+            app.register_blueprint(store_bp, url_prefix='/store')
+            app.register_blueprint(third_party_bp, url_prefix='/third_party')
 
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(user_bp, url_prefix='/user')
-    app.register_blueprint(market_bp, url_prefix='/market')
-    app.register_blueprint(store_bp, url_prefix='/store')
-    app.register_blueprint(third_party_bp, url_prefix='/third_party')
-
-    @jwt.token_in_blocklist_loader
-    def check_if_token_in_blacklist(jwt_header, jwt_payload):
-        return authentication.check_if_token_in_blacklist(jwt_header, jwt_payload)
+            @jwt.token_in_blocklist_loader
+            def check_if_token_in_blacklist(jwt_header, jwt_payload):
+                return authentication.check_if_token_in_blacklist(jwt_header, jwt_payload)
 
     return app
 
