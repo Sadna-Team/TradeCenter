@@ -94,6 +94,7 @@ class PurchaseErrorTypes(Enum):
     offer_to_store = 15
     purchase_not_bid_purchase = 16
     database_error = 17
+    invalid_name = 18
 
 
 class ThirdPartyHandlerErrorTypes(Enum):

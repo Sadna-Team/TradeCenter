@@ -7,6 +7,8 @@ from typing import Optional
 
 from backend.business.DTOs import BasketInformationForConstraintDTO
 from backend.business.store.constraints import Constraint
+from backend.error_types import *
+
 
 logger = logging.getLogger('myapp')
 
@@ -16,6 +18,9 @@ logger = logging.getLogger('myapp')
 class PurchasePolicy(ABC):
     # interface responsible for representing discounts in general. discountId unique verifier.
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, predicate: Optional[Constraint] = None):
+        if policy_name is None or policy_name == "":
+            raise PurchaseError("invalid policy name", PurchaseErrorTypes.invalid_name)
+        
         self._purchase_policy_id = purchase_policy_id
         self._store_id = store_id
         self._policy_name = policy_name
