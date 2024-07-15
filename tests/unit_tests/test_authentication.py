@@ -5,18 +5,25 @@ from flask_bcrypt import Bcrypt
 from backend.business.authentication.authentication import Authentication
 from unittest.mock import MagicMock
 from backend.error_types import *
-
+from backend import create_app
 
 class TestAuthentication(unittest.TestCase):
     def setUp(self):
-        self.app = Flask(__name__)
-        self.app.config['SECRET_KEY'] = 'test_secret_key'  # Set a test secret key
-        self.jwt = JWTManager(self.app)
-        self.bcrypt = Bcrypt(self.app)
+        # self.app = Flask(__name__)
+        # self.app.config['SECRET_KEY'] = 'test_secret_key'  # Set a test secret key
+        # from backend import app as app2
+        # app2.app = self.app
+        # self.jwt = JWTManager(self.app)
+        # self.bcrypt = Bcrypt(self.app)
+        # self.auth.set_jwt(self.jwt, self.bcrypt)
+        self.app = create_app('testing')
+        from backend import app as app2
+        app2.app = self.app
         self.auth = Authentication()
         self.auth.clean_data()
-        self.auth.set_jwt(self.jwt, self.bcrypt)
         self.auth.user_facade = MagicMock()
+        self.bcrypt = Bcrypt()
+
 
         # Push application context for testing
         self.app_context = self.app.app_context()
