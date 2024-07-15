@@ -902,7 +902,7 @@ class Store:
         * This function restocks a product in the store
         * Returns: none
         """
-        if amount <= 0:
+        if amount < 0:
             raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
         
         
@@ -923,7 +923,7 @@ class Store:
         if self.__store_products[product_id].amount < amount:
             raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
         
-        if amount <= 0:
+        if amount < 0:
             raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
         
         self.__store_products[product_id].remove_amount(amount)

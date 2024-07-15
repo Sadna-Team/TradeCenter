@@ -176,7 +176,7 @@ class DayOfMonthConstraint(Constraint):
 # --------------- day of week constraint class ---------------#
 class DayOfWeekConstraint(Constraint):
     def __init__(self, start_day: int, end_day: int):
-        if start_day < 1 or start_day > 7 or end_day < 1 or end_day > 7:
+        if start_day < 0 or start_day > 6 or end_day < 0 or end_day > 6:
             raise DiscountAndConstraintsError("Day of week is not valid", DiscountAndConstraintsErrorTypes.invalid_day_of_week)
         
         if start_day > end_day:
