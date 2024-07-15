@@ -1,15 +1,27 @@
 from datetime import timedelta
 from .. import UserFacade
-from flask_jwt_extended import create_access_token, decode_token,get_jwt_identity
+from flask_jwt_extended import create_access_token, decode_token, get_jwt_identity
 from backend.error_types import *
 import logging
+from backend.database import db
 
 logger = logging.getLogger('myapp')
 
-# from backend import bcrypt, jwt
+
+class AuthenticationModel(db.Model):
+    __tablename__ = 'authentication'
+    __table_args__ = (
+        db.UniqueConstraint('blacklisted_token', name='uq_blacklisted_token'),
+    )
+
+    blacklisted_token = db.Column(db.String(100), primary_key=True)
+
+    def __init__(self, blacklisted_token):
+        self.blacklisted_token = blacklisted_token
 
 
 class Authentication:
+    # Singleton instance
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -26,11 +38,14 @@ class Authentication:
             self.guests = set()
             self.jwt = None
             self.bcrypt = None
+            self.load_blacklist_from_db()  # Load the blacklist from the database
 
     def clean_data(self):
         """
         For testing purposes only
         """
+        with db.session.begin():
+            db.session.query(Authentication).delete()
         self.blacklist.clear()
         self.logged_in.clear()
         self.guests.clear()
@@ -43,10 +58,6 @@ class Authentication:
         jti = jwt_payload['jti']
         return jti in self.blacklist
 
-    # @
-    # def get_user_id_from_token(self, token):
-    #     return get_jwt_identity()
-
     def generate_token(self, user_id):
         while True:
             token = create_access_token(identity=user_id, expires_delta=timedelta(days=1))
@@ -55,7 +66,6 @@ class Authentication:
         return token
 
     def hash_password(self, password):
-        # get bcrypt from app context
         return self.bcrypt.generate_password_hash(password).decode('utf-8')
 
     def verify_password(self, password, hashed_password):
@@ -78,8 +88,6 @@ class Authentication:
         day = user_credentials['day']
         phone = user_credentials['phone']
         self.user_facade.register_user(user_id, email, username, hashed_password, year, month, day, phone)
-        # db.session.add(new_user)
-        # db.session.commit()
 
     def start_guest(self) -> str:
         new_user_id = self.user_facade.create_user()
@@ -88,7 +96,6 @@ class Authentication:
         logger.info('guest entered the app successfully - user_id: ' + str(new_user_id))
         return token
 
-    # @jwt_required()
     def login_user(self, username: str, password: str):
         user_id, hashed_password = self.user_facade.get_password(username)
         if not self.verify_password(password, hashed_password):
@@ -105,6 +112,8 @@ class Authentication:
         if user_id not in self.logged_in:
             raise UserError("User is not logged in", UserErrorTypes.user_not_logged_in)
         else:
+            with db.session.begin():
+                db.session.add(AuthenticationModel(blacklisted_token=jti))
             self.blacklist.add(jti)
             self.logged_in.remove(user_id)
             return self.start_guest()
@@ -113,6 +122,8 @@ class Authentication:
         if user_id not in self.guests:
             raise UserError("User is not a guest", UserErrorTypes.user_is_not_guest)
         else:
+            with db.session.begin():
+                db.session.add(AuthenticationModel(blacklisted_token=jti))
             self.blacklist.add(jti)
             self.guests.remove(user_id)
 
@@ -122,3 +133,10 @@ class Authentication:
     def get_user_id(self, token):
         decoded = decode_token(token)
         return decoded['sub']
+
+    def load_blacklist_from_db(self):
+        """
+        Load the blacklist from the database into the blacklist set
+        """
+        blacklisted_tokens = db.session.query(AuthenticationModel.blacklisted_token).all()
+        self.blacklist = {token[0] for token in blacklisted_tokens}
