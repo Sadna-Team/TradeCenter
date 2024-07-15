@@ -19,7 +19,7 @@ DATE_FORMAT = '%Y-%m-%d'
 
 # --------------- Discount base ---------------#
 class Discount(ABC):
-    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint]):
         if isinstance(starting_date,str):
             starting_date = datetime.strptime(starting_date, DATE_FORMAT)
@@ -32,6 +32,7 @@ class Discount(ABC):
             logger.error("[Discount] Invalid percentage")
             raise DiscountAndConstraintsError("Invalid percentage", DiscountAndConstraintsErrorTypes.invalid_percentage)
         self.__discount_id = discount_id
+        self.__store_id = store_id
         self.__discount_description = discount_description
         self.__starting_date = starting_date
         self.__ending_date = ending_date
@@ -42,6 +43,10 @@ class Discount(ABC):
     @property
     def discount_id(self):
         return self.__discount_id
+    
+    @property 
+    def store_id(self):
+        return self.__store_id
     
     @property
     def discount_description(self):
@@ -97,9 +102,9 @@ class CategoryDiscount(Discount):
     """
     * This class is responsible for creating a discount that is applied to a specific category.
     """
-    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint], category_id: int, applied_to_subcategories: bool):
-        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
+        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, predicate)
         self.__category_id = category_id
         self.__applied_to_subcategories = applied_to_subcategories
         logger.info("[CategoryDiscount] Category discount with id: " + str(discount_id) + " created successfully!")
@@ -145,6 +150,7 @@ class CategoryDiscount(Discount):
         return {
             "discount_type": "categoryDiscount",
             "discount_id": self.discount_id,
+            "store_id": self.store_id,
             "description": self.discount_description,
             "start_date": str(self.starting_date.strftime(DATE_FORMAT)),
             "end_date": str(self.ending_date.strftime(DATE_FORMAT)),
@@ -162,13 +168,8 @@ class StoreDiscount(Discount):
     """
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint], store_id: int):
-        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
-        self.__store_id = store_id
+        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, predicate)
         logger.info("[StoreDiscount] Store discount with id: " + str(discount_id) + " created successfully!")
-
-    @property
-    def store_id(self) -> int:
-        return self.__store_id
 
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
@@ -185,9 +186,9 @@ class StoreDiscount(Discount):
             return 0.0
         
         discount_reduction = 0.0
-        if self.__store_id == basket_information.store_id:
+        if self.store_id == basket_information.store_id:
             for product in basket_information.products:
-                if product.store_id == self.__store_id:
+                if product.store_id == self.store_id:
                     discount_reduction += product.price * product.amount * self.percentage
         logger.info("[StoreDiscount] Discount calculated to be: " + str(discount_reduction))
         return discount_reduction
@@ -197,12 +198,12 @@ class StoreDiscount(Discount):
         return {
             "discount_type": "storeDiscount",
             "discount_id": self.discount_id,
+            "store_id": self.store_id,
             "description": self.discount_description,
             "start_date": str(self.starting_date.strftime(DATE_FORMAT)),
             "end_date": str(self.ending_date.strftime(DATE_FORMAT)),
             "percentage": self.percentage,
-            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None",
-            "store_id": self.store_id
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
         }
 
 # --------------- Product Discount ---------------#
@@ -210,18 +211,13 @@ class ProductDiscount(Discount):
     # class responsible for returning the total price of the product discount.
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint], product_id: int, store_id: int):
-        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, predicate)
+        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, predicate)
         self.__product_id = product_id
-        self.__store_id = store_id
         logger.info("[ProductDiscount] Product discount with id: " + str(discount_id) + " created successfully!")
 
     @property
     def product_id(self) -> int:
         return self.__product_id
-    
-    @property
-    def store_id(self) -> int:
-        return self.__store_id
     
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
@@ -236,13 +232,13 @@ class ProductDiscount(Discount):
             logger.info("[ProductDiscount] Discount expired!")
             return 0.0
         
-        if self.__store_id != basket_information.store_id:
+        if self.store_id != basket_information.store_id:
             logger.info("[ProductDiscount] Discount not applicable due to store mismatch")
             return 0.0
 
         discount_reduction = 0.0
         for product in basket_information.products:
-            if product.product_id == self.__product_id and product.store_id == self.__store_id:
+            if product.product_id == self.__product_id and product.store_id == self.store_id:
                 discount_reduction += product.price * product.amount * self.percentage
         logger.info("[ProductDiscount] Discount calculated to be: " + str(discount_reduction))
         return discount_reduction
@@ -252,13 +248,13 @@ class ProductDiscount(Discount):
         return {
             "discount_type": "productDiscount",
             "discount_id": self.discount_id,
+            "store_id": self.store_id,
+            "product_id": self.product_id,
             "description": self.discount_description,
             "start_date": str(self.starting_date.strftime(DATE_FORMAT)),
             "end_date": str(self.ending_date.strftime(DATE_FORMAT)),
             "percentage": self.percentage,
-            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None",
-            "product_id": self.product_id,
-            "store_id": self.store_id
+            "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
         }
 
 
@@ -267,9 +263,9 @@ class AndDiscount(Discount):
     """
     * This class is responsible for creating a discount composite that is applied when both discounts are applicable.
     """
-    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, discount1: Discount, discount2: Discount):
-        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
+        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
         self.__discount1 = discount1
         self.__discount2 = discount2
         logger.info("[AndDiscount] And discount created successfully!")
@@ -313,6 +309,7 @@ class AndDiscount(Discount):
         return {
             "discount_type": "andDiscount",
             "discount_id": self.discount_id,
+            "store_id": self.store_id,
             "description": self.discount_description,
             "start_date": str(self.starting_date.strftime(DATE_FORMAT)),
             "end_date": str(self.ending_date.strftime(DATE_FORMAT)),
@@ -326,9 +323,9 @@ class OrDiscount(Discount):
     """
     * This class is responsible for creating a discount composite that is applied when at least one of the discounts is applicable.
     """
-    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, discount1: Discount, discount2: Discount): # add decision rule
-        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
+        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
         self.__discount1 = discount1
         self.__discount2 = discount2
 
@@ -380,6 +377,7 @@ class OrDiscount(Discount):
         return {
             "discount_type": "orDiscount",
             "discount_id": self.discount_id,
+            "store_id": self.store_id,
             "description": self.discount_description,
             "start_date": str(self.starting_date.strftime(DATE_FORMAT)),
             "end_date": str(self.ending_date.strftime(DATE_FORMAT)),
@@ -389,9 +387,9 @@ class OrDiscount(Discount):
 
 # --------------- Xor Discount ---------------#
 class XorDiscount(Discount):
-    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, discount1: Discount, discount2: Discount): # add decision rule
-        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
+        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
         self.__discount1 = discount1
         self.__discount2 = discount2
         logger.info("[XorDiscount] Xor discount created successfully!")
@@ -433,6 +431,7 @@ class XorDiscount(Discount):
         return {
             "discount_type": "xorDiscount",
             "discount_id": self.discount_id,
+            "store_id": self.store_id,
             "description": self.discount_description,
             "start_date": str(self.starting_date.strftime(DATE_FORMAT)),
             "end_date": str(self.ending_date.strftime(DATE_FORMAT)),
@@ -443,9 +442,9 @@ class XorDiscount(Discount):
 # --------------- Max Discount classes ---------------#
 class MaxDiscount(Discount):
     # class responsible for returning the total price of the maximum discount.
-    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, ListDiscount: list[Discount]):
-        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
+        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
         self.__ListDiscount = ListDiscount
         logger.info("[maxDiscount] Max discount created successfully!")
 
@@ -470,6 +469,7 @@ class MaxDiscount(Discount):
         return {
             "discount_type": "maxDiscount",
             "discount_id": self.discount_id,
+            "store_id": self.store_id,
             "description": self.discount_description,
             "start_date": str(self.starting_date.strftime(DATE_FORMAT)),
             "end_date": str(self.ending_date.strftime(DATE_FORMAT)),
@@ -480,9 +480,9 @@ class MaxDiscount(Discount):
 # --------------- Additive Discount classes ---------------#
 class AdditiveDiscount(Discount):
     # class responsible for returning the total price of the maximum discount.
-    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, ListDiscount: list[Discount]):
-        super().__init__(discount_id, discount_description, starting_date, ending_date, percentage, None)
+        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
         self.__ListDiscount = ListDiscount
         logger.info("[additiveDiscount] Additive discount created successfully!")
 
@@ -508,6 +508,7 @@ class AdditiveDiscount(Discount):
         return {
             "discount_type": "additiveDiscount",
             "discount_id": self.discount_id,
+            "store_id": self.store_id,
             "description": self.discount_description,
             "start_date": str(self.starting_date.strftime(date_format)),
             "end_date": str(self.ending_date.strftime(date_format)),
