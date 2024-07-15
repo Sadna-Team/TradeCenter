@@ -902,7 +902,7 @@ class Store:
         * This function restocks a product in the store
         * Returns: none
         """
-        if amount <= 0:
+        if amount < 0:
             raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
         
         
@@ -923,7 +923,7 @@ class Store:
         if self.__store_products[product_id].amount < amount:
             raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
         
-        if amount <= 0:
+        if amount < 0:
             raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
         
         self.__store_products[product_id].remove_amount(amount)
@@ -1603,16 +1603,16 @@ class StoreFacade:
             if isinstance(predicate_properties[1], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] age is a negative value')
-                    raise DiscountAndConstraintsError('Age is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Age is a negative value', DiscountAndConstraintsErrorTypes.invalid_age_limit)
                 return predicate_type(predicate_properties[1])
             else:
                 logger.warning('[StoreFacade] age is not an integer')
-                raise DiscountAndConstraintsError('Age is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Age is not an integer', DiscountAndConstraintsErrorTypes.invalid_age_limit)
         elif predicate_type == LocationConstraint:
             if isinstance(predicate_properties[1], Dict):
                 if 'address' not in predicate_properties[1] or 'city' not in predicate_properties[1] or 'state' not in predicate_properties[1] or 'country' not in predicate_properties[1] or 'zip_code' not in predicate_properties[1]:
                     logger.warning('[StoreFacade] location is missing fields')
-                    raise DiscountAndConstraintsError('Location is missing fields', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Location is missing fields', DiscountAndConstraintsErrorTypes.invalid_location)
                 address = AddressDTO(predicate_properties[1]['address'], predicate_properties[1]['city'], predicate_properties[1]['state'], predicate_properties[1]['country'], predicate_properties[1]['zip_code'])
                 return predicate_type(address)
             else:
@@ -1620,39 +1620,42 @@ class StoreFacade:
                 raise DiscountAndConstraintsError('Location is not a dictionary', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == TimeConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if predicate_properties[1] < 0 or predicate_properties[1] > 23 or predicate_properties[2] < 0 or predicate_properties[2] > 59 or predicate_properties[3] < 0 or predicate_properties[3] > 23 or predicate_properties[4] < 0 or predicate_properties[4] > 59:
+                    logger.warning('[StoreFacade] time is not valid')
+                    raise DiscountAndConstraintsError('Time is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 starting_time = time(predicate_properties[1], predicate_properties[2],0)
                 ending_time = time(predicate_properties[3], predicate_properties[4],0)
-                if starting_time > ending_time:
+                if starting_time >= ending_time:
                     logger.warning('[StoreFacade] starting time is greater than ending time')
-                    raise DiscountAndConstraintsError('Starting time is greater than ending time', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Starting time is greater than ending time', DiscountAndConstraintsErrorTypes.invalid_time_constraint)
                 return predicate_type(starting_time, ending_time)
             else:
                 logger.warning('[StoreFacade] starting time or ending time is not a datetime.time')
-                raise DiscountAndConstraintsError('Starting time or ending time is not a datetime.time', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Starting time or ending time is not a datetime.time', DiscountAndConstraintsErrorTypes.invalid_time_constraint)
         elif predicate_type == DayOfMonthConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
                 if predicate_properties[1] < 1 or predicate_properties[1] > 31 or predicate_properties[2] < 1 or predicate_properties[2] > 31:
                     logger.warning('[StoreFacade] day of month is not valid')
-                    raise DiscountAndConstraintsError('Day of month is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Day of month is not valid', DiscountAndConstraintsErrorTypes.invalid_day_of_month)
                 return predicate_type(predicate_properties[1], predicate_properties[2])
             else:
                 logger.warning('[StoreFacade] day of month is not an integer')
-                raise DiscountAndConstraintsError('Day of month is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Day of month is not an integer', DiscountAndConstraintsErrorTypes.invalid_day_of_month)
         elif predicate_type == DayOfWeekConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
                 if predicate_properties[1] < 1 or predicate_properties[1] > 7 or predicate_properties[2] < 1 or predicate_properties[2] > 7:
                     logger.warning('[StoreFacade] day of week is not valid')
-                    raise DiscountAndConstraintsError('Day of week is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Day of week is not valid', DiscountAndConstraintsErrorTypes.invalid_day_of_week)
                 return predicate_type(predicate_properties[1], predicate_properties[2])
             else:
                 logger.warning('[StoreFacade] day of week is not an integer')
-                raise DiscountAndConstraintsError('Day of week is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Day of week is not an integer', DiscountAndConstraintsErrorTypes.invalid_day_of_week)
         elif predicate_type == SeasonConstraint:
             if isinstance(predicate_properties[1], str):
                 return predicate_type(predicate_properties[1])
             else:
                 logger.warning('[StoreFacade] season is not an integer')
-                raise DiscountAndConstraintsError('Season is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Season is not an integer', DiscountAndConstraintsErrorTypes.invalid_season)
         elif predicate_type == HolidaysOfCountryConstraint:
             if isinstance(predicate_properties[1], str):
                 return predicate_type(predicate_properties[1])
@@ -1663,113 +1666,113 @@ class StoreFacade:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[1] != -1 and predicate_properties[2] > predicate_properties[1]) or predicate_properties[2] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min price, max price or category id is not valid')
-                raise DiscountAndConstraintsError('Min price, max price or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min price, max price or category id is not valid', DiscountAndConstraintsErrorTypes.invalid_price)
         elif predicate_type == PriceProductConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min price, max price, product id or store id is not valid')
-                raise DiscountAndConstraintsError('Min price, max price, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min price, max price, product id or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_price)
         elif predicate_type == PriceBasketConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min price, max price or store id is not valid')
-                raise DiscountAndConstraintsError('Min price, max price or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min price, max price or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_price)
         elif predicate_type == WeightCategoryConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min weight, max weight or category id is not valid')
-                raise DiscountAndConstraintsError('Min weight, max weight or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min weight, max weight or category id is not valid', DiscountAndConstraintsErrorTypes.invalid_weight)
         elif predicate_type == WeightProductConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min weight, max weight, product id or store id is not valid')
-                raise DiscountAndConstraintsError('Min weight, max weight, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min weight, max weight, product id or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_weight)
         elif predicate_type == WeightBasketConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min weight, max weight or store id is not valid')
-                raise DiscountAndConstraintsError('Min weight, max weight or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min weight, max weight or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_weight)
         elif predicate_type == AmountCategoryConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
-                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.invalid_amount)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min amount or category id is not valid')
-                raise DiscountAndConstraintsError('Min amount or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min amount or category id is not valid', DiscountAndConstraintsErrorTypes.invalid_amount)
         elif predicate_type == AmountProductConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
-                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.invalid_amount)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min amount, product id or store id is not valid')
-                raise DiscountAndConstraintsError('Min amount, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min amount, product id or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_amount)
         elif predicate_type == AmountBasketConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
-                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.invalid_amount)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min amount or store id is not valid')
-                raise DiscountAndConstraintsError('Min amount or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min amount or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_amount)
         return None
 
 
