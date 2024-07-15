@@ -32,6 +32,7 @@ class StoreErrorTypes(Enum):
     invalid_purchase_policy_input = 28
     unexpected_error = 29
     invalid_product_name = 30
+    invalid_user_id = 31
 
 class UserErrorTypes(Enum):
     user_suspended = 1
@@ -94,6 +95,7 @@ class PurchaseErrorTypes(Enum):
     offer_to_store = 15
     purchase_not_bid_purchase = 16
     database_error = 17
+    invalid_name = 18
 
 
 class ThirdPartyHandlerErrorTypes(Enum):

@@ -1689,3 +1689,6 @@ class MarketFacade:
             raise UserError("User does not have the necessary permissions to get the product categories", UserErrorTypes.user_does_not_have_necessary_permissions)
         return self.store_facade.get_product_categories(store_id, product_id)
 
+    def get_total_price_after_discount(self, user_id: int):
+        cart = self.user_facade.get_shopping_cart(user_id)
+        return self.store_facade.get_total_price_after_discount(cart, None)

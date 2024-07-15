@@ -7,6 +7,8 @@ from .PurchasePolicy import *
 from datetime import datetime
 from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO, CategoryDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
+from backend.error_types import *
+
 import threading
 # -------------logging configuration----------------
 import logging
@@ -24,12 +26,29 @@ class Product:
     # id of product is productId. It is unique for each physical product
     def __init__(self, product_id: int, product_name: str, description: str, price: float, weight: float, amount: int=0):
         self.__product_id: int = product_id
+        
+        if product_name is None or product_name == '':
+            raise StoreError('Product name is not a valid string', StoreErrorTypes.invalid_product_name)
+        
         self.__product_name: str = product_name
         self.__description: str = description
         self.__tags: List[str] = []  # initialized with no tags
+        
+        if price < 0:
+            raise StoreError('Price is a negative value', StoreErrorTypes.invalid_price)
+        
         self.__price: float = price  # price is in dollars
+        
+        if weight < 0:
+            raise StoreError('Weight is a negative value', StoreErrorTypes.invalid_weight)
+        
         self.__weight: float = weight  # weight is in kg
+        
+        if amount < 0:
+            raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
+        
         self.__amount: int = amount  # amount of the product in the store
+        
         self.__product_lock = threading.Lock() # lock for product
         logger.info('[Product] successfully created product with id: ' + str(product_id))
 
@@ -83,8 +102,8 @@ class Product:
         * This function changes the name of the product
         * Returns: none
         """
-        if new_name is None:
-            raise StoreError('New name is not a valid string', StoreErrorTypes.invalid_name)
+        if new_name is None or new_name == '':
+            raise StoreError('New name is not a valid string', StoreErrorTypes.invalid_product_name)
         with self.__product_lock:
             self.__product_name = new_name
         logger.info('[Product] successfully changed name of product with id: ' + str(self.__product_id))
@@ -199,6 +218,8 @@ class Product:
             self.__amount += amount
 
     def remove_amount(self, amount) -> None:
+        if amount < 0:
+            raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
         if self.__amount < amount:
             raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
         with self.__product_lock:
@@ -213,6 +234,10 @@ class Category:
 
     def __init__(self, category_id: int, category_name: str):
         self.__category_id: int = category_id
+        
+        if category_name is None or category_name == '':
+            raise StoreError('Category name is not a valid string', StoreErrorTypes.invalid_category_name)
+        
         self.__category_name: str = category_name
         self.__parent_category_id: int = -1  # -1 means that the category does not have a parent category for now
         self.__category_products: List[Tuple[int, int]] = []
@@ -533,6 +558,10 @@ class Store:
     def __init__(self, store_id: int, address: AddressDTO, store_name: str, store_founder_id: int):
         self.__store_id = store_id
         self.__address = address
+        
+        if store_name is None or store_name == '':
+            raise StoreError('Store name is not a valid string', StoreErrorTypes.invalid_store_name)
+        
         self.__store_name = store_name
         self.__store_founder_id = store_founder_id
         self.__is_active = True
@@ -584,6 +613,9 @@ class Store:
         * This function closes the store
         * Returns: none
         """
+        if user_id is None:
+            raise StoreError('User id is not a valid integer', StoreErrorTypes.invalid_user_id)
+        
         if not user_id == self.__store_founder_id:
             raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
         if not self.__is_active:
@@ -599,6 +631,8 @@ class Store:
         * This function opens the store
         * Returns: none
         """
+        if user_id is None:
+            raise StoreError('User id is not a valid integer', StoreErrorTypes.invalid_user_id)
         if not user_id == self.__store_founder_id:
             raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
         if self.__is_active:
@@ -721,6 +755,11 @@ class Store:
         * Returns: the purchase policy ID
         * NOTE: in type_of_composite: 1 is AND, 2 is OR, 3 is Conditional
         """
+        
+        if policy_name is None or policy_name == '':
+            logger.error('[Store] Policy name is not a valid string in store with id: {self.__store_id}')
+            raise StoreError('Policy name is not a valid string', StoreErrorTypes.invalid_policy_name)
+        
         new_policy_id: int = -1
         if policy_id_left not in self.__purchase_policy or policy_id_right not in self.__purchase_policy:
             logger.error('[Store] Purchase policy components of new composite policy are not found in store with id: {self.__store_id}')
@@ -863,6 +902,10 @@ class Store:
         * This function restocks a product in the store
         * Returns: none
         """
+        if amount <= 0:
+            raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
+        
+        
         if product_id in self.__store_products:
             self.__store_products[product_id].restock(amount)
             logger.info('[Store] successfully restocked product with id: ' + str(product_id))
@@ -879,6 +922,10 @@ class Store:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
         if self.__store_products[product_id].amount < amount:
             raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
+        
+        if amount <= 0:
+            raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
+        
         self.__store_products[product_id].remove_amount(amount)
         logger.info('Successfully removed product amount with id: {product_id}')
 
@@ -889,6 +936,9 @@ class Store:
         * Returns: none
         """
         product = self.get_product_by_id(product_id)
+        if new_description is None:
+            raise StoreError('Description is not a valid string', StoreErrorTypes.invalid_description)
+        
         if product is not None:
             product.change_description(new_description)
             logger.info('Successfully changed description of product with id: {product_id}')
@@ -902,6 +952,10 @@ class Store:
         * Returns: none
         """
         product = self.get_product_by_id(product_id)
+        
+        if new_price <0:
+            raise StoreError('Price is not a valid float', StoreErrorTypes.invalid_price)
+        
         if product is not None:
             product.change_price(new_price)
             logger.info('Successfully changed price of product with id: {product_id} to {new_price}')
@@ -1113,7 +1167,7 @@ class StoreFacade:
         * This function adds a category to the store
         * Returns: none
         """
-        if category_name is not None:
+        if category_name is not None or category_name != '':
             with self.__category_id_lock:
                 category = Category(self.__category_id_counter, category_name)
                 self.__categories[self.__category_id_counter] = category
@@ -1133,6 +1187,9 @@ class StoreFacade:
         category_to_remove = self.get_category_by_id(category_id)
         cond = category_to_remove.has_parent_category()
         parent_category = self.get_category_by_id(category_to_remove.parent_category_id) if cond else None
+        
+        if category_to_remove is None:
+            raise StoreError('Category is not found', StoreErrorTypes.category_not_found)
 
         #removing the subCategories of the category
         for subCategory in category_to_remove.sub_categories:
@@ -1153,6 +1210,9 @@ class StoreFacade:
         * Note: the parent category is assigned in the method addSubCategory of the category class
         * Returns: True if the subcategory is assigned successfully
         """
+        if sub_category_id == category_id:
+            raise StoreError('Category cannot be a subcategory of itself', StoreErrorTypes.sub_category_error)
+            
         sub_category = self.get_category_by_id(sub_category_id)
         category = self.get_category_by_id(category_id)
         category.add_sub_category(sub_category)
@@ -1164,6 +1224,11 @@ class StoreFacade:
         * Note: the parent category is removed in the method removeSubCategory of the category class
         * Returns: True if the subcategory is deleted successfully
         """
+        if sub_category_id is None:
+            raise StoreError('Sub category id is missing', StoreErrorTypes.sub_category_error)
+        if category_id is None:
+            raise StoreError('Category id is missing', StoreErrorTypes.category_not_found)
+        
         category = self.get_category_by_id(category_id)
         sub_category = self.get_category_by_id(sub_category_id)
         category.remove_sub_category(sub_category)
@@ -1774,6 +1839,10 @@ class StoreFacade:
             raise DiscountAndConstraintsError('Discount is not found',DiscountAndConstraintsErrorTypes.discount_not_found)
         logger.info('[StoreFacade] successfully changed discount percentage')
         discount = self.__discounts[discount_id]
+        if new_percentage < 0:
+            logger.error('[StoreFacade] percentage is negative')
+            raise DiscountAndConstraintsError('Percentage is negative',DiscountAndConstraintsErrorTypes.invalid_percentage)
+        
         discount.change_discount_percentage(new_percentage)
 
     def change_discount_description(self, discount_id: int, new_description: str) -> None:

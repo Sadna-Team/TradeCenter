@@ -1,5 +1,5 @@
 import json
-from flask_jwt_extended import get_jti, create_access_token, decode_token
+from flask_jwt_extended import get_jti, decode_token
 from .ecommerce_services.controllers import PurchaseService
 from .store_services.controllers import StoreService
 from .user_services.controllers import UserService, AuthenticationService
@@ -18,8 +18,12 @@ class InitialState:
         self.app = app
         self.db = db
         self.file = file
-        self.username_to_token = {}
-        self.username_to_password = {}
+        self.username_to_token = {}  # username -> token
+        self.username_to_password = {}  # username -> password
+
+        self.logged_in = set()
+        self.guests = set()
+
         self.store_name_to_id = {}
         self.counter = 0
 
@@ -35,7 +39,7 @@ class InitialState:
                 'phone': phone
             }
 
-            response, status_code =  self.authentication_service.start_guest()
+            response, status_code = self.authentication_service.start_guest()
             if status_code != 200:
                 return False
             token = response.json['token']
@@ -47,6 +51,7 @@ class InitialState:
 
             self.username_to_password[username] = password
             self.username_to_token[username] = token
+            self.guests.add(username)
             return True
 
     def login_user(self, username):
@@ -59,6 +64,8 @@ class InitialState:
                     return False
                 token = response.json['token']
                 self.username_to_token[username] = token
+                self.logged_in.add(username)
+                self.guests.remove(username)
                 return True
         return False
 
@@ -196,6 +203,21 @@ class InitialState:
                 if status_code != 200:
                     return False
                 del self.username_to_token[username]
+                self.logged_in.remove(username)
+                return True
+            return False
+
+    def logout_guest(self, username):
+        with self.app.app_context():
+            token = self.username_to_token.get(username)
+            if token is not None:
+                user_id = decode_token(token)['sub']
+                jti = get_jti(token)
+                response, status_code = self.authentication_service.logout_guest(jti, user_id)
+                if status_code != 200:
+                    return False
+                del self.username_to_token[username]
+                self.guests.remove(username)
                 return True
             return False
 
@@ -255,6 +277,14 @@ class InitialState:
 
                         if not success:
                             raise ValueError(f"Action {action_name} failed for {action}")
+
+                    logged_in = self.logged_in.copy()
+                    guests = self.guests.copy()
+
+                    for username in logged_in:
+                        self.logout(username)
+                    for username in guests:
+                        self.logout_guest(username)
 
                 return True
 

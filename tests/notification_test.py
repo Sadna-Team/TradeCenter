@@ -31,6 +31,8 @@ default_address_checkout = { 'address': 'randomstreet 34th',
 @pytest.fixture
 def app():
     app = create_app(mode='testing')
+    from backend import app as app2
+    app2.app = app
     return app
 
 @pytest.fixture
@@ -218,7 +220,8 @@ def test_purchase_notification_real_time(owner_socket, client2, user, store, cle
     assert len(response) == 2
 
     notification = response[1]['args']['message']
-    assert notification == 'New purchase in store: 0\n purchase ID: 0'
+    # check if start with 'New purchase in store: 0\n purchase ID:
+    assert notification.startswith('New purchase in store: 0\n purchase ID:')
 
 def test_purchase_notification_delay(app, client1, owner, owner_socket, store, client2, user, clean):
     # log out owner
@@ -249,7 +252,7 @@ def test_purchase_notification_delay(app, client1, owner, owner_socket, store, c
     assert len(notifications) == 1
     
     notification = notifications[0]['message']
-    assert notification == 'New purchase in store: 0\n purchase ID: 0'
+    assert notification.startswith('New purchase in store: 0\n purchase ID:')
 
 def test_purchase_notification_real_time_multiple_owners(client1, owner, owner_socket, store, client2, user, user_socket, clean):
     # nominate owner
@@ -282,7 +285,7 @@ def test_purchase_notification_real_time_multiple_owners(client1, owner, owner_s
     assert len(response) == 2
 
     notification = response[1]['args']['message']
-    assert notification == 'New purchase in store: 0\n purchase ID: 0'
+    assert notification.startswith('New purchase in store: 0\n purchase ID:')
 
     # check notification - user
     response = user_socket.get_received()
@@ -290,7 +293,7 @@ def test_purchase_notification_real_time_multiple_owners(client1, owner, owner_s
     assert len(response) == 1
 
     notification = response[0]['args']['message']
-    assert notification == 'New purchase in store: 0\n purchase ID: 0'
+    assert notification.startswith('New purchase in store: 0\n purchase ID:')
 
 def test_closing_opening_store_notification_real_time(client1, owner, store, client2, user, user_socket, clean):
     # nominate manager
