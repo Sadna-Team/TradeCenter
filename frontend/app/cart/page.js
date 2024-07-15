@@ -9,6 +9,7 @@ const Cart = () => {
   const [idsCart, setIdsCart] = useState([]); // [store_id, product_id, quantity]
   const [cart, setCart] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
+  const [totalPriceAfterDiscount, setTotalPriceAfterDiscount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [rerender, setRerender] = useState(false);
 
@@ -71,7 +72,19 @@ const Cart = () => {
         setTotalPrice(total);
         setCart(updatedCart); // Ensure state update triggers re-render
       }
+
+      const fetchTotalPriceAfterDiscount = async () => {
+        try {
+          const response = await api.get('/store/get_total_price_after_discounts');
+          const total = response.data.message;
+          setTotalPriceAfterDiscount(total);
+        } catch (error) {
+          console.error('Failed to fetch total price after discount:', error);
+        }
+      }
+
       fetchProductDetails();
+      fetchTotalPriceAfterDiscount();
     }
     else {
       setCart([]); // Ensure cart is always an array
@@ -161,6 +174,7 @@ const Cart = () => {
                 ))}
                 <div className="cart-summary mt-4">
                   <p className="text-lg">Total Price: ${totalPrice.toFixed(2)}</p>
+                  <p className="text-lg">Total Price After Discount: ${totalPriceAfterDiscount.toFixed(2)}</p>
                 </div>
                 {cart.length > 0 && (
                   <div className="flex justify-between mt-4">

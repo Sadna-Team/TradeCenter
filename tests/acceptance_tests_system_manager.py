@@ -33,6 +33,8 @@ default_address = { 'address': 'randomstreet 34th',
 @pytest.fixture
 def app():
     app = create_app(mode='testing')
+    from backend import app as app2
+    app2.app = app
     return app
 
 @pytest.fixture
