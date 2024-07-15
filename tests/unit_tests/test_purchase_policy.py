@@ -51,9 +51,9 @@ default_category_id: int = 0
 default_category_2: int = 1
 default_applied_to_subcategories: bool = False
 
-default_category_discount1: CategoryDiscount = CategoryDiscount(default_discount_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_predicate, default_category_id, default_applied_to_subcategories)
-default_category_discount2: CategoryDiscount = CategoryDiscount(default_discount_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_predicate, 1, not default_applied_to_subcategories)
-default_category_discount3: CategoryDiscount = CategoryDiscount(default_discount_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_AmountProductConstraint, default_category_id, default_applied_to_subcategories)
+default_category_discount1: CategoryDiscount = CategoryDiscount(default_discount_id, default_store_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_predicate, default_category_id, default_applied_to_subcategories)
+default_category_discount2: CategoryDiscount = CategoryDiscount(default_discount_id, default_store_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_predicate, 1, not default_applied_to_subcategories)
+default_category_discount3: CategoryDiscount = CategoryDiscount(default_discount_id, default_store_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_AmountProductConstraint, default_category_id, default_applied_to_subcategories)
 
 #StoreDiscount default vars:
 default_store_discount1: StoreDiscount = StoreDiscount(default_discount_id, default_discount_description, default_starting_date, default_ending_date, default_percentage2, default_predicate, default_store_id)
