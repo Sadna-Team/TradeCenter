@@ -612,7 +612,7 @@ class MarketFacade:
 
     # -------------Discount related methods-------------------#
     def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float,
-                     store_id: Optional[int] = None, product_id: Optional[int] = None,
+                     store_id: int, product_id: Optional[int] = None,
                      category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
         """
         * Parameters: userId, description, startDate, endDate, percentage, storeId(optional), productId(optional), categoryId(optional), appliedToSub(optional)
@@ -623,12 +623,12 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
-        if not self.roles_facade.is_system_manager(user_id):
-            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        return self.store_facade.add_discount(description, start_date, end_date, percentage, category_id, store_id,
+        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
+            raise UserError("User does not have necessary permissions to manage discount", UserErrorTypes.user_does_not_have_necessary_permissions)
+        return self.store_facade.add_discount(description, store_id, start_date, end_date, percentage, category_id,
                                               product_id, applied_to_sub)
 
-    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime,
+    def create_logical_composite_discount(self, user_id: int, store_id: int, description: str, start_date: datetime,
                                           end_date: datetime, discount_id1: int, discount_id2: int,
                                           type_of_composite: int) -> int:
         """
@@ -641,12 +641,12 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
-        if not self.roles_facade.is_system_manager(user_id):
-            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        return self.store_facade.create_logical_composite_discount(description, start_date, end_date, 0.0, discount_id1,
+        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
+            raise UserError("User does not have necessary permissions to manage discount", UserErrorTypes.user_does_not_have_necessary_permissions)
+        return self.store_facade.create_logical_composite_discount(description, store_id, start_date, end_date, 0.0, discount_id1,
                                                                    discount_id2, type_of_composite)
 
-    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime,
+    def create_numerical_composite_discount(self, user_id: int, store_id: int, description: str, start_date: datetime,
                                             end_date: datetime, discount_ids: List[int], type_of_composite: int) -> int:
         """
         * Parameters: userId, description, startDate, endDate, discountIds, typeOfComposite
@@ -658,20 +658,21 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
-        if not self.roles_facade.is_system_manager(user_id):
-            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        return self.store_facade.create_numerical_composite_discount(description, start_date, end_date, 0.0,
+        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
+            raise UserError("User does not have necessary permissions to manage discount", UserErrorTypes.user_does_not_have_necessary_permissions)
+        return self.store_facade.create_numerical_composite_discount(description, store_id, start_date, end_date, 0.0,
                                                                      discount_ids, type_of_composite)
 
-    def assign_predicate_to_discount(self, user_id: int, discount_id: int, predicate_properties: Tuple) -> None:
+    def assign_predicate_to_discount(self, user_id: int, discount_id: int, store_id:int, predicate_properties: Tuple) -> None:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.is_system_manager(user_id):
+        
+        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
             logger.warning(f"User {user_id} does not have permissions to assign a predicate to a discount")
-            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+            raise UserError("User does not have necessary permissions to manage discount", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.assign_predicate_to_discount(discount_id, predicate_properties)
 
-    def change_discount_percentage(self, user_id: int, discount_id: int, new_percentage: float) -> None:
+    def change_discount_percentage(self, user_id: int, discount_id: int, store_id: int, new_percentage: float) -> None:
         """
         * Parameters: userId, discountId, newPercentage
         * This function changes the percentage of a discount
@@ -680,12 +681,12 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
-        if not self.roles_facade.is_system_manager(user_id):
+        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
             logger.warning(f"User {user_id} does not have permissions to change the percentage of a discount")
-            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+            raise UserError("User does not have necessary permissions to manage discount", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.change_discount_percentage(discount_id, new_percentage)
 
-    def change_discount_description(self, user_id: int, discount_id: int, new_description: str) -> None:
+    def change_discount_description(self, user_id: int, discount_id: int, store_id: int, new_description: str) -> None:
         """
         * Parameters: userId, discountId, newDescription
         * This function changes the description of a discount
@@ -694,31 +695,32 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         
-        if not self.roles_facade.is_system_manager(user_id):
+        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
             logger.warning(f"User {user_id} does not have permissions to change the description of a discount")
-            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+            raise UserError("User does not have necessary permissions to manage discount", UserErrorTypes.user_does_not_have_necessary_permissions)
+
         self.store_facade.change_discount_description(discount_id, new_description)
 
-    def remove_discount(self, user_id: int, discount_id: int) -> None:
+    def remove_discount(self, user_id: int, discount_id: int, store_id: int) -> None:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.is_system_manager(user_id):
-            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
+            raise UserError("User does not have necessary permissions to manage discount", UserErrorTypes.user_does_not_have_necessary_permissions)
         if self.store_facade.remove_discount(discount_id):
             logger.info(f"User {user_id} has removed a discount")
         else:
             logger.info(f"User {user_id} has failed to remove a discount")
 
-    def view_all_discount_information(self, user_id: int) -> dict:
+    def view_all_discount_information_of_store(self, user_id: int, store_id: int) -> dict:
         """
         * This function returns all the discount information
         * Returns a list of dictionaries
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.is_system_manager(user_id):
-            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        return self.store_facade.view_all_discount_information()
+        if not self.roles_facade.has_change_discount_types_permission(store_id, user_id):
+            raise UserError("User does not have necessary permissions to manage discount", UserErrorTypes.user_does_not_have_necessary_permissions)
+        return self.store_facade.view_all_discount_information_of_store(store_id)
     # -------------Rating related methods-------------------#
     '''def add_store_rating(self, user_id: int, purchase_id: int, description: str, rating: float):
         """
