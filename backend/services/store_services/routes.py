@@ -178,10 +178,7 @@ def add_discount():
         start_date: datetime = data['start_date']
         end_date: datetime = data['end_date']
         percentage: float = float(data['percentage'])
-        store_id = None 
-        if 'store_id' in data:
-            if data['store_id'] is not None:
-                store_id = int(data['store_id'])
+        store_id: int = int(data['store_id'])
         product_id = None
         if 'product_id' in data:
             if data['product_id'] is not None:
@@ -214,11 +211,12 @@ def remove_discount():
         user_id = get_jwt_identity()
         data = request.get_json()
         discount_id = int(data['discount_id'])
+        store_id = int(data['store_id'])
     except Exception as e:
         logger.error('remove_discount - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.remove_discount(user_id, discount_id)
+    return store_service.remove_discount(user_id, discount_id, store_id)
 
 
 @store_bp.route('/create_logical_composite', methods=['POST'])
@@ -233,6 +231,7 @@ def create_logical_composite():
         user_id = get_jwt_identity()
         data = request.get_json()
         description = str(data['description'])
+        store_id = int(data['store_id'])
         start_date = data['start_date']
         end_date = data['end_date']
         discount_id1 = int(data['discount_id1'])
@@ -242,7 +241,7 @@ def create_logical_composite():
         logger.error('create_logical_composite - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.create_logical_composite_discount(user_id, description, start_date, end_date, discount_id1, discount_id2, type_of_composite)
+    return store_service.create_logical_composite_discount(user_id, store_id, description, start_date, end_date, discount_id1, discount_id2, type_of_composite)
 
 @store_bp.route('/create_numerical_composite', methods=['POST'])
 @jwt_required()
@@ -256,6 +255,7 @@ def create_numerical_composite():
         user_id = get_jwt_identity()
         data = request.get_json()
         description = str(data['description'])
+        store_id = int(data['store_id'])
         start_date = data['start_date']
         end_date = data['end_date']
         discount_ids = data['discount_ids']
@@ -264,7 +264,7 @@ def create_numerical_composite():
         logger.error('create_numerical_composite - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.create_numerical_composite_discount(user_id, description, start_date, end_date, discount_ids, type_of_composite)
+    return store_service.create_numerical_composite_discount(user_id, store_id, description, start_date, end_date, discount_ids, type_of_composite)
 
 @store_bp.route('/assign_predicate_to_discount', methods=['POST'])
 @jwt_required()
@@ -278,12 +278,13 @@ def assign_predicate_to_discount():
         user_id = get_jwt_identity()
         data = request.get_json()
         discount_id = int(data['discount_id'])
+        store_id = int(data['store_id'])
         predicate_builder = data['predicate_builder']
     except Exception as e:
         logger.error('assign_predicate_to_discount - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.assign_predicate_to_discount(user_id, discount_id, predicate_builder)
+    return store_service.assign_predicate_to_discount(user_id, discount_id, store_id, predicate_builder)
 
 @store_bp.route('/change_discount_percentage', methods=['POST'])
 @jwt_required()
@@ -297,12 +298,13 @@ def change_discount_percentage():
         user_id = get_jwt_identity()
         data = request.get_json()
         discount_id = int(data['discount_id'])
+        store_id = int(data['store_id'])
         percentage = float(data['percentage'])
     except Exception as e:
         logger.error('change_discount_percentage - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.change_discount_percentage(user_id, discount_id, percentage)
+    return store_service.change_discount_percentage(user_id, discount_id, store_id, percentage)
 
 @store_bp.route('/change_discount_description', methods=['POST'])
 @jwt_required()
@@ -316,12 +318,13 @@ def change_discount_description():
         user_id = get_jwt_identity()
         data = request.get_json()
         discount_id = int(data['discount_id'])
+        store_id = int(data['store_id'])
         description = str(data['description'])
     except Exception as e:
         logger.error(('change_discount_description - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.change_discount_description(user_id, discount_id, description)
+    return store_service.change_discount_description(user_id, discount_id, store_id, description)
 
 @store_bp.route('/view_discounts_info', methods=['GET', 'POST'])
 @jwt_required()
@@ -334,11 +337,12 @@ def view_discounts_info():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
+        store_id = int(data['store_id'])
     except Exception as e:
         logger.error('view_discounts_info - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return store_service.view_all_discount_info(user_id)
+    return store_service.view_all_discount_info(user_id, store_id)
 
 @store_bp.route('/store_info', methods=['GET', 'POST'])
 @jwt_required()
