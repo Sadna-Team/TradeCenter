@@ -628,3 +628,16 @@ class StoreService:
         except Exception as e:
             logger.error('store id was not sent')
             return jsonify({'message': str(e)}), 400
+
+
+    def get_total_price_after_discount(self, user_id: int):
+        """
+            Get the total price after discount
+        """
+        try:
+            total_price = self.__market_facade.get_total_price_after_discount(user_id)
+            logger.info('total price after discount was sent successfully')
+            return jsonify({'message': total_price}), 200
+        except Exception as e:
+            logger.error('total price after discount was not sent')
+            return jsonify({'message': str(e)}), 400

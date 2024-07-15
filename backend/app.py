@@ -10,9 +10,6 @@ logger = logging.getLogger('myapp')
 config_mode = os.getenv('FLASK_CONFIG', 'default')
 
 
-# Register API routes from service_layer
-#app.register_blueprint(api_routes)
-
 if __name__ == "__main__":
     app = create_app(config_mode)
     app.logger.info("Starting app...")
