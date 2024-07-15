@@ -402,12 +402,12 @@ def test_create_numerical_composite_discount_invalid_store_id(client12, owner_to
     
     data = {"description": 'hara2', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.2, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
     response = client12.post('store/add_discount', headers=headers, json=data)
-    assert response.status_code == 400
+    assert response.status_code == 200
     
     
     data = {"description": "hi", "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "discount_ids": [0,1], "type_of_composite": 1, "store_id": 69}
     response = client12.post('store/create_numerical_composite', headers=headers, json=data)
-    assert response.status_code == 200
+    assert response.status_code == 400
     
 def test_create_numerical_composite_discount_no_permission(client33, guest_token10, client12 ,owner_token11, init_store, clean11):
     data = {"description": 'hara', "start_date": datetime(2023,1,23).strftime('%Y-%m-%d'), "end_date": datetime(2040,1,1).strftime('%Y-%m-%d'), "percentage": 0.1, "store_id": 0, "product_id": None, "category_id": None, "applied_to_sub": None}
@@ -474,7 +474,7 @@ def test_assign_predicate_to_discount_wrong_predicate(client12, owner_token11, i
     response = client12.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
         
-    data = {"discount_id": 0, 'predicate_builder':("random_predicate", 2,0,0)}
+    data = {"discount_id": 0, "store_id": 0, 'predicate_builder':("random_predicate", 2,0,0)}
     response = client12.post('store/assign_predicate_to_discount', headers=headers, json=data)
     assert response.status_code == 400
     
@@ -515,7 +515,7 @@ def test_change_discount_invalid_percentage(client12, owner_token11, init_store,
     response = client12.post('store/add_discount', headers=headers, json=data)
     assert response.status_code == 200
     
-    data = {"discount_id": 0, "percentage": 1.5}
+    data = {"discount_id": 0,"store_id": 0, "percentage": 1.5}
     headers = {'Authorization': 'Bearer ' + owner_token11}
     response = client12.post('store/change_discount_percentage', headers=headers, json=data)
     assert response.status_code == 400
