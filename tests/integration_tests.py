@@ -576,7 +576,7 @@ def test_create_logical_composite_discount_no_permission(default_set_up):
     discount_id1 = discount_ids[0]
     discount_id2 = discount_ids[1]
     with pytest.raises(UserError) as e:
-        market_facade.create_logical_composite_discount(user_id1+1, store_ids[0] 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
+        market_facade.create_logical_composite_discount(user_id1+1, store_ids[0], 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
     assert e.value.user_error_type == UserErrorTypes.user_not_system_manager    
 
 def test_create_numerical_composite_discount(default_set_up):
