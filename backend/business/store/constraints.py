@@ -39,6 +39,8 @@ class Constraint(ABC):
 # --------------- age constraint class ---------------#
 class AgeConstraint(Constraint):
     def __init__(self, age_limit: int):
+        if age_limit < 0:
+            raise DiscountAndConstraintsError("Age limit is not valid", DiscountAndConstraintsErrorTypes.invalid_age_limit)
         self.__age_limit = age_limit
         logger.info("[AgeConstraint]: Age constraint created with age limit: " + str(age_limit))
 
@@ -70,6 +72,8 @@ class AgeConstraint(Constraint):
 # --------------- location constraint class ---------------# 
 class LocationConstraint(Constraint):
     def __init__(self, location: AddressDTO):
+        if location is None:
+            raise DiscountAndConstraintsError("Location is not valid", DiscountAndConstraintsErrorTypes.invalid_location)
         self.__location = location
         logger.info("[LocationConstraint]: Location constraint created with location: " + str(location))
 
@@ -101,6 +105,8 @@ class LocationConstraint(Constraint):
 # --------------- time constraint class ---------------#
 class TimeConstraint(Constraint):
     def __init__(self, start_time: time, end_time: time):
+        if start_time >= end_time:
+            raise DiscountAndConstraintsError("Start time is greater than end time", DiscountAndConstraintsErrorTypes.invalid_time_constraint)
         self.__start_time = start_time
         self.__end_time = end_time
         logger.info("[TimeConstraint]: Time constraint created with start time: " + str(start_time) + " and end time: " + str(end_time))
@@ -133,6 +139,12 @@ class TimeConstraint(Constraint):
 # --------------- day constraint class ---------------#
 class DayOfMonthConstraint(Constraint):
     def __init__(self, start_day: int, end_day: int):
+        if start_day < 1 or start_day > 31 or end_day < 1 or end_day > 31:
+            raise DiscountAndConstraintsError("Day of month is not valid", DiscountAndConstraintsErrorTypes.invalid_day_of_month)
+        
+        if start_day > end_day:
+            raise DiscountAndConstraintsError("Start day is greater than end day", DiscountAndConstraintsErrorTypes.invalid_day_of_month)
+        
         self.__start_day = start_day
         self.__end_day = end_day
         logger.info("[DayOfMonthConstraint]: Day of month constraint created with start day: " + str(start_day) + " and end day: " + str(end_day))
@@ -164,6 +176,12 @@ class DayOfMonthConstraint(Constraint):
 # --------------- day of week constraint class ---------------#
 class DayOfWeekConstraint(Constraint):
     def __init__(self, start_day: int, end_day: int):
+        if start_day < 1 or start_day > 7 or end_day < 1 or end_day > 7:
+            raise DiscountAndConstraintsError("Day of week is not valid", DiscountAndConstraintsErrorTypes.invalid_day_of_week)
+        
+        if start_day > end_day:
+            raise DiscountAndConstraintsError("Start day is greater than end day", DiscountAndConstraintsErrorTypes.invalid_day_of_week)
+        
         self.__start_day = start_day
         self.__end_day = end_day
         logger.info("[DayOfWeekConstraint]: Day of week constraint created with start day: " + str(start_day) + " and end day: " + str(end_day))
@@ -285,6 +303,12 @@ class HolidaysOfCountryConstraint(Constraint):
 # --------------- price basket constraint class ---------------#
 class PriceBasketConstraint(Constraint):
     def __init__(self, min_price: float, max_price: float, store_id: int):
+        if min_price < 0:
+            raise DiscountAndConstraintsError("Min price is not valid", DiscountAndConstraintsErrorTypes.invalid_price)
+        
+        if max_price != -1.0 and max_price < min_price:
+            raise DiscountAndConstraintsError("Max price is not valid", DiscountAndConstraintsErrorTypes.invalid_price)
+        
         self.__min_price = min_price #if min_price is 0, then there is no lower limit
         self.__max_price = max_price #if max_price is -1, then there is no upper limit
         self.__store_id = store_id
@@ -296,7 +320,7 @@ class PriceBasketConstraint(Constraint):
             logger.warning("[PriceBasketConstraint]: Store id does not match the store id of the basket")
             return False
         
-        if self.__max_price == -1:
+        if self.__max_price == -1.0:
             logger.info("[PriceBasketConstraint]: Checking if the total price of the basket is atleast" + str(self.__min_price) + " dollars")
             return self.__min_price <= basket_information.total_price_of_basket
         logger.info("[PriceBasketConstraint]: Checking if the total price of the basket is between " + str(self.__min_price) + " and " + str(self.__max_price) + " dollars")
@@ -330,6 +354,12 @@ class PriceBasketConstraint(Constraint):
 # --------------- price product constraint class  ---------------#
 class PriceProductConstraint(Constraint):
     def __init__(self, min_price: float, max_price: float, product_id: int, store_id: int):
+        if min_price < 0:
+            raise DiscountAndConstraintsError("Min price is not valid", DiscountAndConstraintsErrorTypes.invalid_price)
+        
+        if max_price != -1.0 and max_price < min_price:
+            raise DiscountAndConstraintsError("Max price is not valid", DiscountAndConstraintsErrorTypes.invalid_price)
+        
         self.__min_price = min_price #if min_price is 0, then there is no lower limit
         self.__max_price = max_price #if max_price is -1, then there is no upper limit
         self.__product_id = product_id
@@ -344,7 +374,7 @@ class PriceProductConstraint(Constraint):
         
         for product in basket_information.products:
             if product.product_id == self.__product_id:
-                if self.__max_price == -1:
+                if self.__max_price == -1.0:
                     return self.__min_price <= product.price * product.amount
                 return self.__min_price <= product.price * product.amount <= self.__max_price
                 
@@ -377,7 +407,7 @@ class PriceProductConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
-        if self.__max_price == -1:
+        if self.__max_price == -1.0:
             return "Price product constraint with min price: " + str(self.__min_price) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
         return "Price product constraint with min price: " + str(self.__min_price) + " and max price: " + str(self.__max_price) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
 
@@ -385,6 +415,12 @@ class PriceProductConstraint(Constraint):
 # --------------- price category constraint class  ---------------#
 class PriceCategoryConstraint(Constraint):
     def __init__(self, min_price: float, max_price: float, category_id: int):
+        if min_price < 0:
+            raise DiscountAndConstraintsError("Min price is not valid", DiscountAndConstraintsErrorTypes.invalid_price)
+        
+        if max_price != -1.0 and max_price < min_price:
+            raise DiscountAndConstraintsError("Max price is not valid", DiscountAndConstraintsErrorTypes.invalid_price)
+        
         self.__min_price = min_price #if min_price is 0, then there is no lower limit
         self.__max_price = max_price #if max_price is -1, then there is no upper limit
         self.__category_id = category_id 
@@ -401,7 +437,7 @@ class PriceCategoryConstraint(Constraint):
                 for product in products:
                     category_total_price += product.price * product.amount
 
-                if self.__max_price == -1:
+                if self.__max_price == -1.0:
                     logger.info("[PriceCategoryConstraint]: Checking if the price of the products of the categpry i atleast" + str(self.__min_price) + " dollars")
                     return self.__min_price <= category_total_price
                 logger.info("[PriceCategoryConstraint]: Checking if the price of the products of the categpry is between " + str(self.__min_price) + " and " + str(self.__max_price) + " dollars")
@@ -430,7 +466,7 @@ class PriceCategoryConstraint(Constraint):
             }
     
     def get_constraint_info_as_string(self) -> str:
-        if self.__max_price == -1:
+        if self.__max_price == -1.0:
             return "Price category constraint with min price: " + str(self.__min_price) + " of category: " + str(self.__category_id)
         return "Price category constraint with min price: " + str(self.__min_price) + " and max price: " + str(self.__max_price) + " of category: " + str(self.__category_id)
 
@@ -438,6 +474,12 @@ class PriceCategoryConstraint(Constraint):
 # --------------- amount basket constraint class  ---------------#
 class AmountBasketConstraint(Constraint):
     def __init__(self, min_amount: int, max_amount: int, store_id: int):
+        if min_amount < 0:
+            raise DiscountAndConstraintsError("Min amount is not valid", DiscountAndConstraintsErrorTypes.invalid_amount)
+        
+        if max_amount != -1 and max_amount < min_amount:
+            raise DiscountAndConstraintsError("Max amount is not valid", DiscountAndConstraintsErrorTypes.invalid_amount)
+        
         self.__min_amount = min_amount #if min_amount is 0, then there is no lower limit
         self.__max_amount = max_amount #if max_amount is -1, then there is no upper limit
         self.__store_id = store_id
@@ -485,6 +527,12 @@ class AmountBasketConstraint(Constraint):
 # --------------- amount product constraint class  ---------------#
 class AmountProductConstraint(Constraint):
     def __init__(self, min_amount: int, max_amount: int, product_id: int, store_id: int):
+        if min_amount < 0:
+            raise DiscountAndConstraintsError("Min amount is not valid", DiscountAndConstraintsErrorTypes.invalid_amount)
+        
+        if max_amount != -1 and max_amount < min_amount:
+            raise DiscountAndConstraintsError("Max amount is not valid", DiscountAndConstraintsErrorTypes.invalid_amount)
+        
         self.__min_amount = min_amount #if min_amount is 0, then there is no lower limit
         self.__max_amount = max_amount #if max_amount is -1, then there is no upper limit
         self.__product_id = product_id
@@ -540,6 +588,12 @@ class AmountProductConstraint(Constraint):
 # --------------- amount category constraint class  ---------------#
 class AmountCategoryConstraint(Constraint):
     def __init__(self, min_amount: int, max_amount: int, category_id: int):
+        if min_amount < 0:
+            raise DiscountAndConstraintsError("Min amount is not valid", DiscountAndConstraintsErrorTypes.invalid_amount)
+        
+        if max_amount != -1 and max_amount < min_amount:
+            raise DiscountAndConstraintsError("Max amount is not valid", DiscountAndConstraintsErrorTypes.invalid_amount)
+        
         self.__min_amount = min_amount #if min_amount is 0, then there is no lower limit
         self.__max_amount = max_amount #if max_amount is -1, then there is no upper limit
         self.__category_id = category_id
@@ -593,6 +647,12 @@ class AmountCategoryConstraint(Constraint):
 # --------------- weight basket constraint class  ---------------#
 class WeightBasketConstraint(Constraint):
     def __init__(self, min_weight: float, max_weight: float, store_id: int):
+        if min_weight < 0:
+            raise DiscountAndConstraintsError("Min weight is not valid", DiscountAndConstraintsErrorTypes.invalid_weight)
+        
+        if max_weight != -1 and max_weight < max_weight:
+            raise DiscountAndConstraintsError("Max weight is not valid", DiscountAndConstraintsErrorTypes.invalid_weight)
+        
         self.__min_weight = min_weight #if min_weight is 0, then there is no lower limit
         self.__max_weight = max_weight #if max_weight is -1, then there is no upper limit
         self.__store_id = store_id
@@ -641,6 +701,12 @@ class WeightBasketConstraint(Constraint):
 # --------------- weight product constraint class  ---------------#
 class WeightProductConstraint(Constraint):
     def __init__(self, min_weight: float, max_weight: float, product_id: int, store_id: int):
+        if min_weight < 0:
+            raise DiscountAndConstraintsError("Min weight is not valid", DiscountAndConstraintsErrorTypes.invalid_weight)
+        
+        if max_weight != -1 and max_weight < max_weight:
+            raise DiscountAndConstraintsError("Max weight is not valid", DiscountAndConstraintsErrorTypes.invalid_weight)
+        
         self.__min_weight = min_weight #if min_weight is 0, then there is no lower limit
         self.__max_weight = max_weight #if max_weight is -1, then there is no upper limit
         self.__product_id = product_id
@@ -697,6 +763,12 @@ class WeightProductConstraint(Constraint):
 # --------------- weight category constraint class  ---------------#
 class WeightCategoryConstraint(Constraint):
     def __init__(self, min_weight: float, max_weight: float, category_id: int):
+        if min_weight < 0:
+            raise DiscountAndConstraintsError("Min weight is not valid", DiscountAndConstraintsErrorTypes.invalid_weight)
+        
+        if max_weight != -1 and max_weight < max_weight:
+            raise DiscountAndConstraintsError("Max weight is not valid", DiscountAndConstraintsErrorTypes.invalid_weight)
+        
         self.__min_weight = min_weight #if min_weight is 0, then there is no lower limit
         self.__max_weight = max_weight #if max_weight is -1, then there is no upper limit
         self.__category_id = category_id

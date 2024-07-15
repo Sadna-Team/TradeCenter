@@ -127,6 +127,14 @@ class DiscountAndConstraintsErrorTypes(Enum):
     no_predicate_found = 8
     invalid_season = 9
     invalid_date = 10
+    invalid_age_limit = 11
+    invalid_location = 12
+    invalid_time_constraint = 13
+    invalid_day_of_month = 14
+    invalid_day_of_week = 15
+    invalid_price = 16
+    invalid_amount = 17
+    invalid_weight = 18
 
 class ServiceLayerErrorTypes(Enum):
     payment_details_not_dict = 1
