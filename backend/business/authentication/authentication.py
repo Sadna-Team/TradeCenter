@@ -143,5 +143,6 @@ class Authentication:
         """
         Load the blacklist from the database into the blacklist set
         """
-        blacklisted_tokens = db.session.query(AuthenticationModel.blacklisted_token).all()
+        with current_app.app_context():
+            blacklisted_tokens = db.session.query(AuthenticationModel.blacklisted_token).all()
         self.blacklist = {token[0] for token in blacklisted_tokens}
