@@ -46,6 +46,8 @@ class MarketFacade:
             # create the admin?
             self.__create_admin()
 
+            # self.default_setup2()
+
     def test(self,user_id):
         self.notifier.send_real_time_notification(user_id, NotificationDTO(-1, "test", datetime.now()))
         logger.info("test notification sent")
@@ -74,8 +76,41 @@ class MarketFacade:
         # create the admin?
         self.__create_admin()
 
+    def default_setup2(self):
+        uid1 = self.user_facade.create_user("USD")
+
+        uc1 = {
+            "username": "user1",
+            "password": "1234",
+            "email": "example1@gmail.com",
+            "year": 2001,
+            "month": 2,
+            "day": 2,
+            "phone": "0522222222"
+        }
+
+        default_payment_method = {'payment method': 'bogo'}
+
+        default_supply_method = "bogo"
+
+        default_address_checkout = {'address': 'randomstreet 34th',
+                                    'city': 'arkham',
+                                    'state': 'gotham',
+                                    'country': 'Wakanda',
+                                    'zip_code': '12345'}
+
+        self.auth_facade.register_user(uid1, uc1)
+
+        store_id = self.add_store(uid1, "Rager 130", "Beer Sheva", "Israel", "Israel", "12345678", "store1")
+        product1 = self.store_facade.add_product_to_store(store_id, "product1", "description1", 100, 1, ["tag1"], 10)
+
+        #self.add_product_to_basket(0, store_id, 0, 1)
+
+        #self.checkout(0, default_payment_method, default_supply_method, default_address_checkout)
+
     def default_setup(self):
         self.clean_data()
+
         # users:
         uid1 = self.user_facade.create_user("USD")
         uid2 = self.user_facade.create_user("USD")
@@ -124,7 +159,7 @@ class MarketFacade:
 
         default_payment_method = {'payment method': 'bogo'}
 
-        default_supply_method = "bogo"
+        default_supply_method = {'supply method': 'bogo'}
 
         default_address_checkout = { 'address': 'randomstreet 34th', 
                                     'city': 'arkham', 
@@ -172,30 +207,6 @@ class MarketFacade:
         self.store_facade.assign_product_to_category(1, 0, 2)
         self.store_facade.assign_product_to_category(2, 0, 3)
 
-        # add 5 policies
-        policy1 = self.store_facade.add_purchase_policy_to_store(store_id, "policy1", None, None)
-        policy2 = self.store_facade.add_purchase_policy_to_store(store_id, "policy2",category1, None)
-        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy2, ("age", 18))
-        policy3 = self.store_facade.add_purchase_policy_to_store(store_id, "policy3", None, product1)
-        policy4 = self.store_facade.add_purchase_policy_to_store(store_id, "policy4", None, product2)
-        policy5 = self.store_facade.add_purchase_policy_to_store(store_id, "policy5", category2, None)
-        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy5, ("age", 18))
-        policy6 = self.store_facade.add_purchase_policy_to_store(store_id, "policy6", None, product3)
-        self.store_facade.assign_predicate_to_purchase_policy(store_id,policy6, ("weight_basket", 1.0, -1.0, store_id))
-        policy7 = self.store_facade.create_composite_purchase_policy_to_store(store_id, "composite policy", policy5, policy6, 1)
-
-
-
-        # add 5 discounts
-        discount1 = self.store_facade.add_discount("discount1", datetime(2021, 1, 1), datetime(2050, 1,1), 0.1, None, store_id,None,None)
-        discount2 = self.store_facade.add_discount("discount2", datetime(2021, 1, 1), datetime(2050, 1,1), 0.2, None, store_id, product1, None)
-        discount3 = self.store_facade.add_discount("discount3", datetime(2021, 1, 1), datetime(2050, 1,1), 0.3, category1, None, None, False)
-        discount4 = self.store_facade.add_discount("discount4", datetime(2021, 1, 1), datetime(2050, 1,1), 0.4, None, store_id, product2, None)
-        discount5 = self.store_facade.add_discount("discount5", datetime(2021, 1, 1), datetime(2050, 1,1), 0.5, None, store_id, product3, None)
-        self.store_facade.assign_predicate_to_discount(discount5, ("and", ("age", 18), ("weight_basket", 1.0, -1.0, store_id)))
-        discount6 = self.store_facade.add_discount("discount6", datetime(2021, 1, 1), datetime(2050, 1,1), 0.6, category2, None, None, False)
-        discount7 = self.create_numerical_composite_discount(0, "composite discount", datetime(2021, 1, 1), datetime(2050, 1,1), [discount5, discount6], 2)
-        discount8 = self.create_logical_composite_discount(0, "composite discount", datetime(2021, 1, 1), datetime(2050, 1,1), discount7, discount4, 1)
         # user 2 adds product 1 to basket
         self.add_product_to_basket(uid2, 0, 0, 1)
 
@@ -221,7 +232,7 @@ class MarketFacade:
         self.user_facade.remove_product_from_basket(user_id, store_id, product_id, amount)
         logger.info(f"User {user_id} has removed {amount} of product {product_id} from the basket")
 
-    def checkout(self, user_id: int, payment_details: Dict, supply_method: str, address: Dict) -> int:
+    def checkout(self, user_id: int, payment_details: Dict, supply_details: Dict, address: Dict) -> int:
         products_removed = False
         purchase_accepted = False
         basket_cleared = False
@@ -275,7 +286,11 @@ class MarketFacade:
             products_removed = True
 
             # find the delivery date
-            package_details = {'stores': cart.keys(), "supply method": supply_method}
+            if "supply method" not in supply_details:
+                raise ThirdPartyHandlerError("Supply method not specified", ThirdPartyHandlerErrorTypes.support_not_specified)
+            if supply_details.get("supply method") not in SupplyHandler().supply_config:
+                raise ThirdPartyHandlerError("Invalid supply method", ThirdPartyHandlerErrorTypes.invalid_supply_method)
+            package_details = {'stores': cart.keys(), "supply method": supply_details["supply method"]}
             delivery_date = SupplyHandler().get_delivery_time(package_details, address)
 
             # accept the purchase
@@ -291,19 +306,21 @@ class MarketFacade:
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ThirdPartyHandlerError("Payment method not specified", ThirdPartyHandlerErrorTypes.payment_not_specified)
 
-            if not PaymentHandler().process_payment(total_price_after_discounts, payment_details):
+            payment_id = PaymentHandler().process_payment(total_price_after_discounts, payment_details)
+
+            if payment_id == -1:
                 # invalidate Purchase
                 # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
                 raise ThirdPartyHandlerError("Payment failed", ThirdPartyHandlerErrorTypes.payment_failed)
 
-            package_detail = {'shopping cart': cart, 'address': address, 'arrival time': delivery_date,
-                              'purchase id': pur_id, "supply method": supply_method}
-            if "supply method" not in package_detail:
-                raise ThirdPartyHandlerError("Supply method not specified", ThirdPartyHandlerErrorTypes.support_not_specified)
-            if package_detail.get("supply method") not in SupplyHandler().supply_config:
-                raise ThirdPartyHandlerError("Invalid supply method", ThirdPartyHandlerErrorTypes.invalid_supply_method)
-            on_arrival = lambda purchase_id: self.purchase_facade.complete_purchase(purchase_id)
-            SupplyHandler().process_supply(package_detail, user_id, on_arrival)
+            on_arrival = lambda purchase_id: self.on_arrival_lambda(purchase_id)
+            supply_details["arrival time"] = delivery_date
+            supply_details["purchase id"] = pur_id
+            supply_id = SupplyHandler().process_supply(supply_details, user_id, on_arrival)
+            if supply_id == -1:
+                # invalidate Purchase
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                raise ThirdPartyHandlerError("Supply failed", ThirdPartyHandlerErrorTypes.supply_failed)
 
             # notify the store owners
             for store_id in cart.keys():
@@ -321,7 +338,17 @@ class MarketFacade:
                 self.purchase_facade.cancel_accepted_purchase(pur_id)
             if basket_cleared:
                 self.user_facade.restore_basket(user_id, cart)
+            # check if payment_id is defined
+            if "payment_id" in locals() and payment_id != -1:
+                PaymentHandler().process_payment_cancel(payment_id)
+            if "supply_id" in locals() and supply_id != -1:
+                SupplyHandler().process_supply_cancel(supply_details, supply_id)
             raise e
+
+    def on_arrival_lambda(self, purchase_id: int):
+        from backend.app import app
+        with app.app_context():
+            self.purchase_facade.complete_purchase(purchase_id)
 
     def get_stores(self, page: int, limit: int) -> Dict[int, StoreDTO]:
         return self.store_facade.get_stores(page, limit)
@@ -1660,3 +1687,6 @@ class MarketFacade:
             raise UserError("User does not have the necessary permissions to get the product categories", UserErrorTypes.user_does_not_have_necessary_permissions)
         return self.store_facade.get_product_categories(store_id, product_id)
 
+    def get_total_price_after_discount(self, user_id: int):
+        cart = self.user_facade.get_shopping_cart(user_id)
+        return self.store_facade.get_total_price_after_discount(cart, None)

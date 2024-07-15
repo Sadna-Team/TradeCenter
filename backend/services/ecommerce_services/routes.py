@@ -37,8 +37,21 @@ def checkout():
         if not isinstance(payment_details_helper, dict):
             raise ServiceLayerError('payment details must be a dictionary', ServiceLayerErrorTypes.payment_details_not_dict)
         payment_details = {str(key): str(value) for key, value in payment_details_helper.items()}
+        if "payment_additional_details" in data:
+            additional_details = data['payment_additional_details']
+            if not isinstance(additional_details, dict):
+                raise ServiceLayerError('additional details must be a dictionary', ServiceLayerErrorTypes.additional_details_not_dict)
+            additional_details = {str(key): str(value) for key, value in additional_details.items()}
+            payment_details["additional details"] = additional_details
 
-        supply_method = str(data['supply_method'])
+        supply_details = {"supply method": str(data['supply_method'])}
+        if 'supply_additional_details' in data:
+            additional_details = data['supply_additional_details']
+            if not isinstance(additional_details, dict):
+                raise ServiceLayerError('additional details must be a dictionary', ServiceLayerErrorTypes.additional_details_not_dict)
+            additional_details = {str(key): str(value) for key, value in additional_details.items()}
+            supply_details["additional details"] = additional_details
+            
 
         address_helper = data['address']
         if not isinstance(address_helper, dict):
@@ -48,7 +61,7 @@ def checkout():
         logger.error('checkout - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.checkout(user_id, payment_details, supply_method, address)
+    return purchase_service.checkout(user_id, payment_details, supply_details, address)
 
 
 @market_bp.route('/store_purchase_history', methods=['GET', 'POST'])

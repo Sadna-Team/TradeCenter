@@ -478,7 +478,7 @@ def add_product_to_store():
             if data['amount'] is not None:
                 amount = int(data['amount'])
     except Exception as e:
-        logger.error('add_product - ', str(e))
+        logger.error(f'add_product - {str(e)}')
         return jsonify({'message': str(e)}), 400
 
     return store_service.add_product_to_store(user_id, store_id, product_name, description, price, weight, tags, amount)
@@ -1189,3 +1189,20 @@ def get_product_categories():
         return jsonify({'message': str(e)}), 400
 
     return store_service.get_product_categories(user_id, store_id, product_id)
+
+
+@store_bp.route('/get_total_price_after_discounts', methods=['GET'])
+@jwt_required()
+def get_total_price_after_discounts():
+    """
+        Use Case
+        Get total price after discounts
+    """
+    logger.info('received request to get total price after discounts')
+    try:
+        user_id = get_jwt_identity()
+    except Exception as e:
+        logger.error('get_total_price_after_discounts - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return store_service.get_total_price_after_discount(user_id)
