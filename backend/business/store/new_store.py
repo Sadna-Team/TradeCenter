@@ -1386,6 +1386,10 @@ class StoreFacade:
             logger.warning('[StoreFacade] store the discount is applied to is not found')
             raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
         
+        if percentage < 0 or percentage > 1:
+            logger.warning('[StoreFacade] percentage is not in the range of 0 to 1')
+            raise DiscountAndConstraintsError('Percentage is not in the range of 0 to 1', DiscountAndConstraintsErrorTypes.invalid_percentage)
+        
         if category_id is not None:
             if category_id not in self.__categories:
                 logger.warning('[StoreFacade] category the discount is applied to is not found')
