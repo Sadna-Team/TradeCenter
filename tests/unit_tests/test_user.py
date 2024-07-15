@@ -132,7 +132,8 @@ class TestUser(unittest.TestCase):
         user.register(email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1,
                       phone="1234567890")
         self.assertEqual(user.get_notifications(), [])
-        user.add_notification(Notification(1, "Test Message", datetime.datetime.now()))
+        user.add_notification(Notification("Test Message", datetime.datetime.now()))
+        print(user.get_notifications())
         self.assertEqual(len(user.get_notifications()), 1)
 
     def test_get_password_member(self):
@@ -142,7 +143,7 @@ class TestUser(unittest.TestCase):
         self.assertEqual(user.get_password(), "password")
 
     def test_get_password_guest(self):
-        user = User(user_id=1, currency='USD')
+        user = User(currency='USD')
         with self.assertRaises(UserError) as e:
             user.get_password()
         assert e.exception.user_error_type == UserErrorTypes.user_not_registered

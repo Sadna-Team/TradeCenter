@@ -9,6 +9,8 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Table
 from sqlalchemy import create_engine
 from sqlalchemy.orm import relationship, backref, sessionmaker
+import json
+import threading
 
 import logging
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
@@ -28,34 +30,44 @@ class ShoppingBasket(Base):
     __tablename__ = 'shopping_baskets'
     id = Column(Integer, primary_key=True)
     store_id = Column(Integer, nullable=False)
+    cart_id = Column(Integer, ForeignKey('shopping_carts.id'), nullable=False)
     products = Column(String, nullable=False)  # JSON string to store product quantities
 
-    # id of ShoppingBasket is (user_id, store_id)
-    def __init__(self, store_id: int) -> None:
-        self.store_id: int = store_id
-        self.products: Dict = defaultdict(int)  # productId -> quantity
+    shopping_cart = relationship("ShoppingCart", back_populates="shopping_baskets")
+
+    def __init__(self, store_id: int, cart_id: int) -> None:
+        self.store_id = store_id
+        self.cart_id = cart_id
+        self.products = json.dumps({})  # Store products as a JSON string
 
     def add_product(self, product_id: int, quantity: int) -> None:
-        self.products[product_id] = self.products.get(product_id, 0) + quantity
+        products = json.loads(self.products)
+        products[product_id] = products.get(product_id, 0) + quantity
+        self.products = json.dumps(products)
 
     def get_dto(self) -> Dict[int, int]:
-        return self.products
+        return json.loads(self.products)
 
     def remove_product(self, product_id: int, quantity: int):
-        if product_id not in self.products:
+        products = json.loads(self.products)
+        if product_id not in products:
             raise StoreError("Product not found", StoreErrorTypes.product_not_found)
-        if self.products[product_id] < quantity:
+        if products[product_id] < quantity:
             raise StoreError("Not enough quantity", StoreErrorTypes.product_not_available)
-        self.products[product_id] -= quantity
-        if self.products[product_id] == 0:
-            del self.products[product_id]
+        products[product_id] -= quantity
+        if products[product_id] == 0:
+            del products[product_id]
+        self.products = json.dumps(products)
 
     def subtract_product(self, product_id: int, quantity: int):
-        if product_id not in self.products:
+        products = json.loads(self.products)
+        if product_id not in products:
             raise StoreError("Product not found", StoreErrorTypes.product_not_found)
-        if self.products[product_id] < quantity:
+        if products[product_id] < quantity:
             raise StoreError("Not enough quantity", StoreErrorTypes.product_not_available)
-        self.products[product_id] -= quantity
+        products[product_id] -= quantity
+        self.products = json.dumps(products)
+
 
 
 # Didn't do logs for this class
@@ -63,20 +75,18 @@ class ShoppingCart(Base):
     __tablename__ = 'shopping_carts'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, nullable=False)
-    shopping_baskets = relationship("ShoppingBasket", backref="shopping_cart")
+    shopping_baskets = relationship("ShoppingBasket", back_populates="shopping_cart")
 
-    # id of ShoppingBasket is (user_id)
     def __init__(self, user_id: int) -> None:
-        self.user_id: int = user_id
-        # self.__shopping_baskets: dict[int, ShoppingBasket] = {} # remove line (kept in case it fails)
+        self.user_id = user_id
 
     def add_product_to_basket(self, store_id: int, product_id: int, quantity: int) -> None:
         basket = next((b for b in self.shopping_baskets if b.store_id == store_id), None)
         if not basket:
-            basket = ShoppingBasket(store_id)
+            basket = ShoppingBasket(store_id, self.id)
             self.shopping_baskets.append(basket)
         basket.add_product(product_id, quantity)
-        
+
     def get_dto(self) -> Dict[int, Dict[int, int]]:
         return {basket.store_id: basket.get_dto() for basket in self.shopping_baskets}
 
@@ -93,18 +103,17 @@ class ShoppingCart(Base):
         basket.subtract_product(product_id, quantity)
 
 
-class Notification:
+class Notification(Base):
     __tablename__ = 'notifications'
     id = Column(Integer, primary_key=True)
     message = Column(String, nullable=False)
     date = Column(DateTime, nullable=False)
+    member_id = Column(Integer, ForeignKey('members.id'))
+    member = relationship('Member', back_populates='notifications')
 
     def __init__(self, message: str, date: datetime) -> None:
-        self.message: str = message
-        self.date: datetime = date
-
-    def get_notification_dto(self) -> NotificationDTO:
-        return NotificationDTO(self.id, self.message, self.date)
+        self.message = message
+        self.date = date
 
 
 class State(ABC):
@@ -180,6 +189,7 @@ class Guest(State):
     def set_suspense(self, value: bool, suspended_until:Optional[datetime]):
         raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
+
 class Member(Base):
     __tablename__ = 'members'
     id = Column(Integer, primary_key=True)
@@ -190,29 +200,20 @@ class Member(Base):
     phone = Column(String, nullable=False)
     is_suspended = Column(Boolean, default=False)
     suspended_until = Column(DateTime, nullable=True)
-    notifications = relationship("Notification", backref="member")
+    notifications = relationship('Notification', back_populates='member')
 
-    def __init__(self, email: str, username: str, password: str, year: str, month: str, day: str,
-                 phone: str) -> None:
-        #  try to convert the birth
 
-        self.email: str = email
-        self.username: str = username
-        self.password: str = password
-        self.birthdate: datetime = datetime(int(year), int(month), int(day))
-        self.phone: str = phone
-        self.notifications: List[Notification] = []
-        self.is_suspended: bool = False
-        self.suspended_until: Optional[datetime] = None
+    def __init__(self, email: str, username: str, password: str, year: str, month: str, day: str, phone: str) -> None:
+        self.email = email
+        self.username = username
+        self.password = password
+        self.birthdate = datetime(int(year), int(month), int(day))
+        self.phone = phone
 
     def set_suspense(self, value: bool, suspended_until: Optional[datetime]):
-        """
-        * value: True if we want to suspend the user, False otherwise
-        * suspended_until: the date until the user is suspended
-        """
         self.is_suspended = value
         self.suspended_until = suspended_until
-        
+
     def get_password(self):
         return self.password
 
@@ -225,29 +226,8 @@ class Member(Base):
     def clear_notifications(self):
         self.notifications.clear()
 
-    def get_email(self):
-        return self.email
 
-    def get_username(self):
-        return self.username
-
-    def get_birthdate(self) -> Optional[datetime]:
-        return self.birthdate
-
-    def get_phone(self):
-        return self.phone
-    
-    def is_suspended(self):
-        """
-        * Return True if the user is suspended
-        * Check if the suspension date passed (If it did, we update the is_suspended field to False)
-        """
-        if self.is_suspended and self.suspended_until is not None:
-            if self.suspended_until < datetime.now():
-                self.is_suspended = False         
-        return self.is_suspended
-        
-class User:
+class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     currency = Column(String, nullable=False)
@@ -256,14 +236,14 @@ class User:
     shopping_cart_id = Column(Integer, ForeignKey('shopping_carts.id'))
     shopping_cart = relationship("ShoppingCart", backref=backref("user", uselist=False))
 
-    def __init__(self, user_id: int, currency: str = 'USD') -> None:
+    def __init__(self, currency: str = 'USD') -> None:
         if currency not in c.currencies:
             raise UserError("Currency not supported", UserErrorTypes.currency_not_supported)
 
-        self.id: int = user_id
-        self.currency: str = currency
-        self.member: None
-        self.shopping_cart: ShoppingCart = ShoppingCart(user_id)
+        # self.id = user_id
+        self.currency = currency
+        self.member = None
+        self.shopping_cart = ShoppingCart(self.id)
 
     def add_notification(self, notification: Notification) -> None:
         if self.member:
@@ -284,8 +264,7 @@ class User:
     def get_shopping_cart(self) -> Dict[int, Dict[int, int]]:
         return self.shopping_cart.get_dto()
 
-    def register(self, email: str, username: str, password: str, year: int, month: int, day: int,
-                 phone: str) -> None:
+    def register(self, email: str, username: str, password: str, year: int, month: int, day: int, phone: str) -> None:
         if self.member:
             raise UserError("User is already registered", UserErrorTypes.user_already_registered)
         self.member = Member(email, username, password, year, month, day, phone)
@@ -302,31 +281,31 @@ class User:
     def get_password(self):
         if self.member:
             return self.member.get_password()
-        return None
-    
+        raise UserError("User is not registered", UserErrorTypes.user_not_registered)
+
     def is_member(self):
         return self.member is not None
-        
+    
     def is_suspended(self):
         if self.member:
-            return self.member.is_suspended()
+            return self.member.is_suspended
         return False
-        
+    
     def change_suspend(self, value: bool, suspended_until: Optional[datetime]):
         if self.member:
             self.member.set_suspense(value, suspended_until)
-            
+
     def create_purchase_user_dto(self) -> PurchaseUserDTO:
         if self.member:
-            return PurchaseUserDTO(self.id, self.member.get_birthdate())
+            return PurchaseUserDTO(self.id, self.member.birthdate)
         return PurchaseUserDTO(self.id)
 
     def get_user_dto(self, role: str = None) -> UserDTO:
         if not self.is_member():
             return UserDTO(self.id)
-        return UserDTO(self.id, self.member.get_email(), self.member.get_username(),
-                       self.member.get_birthdate().year, self.member.get_birthdate().month,
-                       self.member.get_birthdate().day, self.member.get_phone(), role)
+        return UserDTO(self.id, self.member.email, self.member.username,
+                       self.member.birthdate.year, self.member.birthdate.month,
+                       self.member.birthdate.day, self.member.phone, role)
     
     def set_cart(self, cart: Dict[int, Dict[int, int]]):
         self.shopping_cart = ShoppingCart(self.id)
@@ -418,7 +397,7 @@ class UserFacade:
         with UserFacade.__create_lock:
             new_id = UserFacade.__id_serializer
             UserFacade.__id_serializer += 1
-        user = User(new_id, currency)
+        user = User(currency)
         self.__users[new_id] = user
         return new_id
     
