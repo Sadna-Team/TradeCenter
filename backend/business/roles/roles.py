@@ -338,16 +338,19 @@ class RolesFacade:
     def __load_roles_from_db(self) -> Dict[int, Dict[int, StoreRole]]:
         roles = {}
         store_roles = db.session.query(StoreRole).all()
+
         for store_role in store_roles:
             store_id = store_role.store_id
             if store_id not in roles:
                 roles[store_id] = {}
-            if store_role.role_type == 'store_owner':
-                roles[store_id][store_role.user_id] = StoreOwner()
-            elif store_role.role_type == 'store_manager':
-                manager = StoreManager()
+
+            if store_role.type == 'store_owner':
+                roles[store_id][store_role.user_id] = StoreOwner(store_id=store_id, user_id=store_role.user_id)
+            elif store_role.type == 'store_manager':
+                manager = StoreManager(store_id=store_id, user_id=store_role.user_id)
                 permissions = store_role.permissions
                 manager.permissions.set_permissions(
+                    id=f"{store_role.user_id}_{store_id}",
                     add_product=permissions.add_product,
                     change_purchase_policy=permissions.change_purchase_policy,
                     change_purchase_types=permissions.change_purchase_types,
@@ -357,6 +360,7 @@ class RolesFacade:
                     get_bid=permissions.get_bid
                 )
                 roles[store_id][store_role.user_id] = manager
+
         return roles
 
     def __load_nominations_from_db(self) -> Dict[int, Nomination]:
@@ -413,7 +417,12 @@ class RolesFacade:
         db.session.add(store_tree)
         db.session.commit()
 
-        self.__stores_to_roles[store_id] = {owner_id: StoreOwner()}
+        # Add store owner role and commit to database
+        store_owner = StoreOwner(store_id=store_id, user_id=owner_id)
+        db.session.add(store_owner)
+        db.session.commit()
+
+        self.__stores_to_roles[store_id] = {owner_id: store_owner}
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id, store_tree_id=store_tree.id))
         self.__stores_locks[store_id] = Lock()
         self.__notifier.sign_listener(owner_id, store_id)
@@ -444,7 +453,7 @@ class RolesFacade:
             if not isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner):
                 raise RoleError("Nominator is not an owner", RoleErrorTypes.nominator_not_owner)
 
-            nomination = Nomination(store_id, nominator_id, nominee_id, StoreOwner())
+            nomination = Nomination(store_id, nominator_id, nominee_id, StoreOwner(store_id, nominee_id))
             self.__systems_nominations[nomination.nomination_id] = nomination
 
             # Save to database
@@ -460,7 +469,7 @@ class RolesFacade:
                 raise RoleError("Nominator is not authorized to nominate a manager",
                                 RoleErrorTypes.nominator_cant_nominate_manager)
 
-            nomination = Nomination(store_id, nominator_id, nominee_id, StoreManager())
+            nomination = Nomination(store_id, nominator_id, nominee_id, StoreManager(store_id, nominee_id))
             self.__systems_nominations[nomination.nomination_id] = nomination
 
             # Save to database
@@ -495,11 +504,13 @@ class RolesFacade:
         self.__notifier.sign_listener(nominee_id, nomination.store_id)
 
         # Save to database
-        store_role_model = StoreRole(
-            store_id=nomination.store_id,
-            user_id=nominee_id,
-            role_type='store_owner' if isinstance(nomination.role, StoreOwner) else 'store_manager'
-        )
+        if isinstance(nomination.role, StoreOwner):
+            store_role_model = StoreOwner(store_id=nomination.store_id, user_id=nominee_id)
+        elif isinstance(nomination.role, StoreManager):
+            store_role_model = StoreManager(store_id=nomination.store_id, user_id=nominee_id)
+        else:
+            raise RoleError("Invalid role type", RoleErrorTypes.invalid_role)
+
         db.session.add(store_role_model)
         db.session.commit()
 
@@ -507,7 +518,7 @@ class RolesFacade:
         for n_id, nomination in self.__systems_nominations.copy().items():
             if nomination.nominee_id == nominee_id and nomination.store_id == nomination.store_id:
                 del self.__systems_nominations[n_id]
-                db.session.query(Nomination).filter_by(id=n_id).delete()
+                db.session.query(Nomination).filter_by(nomination_id=n_id).delete()
         db.session.commit()
         logger.info(f"User {nominee_id} accepted the nomination {nomination_id} in store {nomination.store_id}")
 
@@ -605,18 +616,14 @@ class RolesFacade:
         return user_id in self.__system_managers
 
     def add_system_manager(self, actor: int, user_id: int) -> None:
-        """
-        if Actor is a system manager, he adds a new system manager
-        """
         with self.__system_managers_lock:
             if not self.is_system_manager(actor):
                 raise RoleError("Actor is not a system manager", RoleErrorTypes.actor_not_system_manager)
-
             self.__system_managers.append(user_id)
 
             # Save to database
-            system_manager = SystemManagerModel(user_id=user_id, is_admin=False)
-            db.session.add(system_manager)
+            system_manager_model = SystemManagerModel(user_id=user_id, is_admin=False)
+            db.session.add(system_manager_model)
             db.session.commit()
 
     def remove_system_manager(self, actor: int, user_id: int) -> None:
@@ -627,25 +634,19 @@ class RolesFacade:
                 raise RoleError("Actor is not a system manager", RoleErrorTypes.actor_not_system_manager)
             if user_id not in self.__system_managers:
                 raise RoleError("User is not a system manager", RoleErrorTypes.user_not_system_manager)
-
             self.__system_managers.remove(user_id)
 
-            # Remove from database
+            # Delete from database
             db.session.query(SystemManagerModel).filter_by(user_id=user_id).delete()
             db.session.commit()
 
     def add_admin(self, user_id: int) -> None:
-        """
-        this method should not be called (but the facade initialization)
-        Add the first system manager to the system
-        :return:
-        """
         self.__system_managers.append(user_id)
         self.__system_admin = user_id
 
         # Save to database
-        system_admin = SystemManagerModel(user_id=user_id, is_admin=True)
-        db.session.add(system_admin)
+        system_manager_model = SystemManagerModel(user_id=user_id, is_admin=True)
+        db.session.add(system_manager_model)
         db.session.commit()
 
     def __has_permission(self, store_id: int, user_id: int) -> bool:
