@@ -27,7 +27,7 @@ NUMBER_OF_AVAILALBE_PREDICATES = 4
 # ---------------------product class---------------------#
 class Product(db.Model):
     __tablename__ = 'products'
-    store_id = db.Column(db.Integer, db.ForeignKey("stores.store_id"), primary_key=True)
+    store_id = db.Column(db.Integer, db.ForeignKey("stores.store_id", ondelete='CASCADE', onupdate='CASCADE'), primary_key=True)
     product_id = db.Column(db.Integer, primary_key=True)
     _product_name = db.Column(db.String(100), nullable=False)
     _description = db.Column(db.String(1000), nullable=False)
@@ -39,9 +39,9 @@ class Product(db.Model):
     __table_args__ = (
         db.PrimaryKeyConstraint('store_id', 'product_id'),
         db.ForeignKeyConstraint(['store_id'], ['stores.store_id']),
-        db.CheckConstraint(_price >= 0),
-        db.CheckConstraint(_weight >= 0),
-        db.CheckConstraint(_amount >= 0)
+        db.CheckConstraint('_price >= 0', name='check_price_positive'),
+        db.CheckConstraint('_weight >= 0', name='check_weight_positive'),
+        db.CheckConstraint('_amount >= 0', name='check_amount_positive'),
     )
 
 
@@ -271,31 +271,15 @@ class Category:
     # in one of its subcategories
     # important to note: a category can only have one parent category, and a category can't have a subcategory that is
     # already a subcategory of a subcategory.
-    __tablename__ = 'categories'
-
-    category_id = db.Column(db.Integer, primary_key=True)
-    _category_name = db.Column(db.String(100), nullable=False)
-    _parent_category_id = db.Column(db.Integer, db.ForeignKey("categories.category_id"), nullable=False)
-    _category_products = db.Column(db.PickleType, nullable=False) # list of tuples (store_id, product_id)
-    _sub_categories = db.relationship("Category", backref=db.backref('parent_category', remote_side=[category_id]), lazy=True)
-
-    __table_args__ = (
-        db.PrimaryKeyConstraint('category_id'),
-        db.ForeignKeyConstraint(['parent_category_id'], ['categories.category_id']),
-        db.CheckConstraint(category_id >= 0),
-        db.CheckConstraint(_category_products == list(set(_category_products))),
-        db.CheckConstraint(_category_name != ''),
-        db.CheckConstraint(_sub_categories == list(set(_sub_categories))),
-    )
 
     def __init__(self, category_id: int, category_name: str):
         self.category_id: int = category_id
         self._category_name: str = category_name
-        self._parent_category_id: int = -1  # -1 means that the category does not have a parent category for now
+        self._parent_category_id: int = None  # None means that the category does not have a parent category for now
         self._category_products: List[Tuple[int, int]] = []
         self._sub_categories: List['Category'] = []
         self.__category_lock = threading.Lock() # lock for category
-        logger.info('[Category] successfully created category with id: ' + str(category_id))
+        logger.info(f'[Category] successfully created category with id: {category_id}')
 
     # ---------------------getters and setters---------------------
     @property
@@ -304,6 +288,8 @@ class Category:
 
     @property
     def parent_category_id(self) -> int:
+        if self._parent_category_id is None:
+            return -1
         return self._parent_category_id
 
     @property
@@ -331,18 +317,10 @@ class Category:
         * This function adds a parent category to the category
         * Returns: none
         """
-        if self._parent_category_id != -1:
+        if self.parent_category_id != -1:
             raise StoreError('Category already has a parent category', StoreErrorTypes.parent_category_already_exists)
         self._parent_category_id = parent_category_id
-        try:
-            db.session.commit()
-            logger.info(f'[Category] successfully added parent category to category with id: {self.category_id}')
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            self._parent_category_id = -1
-            logger.error(f'Failed to add parent category to category due to error: {e}')
-            raise StoreError('Failed to add parent category to category', StoreErrorTypes.unexpected_error)
-
+        logger.info(f'[Category] successfully added parent category to category with id: {self.category_id}')
 
     def remove_parent_category(self) -> None:
         """
@@ -350,18 +328,10 @@ class Category:
         * This function removes the parent category of the category
         * Returns: none
         """
-        if self._parent_category_id == -1:
+        if self.parent_category_id == -1:
             raise StoreError('Category does not have a parent category', StoreErrorTypes.parent_category_not_found)
-        prev_parent_category_id = self._parent_category_id
-        self._parent_category_id = -1
-        try:
-            db.session.commit()
-            logger.info(f'[Category] successfully removed parent category from category with id: {self.category_id}')
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            self._parent_category_id = prev_parent_category_id
-            logger.error(f'Failed to remove parent category from category due to error: {e}')
-            raise StoreError('Failed to remove parent category from category', StoreErrorTypes.unexpected_error)
+        self._parent_category_id = None
+        logger.info(f'[Category] successfully removed parent category from category with id: {self.category_id}')
 
 
     def add_sub_category(self, sub_category: 'Category') -> None:
@@ -381,14 +351,7 @@ class Category:
             raise StoreError('Sub category cannot be the same as the current category', StoreErrorTypes.sub_category_error)
         sub_category.add_parent_category(self.category_id)
         self._sub_categories.append(sub_category)
-        try:
-            db.session.commit()
-            logger.info(f'[Category] successfully added sub category to category with id: {self.category_id}')
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            self._sub_categories.remove(sub_category)
-            logger.error(f'Failed to add sub category to category due to error: {e}')
-            raise StoreError('Failed to add sub category to category', StoreErrorTypes.unexpected_error)
+        logger.info(f'[Category] successfully added sub category to category with id: {self.category_id}')
 
     def remove_sub_category(self, sub_category: 'Category') -> None:
         """
@@ -405,14 +368,7 @@ class Category:
             raise StoreError('Sub category is not a sub category of the current category', StoreErrorTypes.sub_category_error)
         sub_category.remove_parent_category()
         self._sub_categories.remove(sub_category)
-        try:
-            db.session.commit()
-            logger.info(f'[Category] successfully removed sub category from category with id: {self.category_id}')
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            self._sub_categories.append(sub_category)
-            logger.error(f'Failed to remove sub category from category due to error: {e}')
-            raise StoreError('Failed to remove sub category from category', StoreErrorTypes.unexpected_error)
+        logger.info(f'[Category] successfully removed sub category from category with id: {self.category_id}')
 
     def is_parent_category(self, category_id: int) -> bool:
         """
@@ -420,7 +376,7 @@ class Category:
         * This function checks that the given category is the parent category of the current category
         * Returns: True if the given category is the parent category of the current category, False otherwise
         """
-        return self._parent_category_id == category_id
+        return self.parent_category_id == category_id
 
     def is_sub_category(self, category: 'Category') -> bool:
         """
@@ -437,7 +393,7 @@ class Category:
         * This function checks that the current category has a parent category or not
         * Returns: True if the current category has a parent category, False otherwise
         """
-        return self._parent_category_id != -1
+        return self.parent_category_id != -1
 
     def add_product_to_category(self, store_id: int, product_id: int) -> None:
         """
@@ -450,14 +406,7 @@ class Category:
             if (store_id, product_id) in self.get_all_products_recursively():
                 raise StoreError('Product is already in the list of products', StoreErrorTypes.product_already_exists)
             self._category_products.append((store_id, product_id))
-            try:
-                db.session.commit()
-                logger.info('[Category] successfully added product to category with id: ' + str(self.category_id))
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                self._category_products.remove((store_id, product_id))
-                logger.error('Failed to add product to category due to error: ' + str(e))
-                raise StoreError('Failed to add product to category', StoreErrorTypes.unexpected_error)
+            logger.info(f'[Category] successfully added product to category with id: {self.category_id}')
 
     def remove_product_from_category(self, store_id: int, product_id: int) -> None:
         """
@@ -469,14 +418,7 @@ class Category:
             if (store_id, product_id) not in self._category_products:
                 raise StoreError('Product is not in the list of products', StoreErrorTypes.product_not_found)
             self._category_products.remove((store_id, product_id))
-            try:
-                db.session.commit()
-                logger.info(f'[Category] successfully removed product from category with id: {self.category_id}')
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                self._category_products.append((store_id, product_id))
-                logger.error(f'Failed to remove product from category due to error: {e}')
-                raise StoreError('Failed to remove product from category', StoreErrorTypes.unexpected_error)
+            logger.info(f'[Category] successfully removed product from category with id: {self.category_id}')
 
     def get_all_products_recursively(self) -> List[Tuple[int, int]]:
         """
@@ -508,46 +450,49 @@ class Category:
         * This function returns the category DTO
         * Returns: the category DTO
         """
-        return CategoryDTO(self.category_id, self._category_name, self._parent_category_id, self.get_all_subcategories_recursively())
+        return CategoryDTO(self.category_id, self._category_name, self.parent_category_id, self.get_all_subcategories_recursively())
 
 
-class Store:
+class Store(db.Model):
     # id of store is storeId. It is unique for each store
     __tablename__ = 'stores'
 
     store_id = db.Column(db.Integer, primary_key=True)
-    __address = db.Column(db.PickleType, nullable=False)
-    __store_name = db.Column(db.String(100), nullable=False)
-    __store_founder_id = db.Column(db.Integer, nullable=False)
-    __is_active = db.Column(db.Boolean, nullable=False)
-    __store_products = db.relationship("Product", backref=db.backref('store', lazy=True))
-    __purchase_policy = db.relationship("PurchasePolicy", backref=db.backref('store', lazy=True))
-    __founded_date = db.Column(db.DateTime, nullable=False)
-    __product_id_counter = db.Column(db.Integer, nullable=False)
-    __purchase_policy_id_counter = db.Column(db.Integer, nullable=False)
+    _address = db.Column(db.PickleType, nullable=False)
+    _store_name = db.Column(db.String(100), nullable=False)
+    _store_founder_id = db.Column(db.Integer, nullable=False)
+    _is_active = db.Column(db.Boolean, nullable=False)
+    _store_products = db.relationship("Product", 
+                                      backref=db.backref('store', lazy=True), 
+                                      cascade="all, delete-orphan",
+                                      passive_deletes=True, 
+                                      passive_updates=True)
+    _purchase_policy = db.relationship("PurchasePolicy", backref=db.backref('store', lazy=True)) # TODO: persist with db correctly
+    _founded_date = db.Column(db.DateTime, nullable=False)
+    _product_id_counter = db.Column(db.Integer, nullable=False)
+    _purchase_policy_id_counter = db.Column(db.Integer, nullable=False)
 
     __table_args__ = (
-        db.PrimaryKeyConstraint('store_id'),
-        db.CheckConstraint(store_id >= 0),
-        db.CheckConstraint(__store_founder_id >= 0),
+        db.CheckConstraint('store_id >= 0'),
+        db.CheckConstraint('_store_founder_id >= 0'),
     )
 
     def __init__(self, store_id: int, address: AddressDTO, store_name: str, store_founder_id: int):
-        self.store_id = store_id
-        self.__address = address
+        self.store_id: int = store_id
+        self._address: AddressDTO = address
         
         if store_name is None or store_name == '':
             raise StoreError('Store name is not a valid string', StoreErrorTypes.invalid_store_name)
         
-        self.__store_name = store_name
-        self.__store_founder_id = store_founder_id
-        self.__is_active = True
-        self.__store_products: Dict[int, Product] = {}
-        self.__product_id_counter = 0  # product Id
+        self._store_name: str = store_name
+        self._store_founder_id: int = store_founder_id
+        self._is_active: bool = True
+        self._store_products: Dict[int, Product] = {}
+        self._product_id_counter: int = 0  # product Id
         self.__product_id_lock = threading.Lock() # lock for product id
-        self.__purchase_policy: Dict[int, PurchasePolicy] = {} # purchase policy
-        self.__founded_date = datetime.now()
-        self.__purchase_policy_id_counter = 0  # purchase policy Id
+        self._purchase_policy: Dict[int, PurchasePolicy] = {} # purchase policy
+        self._founded_date: datetime = datetime.now()
+        self._purchase_policy_id_counter: int = 0  # purchase policy Id
         self.__checkout_lock = threading.Lock() # lock for checkout
         logger.info(f'[Store] successfully created store with id: {store_id}')
 
@@ -558,31 +503,31 @@ class Store:
 
     @property
     def address(self) -> AddressDTO:
-        return self.__address
+        return self._address
 
     @property
     def store_name(self) -> str:
-        return self.__store_name
+        return self._store_name
 
     @property
     def store_founder_id(self) -> int:
-        return self.__store_founder_id
+        return self._store_founder_id
 
     @property
     def is_active(self) -> bool:
-        return self.__is_active
+        return self._is_active
 
     @property
     def store_products(self) -> List[int]:
-        return list(self.__store_products.keys())
+        return list(self._store_products.keys())
 
     @property
     def founded_date(self) -> datetime:
-        return self.__founded_date
+        return self._founded_date
 
     @property
     def purchase_policy(self) -> List[int]:
-        return list(self.__purchase_policy.keys())
+        return list(self._purchase_policy.keys())
     # ---------------------methods--------------------------------
     def close_store(self, user_id: int) -> None:
         """
@@ -593,21 +538,14 @@ class Store:
         if user_id is None:
             raise StoreError('User id is not a valid integer', StoreErrorTypes.invalid_user_id)
         
-        if not user_id == self.__store_founder_id:
+        if not user_id == self._store_founder_id:
             raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
-        if not self.__is_active:
+        if not self._is_active:
             raise StoreError('Store is already closed', StoreErrorTypes.store_not_active)
         with self.__checkout_lock:
-            self.__is_active = False
-            try:
-                db.session.commit()
-                logger.info(f'[Store] successfully closed store with id: {self.store_id}')
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                self.__is_active = True
-                logger.error(f'Failed to close store due to error: {e}')
-                raise StoreError('Failed to close store', StoreErrorTypes.unexpected_error)
-            
+            self._is_active = False
+            db.session.flush()
+            logger.info(f'[Store] successfully closed store with id: {self.store_id}')            
 
     def open_store(self, user_id: int) -> None:
         """
@@ -617,20 +555,14 @@ class Store:
         """
         if user_id is None:
             raise StoreError('User id is not a valid integer', StoreErrorTypes.invalid_user_id)
-        if not user_id == self.__store_founder_id:
+        if not user_id == self._store_founder_id:
             raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
-        if self.__is_active:
+        if self._is_active:
             raise StoreError('Store is already open', StoreErrorTypes.store_already_open)
         with self.__checkout_lock:
-            self.__is_active = True
-            try:
-                db.session.commit()
-                logger.info(f'[Store] successfully opened store with id: {self.store_id}')
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                self.__is_active = False
-                logger.error(f'Failed to open store due to error: {e}')
-                raise StoreError('Failed to open store', StoreErrorTypes.unexpected_error)
+            self._is_active = True
+            db.session.flush()
+            logger.info(f'[Store] successfully opened store with id: {self.store_id}')
         
     def acquire_lock(self):
         self.__checkout_lock.acquire()
@@ -646,20 +578,13 @@ class Store:
         * Returns: none
         """
         with self.__product_id_lock:
-            product = Product(self.__product_id_counter, name, description, price, weight, amount)
+            product = Product(self._product_id_counter, name, description, price, weight, amount)
             for tag in tags:
                 product.add_tag(tag)
-            self.__store_products[self.__product_id_counter] = product
-            self.__product_id_counter += 1
-            try:
-                db.session.commit()
-                logger.info(f'[Store] successfully added product to store with id: {self.store_id}')
-            except SQLAlchemyError as e:
-                db.session.rollback()
-                self.__store_products.pop(self.__product_id_counter)
-                self.__product_id_counter -= 1
-                logger.error(f'Failed to add product to store due to error: {e}')
-                raise StoreError('Failed to add product to store', StoreErrorTypes.unexpected_error)
+            self._store_products[self._product_id_counter] = product
+            self._product_id_counter += 1
+            db.session.flush()
+            logger.info(f'[Store] successfully added product to store with id: {self.store_id}')
         return product.product_id
 
     # We assume that the marketFacade verified that the user attempting to remove the product is a store owner/purchased
@@ -671,14 +596,8 @@ class Store:
         """
         try:
             self.acquire_products_lock([product_id])
-            product = self.__store_products.pop(product_id)
-            try:
-                db.session.commit()
-            except SQLAlchemyError as e:
-                self.__store_products[product_id] = product
-                logger.error(f'Failed to remove product from store due to error: {e}')
-                product.release_lock()
-                raise StoreError('Failed to remove product from store', StoreErrorTypes.unexpected_error)
+            product = self._store_products.pop(product_id)
+            db.session.flush()
             product.release_lock()
             logger.info(f'Successfully removed product from store with id: {self.store_id}')
         except KeyError:
@@ -691,7 +610,7 @@ class Store:
         * Returns: the product with the given ID
         """
         try:
-            return self.__store_products[product_id]
+            return self._store_products[product_id]
         except KeyError:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
@@ -714,25 +633,25 @@ class Store:
         if policy_name is None or policy_name == '':
             raise StoreError('Policy name is not a valid string', StoreErrorTypes.invalid_policy_name)
         if category_id is None and product_id is None:
-            basket_policy_to_add = BasketSpecificPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name)
-            self.__purchase_policy[self.__purchase_policy_id_counter] = basket_policy_to_add
+            basket_policy_to_add = BasketSpecificPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name)
+            self._purchase_policy[self._purchase_policy_id_counter] = basket_policy_to_add
             policy_id = basket_policy_to_add.purchase_policy_id
-            self.__purchase_policy_id_counter += 1
+            self._purchase_policy_id_counter += 1
 
         elif category_id is not None and product_id is None:
-            category_policy_to_add = CategorySpecificPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, category_id)
-            self.__purchase_policy[self.__purchase_policy_id_counter] = category_policy_to_add
+            category_policy_to_add = CategorySpecificPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, category_id)
+            self._purchase_policy[self._purchase_policy_id_counter] = category_policy_to_add
             policy_id = category_policy_to_add.purchase_policy_id
-            self.__purchase_policy_id_counter += 1
+            self._purchase_policy_id_counter += 1
         
         elif category_id is None and product_id is not None:
-            if product_id not in self.__store_products:
+            if product_id not in self._store_products:
                 logger.warn(f'[Store] Product is not found in the store with id: {self.store_id}')
                 raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
-            product_policy_to_add = ProductSpecificPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, product_id)
+            product_policy_to_add = ProductSpecificPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, product_id)
             policy_id = product_policy_to_add.purchase_policy_id
-            self.__purchase_policy[self.__purchase_policy_id_counter] = product_policy_to_add
-            self.__purchase_policy_id_counter += 1
+            self._purchase_policy[self._purchase_policy_id_counter] = product_policy_to_add
+            self._purchase_policy_id_counter += 1
         
         else:
             logger.warn(f'[Store] Invalid input when trying to add a purchase policy to store with id: {self.store_id}')
@@ -744,20 +663,21 @@ class Store:
         logger.info(f'[Store] successfully added purchase policy to store with id: {self.store_id}')
         return policy_id
 
+    # TODO: persist with db
     def remove_purchase_policy(self, policy_id: int) -> None:
         """
         * Parameters: policyId
         * This function removes a purchase policy from the store
         * Returns: none
         """
-        if policy_id not in self.__purchase_policy:
+        if policy_id not in self._purchase_policy:
             raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
-        policy = self.__purchase_policy.pop(policy_id)
+        policy = self._purchase_policy.pop(policy_id)
         try:
             db.session.commit()
             logger.info(f'[Store] successfully removed purchase policy from store with id: {self.store_id}')
         except SQLAlchemyError as e:
-            self.__purchase_policy[policy_id] = policy
+            self._purchase_policy[policy_id] = policy
             logger.error(f'Failed to remove purchase policy from store due to error: {e}')
             raise StoreError('Failed to remove purchase policy from store', StoreErrorTypes.unexpected_error)
         
@@ -775,42 +695,42 @@ class Store:
             raise StoreError('Policy name is not a valid string', StoreErrorTypes.invalid_policy_name)
         
         new_policy_id: int = -1
-        if policy_id_left not in self.__purchase_policy or policy_id_right not in self.__purchase_policy:
+        if policy_id_left not in self._purchase_policy or policy_id_right not in self._purchase_policy:
             logger.error(f'[Store] Purchase policy components of new composite policy are not found in store with id: {self.store_id}')
             raise StoreError('Failed to create composite policy due to having atleast one of the policies missing', StoreErrorTypes.policy_not_satisfied)
         
         
-        left_policy = self.__purchase_policy[policy_id_left]
-        right_policy = self.__purchase_policy[policy_id_right]
+        left_policy = self._purchase_policy[policy_id_left]
+        right_policy = self._purchase_policy[policy_id_right]
         if type_of_composite == 1:
-            and_composite_policy = AndPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
-            self.__purchase_policy[self.__purchase_policy_id_counter] = and_composite_policy
+            and_composite_policy = AndPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
+            self._purchase_policy[self._purchase_policy_id_counter] = and_composite_policy
             new_policy_id = and_composite_policy.purchase_policy_id
-            self.__purchase_policy_id_counter += 1
+            self._purchase_policy_id_counter += 1
             
             #we will now remove the two policies that were used to create the composite policy
-            self.__purchase_policy.pop(policy_id_left)
-            self.__purchase_policy.pop(policy_id_right)
+            self._purchase_policy.pop(policy_id_left)
+            self._purchase_policy.pop(policy_id_right)
 
         elif type_of_composite == 2:
-            or_composite_policy = OrPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
-            self.__purchase_policy[self.__purchase_policy_id_counter] = or_composite_policy
+            or_composite_policy = OrPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
+            self._purchase_policy[self._purchase_policy_id_counter] = or_composite_policy
             new_policy_id = or_composite_policy.purchase_policy_id
-            self.__purchase_policy_id_counter += 1
+            self._purchase_policy_id_counter += 1
 
             #we will now remove the two policies that were used to create the composite policy
-            self.__purchase_policy.pop(policy_id_left)
-            self.__purchase_policy.pop(policy_id_right)
+            self._purchase_policy.pop(policy_id_left)
+            self._purchase_policy.pop(policy_id_right)
 
         elif type_of_composite == 3:
-            conditional_composite_policy = ConditioningPurchasePolicy(self.__purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
-            self.__purchase_policy[self.__purchase_policy_id_counter] = conditional_composite_policy
+            conditional_composite_policy = ConditioningPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
+            self._purchase_policy[self._purchase_policy_id_counter] = conditional_composite_policy
             new_policy_id = conditional_composite_policy.purchase_policy_id
-            self.__purchase_policy_id_counter += 1
+            self._purchase_policy_id_counter += 1
 
             #we will now remove the two policies that were used to create the composite policy
-            self.__purchase_policy.pop(policy_id_left)
-            self.__purchase_policy.pop(policy_id_right)
+            self._purchase_policy.pop(policy_id_left)
+            self._purchase_policy.pop(policy_id_right)
         else:
             raise StoreError('Invalid type of composite', StoreErrorTypes.invalid_purchase_policy_input)
         
@@ -820,15 +740,16 @@ class Store:
         logger.info(f'[Store] successfully created composite purchase policy in store with id: {self.store_id}')
         return new_policy_id
 
+    # TODO: persist with db
     def assign_predicate_to_purchase_policy(self, policy_id: int, predicate: Constraint):
         """
         * Parameters: policyId, predicate
         * This function assigns a predicate to a purchase policy
         * Returns: none
         """
-        if policy_id not in self.__purchase_policy:
+        if policy_id not in self._purchase_policy:
             raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
-        self.__purchase_policy[policy_id].set_predicate(predicate)
+        self._purchase_policy[policy_id].set_predicate(predicate)
 
     def check_purchase_policies_of_store(self, basket: BasketInformationForConstraintDTO) -> bool:
         """
@@ -841,7 +762,7 @@ class Store:
         if basket.store_id != self.store_id:
             raise PurchaseError('Basket is not from the same store', PurchaseErrorTypes.basket_not_for_store)
 
-        for policy in self.__purchase_policy.values():
+        for policy in self._purchase_policy.values():
             if not policy.check_constraint(basket):
                 return False
         return True
@@ -896,9 +817,9 @@ class Store:
         * This function creates a store DTO from the store
         * Returns: the store DTO
         """
-        store_dto = StoreDTO(self.store_id, self.__address, self.__store_name, self.__store_founder_id,
-                             self.__is_active, self.__founded_date)
-        product_dtos = [product.create_product_dto() for product in self.__store_products.values()]
+        store_dto = StoreDTO(self.store_id, self._address, self._store_name, self._store_founder_id,
+                             self._is_active, self._founded_date)
+        product_dtos = [product.create_product_dto() for product in self._store_products.values()]
         store_dto.products = product_dtos
         return store_dto
 
@@ -920,9 +841,9 @@ class Store:
             raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
         
         
-        if product_id in self.__store_products:
-            self.__store_products[product_id].restock(amount)
-            logger.info('[Store] successfully restocked product with id: ' + str(product_id))
+        if product_id in self._store_products:
+            self._store_products[product_id].restock(amount)
+            logger.info(f'[Store] successfully restocked product with id: {product_id}')
         else:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
@@ -932,16 +853,16 @@ class Store:
         * This function removes a product from the store
         * Returns: none
         """
-        if product_id not in self.__store_products:
+        if product_id not in self._store_products:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
-        if self.__store_products[product_id].amount < amount:
+        if self._store_products[product_id].amount < amount:
             raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
         
         if amount <= 0:
             raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
         
-        self.__store_products[product_id].remove_amount(amount)
-        logger.info('Successfully removed product amount with id: {product_id}')
+        self._store_products[product_id].remove_amount(amount)
+        logger.info(f'Successfully removed product amount with id: {product_id}')
 
     def change_description_of_product(self, product_id: int, new_description: str) -> None:
         """
@@ -955,7 +876,7 @@ class Store:
         
         if product is not None:
             product.change_description(new_description)
-            logger.info('Successfully changed description of product with id: {product_id}')
+            logger.info(f'Successfully changed description of product with id: {product_id}')
         else:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
@@ -972,7 +893,7 @@ class Store:
         
         if product is not None:
             product.change_price(new_price)
-            logger.info('Successfully changed price of product with id: {product_id} to {new_price}')
+            logger.info(f'Successfully changed price of product with id: {product_id} to {new_price}')
         else:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
@@ -985,7 +906,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.add_tag(tag)
-            logger.info('Successfully added tag: {tag} to product with id: {product_id} in store with id: {self.store_id}')
+            logger.info(f'Successfully added tag: {tag} to product with id: {product_id} in store with id: {self.store_id}')
         else:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
@@ -998,7 +919,7 @@ class Store:
         product = self.get_product_by_id(product_id)
         if product is not None:
             product.remove_tag(tag)
-            logger.info('Successfully removed tag  {tag} from product with id: {product_id} in store with id: {self.store_id}')
+            logger.info(f'Successfully removed tag  {tag} from product with id: {product_id} in store with id: {self.store_id}')
         else:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
@@ -1010,7 +931,7 @@ class Store:
         * Returns: the purchase policy with the given ID
         """
         try:
-            return self.__purchase_policy[policy_id]
+            return self._purchase_policy[policy_id]
         except KeyError:
             raise StoreError("purchase policy is not found", StoreErrorTypes.policy_not_found)
         
@@ -1021,7 +942,7 @@ class Store:
         * Returns: all the purchase policies of the store
         """
         policies = []
-        for policy in self.__purchase_policy.values():
+        for policy in self._purchase_policy.values():
             policies.append(policy.get_policy_info_as_dict())
         return policies
 
@@ -1043,13 +964,13 @@ class Store:
         * This function checks if the store has the given amount of the product
         * Returns: true if the store has the given amount of the product
         """
-        if product_id in self.__store_products:
-            self.__store_products[product_id].acquire_lock()
+        if product_id in self._store_products:
+            self._store_products[product_id].acquire_lock()
             try:
-                ans = self.__store_products[product_id].amount >= amount
-                self.__store_products[product_id].release_lock()
+                ans = self._store_products[product_id].amount >= amount
+                self._store_products[product_id].release_lock()
             except Exception as e:
-                self.__store_products[product_id].release_lock()
+                self._store_products[product_id].release_lock()
                 raise e
             return ans
         return False
@@ -1070,9 +991,9 @@ class Store:
         * This function edits a product in the store
         * Returns: none
         """
-        if product_id not in self.__store_products:
+        if product_id not in self._store_products:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
-        product = self.__store_products[product_id]
+        product = self._store_products[product_id]
         product.change_name(name)
         product.change_description(description)
         product.change_price(price)
@@ -1080,7 +1001,9 @@ class Store:
         product.change_tags(tags)
         if amount is not None:
             product.change_amount(amount)
-        logger.info('[Store] successfully edited product in store with id: ' + str(self.store_id))
+        logger.info(f'[Store] successfully edited product in store with id: {self.store_id}')
+
+
 # ---------------------end of classes---------------------#
 
 # ---------------------storeFacade class---------------------#
@@ -1097,7 +1020,7 @@ class StoreFacade:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             self.__categories: Dict[int, Category] = {}  # category_id: Category
-            self.__stores: Dict[int, Store] = {}  # store_id: Store
+            # self.__stores: Dict[int, Store] = {}  # store_id: Store
             self.__discounts: Dict[int, Discount] = {}  # disctount_id: Discount
             self.__category_id_counter = 0  # Counter for category IDs
             self.__category_id_lock = threading.Lock() # lock for category id
@@ -1112,8 +1035,9 @@ class StoreFacade:
         """
         For testing purposes only
         """
-        self.__categories = {}
-        self.__stores = {}
+        from backend.app import app
+        with app.app_context():
+            db.session.query(Store).delete()
         self.__discounts = {}
         self.__category_id_counter = 0
         self.__store_id_counter = 0
@@ -1137,7 +1061,8 @@ class StoreFacade:
 
     @property
     def stores(self) -> List[int]:
-        return list(self.__stores.keys())
+        # query for store ids
+        return list(db.session.query(Store.store_id).all())
     
 
     constraint_types = {
@@ -1404,7 +1329,8 @@ class StoreFacade:
             raise StoreError('Store name is an empty string', StoreErrorTypes.invalid_store_name)
         with self.__store_id_lock:
             store = Store(self.__store_id_counter, address, store_name, store_founder_id)
-            self.__stores[self.__store_id_counter] = store
+            db.session.add(store)
+            db.session.flush()
             self.__store_id_counter += 1
         
         logger.info(f'Successfully added store: {store_name}')
@@ -1436,9 +1362,18 @@ class StoreFacade:
         * This function gets a store by its ID
         * Returns: the store with the given ID
         """
-        if store_id in self.__stores:
-            return self.__stores[store_id]
-        raise StoreError('Store not found', StoreErrorTypes.store_not_found)
+        store = db.session.query(Store).filter(Store.store_id == store_id).first()
+        if store is None:
+            raise StoreError('Store is not found', StoreErrorTypes.store_not_found)
+        return store
+    
+    def __get_all_stores(self) -> List[Store]:
+        """
+        * Parameters: none
+        * This function gets all the stores
+        * Returns: all the stores
+        """
+        return db.session.query(Store).all()
         
     #For Testing
     def get_store_by_id(self, store_id: int) -> Store:
@@ -1447,9 +1382,10 @@ class StoreFacade:
         * This function gets a store by its ID
         * Returns: the store with the given ID
         """
-        if store_id in self.__stores:
-            return self.__stores[store_id]
-        raise StoreError('Store not found', StoreErrorTypes.store_not_found)
+        store = db.session.query(Store).filter(Store.store_id == store_id).first()
+        if store is None:
+            raise StoreError('Store is not found', StoreErrorTypes.store_not_found)
+        return store
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
     def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
@@ -1474,11 +1410,11 @@ class StoreFacade:
             self.__discount_id_counter += 1
         
         elif store_id is not None:
-            if store_id not in self.__stores:
+            if store_id not in self.stores:
                 logger.warning('[StoreFacade] store the discount is applied to is not found')
                 raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
             if product_id is not None: 
-                if product_id not in self.__stores[store_id].store_products:
+                if product_id not in self.__get_store_by_id(store_id).store_products:
                     logger.warning('[StoreFacade] product the discount is applied to is not found')
                     raise DiscountAndConstraintsError('Product is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
                 logger.info('[StoreFacade] successfully added product discount to store')
@@ -1898,14 +1834,14 @@ class StoreFacade:
         products_dto: List[ProductForConstraintDTO] = []
         for store_id, product_id  in category.category_products:
             if product_id in shopping_basket:
-                if store_id not in self.__stores:
+                if store_id not in self.stores:
                     logger.warning('[StoreFacade] store is not found')
                     raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
-                if product_id not in self.__stores[store_id].store_products:
+                if product_id not in self.__get_store_by_id(store_id).store_products:
                     logger.warning('[StoreFacade] product is not found in the store')
                     raise StoreError('Product is not found in the store',StoreErrorTypes.product_not_found)
                 
-                product = self.__stores[store_id].get_product_by_id(product_id)
+                product = self.__get_store_by_id(store_id).get_product_by_id(product_id)
                 
                 productDTO = ProductForConstraintDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
                 products_dto.append(productDTO)
@@ -1925,7 +1861,7 @@ class StoreFacade:
         * Returns: the basket information for the constraints
         """
         
-        if store_id not in self.__stores:
+        if store_id not in self.__get_store_by_id(store_id):
             logger.error('[StoreFacade] store is not found')
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         
@@ -1938,10 +1874,10 @@ class StoreFacade:
         
         products: List[ProductForConstraintDTO] = []
         for product_id in shopping_basket:
-            if product_id not in self.__stores[store_id].store_products:
+            if product_id not in self.__get_store_by_id(store_id).store_products:
                 raise StoreError('Product is not found in the store',StoreErrorTypes.product_not_found)
             
-            product = self.__stores[store_id].get_product_by_id(product_id)
+            product = self.__get_store_by_id(store_id).get_product_by_id(product_id)
             productDTO = ProductForConstraintDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
             products.append(productDTO)
         
@@ -2046,11 +1982,11 @@ class StoreFacade:
         * This function assigns a predicate to a purchase policy
         * Returns: none
         """
-        if store_id not in self.__stores:
+        if store_id not in self.stores:
             logger.error('[StoreFacade] store is not found')
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         
-        store = self.__stores[store_id]
+        store = self.__get_store_by_id(store_id)
 
         if predicate_builder is None:
             logger.error('[StoreFacade] predicate builder is missing')
@@ -2071,11 +2007,11 @@ class StoreFacade:
         * This function validates the purchase policies of the stores
         * Returns: True if the purchase policies are satisfied
         """
-        if store_id not in self.__stores:
+        if store_id not in self.stores:
             logger.error('[StoreFacade] store is not found')
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         
-        store = self.__stores[store_id]
+        store = self.__get_store_by_id(store_id)
 
         basket_info: BasketInformationForConstraintDTO = self.creating_basket_info_for_constraints(store_id, total_price_of_basket, shopping_basket, user_info)
 
@@ -2257,7 +2193,7 @@ class StoreFacade:
                         products[store_id] = []
                     products[store_id].append(product)
         else:
-            for store in self.__stores.values():
+            for store in self.__get_all_stores():
                 for product_id in store.store_products:
                     product = store.get_product_dto_by_id(product_id)
                     if all(tag in product.tags for tag in tags):
@@ -2282,7 +2218,7 @@ class StoreFacade:
                         products[store_id] = []
                     products[store_id].append(product)
         else:
-            for store in self.__stores.values():
+            for store in self.__get_all_stores():
                 for product_id in store.store_products:
                     product = store.get_product_dto_by_id(product_id)
                     if product.name == product_name:
@@ -2295,11 +2231,11 @@ class StoreFacade:
         start = (page - 1) * limit
         end = start + limit
         stores = {}
-        store_keys = list(self.__stores.keys())
+        store_keys = list(self.stores)
         store_keys.sort()
         store_keys = store_keys[start:end]
         for store_id in store_keys:
-            store = self.__stores[store_id]
+            store = self.__get_store_by_id(store_id)
             stores[store_id] = store.create_store_dto()
 
         return stores
@@ -2316,7 +2252,8 @@ class StoreFacade:
         * This function gets all the store names in the system
         * Returns: a dict from store_id to store_name
         """
-        return {store_id: store.store_name for store_id, store in self.__stores.items()}
+        curr_stores = self.__get_all_stores()
+        return {store.store_id: store.store_name for store in curr_stores}
     
     def get_all_categories(self) -> Dict[int, CategoryDTO]:
         """
@@ -2345,7 +2282,7 @@ class StoreFacade:
             for product_id, amount in products.items():
                 logger.info('[StoreFacade] checking product availability')
                 logger.info(f'types are: {type(product_id)}, { type(amount)}, {type(store_id)}')
-                existing_amount = self.__stores[store_id].get_product_dto_by_id(product_id).amount
+                existing_amount = self.__get_store_by_id(store_id).get_product_dto_by_id(product_id).amount
                 if amount > existing_amount:
                     raise StoreError('Product amount is greater than the existing amount', StoreErrorTypes.product_not_available)
         
@@ -2390,10 +2327,12 @@ class StoreFacade:
         * This function gets all the stores in the system
         * Returns: a dict from store_id to storeDTO
         """
-        return {store_id: store.create_store_dto() for store_id, store in self.__stores.items()}
+        curr_stores = self.__get_all_stores()
+        return {store.store_id: store.create_store_dto() for store in curr_stores}
 
     def get_store_id(self, store_name):
-        for store_id, store in self.__stores.items():
+        curr_stores = self.__get_all_stores()
+        for store in curr_stores:
             if store.store_name == store_name:
-                return store_id
+                return store.store_id
         return None
