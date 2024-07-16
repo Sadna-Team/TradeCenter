@@ -4,15 +4,30 @@ from threading import Lock
 from backend.business.notifier.notifier import Notifier
 from backend.error_types import *
 from backend.business.DTOs import RoleNominationDTO, UserDTO
-
+from backend.database import db
+from sqlalchemy.orm import backref, relationship
 import logging
 
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
                      format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Roles Logger")
 
-class Permissions:
+
+class Permissions(db.Model):
+
+    __tablename__ = 'permissions'
+
+    id = db.Column(db.String(100), primary_key=True) # user_id_store_id
+    add_product = db.Column(db.Boolean, nullable=False)
+    change_purchase_policy = db.Column(db.Boolean, nullable=False)
+    change_purchase_types = db.Column(db.Boolean, nullable=False)
+    change_discount_policy = db.Column(db.Boolean, nullable=False)
+    change_discount_types = db.Column(db.Boolean, nullable=False)
+    add_manager = db.Column(db.Boolean, nullable=False)
+    get_bid = db.Column(db.Boolean, nullable=False)
+
     def __init__(self):
+        self.__id = None
         self.__add_product: bool = False
         self.__change_purchase_policy: bool = False
         self.__change_purchase_types: bool = False
@@ -20,6 +35,10 @@ class Permissions:
         self.__change_discount_types: bool = False
         self.__add_manager: bool = False
         self.__get_bid: bool = False
+
+    @property
+    def id(self) -> str:
+        return self.__id
 
     @property
     def add_product(self) -> bool:
@@ -49,9 +68,10 @@ class Permissions:
     def get_bid(self) -> bool:
         return self.__get_bid
 
-    def set_permissions(self, add_product: bool, change_purchase_policy: bool, change_purchase_types: bool,
+    def set_permissions(self, id: str, add_product: bool, change_purchase_policy: bool, change_purchase_types: bool,
                         change_discount_policy: bool, change_discount_types: bool, add_manager: bool,
                         get_bid: bool) -> None:
+        self.__id = id
         self.__add_product = add_product
         self.__change_purchase_policy = change_purchase_policy
         self.__change_purchase_types = change_purchase_types
@@ -61,7 +81,16 @@ class Permissions:
         self.__get_bid = get_bid
 
 
-class StoreRole(ABC):
+class StoreRole(db.Model, ABC):
+    __tablename__ = 'store_roles'
+
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(50))
+    __mapper_args__ = {
+        'polymorphic_identity': 'store_roles',
+        'polymorphic_on': type
+    }
+
     @abstractmethod
     def __init__(self):
         pass
@@ -71,6 +100,13 @@ class StoreRole(ABC):
 
 
 class StoreOwner(StoreRole):
+    __tablename__ = 'store_owners'
+
+    id = db.Column(db.Integer, db.ForeignKey('store_roles.id'), primary_key=True)
+    __mapper_args__ = {
+        'polymorphic_identity': 'store_owner',
+    }
+
     def __init__(self):
         super().__init__()
 
@@ -79,56 +115,104 @@ class StoreOwner(StoreRole):
 
 
 class StoreManager(StoreRole):
+    __tablename__ = 'store_managers'
+
+    id = db.Column(db.Integer, db.ForeignKey('store_roles.id'), primary_key=True)
+    permissions_id = db.Column(db.Integer, db.ForeignKey('permissions.id'))
+    permissions = db.relationship('Permissions', backref=backref('manager', uselist=False))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'store_manager',
+    }
+
     def __init__(self):
-        self.__permissions: Permissions = Permissions()
+        super().__init__()
+        self.permissions = Permissions()
 
     @property
     def permissions(self) -> Permissions:
-        return self.__permissions
+        return self.permissions
 
     def __str__(self):
         return "StoreManager"
 
 
-class Nomination:
+class Nomination(db.Model):
+    __tablename__ = 'nominations'
     __nomination_id_serializer = 0
 
+    nomination_id = db.Column(db.Integer, primary_key=True)
+    store_id = db.Column(db.Integer, nullable=False)
+    nominator_id = db.Column(db.Integer, nullable=False)
+    nominee_id = db.Column(db.Integer, nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey('store_roles.id'))
+    role = db.relationship('StoreRole')
+
     def __init__(self, store_id, nominator_id: int, nominee_id: int, role: StoreRole):
-        self.__nomination_id = Nomination.__nomination_id_serializer
+        self.nomination_id = Nomination.__nomination_id_serializer
         Nomination.__nomination_id_serializer += 1
-        self.__store_id: int = store_id
-        self.__nominator_id: int = nominator_id
-        self.__nominee_id: int = nominee_id
-        self.__role: StoreRole = role
+        self.store_id = store_id
+        self.nominator_id = nominator_id
+        self.nominee_id = nominee_id
+        self.role = role
 
     @property
     def nomination_id(self) -> int:
-        return self.__nomination_id
+        return self.nomination_id
 
     @property
     def store_id(self) -> int:
-        return self.__store_id
+        return self.store_id
 
     @property
     def nominator_id(self) -> int:
-        return self.__nominator_id
+        return self.nominator_id
 
     @property
     def nominee_id(self) -> int:
-        return self.__nominee_id
+        return self.nominee_id
 
     @property
     def role(self) -> StoreRole:
-        return self.__role
+        return self.role
+
+class TreeNode(db.Model):
+    __tablename__ = 'tree_nodes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.Integer, nullable=False)
+    store_tree_id = db.Column(db.Integer, db.ForeignKey('store_trees.id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('tree_nodes.id'))
+    children = relationship("TreeNode",
+                            backref=backref('parent', remote_side=[id]),
+                            cascade="all, delete-orphan")
+
+    def __init__(self, data: int, store_tree_id: int, parent_id: Optional[int] = None):
+        self.data = data
+        self.store_tree_id = store_tree_id
+        self.parent_id = parent_id
+
+
+class StoreTree(db.Model):
+    __tablename__ = 'store_trees'
+
+    id = db.Column(db.Integer, primary_key=True)
+    root_id = db.Column(db.Integer, db.ForeignKey('tree_nodes.id'))
+    root = relationship("TreeNode", uselist=False, foreign_keys=[root_id])
+
+    def __init__(self, root: TreeNode):
+        self.root = root
 
 
 class Node:
-    def __init__(self, data):
+    def __init__(self, data, store_tree_id=None, parent_id=None):
         self.__data: int = data
         self.children: List[Node] = []
+        self.store_tree_id = store_tree_id
+        self.parent_id = parent_id
 
     def add_child(self, child: int) -> None:
-        self.children.append(Node(child))
+        self.children.append(Node(child, self.store_tree_id, self.__data))
 
     @property
     def data(self) -> int:
@@ -169,7 +253,6 @@ class Tree:
                 return found
         return None
 
-    # remove all children of the node with the given user_id and return a list of the removed children
     def remove_node(self, user_id: int) -> List[int]:
         removed = []
         removed_node = self.__find_node(self.__root, user_id)
@@ -194,9 +277,31 @@ class Tree:
             else:
                 self.__trim_tree(child, data)
 
+    @staticmethod
+    def from_db(store_tree_id: int) -> 'Tree':
+        root_node = db.session.query(TreeNode).filter_by(store_tree_id=store_tree_id, parent_id=None).one()
+        root = Node(root_node.data, root_node.store_tree_id, root_node.parent_id)
+        tree = Tree(root)
+        Tree.__load_children(root)
+        return tree
+
+    @staticmethod
+    def __load_children(node: Node) -> None:
+        child_nodes = db.session.query(TreeNode).filter_by(parent_id=node.data).all()
+        for child_node in child_nodes:
+            child = Node(child_node.data, child_node.store_tree_id, child_node.parent_id)
+            node.add_child(child)
+            Tree.__load_children(child)
+
+
+class SystemManagerModel(db.Model):
+    __tablename__ = 'system_managers'
+
+    user_id = db.Column(db.Integer, primary_key=True)
+    is_admin = db.Column(db.Boolean, nullable=False)
+
 
 class RolesFacade:
-    # singleton
     __instance = None
 
     def __new__(cls):
@@ -207,29 +312,89 @@ class RolesFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.__stores_to_role_tree: Dict[int, Tree] = {}  # Dict[store_id, Tree[user_id]]
-            self.__stores_to_roles: Dict[int, Dict[int, StoreRole]] = {}  # Dict[store_id, Dict[user_id, StoreRole]]
-            self.__systems_nominations: Dict[int, Nomination] = {}
-            self.__system_managers: List[int] = []
-            self.__system_admin: int = -1
+            self.__stores_to_role_tree: Dict[int, Tree] = self.__load_trees_from_db()
+            self.__stores_to_roles: Dict[int, Dict[int, StoreRole]] = self.__load_roles_from_db()
+            self.__systems_nominations: Dict[int, Nomination] = self.__load_nominations_from_db()
+            self.__system_managers: List[int] = self.__load_system_managers_from_db()
+            self.__system_admin: int = self.__load_system_admin_from_db()
             self.__notifier = Notifier()
-            Nomination._Nomination__nomination_id_serializer = 0
+
+            Nomination.__nomination_id_serializer = Nomination.get_max_nomination_id() + 1
 
             self.__creation_lock = Lock()
-            self.__stores_locks: Dict[int, Lock] = {}  # Dict[store_id, Lock]
+            self.__stores_locks: Dict[int, Lock] = {store_id: Lock() for store_id in self.__stores_to_role_tree.keys()}
             self.__system_managers_lock = Lock()
 
+    def __load_trees_from_db(self) -> Dict[int, Tree]:
+        trees = {}
+        store_trees = db.session.query(StoreTree).all()
+        for store_tree in store_trees:
+            trees[store_tree.id] = Tree.from_db(store_tree.id)
+        return trees
+
+    def __load_roles_from_db(self) -> Dict[int, Dict[int, StoreRole]]:
+        roles = {}
+        store_roles = db.session.query(StoreRole).all()
+        for store_role in store_roles:
+            store_id = store_role.store_id
+            if store_id not in roles:
+                roles[store_id] = {}
+            if store_role.role_type == 'store_owner':
+                roles[store_id][store_role.user_id] = StoreOwner()
+            elif store_role.role_type == 'store_manager':
+                manager = StoreManager()
+                permissions = store_role.permissions
+                manager.permissions.set_permissions(
+                    add_product=permissions.add_product,
+                    change_purchase_policy=permissions.change_purchase_policy,
+                    change_purchase_types=permissions.change_purchase_types,
+                    change_discount_policy=permissions.change_discount_policy,
+                    change_discount_types=permissions.change_discount_types,
+                    add_manager=permissions.add_manager,
+                    get_bid=permissions.get_bid
+                )
+                roles[store_id][store_role.user_id] = manager
+        return roles
+
+    def __load_nominations_from_db(self) -> Dict[int, Nomination]:
+        nominations = {}
+        db_nominations = db.session.query(Nomination).all()
+        for db_nomination in db_nominations:
+            nomination = Nomination(
+                store_id=db_nomination.store_id,
+                nominator_id=db_nomination.nominator_id,
+                nominee_id=db_nomination.nominee_id,
+                role=StoreOwner() if db_nomination.role_type == 'store_owner' else StoreManager()
+            )
+            nominations[db_nomination.id] = nomination
+        return nominations
+
+    def __load_system_managers_from_db(self) -> List[int]:
+        managers = db.session.query(SystemManagerModel).all()
+        return [manager.user_id for manager in managers]
+
+    def __load_system_admin_from_db(self) -> int:
+        admin = db.session.query(SystemManagerModel).filter_by(is_admin=True).one_or_none()
+        if admin is None:
+            return -1
+        return admin.user_id
+
     def clean_data(self):
-        """
-        For testing purposes only
-        """
         self.__stores_to_role_tree.clear()
         self.__stores_to_roles.clear()
         self.__systems_nominations.clear()
         self.__system_managers.clear()
         self.__system_admin = -1
-        Nomination._Nomination__nomination_id_serializer = 0
+        Nomination.__nomination_id_serializer = 0
         self.__notifier.clean_data()
+        db.session.query(TreeNode).delete()
+        db.session.query(StoreTree).delete()
+        db.session.query(StoreRole).delete()
+        db.session.query(Nomination).delete()
+        db.session.query(SystemManagerModel).delete()
+        db.session.commit()
+
+
 
     def add_store(self, store_id: int, owner_id: int) -> None:
         """
@@ -242,7 +407,6 @@ class RolesFacade:
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
         self.__stores_locks[store_id] = Lock()
         self.__notifier.sign_listener(owner_id, store_id)
-
 
     def remove_store(self, store_id: int, actor_id: int) -> None:
         if store_id not in self.__stores_to_roles:
