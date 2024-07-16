@@ -93,6 +93,7 @@ class PurchaseStatus(Enum):
     accepted = 2
     completed = 3
     offer_rejected = 4
+    approved = 5
 
 
 # -----------------Purchase Class-----------------#
@@ -473,7 +474,7 @@ class BidPurchase(Purchase):
                         " all store owners/managers accepted the offer",
                         self.id)
                     return False
-            self.accept()
+            self._status = PurchaseStatus.approved
             logger.info("[BidPurchase] store accepted offer of bid purchase with purchase id: %s", self.id)
             return True
 
@@ -605,8 +606,8 @@ class BidPurchase(Purchase):
         self._list_of_store_owners_managers_that_accepted_offer = []
 
     def accept(self):
-        if self._status != PurchaseStatus.onGoing:
-            raise PurchaseError("Purchase is not on going", PurchaseErrorTypes.purchase_not_ongoing)
+        if self._status != PurchaseStatus.approved:
+            raise PurchaseError("Purchase is not approved", PurchaseErrorTypes.purchase_not_approved)
         self._status = PurchaseStatus.accepted
         self._total_price = self._proposed_price
         self._total_price_after_discounts = self._proposed_price
