@@ -4,13 +4,13 @@ from typing import Dict
 import pytest
 from backend.business.store.constraints import AgeConstraint, AndConstraint, LocationConstraint
 from backend.business.store.discount import StoreDiscount
-from backend.business.store.new_store import Store, Product, Category, StoreFacade
+from backend.business.store.new_store import Product, Category, StoreFacade, create_store
 from backend.business.DTOs import AddressDTO, ProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO
 from backend.error_types import *
 
 @pytest.fixture
 def product():
-    return Product(product_id=0, product_name='product', description='very good product', price=10.0, weight=30.0, amount=10)
+    return Product(store_id=0, product_id=0, product_name='product', description='very good product', price=10.0, weight=30.0, amount=10)
 
 @pytest.fixture
 def tagged_product(product):
@@ -37,7 +37,7 @@ def subsub_category(sub_category):
 @pytest.fixture
 def store():
     address = AddressDTO('address', 'city', 'state', 'country', 'zip_code')
-    return Store(store_id=0, address=address, store_name='store', store_founder_id=0)
+    return create_store(address=address, store_name='store', store_founder_id=0)
 
 @pytest.fixture
 def product_dto():
