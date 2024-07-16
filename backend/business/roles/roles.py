@@ -343,22 +343,22 @@ class RolesFacade:
             if db.session.query(TreeNode).filter_by(store_id=store_id, is_root=True).first():
                 raise RoleError("Store already exists", RoleErrorTypes.store_already_exists)
 
-        # Create root node for the store tree
-        root_node = TreeNode(data=owner_id, store_id=store_id, is_root=True)
+            # Create root node for the store tree
+            root_node = TreeNode(data=owner_id, store_id=store_id, is_root=True)
 
-        # Add the root node to the session and commit
-        db.session.add(root_node)
-        db.session.commit()
+            # Add the root node to the session and commit
+            db.session.add(root_node)
+            db.session.commit()
 
-        # Add store owner role and commit to database
-        store_owner = StoreOwner(store_id=store_id, user_id=owner_id)
-        db.session.add(store_owner)
-        db.session.commit()
+            # Add store owner role and commit to database
+            store_owner = StoreOwner(store_id=store_id, user_id=owner_id)
+            db.session.add(store_owner)
+            db.session.commit()
 
-        # Initialize store lock
-        self.__stores_locks[store_id] = Lock()
+            # Initialize store lock
+            self.__stores_locks[store_id] = Lock()
 
-        self.__notifier.sign_listener(owner_id, store_id)
+            self.__notifier.sign_listener(owner_id, store_id)
 
     def remove_store(self, store_id: int, actor_id: int) -> None:
         if not db.session.query(StoreRole).filter_by(store_id=store_id).first():
