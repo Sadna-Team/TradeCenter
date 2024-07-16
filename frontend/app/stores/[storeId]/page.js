@@ -271,8 +271,14 @@ const StoreDetail = () => {
             }}>
             <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">Policy Management</div>
           </Link>}
+          {(storeRole === 'StoreOwner' || permission['change_discount_policy']) && 
+           <Link href={{
+              pathname: `/discounts/${store_id}`,
+              query: { id: store_id },
+            }}>
+            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">Discount Management</div>
+          </Link>}  
         </div>
-
         {/* Products */}
         <div>
             {!isClosed && permission['add_product'] &&(

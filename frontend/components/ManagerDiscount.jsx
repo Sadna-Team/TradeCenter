@@ -49,6 +49,7 @@ const ManagerDiscount = ({ discount }) => {
                 <p><strong>EndingDate:</strong> {discount.ending_date} GMT +3</p>
                 <p><strong>Percentage:</strong> {discount.percentage}%</p> 
                 <p><strong>Category:</strong> {discount.category}</p>
+                <p><strong>StoreID:</strong> {discount.store_id}</p>
                 <p><strong>Predicate:</strong> 
                   <button onClick={togglePredicate} style={{ marginLeft: '8px' }}>
                     {showPredicate ? 'Hide Details' : 'Show Details'}
@@ -79,6 +80,8 @@ const ManagerDiscount = ({ discount }) => {
                 <p><strong>EndingDate:</strong> {discount.ending_date} GMT +3</p>
                 <p><strong>Discount1:</strong> {discount.discount_1_info}</p>
                 <p><strong>Discount2:</strong> {discount.discount_2_info}</p>
+                <p><strong>StoreID:</strong> {discount.store_id}</p>
+
 
 
 
@@ -91,6 +94,7 @@ const ManagerDiscount = ({ discount }) => {
                 <p><strong>EndingDate:</strong> {discount.ending_date} GMT +3</p>
                 <p><strong>Discount1:</strong> {discount.discount_1_info}</p>
                 <p><strong>Discount2:</strong> {discount.discount_2_info}</p>
+                <p><strong>StoreID:</strong> {discount.store_id}</p>
               </div>
   }else if(discount.discount_type ==='Xor Discount' ){
     content = <div className="or-discount-details" style={{ marginBottom: '12px' }}>
@@ -99,6 +103,7 @@ const ManagerDiscount = ({ discount }) => {
                 <p><strong>EndingDate:</strong> {discount.ending_date} GMT +3</p>
                 <p><strong>Discount1:</strong> {discount.discount_1_info}</p>
                 <p><strong>Discount2:</strong> {discount.discount_2_info}</p>
+                <p><strong>StoreID:</strong> {discount.store_id}</p>
               </div>
   }else if(discount.discount_type ==='Max Discount' ){
     content = <div className="max-discount-details" style={{ marginBottom: '12px' }}>
@@ -106,6 +111,7 @@ const ManagerDiscount = ({ discount }) => {
                 <p><strong>StartingDate:</strong> {discount.starting_date} GMT +3</p>
                 <p><strong>EndingDate:</strong> {discount.ending_date} GMT +3</p>
                 <p><strong>Discounts:</strong> {discount.discounts_info}</p>
+                <p><strong>StoreID:</strong> {discount.store_id}</p>
               </div>
 
   }else{
@@ -114,6 +120,8 @@ const ManagerDiscount = ({ discount }) => {
                 <p><strong>StartingDate:</strong> {discount.starting_date} GMT +3</p>
                 <p><strong>EndingDate:</strong> {discount.ending_date} GMT +3</p>
                 <p><strong>Discounts:</strong> {discount.discounts_info}</p>
+                <p><strong>StoreID:</strong> {discount.store_id}</p>
+
               </div>
   }
 
