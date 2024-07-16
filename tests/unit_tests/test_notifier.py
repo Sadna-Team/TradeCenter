@@ -2,12 +2,15 @@ import unittest
 from unittest.mock import MagicMock
 from backend.business.notifier import Notifier
 from backend.error_types import *
-
+from backend import create_app
 
 
 class TestNotifier(unittest.TestCase):
 
     def setUp(self) -> None:
+        self.app = create_app("testing")
+        from backend import app as app2
+        app2.app = self.app
         self.notifier = Notifier()
 
     def tearDown(self) -> None:

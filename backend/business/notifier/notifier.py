@@ -90,7 +90,8 @@ class Notifier:
         * Parameters: store_id: int, message: str
         * This function sends a message to multiple users.
         """
-        with current_app.app_context():
+        from backend.app import app
+        with app.app_context():
             for listeners in db.session.query(Listeners).filter_by(store_id=store_id).all():
                 if listeners is None:
                     raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
