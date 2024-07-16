@@ -188,7 +188,7 @@ class Product(db.Model):
         * This function changes the tags of the product
         * Returns: none
         """
-        self.aquire_lock()
+        self.acquire_lock()
         self._tags = new_tags
         self.release_lock()
         logger.info('[Product] successfully changed tags of product with id: ' + str(self.product_id))
@@ -262,7 +262,7 @@ class Product(db.Model):
     def restock(self, amount) -> None:
         if amount < 0:
             raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
-        self.aquire_lock()
+        self.acquire_lock()
         self._amount += amount
         self.release_lock()
 
@@ -1422,10 +1422,13 @@ class StoreFacade:
         logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
         if amount is None:
             amount = 0
+        logger.info(f'attempting to add product: {product_name} to store with id: {store_id}')
         product_id = store.add_product(product_name, description, price, tags, weight, amount)
+        logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
         for tag in tags:
             self.__tags.add(tag)
-        db.session.commit()
+        logger.info(f'Successfully added tags to product: {product_name} in store with the id: {store_id}')
+        db.session.flush()
 
         return product_id
 
@@ -1543,7 +1546,7 @@ class StoreFacade:
         with self.__store_id_lock:
             store = create_store(address, store_name, store_founder_id)
             db.session.add(store)
-            db.session.commit()
+            db.session.flush()
 
         logger.info(f'Successfully added store: {store_name}')
         return store.store_id
@@ -1571,6 +1574,7 @@ class StoreFacade:
         db.session.commit()
 
     def __store_exists(self, store_id: int) -> bool:
+        logger.info('[StoreFacade] checking if store exists')
         return db.session.query(Store).filter(Store.store_id == store_id).first() is not None
 
     def __get_store_by_id(self, store_id: int) -> Store:
@@ -1580,6 +1584,7 @@ class StoreFacade:
         * Returns: the store with the given ID
         """
         if self.__store_exists(store_id):
+            logger.info('[StoreFacade] successfully got store by id')
             return db.session.query(Store).filter(Store.store_id == store_id).first()
         raise StoreError('Store not found', StoreErrorTypes.store_not_found)
         
@@ -2557,7 +2562,7 @@ class StoreFacade:
         return {store.store_id: store.create_store_dto() for store in db.session.query(Store).all()}
 
     def get_store_id(self, store_name):
-        for store in db.query(Store).all():
+        for store in db.session.query(Store).all():
             if store.store_name == store_name:
                 return store.store_id
-        return None
+        raise StoreError('Store not found', StoreErrorTypes.store_not_found)

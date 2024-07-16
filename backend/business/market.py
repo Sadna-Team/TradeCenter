@@ -11,6 +11,7 @@ from typing import List, Dict, Tuple, Optional
 from datetime import date, datetime
 import threading
 from backend.error_types import *
+from backend.database import db
 
 
 import logging
@@ -829,11 +830,22 @@ class MarketFacade:
         * This function adds a product to the store
         * Returns None
         """
-        if self.user_facade.suspended(user_id):
-            raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        if not self.roles_facade.has_add_product_permission(store_id, user_id):
-            raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
-        return self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags, amount)
+        try:
+            logger.info(f"User {user_id} is trying to add a product to store {store_id}")
+            if self.user_facade.suspended(user_id):
+                logger.warn(f"User {user_id} is suspended")
+                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+            logger.info(f"User {user_id} is not suspended")
+            if not self.roles_facade.has_add_product_permission(store_id, user_id):
+                logger.warn(f"User {user_id} does not have permissions to add a product to store {store_id}")
+                raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
+            logger.info(f"User {user_id} has permissions to add a product to store {store_id}")
+            res =  self.store_facade.add_product_to_store(store_id, product_name, description, price, weight, tags, amount)
+            db.session.commit()
+            return res
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def remove_product(self, user_id: int, store_id: int, product_id: int):
         """
@@ -889,6 +901,7 @@ class MarketFacade:
         address_of_store: AddressDTO = AddressDTO(address, city, state, country, zip_code)
         store_id = self.store_facade.add_store(address_of_store, store_name, founder_id)
         self.roles_facade.add_store(store_id, founder_id)
+        db.session.commit()
         # Notifier().sign_listener(founder_id, store_id) -- already happened inside roles.add_store()
 
         return store_id
