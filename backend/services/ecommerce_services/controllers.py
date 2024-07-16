@@ -244,3 +244,15 @@ class PurchaseService:
         except Exception as e:
             logger.error('show_store_bids was not successful')
             return jsonify({'message': str(e)}), 400
+        
+    def has_store_worker_accepted_bid(self, user_id: int, store_id: int, bid_id: int):
+        """
+            Has store worker accepted bid
+        """
+        try:
+            info = self.__market_facade.has_store_worker_accepted_bid(user_id,store_id, bid_id)
+            logger.info('has_store_worker_accepted_bid was successful')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('has_store_worker_accepted_bid was not successful')
+            return jsonify({'message': str(e)}), 400

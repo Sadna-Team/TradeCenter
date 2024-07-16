@@ -515,6 +515,10 @@ class BidPurchase(Purchase):
             self._proposed_price = proposed_price
             self._is_offer_to_store = False
 
+    
+    def store_worker_accepted_offer(self, user_id:int) -> bool:
+        return user_id in self._list_of_store_owners_managers_that_accepted_offer
+    
     #FOR NOW THE IMPLEMENTATION IS AS FOLLOWS: if a manager counters the offer of a user, the user can either counter it back, reject, or accept 
     # NOTE: in the case of accept, the user will accept the counter and then propose the new price again to all store owners/managers to accept
     def user_accept_counter_offer(self, user_id: int) -> None:
@@ -629,6 +633,7 @@ class BidPurchase(Purchase):
             "user_who_rejected_id": self._user_who_rejected_id,
             "status": self._status.name            
         }
+        
 
 
 class PurchaseProduct(db.Model):
@@ -1322,6 +1327,19 @@ class PurchaseFacade:
                                   purchase.list_of_store_owners_managers_that_accepted_offer,
                                   purchase.user_who_rejected_id)
         raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+    
+    def store_worker_accepted_offer(self, user_id: int, purchase_id: int) -> bool:
+        """
+        Parameters: userId, purchaseId
+        This function is responsible for the store worker accepting the offer
+        NOTE: the store worker can only accept the offer if the purchase is ongoing
+        Returns: none
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            return purchase.store_worker_accepted_offer(user_id)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
 
     # -----------------General Purchase class related methods-----------------#
     def accept_purchase(self, purchase_id: int, delivery_date: datetime) -> None:

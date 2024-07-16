@@ -443,6 +443,30 @@ def show_store_bids():
 
     return purchase_service.show_store_bids(store_owner_id, store_id)
 
+
+@market_bp.route('/has_store_worker_accepted_bid', methods=['POST'])
+@jwt_required()
+def has_store_worker_accepted_bid():
+    """
+        Use Case:
+        Has store worker accepted bid
+
+        Data:
+            store_id (int): id of the store
+            bid_id (int): id of the bid
+    """
+    logger.info('recieved request to check if store worker has accepted bid')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        bid_id = int(data['bid_id'])
+    except Exception as e:
+        logger.error('has_store_worker_accepted_bid - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.has_store_worker_accepted_bid(user_id, store_id, bid_id)
+
 '''@market_bp.route('/search_store_products', methods=['GET'])
 @jwt_required()
 def search_store_products():
