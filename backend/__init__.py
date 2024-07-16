@@ -94,6 +94,7 @@ def create_app(mode='development'):
 
             MarketFacade()
             if mode != 'testing':
+
                 InitialState(app, db).init_system_from_file()
             # MarketFacade().default_setup()
 

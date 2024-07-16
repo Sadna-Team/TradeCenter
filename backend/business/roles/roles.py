@@ -7,48 +7,47 @@ from backend.business.DTOs import RoleNominationDTO, UserDTO
 from backend.database import db
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.ext.declarative import declared_attr
+
 import logging
 
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
-                     format='%(name)s - %(levelname)s - %(message)s')
+                    format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Roles Logger")
 
 
 class Permissions(db.Model):
-
     __tablename__ = 'permissions'
 
-    id = db.Column(db.String(100), primary_key=True)  # user_id_store_id
-    add_product = db.Column(db.Boolean, nullable=False)
-    change_purchase_policy = db.Column(db.Boolean, nullable=False)
-    change_purchase_types = db.Column(db.Boolean, nullable=False)
-    change_discount_policy = db.Column(db.Boolean, nullable=False)
-    change_discount_types = db.Column(db.Boolean, nullable=False)
-    add_manager = db.Column(db.Boolean, nullable=False)
-    get_bid = db.Column(db.Boolean, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    add_product = db.Column(db.Boolean, nullable=False, default=False)
+    change_purchase_policy = db.Column(db.Boolean, nullable=False, default=False)
+    change_purchase_types = db.Column(db.Boolean, nullable=False, default=False)
+    change_discount_policy = db.Column(db.Boolean, nullable=False, default=False)
+    change_discount_types = db.Column(db.Boolean, nullable=False, default=False)
+    add_manager = db.Column(db.Boolean, nullable=False, default=False)
+    get_bid = db.Column(db.Boolean, nullable=False, default=False)
 
-    def __init__(self, id=None, add_product=False, change_purchase_policy=False, change_purchase_types=False,
-                 change_discount_policy=False, change_discount_types=False, add_manager=False, get_bid=False):
-        self.id = id
-        self.add_product = add_product
-        self.change_purchase_policy = change_purchase_policy
-        self.change_purchase_types = change_purchase_types
-        self.change_discount_policy = change_discount_policy
-        self.change_discount_types = change_discount_types
-        self.add_manager = add_manager
-        self.get_bid = get_bid
+    def __init__(self):
+        self.__add_product: bool = False
+        self.__change_purchase_policy: bool = False
+        self.__change_purchase_types: bool = False
+        self.__change_discount_policy: bool = False
+        self.__change_discount_types: bool = False
+        self.__add_manager: bool = False
+        self.__get_bid: bool = False
 
-    def set_permissions(self, id: str, add_product: bool, change_purchase_policy: bool, change_purchase_types: bool,
+    # Property methods omitted for brevity
+
+    def set_permissions(self, add_product: bool, change_purchase_policy: bool, change_purchase_types: bool,
                         change_discount_policy: bool, change_discount_types: bool, add_manager: bool,
                         get_bid: bool) -> None:
-        self.id = id
-        self.add_product = add_product
-        self.change_purchase_policy = change_purchase_policy
-        self.change_purchase_types = change_purchase_types
-        self.change_discount_policy = change_discount_policy
-        self.change_discount_types = change_discount_types
-        self.add_manager = add_manager
-        self.get_bid = get_bid
+        self.__add_product = add_product
+        self.__change_purchase_policy = change_purchase_policy
+        self.__change_purchase_types = change_purchase_types
+        self.__change_discount_policy = change_discount_policy
+        self.__change_discount_types = change_discount_types
+        self.__add_manager = add_manager
+        self.__get_bid = get_bid
 
 
 
@@ -63,6 +62,7 @@ class AbstractBaseModel(db.Model):
 class StoreRole(AbstractBaseModel):
     __tablename__ = 'store_roles'
 
+    id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(50))
     store_id = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, nullable=False)
@@ -78,6 +78,7 @@ class StoreRole(AbstractBaseModel):
 
     def __str__(self):
         return self.__class__.__name__
+
 
 class StoreOwner(StoreRole):
     __tablename__ = 'store_owners'
@@ -109,12 +110,13 @@ class StoreManager(StoreRole):
         super().__init__(store_id, user_id)
         self.permissions = Permissions()
 
-    @property
-    def permissions(self) -> Permissions:
-        return self.permissions
+    # @property
+    # def permissions(self) -> Permissions:
+    #     return self.permissions
 
     def __str__(self):
         return "StoreManager"
+
 
 
 class Nomination(db.Model):
@@ -162,14 +164,13 @@ class Nomination(db.Model):
         return max_id if max_id is not None else 0
 
 
-
 class TreeNode(db.Model):
     __tablename__ = 'tree_nodes'
 
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.Integer, nullable=False)
-    store_tree_id = db.Column(db.Integer, db.ForeignKey('store_trees.id'), nullable=False)
-    parent_id = db.Column(db.Integer, db.ForeignKey('tree_nodes.id'))
+    store_tree_id = db.Column(db.Integer, db.ForeignKey('store_trees.id', name='fk_tree_nodes_store_tree_id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('tree_nodes.id', name='fk_tree_nodes_parent_id'))
     children = relationship("TreeNode",
                             backref=backref('parent', remote_side=[id]),
                             cascade="all, delete-orphan")
@@ -180,15 +181,17 @@ class TreeNode(db.Model):
         self.parent_id = parent_id
 
 
+
 class StoreTree(db.Model):
     __tablename__ = 'store_trees'
 
     id = db.Column(db.Integer, primary_key=True)
-    root_id = db.Column(db.Integer, db.ForeignKey('tree_nodes.id'))
+    root_id = db.Column(db.Integer, db.ForeignKey('tree_nodes.id', name='fk_store_trees_root_id'))
     root = relationship("TreeNode", uselist=False, foreign_keys=[root_id])
 
     def __init__(self, root: TreeNode):
         self.root = root
+
 
 
 class Node:
@@ -334,7 +337,6 @@ class RolesFacade:
                 manager = StoreManager(store_id=store_id, user_id=store_role.user_id)
                 permissions = store_role.permissions
                 manager.permissions.set_permissions(
-                    id=f"{store_role.user_id}_{store_id}",
                     add_product=permissions.add_product,
                     change_purchase_policy=permissions.change_purchase_policy,
                     change_purchase_types=permissions.change_purchase_types,
@@ -355,7 +357,9 @@ class RolesFacade:
                 store_id=db_nomination.store_id,
                 nominator_id=db_nomination.nominator_id,
                 nominee_id=db_nomination.nominee_id,
-                role=StoreOwner() if db_nomination.role_type == 'store_owner' else StoreManager()
+                role=StoreOwner(store_id=db_nomination.store_id,
+                                user_id=db_nomination.nominee_id) if db_nomination.role.type == 'store_owner' else StoreManager(
+                    store_id=db_nomination.store_id, user_id=db_nomination.nominee_id)
             )
             nominations[db_nomination.id] = nomination
         return nominations
@@ -393,12 +397,21 @@ class RolesFacade:
         if store_id in self.__stores_to_roles:
             raise RoleError("Store already exists", RoleErrorTypes.store_already_exists)
 
-        # Create root node and store tree
-        root_node = TreeNode(data=owner_id, store_tree_id=store_id)
-        store_tree = StoreTree(root=root_node)
+        # Create store tree without a root node initially
+        store_tree = StoreTree(root=None)
 
-        # Save to database
+        # Add the store tree to the session and commit to get its ID
         db.session.add(store_tree)
+        db.session.commit()
+
+        # Now create root node with the store_tree_id
+        root_node = TreeNode(data=owner_id, store_tree_id=store_tree.id)
+
+        # Update the store tree with the root node ID
+        store_tree.root = root_node
+
+        # Add both the root node and update the store tree
+        db.session.add(root_node)
         db.session.commit()
 
         # Add store owner role and commit to database
@@ -406,6 +419,7 @@ class RolesFacade:
         db.session.add(store_owner)
         db.session.commit()
 
+        # Update internal dictionaries
         self.__stores_to_roles[store_id] = {owner_id: store_owner}
         self.__stores_to_role_tree[store_id] = Tree(Node(owner_id, store_tree_id=store_tree.id))
         self.__stores_locks[store_id] = Lock()
@@ -469,11 +483,11 @@ class RolesFacade:
 
     def __check_nomination_validation(self, store_id: int, nominator_id: int, nominee_id: int) -> None:
         if store_id not in self.__stores_to_roles:
-            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
         if nominator_id not in self.__stores_to_roles[store_id]:
-            raise RoleError("Nominator is not a member of the store",RoleErrorTypes.nominator_not_member_of_store)
+            raise RoleError("Nominator is not a member of the store", RoleErrorTypes.nominator_not_member_of_store)
         if nominee_id in self.__stores_to_roles[store_id]:
-            raise RoleError("Nominee is already a member of the store",RoleErrorTypes.nominee_already_exists_in_store)
+            raise RoleError("Nominee is already a member of the store", RoleErrorTypes.nominee_already_exists_in_store)
 
     def accept_nomination(self, nomination_id: int, nominee_id: int) -> None:
         if nomination_id not in self.__systems_nominations.keys():
@@ -587,9 +601,9 @@ class RolesFacade:
     def get_employees_info(self, store_id: int, actor_id: int) -> Dict[int, str]:  # Dict[user_id, role]
         with self.__stores_locks[store_id]:
             if store_id not in self.__stores_to_roles:
-                raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+                raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
             if actor_id not in self.__stores_to_roles[store_id]:
-                raise RoleError("Actor is not a member of the store",RoleErrorTypes.actor_not_member_of_store)
+                raise RoleError("Actor is not a member of the store", RoleErrorTypes.actor_not_member_of_store)
             employees = {}
             for user_id, role in self.__stores_to_roles[store_id].items():
                 employees[user_id] = role.__str__()
@@ -625,6 +639,11 @@ class RolesFacade:
             db.session.commit()
 
     def add_admin(self, user_id: int) -> None:
+        # check in the database if the user is already an admin
+        if self.__system_admin != -1:
+            return
+
+
         self.__system_managers.append(user_id)
         self.__system_admin = user_id
 
@@ -640,7 +659,7 @@ class RolesFacade:
             return False
         if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
             return True
-        raise RoleError("User is a manager",RoleErrorTypes.user_is_manager)
+        raise RoleError("User is a manager", RoleErrorTypes.user_is_manager)
 
     def has_add_product_permission(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
@@ -711,7 +730,6 @@ class RolesFacade:
                 if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
                     return True
             return False
-       
 
     def is_manager(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
@@ -762,7 +780,7 @@ class RolesFacade:
     def get_user_employees(self, user_id, store_id) -> List[UserDTO]:
         # check if store exists
         if store_id not in self.__stores_to_roles:
-            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
         with self.__stores_locks[store_id]:
             if user_id not in self.__stores_to_roles[store_id]:
                 raise RoleError("User is not a member of the store", RoleErrorTypes.user_not_member_of_store)
@@ -789,13 +807,13 @@ class RolesFacade:
 
     def get_employed_users(self, store_id: int) -> List[int]:
         if store_id not in self.__stores_to_roles:
-            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
         with self.__stores_locks[store_id]:
             return list(self.__stores_to_roles[store_id].keys())
 
     def get_bid_owners_managers(self, store_id: int) -> List[int]:
         if store_id not in self.__stores_to_roles:
-            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
         with self.__stores_locks[store_id]:
             owners_managers = []
             for user_id, role in self.__stores_to_roles[store_id].items():
@@ -804,3 +822,6 @@ class RolesFacade:
                 elif isinstance(role, StoreManager) and role.permissions.get_bid:
                     owners_managers.append(user_id)
             return owners_managers
+
+
+

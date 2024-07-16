@@ -5,6 +5,7 @@ from .store_services.controllers import StoreService
 from .user_services.controllers import UserService, AuthenticationService
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from backend.database import clear_database
 
 
 class InitialState:
@@ -222,11 +223,16 @@ class InitialState:
             return False
 
     def init_system_from_file(self):
+        reset = input("Reset database? (y/n): ")
+        if reset.lower() == 'n':
+            return False
         print("Initializing system from file...")
         with self.app.app_context():
             session: Session = self.db.session  # Get the SQLAlchemy session
             try:
+                clear_database()
                 with session.begin():  # Start a transaction
+                    # clear the database
                     with open(self.file, 'r') as file:
                         initial_state = json.load(file)
 
