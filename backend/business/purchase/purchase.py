@@ -1256,6 +1256,19 @@ class PurchaseFacade:
 
         db.session.commit()
 
+    def is_bid_approved(self, purchase_id: int) -> bool:
+        """
+        Parameters: purchaseId
+        This function is responsible for checking if the bid is approved
+        Returns: bool
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            if purchase.status == PurchaseStatus.approved:
+                return True
+            return False
+        raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+
     def get_bid_purchases_of_user(self, user_id: int) -> List[BidPurchaseDTO]:
         """
         Parameters: userId
@@ -1291,6 +1304,22 @@ class PurchaseFacade:
                                                     purchase.list_of_store_owners_managers_that_accepted_offer,
                                                     purchase.user_who_rejected_id))
         return purchases
+    
+    def get_bid_purchase_by_id(self, purchase_id: int) -> BidPurchaseDTO:
+        """
+        Parameters: purchaseId
+        This function is responsible for returning the bid purchase by id
+        Returns: BidPurchase object
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            return BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,
+                                  purchase.store_id, purchase.product_id, purchase.date_of_purchase,
+                                  purchase.delivery_date, purchase.is_offer_to_store,
+                                  purchase.total_price, purchase.status.value,
+                                  purchase.list_of_store_owners_managers_that_accepted_offer,
+                                  purchase.user_who_rejected_id)
+        raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
 
     # -----------------General Purchase class related methods-----------------#
     def accept_purchase(self, purchase_id: int, delivery_date: datetime) -> None:

@@ -340,7 +340,7 @@ class MarketFacade:
                 self.user_facade.restore_basket(user_id, cart)
             # check if payment_id is defined
             if "payment_id" in locals() and payment_id != -1:
-                PaymentHandler().process_payment_cancel(payment_id)
+                PaymentHandler().process_payment_cancel(payment_details, payment_id)
             if "supply_id" in locals() and supply_id != -1:
                 SupplyHandler().process_supply_cancel(supply_details, supply_id)
             raise e
@@ -1064,8 +1064,100 @@ class MarketFacade:
         logger.info(f"User {user_id} has removed a product from category {category_id}")
 
     # -------------Bid Related methods:-------------------#
-    def bid_checkout(self, user_id: int, bid_id: int,  payment_details: Dict, supply_method: str, address: Dict):
-        pass  #TODO: implement
+    def bid_checkout(self, user_id: int, bid_id: int,  payment_details: Dict, supply_details: Dict, address: Dict) -> int:
+        product_removed = False
+        purchase_accepted = False
+        try:
+            # Check if the user is suspended
+            if self.user_facade.suspended(user_id):
+                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+            # Get the bid
+            bid = self.purchase_facade.get_bid_purchase_by_id(bid_id)
+            if not self.purchase_facade.is_bid_approved(bid_id):
+                raise PurchaseError("Bid is not approved", PurchaseErrorTypes.purchase_not_approved)
+            
+            cart: Dict[int, Dict[int, int]] = {bid.store_id: {bid.product_id: 1}} 
+
+            user_dto = self.user_facade.get_userDTO(user_id)
+            birthdate = None
+            if user_dto.day is not None and user_dto.month is not None and user_dto.year is not None:
+                birthdate = date(user_dto.year, user_dto.month, user_dto.day)
+            user_purchase_dto = PurchaseUserDTO(user_dto.user_id, birthdate)
+
+            if 'address' not in address or 'city' not in address or 'state' not in address or 'country' not in address or 'zip_code' not in address:
+                raise ThirdPartyHandlerError("Address information is missing", ThirdPartyHandlerErrorTypes.missing_address)
+            address_of_user_for_discount: AddressDTO = AddressDTO(address['address'],
+                                                                  address['city'], address['state'],
+                                                                  address['country'], address['zip_code'])
+
+
+            user_info_for_constraint_dto = UserInformationForConstraintDTO(user_id, user_purchase_dto.birthdate,
+                                                                       address_of_user_for_discount)
+            # calculate the total price
+            if not self.store_facade.validate_purchase_policies(cart, user_info_for_constraint_dto):
+                raise StoreError("Purchase policies are not met", StoreErrorTypes.policy_not_satisfied)
+            
+
+            total_price = bid.proposed_price
+
+            # remove the products from the store
+            self.store_facade.check_and_remove_shopping_cart(cart)
+
+            product_removed = True
+
+            # find the delivery date
+            if "supply method" not in supply_details:
+                raise ThirdPartyHandlerError("Supply method not specified", ThirdPartyHandlerErrorTypes.support_not_specified)
+            if supply_details.get("supply method") not in SupplyHandler().supply_config:
+                raise ThirdPartyHandlerError("Invalid supply method", ThirdPartyHandlerErrorTypes.invalid_supply_method)
+            package_details = {'stores': cart.keys(), "supply method": supply_details["supply method"]}
+            delivery_date = SupplyHandler().get_delivery_time(package_details, address)
+
+            # accept the purchase
+            self.purchase_facade.accept_purchase(bid_id, delivery_date)
+            purchase_accepted = True
+
+            # TODO: fix discounts
+            if "payment method" not in payment_details:
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                raise ThirdPartyHandlerError("Payment method not specified", ThirdPartyHandlerErrorTypes.payment_not_specified)
+
+            payment_id = PaymentHandler().process_payment(total_price, payment_details)
+
+            if payment_id == -1:
+                # invalidate Purchase
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                raise ThirdPartyHandlerError("Payment failed", ThirdPartyHandlerErrorTypes.payment_failed)
+
+            on_arrival = lambda purchase_id: self.on_arrival_lambda(purchase_id)
+            supply_details["arrival time"] = delivery_date
+            supply_details["purchase id"] = bid_id
+            supply_id = SupplyHandler().process_supply(supply_details, user_id, on_arrival)
+            if supply_id == -1:
+                # invalidate Purchase
+                # self.purchase_facade.invalidate_purchase_of_user_immediate(purchase.purchase_id, user_id)
+                raise ThirdPartyHandlerError("Supply failed", ThirdPartyHandlerErrorTypes.supply_failed)
+
+            # notify the store owners
+            for store_id in cart.keys():
+                self.notifier.notify_new_purchase(store_id, bid_id)
+
+            logger.info(f"User {user_id} has checked out")
+            return bid_id
+        except Exception as e:
+            if product_removed:
+                for store_id, products in cart.items():
+                    for product_id in products:
+                        amount = products[product_id]
+                        self.store_facade.add_product_amount(store_id, product_id, amount)
+            if purchase_accepted:
+                self.purchase_facade.cancel_accepted_purchase(bid_id)
+            # check if payment_id is defined
+            if "payment_id" in locals() and payment_id != -1:
+                PaymentHandler().process_payment_cancel(payment_details, payment_id)
+            if "supply_id" in locals() and supply_id != -1:
+                SupplyHandler().process_supply_cancel(supply_details, supply_id)
+            raise e
     
     #TODO: send a notification to all store workers under the store_id to accept/decline/counter the bid
     def user_bid_offer(self, user_id: int, proposed_price: float, store_id: int, product_id: int) -> int:
@@ -1094,9 +1186,8 @@ class MarketFacade:
             logger.info(f"Store worker {store_worker_id} has accepted a bid")
             
             #checking if all store owners/managers accepted the bid now
-            list_of_workers_in_store_with_bid_permissions = self.roles_facade.get_store_workers_with_bid_permissions(store_id) #TODO
+            list_of_workers_in_store_with_bid_permissions = self.roles_facade.get_bid_owners_managers(store_id) #TODO
             if self.purchase_facade.store_accept_offer(bid_id, list_of_workers_in_store_with_bid_permissions):
-                self.purchase_facade.accept_purchase(bid_id)
                 logger.info(f"Store {store_id} has accepted the bid") #TODO SEND A NOTIF TO USER THAT STORE ACCEPTED AND TO PROCEED TO CHECKOUT
 
         else:
