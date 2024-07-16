@@ -63,7 +63,7 @@ class ExternalPayment(PaymentAdapter):
             * if -1, payment failed.
         """
         logger.info(f"Processing payment of {amount} with details {payment_config}")
-        response = requests.post(self.URL, json=self.HANDSHAKE)
+        response = requests.post(self.URL, json=self.HANDSHAKE, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         if not response.ok or not response.reason == "OK":
@@ -72,7 +72,7 @@ class ExternalPayment(PaymentAdapter):
         
         payment_config["amount"] = str(amount)
         payment_config = payment_config | self.PAY
-        response = requests.post(self.URL, data=payment_config)
+        response = requests.post(self.URL, data=payment_config, timeout=5)
         print(payment_config)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to process payment", ThirdPartyHandlerErrorTypes.external_payment_failed)
@@ -87,14 +87,14 @@ class ExternalPayment(PaymentAdapter):
             * first sends a handshake request to the gateway to confirm connection, expects "OK" message.
             * then sends a cancel payment request to the gateway to cancel the payment. expect 1.
         """
-        response = requests.post(self.URL, json=self.HANDSHAKE)
+        response = requests.post(self.URL, json=self.HANDSHAKE, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         if not response.ok or not response.reason == "OK":
             raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         # add to payment_config the CANCEL
         payment_config = self.CANCEL | {"transaction_id": payment_id}
-        response = requests.post(self.URL, data=payment_config)
+        response = requests.post(self.URL, data=payment_config, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to cancel payment", ThirdPartyHandlerErrorTypes.external_payment_failed)
         if not response.json() == 1:
@@ -266,7 +266,7 @@ class ExternalSupply(SupplyAdapter):
             * if -1, supply failed.
         """
         logger.info(f"Processing supply with details {package_details}")
-        response = requests.post(self.URL, json=self.HANDSHAKE)
+        response = requests.post(self.URL, json=self.HANDSHAKE, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to connect to external supply gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         if not response.ok or not response.reason == "OK":
@@ -274,7 +274,7 @@ class ExternalSupply(SupplyAdapter):
         # add to payment_config the ORDER
         package_details_to_send = package_details.copy()
         package_details_to_send = package_details_to_send.get("additional details") | self.ORDER
-        response = requests.post(self.URL, data=package_details_to_send)
+        response = requests.post(self.URL, data=package_details_to_send, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to process supply", ThirdPartyHandlerErrorTypes.external_supply_failed)
         if not 10000 <= response.json() <= 100000:
@@ -294,14 +294,14 @@ class ExternalSupply(SupplyAdapter):
             * first sends a handshake request to the gateway to confirm connection, expects "OK" message.
             * then sends a cancel supply request to the gateway to cancel the supply. expect 1.
         """
-        response = requests.post(self.URL, json=self.HANDSHAKE)
+        response = requests.post(self.URL, json=self.HANDSHAKE, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to connect to external supply gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         if not response.ok or not response.reason == "OK":
             raise ThirdPartyHandlerError("Failed to connect to external supply gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         # add to payment_config the CANCEL
         package_details = self.CANCEL | {"transaction_id": order_id}
-        response = requests.post(self.URL, data=package_details)
+        response = requests.post(self.URL, data=package_details, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to cancel supply", ThirdPartyHandlerErrorTypes.external_supply_failed)
         if not response.json() == 1:
