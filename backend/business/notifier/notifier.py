@@ -8,6 +8,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask import jsonify
 from backend.business.authentication.authentication import Authentication
 from backend.error_types import *
+from flask import current_app
 
 # Database related imports
 from sqlalchemy.exc import SQLAlchemyError
@@ -89,16 +90,17 @@ class Notifier:
         * Parameters: store_id: int, message: str
         * This function sends a message to multiple users.
         """
-        for listeners in db.session.query(Listeners).filter_by(store_id=store_id).all():
-            if listeners is None:
-                raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+        with current_app.app_context():
+            for listeners in db.session.query(Listeners).filter_by(store_id=store_id).all():
+                if listeners is None:
+                    raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
 
-            for listener in listeners.get_listeners.split(','):
-                if self._authentication.is_logged_in(listener):
-                    self._notify_real_time(listener, message)
-                else:
-                    self._notify_delayed(listener, message)
-        
+                for listener in listeners.get_listeners.split(','):
+                    if self._authentication.is_logged_in(listener):
+                        self._notify_real_time(listener, message)
+                    else:
+                        self._notify_delayed(listener, message)
+            
         # if store_id not in self._listeners:
         #     raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
 
@@ -189,14 +191,15 @@ class Notifier:
         * It would alert him to the events that are relevant to the store (new purchase, store update, removed
         management position)
         """
-        store = db.session.query(Listeners).filter_by(store_id=store_id)
-        if store is None:
-            new_listener = Listeners(store_id, str(user_id))
-            db.session.add(new_listener)
-            self.__store_lock[store_id] = Lock()
-        else:
-            db.session.query(Listeners).filter_by(store_id=store_id).first().add_listener_to_store(user_id)
-              
+        with current_app.app_context():
+            store = db.session.query(Listeners).filter_by(store_id=store_id)
+            if store is None:
+                new_listener = Listeners(store_id, str(user_id))
+                db.session.add(new_listener)
+                self.__store_lock[store_id] = Lock()
+            else:
+                db.session.query(Listeners).filter_by(store_id=store_id).first().add_listener_to_store(user_id)
+                
         # with self.__sign_lock:
         #     if store_id not in self._listeners:
         #         self._listeners[store_id] = []
@@ -213,12 +216,13 @@ class Notifier:
         * Parameters: user_id: int, store_id: int
         * This function removes a user (manager or owner) from the store listeners.
         """
-        with self.__store_lock[store_id]:
-            store = db.session.query(Listeners).filter_by(store_id=store_id).first()
-            if store is None:
-                raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
-            store.remove_listener_from_store(user_id)
-        
+        with current_app.app_context():
+            with self.__store_lock[store_id]:
+                store = db.session.query(Listeners).filter_by(store_id=store_id).first()
+                if store is None:
+                    raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+                store.remove_listener_from_store(user_id)
+            
         # with self.__store_lock[store_id]:
         #     if store_id in self._listeners:
         #         self._listeners[store_id].remove(user_id)
@@ -246,6 +250,6 @@ class Listeners(db.Model):
         self.listeners = self.listeners.replace("," + str(listener), '')
         logger.info("[Listeners] removed listener: " + str(listener) + " from store_id: " + str(self.store_id))
 
-    @property.getter
+    @property
     def get_listeners(self):
         return self.listeners
