@@ -150,25 +150,16 @@ class TreeNode(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.Integer, nullable=False)
-    store_tree_id = db.Column(db.Integer, nullable=False)
-    parent_id = db.Column(db.Integer)
+    store_id = db.Column(db.Integer, nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('tree_nodes.id'))
+    children = db.relationship("TreeNode", backref=db.backref('parent', remote_side=[id]))
+    is_root = db.Column(db.Boolean, nullable=False, default=False)
 
-    def __init__(self, data: int, store_tree_id: int, parent_id: Optional[int] = None):
+    def __init__(self, data: int, store_id: int, parent_id: Optional[int] = None, is_root: bool = False):
         self.data = data
-        self.store_tree_id = store_tree_id
-        self.parent_id = parent_id
-
-class StoreTree(db.Model):
-    __tablename__ = 'store_trees'
-
-    store_id = db.Column(db.Integer, primary_key=True)
-    root_id = db.Column(db.Integer, db.ForeignKey('tree_nodes.id'), nullable=True)
-    root = db.relationship("TreeNode", foreign_keys=[root_id], uselist=False)
-
-    def __init__(self,store_id,root: TreeNode):
         self.store_id = store_id
-        self.root_id = root.id
-
+        self.parent_id = parent_id
+        self.is_root = is_root
 
 class Node:
     def __init__(self, data, store_tree_id=None, parent_id=None):
@@ -243,14 +234,11 @@ class Tree:
                 self.__trim_tree(child, data)
 
     @staticmethod
-    def from_db(store_tree_id: int) -> 'Tree':
-        storeTree = db.session.query(StoreTree).filter_by(store_id=store_tree_id).one_or_none()
-        if not storeTree:
-            raise StoreError(f"No store tree found for store_id: {store_tree_id}", StoreErrorTypes.store_not_found)
-        root_node = db.session.query(TreeNode).filter_by(id=storeTree.root_id).one_or_none()
+    def from_db(store_id: int) -> 'Tree':
+        root_node = db.session.query(TreeNode).filter_by(store_id=store_id, is_root=True).one_or_none()
         if not root_node:
-            raise sqlalchemy.exc.NoResultFound(f"No root node found for store_tree_id: {store_tree_id}")
-        root = Node(root_node.data, root_node.store_tree_id, root_node.parent_id)
+            raise StoreError(f"No root node found for store_id: {store_id}", StoreErrorTypes.store_not_found)
+        root = Node(root_node.data, root_node.store_id, root_node.parent_id)
         tree = Tree(root)
         Tree.__load_children(root)
         return tree
@@ -259,7 +247,7 @@ class Tree:
     def __load_children(node: Node) -> None:
         child_nodes = db.session.query(TreeNode).filter_by(parent_id=node.data).all()
         for child_node in child_nodes:
-            child = Node(child_node.data, child_node.store_tree_id, child_node.parent_id)
+            child = Node(child_node.data, child_node.store_id, child_node.parent_id)
             node.add_child(child.data)
             Tree.__load_children(child)
 
@@ -290,9 +278,9 @@ class RolesFacade:
 
     def __load_trees_from_db(self) -> Dict[int, Tree]:
         trees = {}
-        store_trees = db.session.query(StoreTree).all()
-        for store_tree in store_trees:
-            trees[store_tree.store_id] = Tree.from_db(store_tree.store_id)
+        root_nodes = db.session.query(TreeNode).filter_by(is_root=True).all()
+        for root_node in root_nodes:
+            trees[root_node.store_id] = Tree.from_db(root_node.store_id)
         return trees
 
     def __load_roles_from_db(self) -> Dict[int, Dict[int, StoreRole]]:
@@ -344,32 +332,21 @@ class RolesFacade:
         from backend.app import app
         with app.app_context():
             db.session.query(TreeNode).delete()
-            db.session.query(StoreTree).delete()
             db.session.query(StoreRole).delete()
             db.session.query(Nomination).delete()
             db.session.query(SystemManagerModel).delete()
             db.session.commit()
 
     def add_store(self, store_id: int, owner_id: int) -> None:
-        if db.session.query(StoreRole).filter_by(store_id=store_id).first():
-            raise RoleError("Store already exists", RoleErrorTypes.store_already_exists)
+        from backend.app import app
+        with app.app_context():
+            if db.session.query(TreeNode).filter_by(store_id=store_id, is_root=True).first():
+                raise RoleError("Store already exists", RoleErrorTypes.store_already_exists)
 
         # Create root node for the store tree
-        root_node = TreeNode(data=owner_id, store_tree_id=store_id)
+        root_node = TreeNode(data=owner_id, store_id=store_id, is_root=True)
 
-        # Add the root node to the session and commit to get its ID
-        db.session.add(root_node)
-        db.session.commit()
-
-        # Create store tree with the root node ID
-        store_tree = StoreTree(root=root_node, store_id=store_id)
-
-        # Add the store tree to the session and commit
-        db.session.add(store_tree)
-        db.session.commit()
-
-        # Update the root node with the store_tree_id
-        root_node.store_tree_id = store_tree.store_id
+        # Add the root node to the session and commit
         db.session.add(root_node)
         db.session.commit()
 
@@ -392,8 +369,7 @@ class RolesFacade:
             raise RoleError('Actor is not the root owner of the store', RoleErrorTypes.actor_not_founder)
 
         # Remove from database
-        db.session.query(TreeNode).filter(TreeNode.store_tree_id == store_id).delete()
-        db.session.query(StoreTree).filter(StoreTree.store_id == store_id).delete()
+        db.session.query(TreeNode).filter(TreeNode.store_id == store_id).delete()
         db.session.commit()
 
         self.__stores_locks.pop(store_id, None)
@@ -448,17 +424,18 @@ class RolesFacade:
             raise RoleError("Nominee id does not match the nomination", RoleErrorTypes.nominee_id_error)
         role_type = nomination.role_type
 
-
         self.__stores_locks.setdefault(nomination.store_id, Lock())
         with self.__stores_locks[nomination.store_id]:
 
             if role_type == 'store_owner':
                 if db.session.query(StoreRole).filter_by(store_id=nomination.store_id, user_id=nominee_id).first():
-                    raise RoleError("Nominee is already a member of the store", RoleErrorTypes.nominee_already_exists_in_store)
+                    raise RoleError("Nominee is already a member of the store",
+                                    RoleErrorTypes.nominee_already_exists_in_store)
                 role = StoreOwner(store_id=nomination.store_id, user_id=nominee_id)
             else:
                 if db.session.query(StoreRole).filter_by(store_id=nomination.store_id, user_id=nominee_id).first():
-                    raise RoleError("Nominee is already a member of the store", RoleErrorTypes.nominee_already_exists_in_store)
+                    raise RoleError("Nominee is already a member of the store",
+                                    RoleErrorTypes.nominee_already_exists_in_store)
                 role = StoreManager(store_id=nomination.store_id, user_id=nominee_id)
                 db.session.add(role.permissions)
                 db.session.commit()
@@ -466,7 +443,7 @@ class RolesFacade:
             db.session.commit()
 
             # Add the user to the store tree
-            treeNode = TreeNode(data=nominee_id, store_tree_id=nomination.store_id, parent_id=nomination.nominator_id)
+            treeNode = TreeNode(data=nominee_id, store_id=nomination.store_id, parent_id=nomination.nominator_id)
             db.session.add(treeNode)
             db.session.commit()
 
@@ -773,10 +750,10 @@ class RolesFacade:
         return db.session.query(StoreRole).filter_by(store_id=store_id, user_id=user_id).one_or_none()
 
     def is_root(self, store_id: int, user_id: int) -> bool:
-        tree = db.session.query(StoreTree).filter_by(id=store_id).one_or_none()
-        if not tree:
+        root_node = db.session.query(TreeNode).filter_by(store_id=store_id, is_root=True).one_or_none()
+        if not root_node:
             raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
-        return tree.root_id == user_id
+        return root_node.data == user_id
 
     def is_descendant(self, store_id: int, ancestor_id: int, descendant_id: int) -> bool:
         tree = Tree.from_db(store_id)
