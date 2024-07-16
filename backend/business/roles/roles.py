@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABCMeta
 from typing import Dict, List, Optional
 from threading import Lock
 from backend.business.notifier.notifier import Notifier
@@ -6,6 +6,7 @@ from backend.error_types import *
 from backend.business.DTOs import RoleNominationDTO, UserDTO
 from backend.database import db
 from sqlalchemy.orm import backref, relationship
+from sqlalchemy.ext.declarative import declared_attr
 import logging
 
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
@@ -17,7 +18,7 @@ class Permissions(db.Model):
 
     __tablename__ = 'permissions'
 
-    id = db.Column(db.String(100), primary_key=True) # user_id_store_id
+    id = db.Column(db.String(100), primary_key=True)  # user_id_store_id
     add_product = db.Column(db.Boolean, nullable=False)
     change_purchase_policy = db.Column(db.Boolean, nullable=False)
     change_purchase_types = db.Column(db.Boolean, nullable=False)
@@ -26,65 +27,42 @@ class Permissions(db.Model):
     add_manager = db.Column(db.Boolean, nullable=False)
     get_bid = db.Column(db.Boolean, nullable=False)
 
-    def __init__(self):
-        self.__id = None
-        self.__add_product: bool = False
-        self.__change_purchase_policy: bool = False
-        self.__change_purchase_types: bool = False
-        self.__change_discount_policy: bool = False
-        self.__change_discount_types: bool = False
-        self.__add_manager: bool = False
-        self.__get_bid: bool = False
-
-    @property
-    def id(self) -> str:
-        return self.__id
-
-    @property
-    def add_product(self) -> bool:
-        return self.__add_product
-
-    @property
-    def change_purchase_policy(self) -> bool:
-        return self.__change_purchase_policy
-
-    @property
-    def change_purchase_types(self) -> bool:
-        return self.__change_purchase_types
-
-    @property
-    def change_discount_policy(self) -> bool:
-        return self.__change_discount_policy
-
-    @property
-    def change_discount_types(self) -> bool:
-        return self.__change_discount_types
-
-    @property
-    def add_manager(self) -> bool:
-        return self.__add_manager
-
-    @property
-    def get_bid(self) -> bool:
-        return self.__get_bid
+    def __init__(self, id=None, add_product=False, change_purchase_policy=False, change_purchase_types=False,
+                 change_discount_policy=False, change_discount_types=False, add_manager=False, get_bid=False):
+        self.id = id
+        self.add_product = add_product
+        self.change_purchase_policy = change_purchase_policy
+        self.change_purchase_types = change_purchase_types
+        self.change_discount_policy = change_discount_policy
+        self.change_discount_types = change_discount_types
+        self.add_manager = add_manager
+        self.get_bid = get_bid
 
     def set_permissions(self, id: str, add_product: bool, change_purchase_policy: bool, change_purchase_types: bool,
                         change_discount_policy: bool, change_discount_types: bool, add_manager: bool,
                         get_bid: bool) -> None:
-        self.__id = id
-        self.__add_product = add_product
-        self.__change_purchase_policy = change_purchase_policy
-        self.__change_purchase_types = change_purchase_types
-        self.__change_discount_policy = change_discount_policy
-        self.__change_discount_types = change_discount_types
-        self.__add_manager = add_manager
-        self.__get_bid = get_bid
+        self.id = id
+        self.add_product = add_product
+        self.change_purchase_policy = change_purchase_policy
+        self.change_purchase_types = change_purchase_types
+        self.change_discount_policy = change_discount_policy
+        self.change_discount_types = change_discount_types
+        self.add_manager = add_manager
+        self.get_bid = get_bid
 
 
-class StoreRole(db.Model, ABC):
+
+class AbstractBaseModel(db.Model):
+    __abstract__ = True
+    __metaclass__ = ABCMeta
+
+    @declared_attr
+    def id(cls):
+        return db.Column(db.Integer, primary_key=True)
+
+class StoreRole(AbstractBaseModel):
     __tablename__ = 'store_roles'
 
-    id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(50))
     store_id = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, nullable=False)
@@ -100,7 +78,6 @@ class StoreRole(db.Model, ABC):
 
     def __str__(self):
         return self.__class__.__name__
-
 
 class StoreOwner(StoreRole):
     __tablename__ = 'store_owners'
@@ -144,12 +121,12 @@ class Nomination(db.Model):
     __tablename__ = 'nominations'
     __nomination_id_serializer = 0
 
-    nomination_id = db.Column(db.Integer, primary_key=True)
+    nomination_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     store_id = db.Column(db.Integer, nullable=False)
     nominator_id = db.Column(db.Integer, nullable=False)
     nominee_id = db.Column(db.Integer, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('store_roles.id'))
-    role = db.relationship('StoreRole')
+    role = db.relationship('StoreRole', backref='nominations')
 
     def __init__(self, store_id, nominator_id: int, nominee_id: int, role: StoreRole):
         self.nomination_id = Nomination.__nomination_id_serializer
@@ -159,25 +136,32 @@ class Nomination(db.Model):
         self.nominee_id = nominee_id
         self.role = role
 
-    @property
-    def nomination_id(self) -> int:
-        return self.nomination_id
+    # @property
+    # def nomination_id(self) -> int:
+    #     return self.nomination_id
+    #
+    # @property
+    # def store_id(self) -> int:
+    #     return self.store_id
+    #
+    # @property
+    # def nominator_id(self) -> int:
+    #     return self.nominator_id
+    #
+    # @property
+    # def nominee_id(self) -> int:
+    #     return self.nominee_id
+    #
+    # @property
+    # def role(self) -> StoreRole:
+    #     return self.role
 
-    @property
-    def store_id(self) -> int:
-        return self.store_id
+    @classmethod
+    def get_max_nomination_id(cls):
+        max_id = db.session.query(db.func.max(cls.nomination_id)).scalar()
+        return max_id if max_id is not None else 0
 
-    @property
-    def nominator_id(self) -> int:
-        return self.nominator_id
 
-    @property
-    def nominee_id(self) -> int:
-        return self.nominee_id
-
-    @property
-    def role(self) -> StoreRole:
-        return self.role
 
 class TreeNode(db.Model):
     __tablename__ = 'tree_nodes'
