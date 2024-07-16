@@ -1,13 +1,13 @@
 # ---------- Imports ------------#
-from typing import List, Dict, Tuple, Optional, Callable, Set
+from typing import Dict, Tuple, Set
 
 from .constraints import *
 from .discount import *
 from .PurchasePolicy import *
 from datetime import datetime
-from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO, CategoryDTO
-from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
+from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, UserInformationForConstraintDTO, CategoryDTO
 from backend.error_types import *
+from backend.database import db
 
 import threading
 # -------------logging configuration----------------
@@ -22,64 +22,103 @@ NUMBER_OF_AVAILABLE_NUMERICAL_DISCOUNT_TYPES = 2
 NUMBER_OF_AVAILALBE_PREDICATES = 4
 
 # ---------------------product class---------------------#
-class Product:
+class Product(db.Model):
     # id of product is productId. It is unique for each physical product
-    def __init__(self, product_id: int, product_name: str, description: str, price: float, weight: float, amount: int=0):
-        self.__product_id: int = product_id
+    __tablename__ = 'store_products'
+    product_id = db.Column(db.Integer, primary_key=True)
+    store_id = db.Column(db.Integer, primary_key=True)
+    _product_name = db.Column(db.String(100))
+    _description = db.Column(db.String(1000))
+    _tags_demo = db.Column(db.String)
+    _price = db.Column(db.Float)
+    _weight = db.Column(db.Float)
+    _amount = db.Column(db.Integer)
+
+    """__table_args__ = (
+        db.PrimaryKeyConstraint('product_id', 'store_id'),
+        db.ForeignKeyConstraint(['store_id'],
+                                ['stores.store_id']),
+    )"""
+
+    __table_args__ = (
+            db.PrimaryKeyConstraint('product_id', 'store_id'),
+    )
+    def __init__(self, store_id, product_id: int, product_name: str, description: str, price: float, weight: float, amount: int=0):
+        self.product_id: int = product_id
+        self.store_id = store_id
         
         if product_name is None or product_name == '':
             raise StoreError('Product name is not a valid string', StoreErrorTypes.invalid_product_name)
         
-        self.__product_name: str = product_name
-        self.__description: str = description
-        self.__tags: List[str] = []  # initialized with no tags
+        self._product_name: str = product_name
+        self._description: str = description
+        self._tags_demo: str = ""  # initialized with no tags
         
         if price < 0:
             raise StoreError('Price is a negative value', StoreErrorTypes.invalid_price)
         
-        self.__price: float = price  # price is in dollars
+        self._price: float = price  # price is in dollars
         
         if weight < 0:
             raise StoreError('Weight is a negative value', StoreErrorTypes.invalid_weight)
         
-        self.__weight: float = weight  # weight is in kg
+        self._weight: float = weight  # weight is in kg
         
         if amount < 0:
             raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
         
-        self.__amount: int = amount  # amount of the product in the store
+        self._amount: int = amount  # amount of the product in the store
         
         self.__product_lock = threading.Lock() # lock for product
         logger.info('[Product] successfully created product with id: ' + str(product_id))
 
     # ---------------------getters and setters---------------------
     @property
-    def product_id(self) -> int:
-        return self.__product_id
-
-    @property
     def product_name(self) -> str:
-        return self.__product_name
+        return self._product_name
 
     @property
     def description(self) -> str:
-        return self.__description
+        return self._description
 
     @property
     def tags(self) -> List[str]:
-        return self.__tags
+        return self._tags
 
     @property
     def price(self) -> float:
-        return self.__price
+        return self._price
 
     @property
     def weight(self) -> float:
-        return self.__weight
+        return self._weight
     
     @property
     def amount(self) -> int:
-        return self.__amount
+        return self._amount
+
+    @property
+    def _tags(self) -> List[str]:
+        if len(self._tags_demo) == 0:
+            return []
+        return self._tags_demo.split(',')
+
+    @_tags.setter
+    def _tags(self, tags: List[str]) -> None:
+        if len(tags) == 0:
+            self._tags_demo = ''
+        else:
+            self._tags_demo = ','.join(tags)
+
+    def __add_tag(self, tag: str) -> None:
+        real_tags = self._tags
+        real_tags.append(tag)
+        self._tags = real_tags
+
+    def remove_tag(self, tag: str) -> None:
+        real_tags = self._tags
+        real_tags.remove(tag)
+        self._tags = real_tags
     
     # ---------------------methods--------------------------------
     def create_product_dto(self) -> ProductDTO:
@@ -88,7 +127,8 @@ class Product:
         * This function creates a product DTO from the product
         * Returns: the product DTO
         """
-        return ProductDTO(self.__product_id, self.__product_name, self.__description, self.__price, self.__tags, weight=self.__weight, amount=self.__amount)
+        return ProductDTO(self.product_id, self._product_name, self._description, self._price, self._tags,
+                          weight=self._weight, amount=self._amount)
 
     def acquire_lock(self):
         self.__product_lock.acquire()
@@ -105,8 +145,8 @@ class Product:
         if new_name is None or new_name == '':
             raise StoreError('New name is not a valid string', StoreErrorTypes.invalid_product_name)
         with self.__product_lock:
-            self.__product_name = new_name
-        logger.info('[Product] successfully changed name of product with id: ' + str(self.__product_id))
+            self._product_name = new_name
+        logger.info('[Product] successfully changed name of product with id: ' + str(self.product_id))
 
     def change_price(self, new_price: float) -> None:
         """
@@ -117,8 +157,8 @@ class Product:
         if new_price < 0:
             raise StoreError('New price is a negative value', StoreErrorTypes.invalid_price)
         with self.__product_lock:
-            self.__price = new_price
-        logger.info('[Product] successfully changed price of product with id: ' + str(self.__product_id))
+            self._price = new_price
+        logger.info('[Product] successfully changed price of product with id: ' + str(self.product_id))
 
     def change_description(self, new_description: str) -> None:
         """
@@ -129,9 +169,9 @@ class Product:
         if new_description is None:
             raise StoreError('New description is not a valid string', StoreErrorTypes.invalid_description)
         with self.__product_lock:
-            self.__description = new_description
+            self._description = new_description
         logger.info(
-            '[Product] successfully changed description of product with id: ' + str(self.__product_id))
+            '[Product] successfully changed description of product with id: ' + str(self.product_id))
         
     def change_tags(self, new_tags: List[str]) -> None:
         """
@@ -140,8 +180,8 @@ class Product:
         * Returns: none
         """
         with self.__product_lock:
-            self.__tags = new_tags
-        logger.info('[Product] successfully changed tags of product with id: ' + str(self.__product_id))
+            self._tags = new_tags
+        logger.info('[Product] successfully changed tags of product with id: ' + str(self.product_id))
 
     def change_amount(self, new_amount: int) -> None:
         """
@@ -152,8 +192,8 @@ class Product:
         if new_amount < 0:
             raise StoreError('New amount is a negative value', StoreErrorTypes.invalid_amount)
         with self.__product_lock:
-            self.__amount = new_amount
-        logger.info('[Product] successfully changed amount of product with id: ' + str(self.__product_id))
+            self._amount = new_amount
+        logger.info('[Product] successfully changed amount of product with id: ' + str(self.product_id))
 
 
     def add_tag(self, tag: str) -> None:
@@ -164,11 +204,11 @@ class Product:
         """
         if tag is None:
             raise StoreError('Tag is not a valid string', StoreErrorTypes.invalid_tag)
-        if tag in self.__tags:
+        if tag in self._tags:
             raise StoreError('Tag is already in the list of tags', StoreErrorTypes.tag_already_exists)
         with self.__product_lock:
-            self.__tags.append(tag)
-        logger.info('[Product] successfully added tag to product with id: ' + str(self.__product_id))
+            self.__add_tag(tag)
+        logger.info('[Product] successfully added tag to product with id: ' + str(self.product_id))
 
 
     def remove_tag(self, tag: str) -> None:
@@ -179,12 +219,12 @@ class Product:
         """
         if tag is None:
             raise StoreError('Tag is not a valid string', StoreErrorTypes.invalid_tag)
-        if tag not in self.__tags:
+        if tag not in self._tags:
             raise StoreError('Tag is not in the list of tags', StoreErrorTypes.tag_not_found)
         with self.__product_lock:
-            self.__tags.remove(tag)
+            self.__remove_tag(tag)
         logger.info(
-            '[Product] successfully removed tag from product with id: ' + str(self.__product_id))
+            '[Product] successfully removed tag from product with id: ' + str(self.product_id))
 
 
 
@@ -195,7 +235,7 @@ class Product:
         * Returns: true if the product has the given tag
         """
         with self.__product_lock:
-            return tag in self.__tags
+            return tag in self._tags
 
     def change_weight(self, new_weight: float) -> None:
         """
@@ -207,23 +247,23 @@ class Product:
         if new_weight < 0:
             raise StoreError('New weight is a negative value', StoreErrorTypes.invalid_weight)
         with self.__product_lock:
-            self.__weight = new_weight
-        logger.info('[Product] successfully changed weight of product with id: ' + str(self.__product_id))
+            self._weight = new_weight
+        logger.info('[Product] successfully changed weight of product with id: ' + str(self.product_id))
 
 
     def restock(self, amount) -> None:
         if amount < 0:
             raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
         with self.__product_lock:
-            self.__amount += amount
+            self._amount += amount
 
     def remove_amount(self, amount) -> None:
         if amount < 0:
             raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
-        if self.__amount < amount:
+        if self._amount < amount:
             raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
         with self.__product_lock:
-            self.__amount -= amount
+            self._amount -= amount
 
 # ---------------------category class---------------------#
 class Category:
@@ -655,7 +695,7 @@ class Store:
         * Returns: none
         """
         with self.__product_id_lock:
-            product = Product(self.__product_id_counter, name, description, price, weight, amount)
+            product = Product(self.store_id, self.__product_id_counter, name, description, price, weight, amount)
             for tag in tags:
                 product.add_tag(tag)
             self.__store_products[self.__product_id_counter] = product

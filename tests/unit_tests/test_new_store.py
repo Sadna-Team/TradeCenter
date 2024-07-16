@@ -10,7 +10,7 @@ from backend.error_types import *
 
 @pytest.fixture
 def product():
-    return Product(product_id=0, product_name='product', description='very good product', price=10.0, weight=30.0, amount=10)
+    return Product(store_id=0, product_id=0, product_name='product', description='very good product', price=10.0, weight=30.0, amount=10)
 
 @pytest.fixture
 def tagged_product(product):
