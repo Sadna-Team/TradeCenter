@@ -1249,7 +1249,7 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        self.purchase_facade.user_decline_counter_offer(bid_id, user_id)
+        self.purchase_facade.user_reject_counter_offer(bid_id, user_id)
         logger.info(f"User {user_id} has declined a counter bid")
         
         
@@ -1266,7 +1266,7 @@ class MarketFacade:
         logger.info(f"User {user_id} has counter offered a counter bid")
         
     
-    def show_user_bids(self, system_manager_id: int, user_id: int) -> List[BidPurchaseDTO]:
+    def show_user_bids(self, system_manager_id: int, user_id: int) -> dict:
         """
         Parameters: userId
         This function shows the bids of a user
@@ -1276,9 +1276,9 @@ class MarketFacade:
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         if not self.roles_facade.is_system_manager(system_manager_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        return self.purchase_facade.get_bids_of_user(user_id)
+        return self.purchase_facade.get_bid_purchases_of_user(user_id)
         
-    def show_store_bids(self, user_id: int, store_id: int) -> List[BidPurchaseDTO]:
+    def show_store_bids(self, user_id: int, store_id: int) -> dict:
         """
         Parameters: userId, storeId
         This function shows the bids of a store
@@ -1288,7 +1288,7 @@ class MarketFacade:
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         if not self.roles_facade.has_get_bid_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to get the bids of the store", UserErrorTypes.user_does_not_have_necessary_permissions)
-        return self.purchase_facade.get_bids_of_store(store_id)
+        return self.purchase_facade.get_bid_purchases_of_store(store_id)
         
     # -------------Purchase management related methods-------------------#
 

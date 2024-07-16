@@ -617,6 +617,18 @@ class BidPurchase(Purchase):
         if self._status != PurchaseStatus.accepted:
             raise PurchaseError("Purchase is not accepted", PurchaseErrorTypes.purchase_not_accepted)
         self._status = PurchaseStatus.completed
+        
+    def get_bid_purchase_dto(self) -> dict:
+        return {
+            "bid_id": self.id,
+            "store_id": self._store_id,
+            "product_id": self._product_id,
+            "proposed_price": self._proposed_price,
+            "is_offer_to_store": self._is_offer_to_store,
+            "list_of_store_owners_managers_that_accepted_offer": self._list_of_store_owners_managers_that_accepted_offer,
+            "user_who_rejected_id": self._user_who_rejected_id,
+            "status": self._status.name            
+        }
 
 
 class PurchaseProduct(db.Model):
@@ -1269,40 +1281,30 @@ class PurchaseFacade:
             return False
         raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
 
-    def get_bid_purchases_of_user(self, user_id: int) -> List[BidPurchaseDTO]:
+    def get_bid_purchases_of_user(self, user_id: int) -> List[dict]:
         """
         Parameters: userId
         This function is responsible for returning the bid purchases of the user
         Returns: list of BidPurchase objects
         """
-        purchases: List[BidPurchaseDTO] = []
+        purchases: List[dict] = []
         for purchase in db.session.query(BidPurchase).all():
             if isinstance(purchase, BidPurchase):
                 if purchase.user_id == user_id:
-                    purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,
-                                                    purchase.store_id, purchase.product_id, purchase.date_of_purchase,
-                                                    purchase.delivery_date, purchase.is_offer_to_store,
-                                                    purchase.total_price, purchase.status.value,
-                                                    purchase.list_of_store_owners_managers_that_accepted_offer,
-                                                    purchase.user_who_rejected_id))
+                    purchases.append(purchase.get_bid_purchase_dto())
         return purchases
 
-    def get_bid_purchases_of_store(self, store_id: int) -> List[BidPurchaseDTO]:
+    def get_bid_purchases_of_store(self, store_id: int) -> List[dict]:
         """
         Parameters: storeId
         This function is responsible for returning the bid purchases of the store
         Returns: list of BidPurchase objects
         """
-        purchases: List[BidPurchaseDTO] = []
+        purchases: List[dict] = []
         for purchase in db.session.query(BidPurchase).all():
             if isinstance(purchase, BidPurchase):
                 if purchase.store_id == store_id:
-                    purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,
-                                                    purchase.store_id, purchase.product_id, purchase.date_of_purchase,
-                                                    purchase.delivery_date, purchase.is_offer_to_store,
-                                                    purchase.total_price, purchase.status.value,
-                                                    purchase.list_of_store_owners_managers_that_accepted_offer,
-                                                    purchase.user_who_rejected_id))
+                    purchases.append(purchase.get_bid_purchase_dto())
         return purchases
     
     def get_bid_purchase_by_id(self, purchase_id: int) -> BidPurchaseDTO:
