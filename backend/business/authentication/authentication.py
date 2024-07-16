@@ -4,6 +4,7 @@ from flask_jwt_extended import create_access_token, decode_token, get_jwt_identi
 from backend.error_types import *
 import logging
 from backend.database import db
+from flask import current_app
 
 logger = logging.getLogger('myapp')
 
@@ -44,11 +45,15 @@ class Authentication:
         """
         For testing purposes only
         """
-        with db.session.begin():
-            db.session.query(Authentication).delete()
-        self.blacklist.clear()
-        self.logged_in.clear()
-        self.guests.clear()
+        from backend.app import app
+        with app.app_context():
+            # with db.session.begin():
+            #     db.session.query(Authentication).delete()
+            db.session.query(AuthenticationModel).delete()
+            db.session.commit()
+            self.blacklist.clear()
+            self.logged_in.clear()
+            self.guests.clear()
 
     def set_jwt(self, jwt, bcrypt):
         self.jwt = jwt
@@ -144,5 +149,6 @@ class Authentication:
         """
         Load the blacklist from the database into the blacklist set
         """
-        blacklisted_tokens = db.session.query(AuthenticationModel.blacklisted_token).all()
+        with current_app.app_context():
+            blacklisted_tokens = db.session.query(AuthenticationModel.blacklisted_token).all()
         self.blacklist = {token[0] for token in blacklisted_tokens}

@@ -1,6 +1,7 @@
 "use client";
 import api from '@/lib/api';
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ScrollArea } from '@/components/ScrollArea';
 import {
   Dialog,
@@ -52,6 +53,9 @@ const constraintTypes = [
 const ManageDiscount = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
+  const searchParams = useSearchParams();
+  const store_id = searchParams.get('id');
+
   //data required for our page
   const [discounts, setDiscounts] = useState([]);
   const [stores, setStores] = useState({});
@@ -71,7 +75,6 @@ const ManageDiscount = () => {
   const [newIsSubApplied, setNewIsSubApplied] = useState(false);
   
   //data for composite discounts
-  const [selectedStore, setSelectedStore] = useState('');
   const [selectedProduct, setSelectedProduct] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedLeftDiscount, setSelectedLeftDiscount] = useState('');
@@ -104,7 +107,7 @@ const ManageDiscount = () => {
 
   const fetchDiscounts = async () => {
     try {
-      const response = await api.post('/store/view_discounts_info',{});
+      const response = await api.post('/store/view_discounts_info',{'store_id': store_id});
       if(response.status !== 200){
         console.error('Failed to fetch discounts', response);
         setErrorMessage('Failed to fetch discounts');
@@ -279,17 +282,12 @@ const ManageDiscount = () => {
     console.log("the dialog type is:", dialogType);
     switch (dialogType) {
       case 'storeDiscount':
-        if (selectedStore === null || selectedStore === '' || selectedStore === undefined) {
-          setErrorMessage('Please select a store.');
-          return;
-        }
-
         data = {
           description: newDiscountDescription,
           start_date: starting_date,
           end_date: ending_date,
           percentage: percentage,
-          store_id: selectedStore,
+          store_id: store_id,
         };
         break;
       case 'categoryDiscount':
@@ -305,16 +303,12 @@ const ManageDiscount = () => {
           percentage: percentage,
           category_id: selectedCategory,
           applied_to_sub: newIsSubApplied,
+          store_id: store_id,
         };
         break;
       case 'productDiscount':
         if (selectedProduct === null || selectedProduct === '' || selectedProduct === undefined) {
           setErrorMessage('Please select a product.');
-          return;
-        }
-
-        if (selectedStore === null || selectedStore === '' || selectedStore === undefined) {
-          setErrorMessage('Please select a store.');
           return;
         }
 
@@ -324,7 +318,7 @@ const ManageDiscount = () => {
           end_date: ending_date,
           percentage: percentage,
           product_id: selectedProduct,
-          store_id: selectedStore,
+          store_id: store_id,
         };
         break;
       case 'andDiscount':
@@ -346,7 +340,8 @@ const ManageDiscount = () => {
           end_date: ending_date,
           discount_id1: parseInt(selectedLeftDiscount),
           discount_id2: parseInt(selectedRightDiscount),
-          type_of_composite: type_of_discount
+          type_of_composite: type_of_discount,
+          store_id: store_id,
         };
         break;
 
@@ -368,7 +363,8 @@ const ManageDiscount = () => {
           start_date: starting_date,
           end_date: ending_date,
           discount_ids: selectedMultipleDiscounts.map((value) => parseInt(value.value)),
-          type_of_composite: type_of_composite
+          type_of_composite: type_of_composite,
+          store_id: store_id,
         };
         break;
       default:
@@ -434,6 +430,7 @@ const ManageDiscount = () => {
         data = {
           discount_id: currentDiscountId,
           description: editDiscountDescription,
+          store_id: store_id,
         }
 
         try {
@@ -464,6 +461,7 @@ const ManageDiscount = () => {
         data = {
           discount_id: currentDiscountId,
           percentage: percentage,
+          store_id: store_id,
         }
 
         try {
@@ -496,7 +494,7 @@ const ManageDiscount = () => {
   const handleRemoveDiscount = (type, discountId) => {
     const removeDiscount = async () => {
       try {
-        const response = await api.post('/store/remove_discount', { discount_id: discountId });
+        const response = await api.post('/store/remove_discount', { discount_id: discountId, store_id: store_id});
         if(response.status !== 200){
           console.error('Failed to remove discount', response);
           setErrorMessage('Failed to remove discount');
@@ -604,6 +602,7 @@ const ManageDiscount = () => {
    
     data = {
       discount_id: currentDiscountId,
+      store_id: store_id,
       predicate_builder: finalComposite,
     };
     
@@ -613,6 +612,7 @@ const ManageDiscount = () => {
     let location = {'address': Object.values(constraintValues)[0], 'city': Object.values(constraintValues)[1], 'state': Object.values(constraintValues)[2], 'country': Object.values(constraintValues)[3], 'zip_code': Object.values(constraintValues)[4]}
     data = {
       discount_id: currentDiscountId,
+      store_id: store_id,
       predicate_builder: [selectedConstraintType, location]
     }
 
@@ -620,6 +620,7 @@ const ManageDiscount = () => {
 
     data = {
       discount_id: currentDiscountId,
+      store_id: store_id,
       predicate_builder: [selectedConstraintType, ...Object.values(constraintValues)],
     };
   }
@@ -1266,12 +1267,12 @@ const renderNestedDiscount = (discount) => {
   return (
     <div className="ml-4">
       <p><strong>Discount ID:</strong> {discount.discount_id}</p>
+      <p><strong>Store ID:</strong> {discount.store_id}</p>
       <p><strong>Description:</strong> {discount.description}</p>
       <p><strong>Start Date:</strong> {discount.start_date}</p>
       <p><strong>End Date:</strong> {discount.end_date}</p>
       {(discount.discount_type === 'productDiscount' || discount.discount_type === 'storeDiscount' || discount.discount_type === "categoryDiscount") &&  <p><strong>Percentage:</strong> {discount.percentage*100}%</p>}
       {discount.discount_type === 'productDiscount' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
-      {discount.discount_type === 'productDiscount' || discount.discount_type === 'storeDiscount' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
       {discount.discount_type === 'categoryDiscount' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
       {discount.discount_type === 'categoryDiscount' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
       {['andDiscount', 'orDiscount', 'xorDiscount'].includes(discount.discount_type) && (
@@ -1341,13 +1342,12 @@ const renderDiscount = (discount, type) => (
     {expandedDiscounts[type] === discount.discount_id && (
       <div className="mt-2">
         <p><strong>Discount ID:</strong> {discount.discount_id}</p>
+        <p><strong>Store ID:</strong> {discount.store_id}</p>
         <p><strong>Description:</strong> {discount.description}</p>
         <p><strong>Start Date:</strong> {discount.start_date}</p>
         <p><strong>End Date:</strong> {discount.end_date}</p>
         {(discount.discount_type === 'productDiscount' || discount.discount_type === 'storeDiscount' || discount.discount_type === "categoryDiscount") &&  <p><strong>Percentage:</strong> {discount.percentage*100}%</p>}
         {discount.discount_type === 'productDiscount' && <p><strong>Product ID:</strong> {discount.product_id}</p>}
-        {discount.discount_type === 'productDiscount' &&  <p><strong>Store ID:</strong> {discount.store_id}</p>}
-        {discount.discount_type === 'storeDiscount' && <p><strong>Store ID:</strong> {discount.store_id}</p>}
         {discount.discount_type === 'categoryDiscount' && <p><strong>Category ID:</strong> {discount.category_id}</p>}
         {discount.discount_type === 'categoryDiscount' && <p><strong>Is Applied To Sub</strong> {discount.applied_to_subcategories}</p>}
         {['andDiscount', 'orDiscount', 'xorDiscount'].includes(type) && (
@@ -1485,23 +1485,6 @@ return (
                   />
                 </div>
               )}
-              {type === 'storeDiscount' && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
-                  <Select onValueChange={setSelectedStore}>
-                    <SelectTrigger className="col-span-3 border border-black bg-white">
-                      <SelectValue placeholder="Store ID" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      {Object.keys(stores).map((key) => (
-                        <SelectItem key={key} value={key}>
-                          {stores[key]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
               {type === 'categoryDiscount' && (
                 <>
                   <div className="grid grid-cols-4 items-center gap-4">
@@ -1536,21 +1519,6 @@ return (
               {type === 'productDiscount' && (
                 <>
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="store-id" className="block mt-2">Store ID</Label>
-                    <Select onValueChange={setSelectedStore}>
-                      <SelectTrigger className="col-span-3 border border-black bg-white">
-                        <SelectValue placeholder="Store ID" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {Object.keys(stores).map((key) => (
-                          <SelectItem key={key} value={key}>
-                            {stores[key]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="product-id" className="block mt-2">Product ID</Label>
                     <Select onValueChange={setSelectedProduct}>
                       <SelectTrigger className="col-span-3 border border-black bg-white">
@@ -1558,7 +1526,7 @@ return (
                       </SelectTrigger>
                       <SelectContent className="bg-white">
                         {products_to_store
-                          .filter((store) => store.store_id === selectedStore)
+                          .filter((store) => store.store_id === store_id)
                           .flatMap((store) => store.products)
                           .map((product) => (
                             <SelectItem key={product.product_id} value={product.product_id}>

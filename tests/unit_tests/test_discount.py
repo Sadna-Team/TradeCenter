@@ -39,9 +39,9 @@ default_AmountProductConstraint: Constraint = AmountProductConstraint(default_mi
 default_category_id: int = 0
 default_applied_to_subcategories: bool = False
 
-default_category_discount1: CategoryDiscount = CategoryDiscount(default_discount_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_predicate, default_category_id, default_applied_to_subcategories)
-default_category_discount2: CategoryDiscount = CategoryDiscount(default_discount_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_predicate, 1, not default_applied_to_subcategories)
-default_category_discount3: CategoryDiscount = CategoryDiscount(default_discount_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_AmountProductConstraint, default_category_id, default_applied_to_subcategories)
+default_category_discount1: CategoryDiscount = CategoryDiscount(default_discount_id,default_store_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_predicate, default_category_id, default_applied_to_subcategories)
+default_category_discount2: CategoryDiscount = CategoryDiscount(default_discount_id,default_store_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_predicate, 1, not default_applied_to_subcategories)
+default_category_discount3: CategoryDiscount = CategoryDiscount(default_discount_id,default_store_id, default_discount_description, default_starting_date, default_ending_date, default_percentage, default_AmountProductConstraint, default_category_id, default_applied_to_subcategories)
 
 #StoreDiscount default vars:
 default_store_discount1: StoreDiscount = StoreDiscount(default_discount_id, default_discount_description, default_starting_date, default_ending_date, default_percentage2, default_predicate, default_store_id)
@@ -66,24 +66,24 @@ default_ending_date2: datetime = datetime(2025, 1, 1)
 default_percentage6: float = 0.0
 
 #AndDiscount default vars:
-default_and_discount1: AndDiscount = AndDiscount(default_discount_id2, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount2) #good
-default_and_discount2: AndDiscount = AndDiscount(default_discount_id3, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount3) #bad
-default_and_discount3: AndDiscount = AndDiscount(default_discount_id4, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6,default_store_discount1, default_product_discount1) #good
+default_and_discount1: AndDiscount = AndDiscount(default_discount_id2, default_store_id, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount2) #good
+default_and_discount2: AndDiscount = AndDiscount(default_discount_id3, default_store_id, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount3) #bad
+default_and_discount3: AndDiscount = AndDiscount(default_discount_id4,default_store_id,  default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6,default_store_discount1, default_product_discount1) #good
 
 #OrDiscount default vars:
-default_or_discount1: OrDiscount = OrDiscount(default_discount_id5, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount2) #good
-default_or_discount2: OrDiscount = OrDiscount(default_discount_id6, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount3) #good
-default_or_discount3: OrDiscount = OrDiscount(default_discount_id7, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_store_discount1, default_product_discount1) #good
+default_or_discount1: OrDiscount = OrDiscount(default_discount_id5,default_store_id,  default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount2) #good
+default_or_discount2: OrDiscount = OrDiscount(default_discount_id6,default_store_id, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount3) #good
+default_or_discount3: OrDiscount = OrDiscount(default_discount_id7,default_store_id, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_store_discount1, default_product_discount1) #good
 
 #XorDiscount default vars:
-default_xor_discount1: XorDiscount = XorDiscount(default_discount_id8, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount2) #bad
-default_xor_discount2: XorDiscount = XorDiscount(default_discount_id9, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount3) #good
+default_xor_discount1: XorDiscount = XorDiscount(default_discount_id8,default_store_id, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount2) #bad
+default_xor_discount2: XorDiscount = XorDiscount(default_discount_id9,default_store_id,  default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, default_category_discount1, default_category_discount3) #good
 
 #maxDiscount default vars:
-default_max_discount1: MaxDiscount = MaxDiscount(default_discount_id10, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, [default_product_discount1, default_store_discount1])
+default_max_discount1: MaxDiscount = MaxDiscount(default_discount_id10, default_store_id, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6, [default_product_discount1, default_store_discount1])
 
 #additiveDiscount default vars:
-default_additive_discount1: AdditiveDiscount = AdditiveDiscount(default_discount_id11, default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6,[default_product_discount1, default_store_discount1])
+default_additive_discount1: AdditiveDiscount = AdditiveDiscount(default_discount_id11,default_store_id,  default_discount_description2, default_starting_date2, default_ending_date2, default_percentage6,[default_product_discount1, default_store_discount1])
 
 
 

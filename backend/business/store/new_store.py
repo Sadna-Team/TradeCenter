@@ -7,6 +7,8 @@ from .PurchasePolicy import *
 from datetime import datetime
 from backend.business.DTOs import ProductDTO, ProductForConstraintDTO, StoreDTO, PurchaseProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO, CategoryDTO
 from backend.business.store.strategies import PurchaseComposite, AndFilter, OrFilter, XorFilter, UserFilter, ProductFilter, NotFilter
+from backend.error_types import *
+
 import threading
 # -------------logging configuration----------------
 import logging
@@ -24,12 +26,29 @@ class Product:
     # id of product is productId. It is unique for each physical product
     def __init__(self, product_id: int, product_name: str, description: str, price: float, weight: float, amount: int=0):
         self.__product_id: int = product_id
+        
+        if product_name is None or product_name == '':
+            raise StoreError('Product name is not a valid string', StoreErrorTypes.invalid_product_name)
+        
         self.__product_name: str = product_name
         self.__description: str = description
         self.__tags: List[str] = []  # initialized with no tags
+        
+        if price < 0:
+            raise StoreError('Price is a negative value', StoreErrorTypes.invalid_price)
+        
         self.__price: float = price  # price is in dollars
+        
+        if weight < 0:
+            raise StoreError('Weight is a negative value', StoreErrorTypes.invalid_weight)
+        
         self.__weight: float = weight  # weight is in kg
+        
+        if amount < 0:
+            raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
+        
         self.__amount: int = amount  # amount of the product in the store
+        
         self.__product_lock = threading.Lock() # lock for product
         logger.info('[Product] successfully created product with id: ' + str(product_id))
 
@@ -83,8 +102,8 @@ class Product:
         * This function changes the name of the product
         * Returns: none
         """
-        if new_name is None:
-            raise StoreError('New name is not a valid string', StoreErrorTypes.invalid_name)
+        if new_name is None or new_name == '':
+            raise StoreError('New name is not a valid string', StoreErrorTypes.invalid_product_name)
         with self.__product_lock:
             self.__product_name = new_name
         logger.info('[Product] successfully changed name of product with id: ' + str(self.__product_id))
@@ -199,6 +218,8 @@ class Product:
             self.__amount += amount
 
     def remove_amount(self, amount) -> None:
+        if amount < 0:
+            raise StoreError('Amount is a negative value', StoreErrorTypes.invalid_amount)
         if self.__amount < amount:
             raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
         with self.__product_lock:
@@ -213,6 +234,10 @@ class Category:
 
     def __init__(self, category_id: int, category_name: str):
         self.__category_id: int = category_id
+        
+        if category_name is None or category_name == '':
+            raise StoreError('Category name is not a valid string', StoreErrorTypes.invalid_category_name)
+        
         self.__category_name: str = category_name
         self.__parent_category_id: int = -1  # -1 means that the category does not have a parent category for now
         self.__category_products: List[Tuple[int, int]] = []
@@ -533,6 +558,10 @@ class Store:
     def __init__(self, store_id: int, address: AddressDTO, store_name: str, store_founder_id: int):
         self.__store_id = store_id
         self.__address = address
+        
+        if store_name is None or store_name == '':
+            raise StoreError('Store name is not a valid string', StoreErrorTypes.invalid_store_name)
+        
         self.__store_name = store_name
         self.__store_founder_id = store_founder_id
         self.__is_active = True
@@ -584,6 +613,9 @@ class Store:
         * This function closes the store
         * Returns: none
         """
+        if user_id is None:
+            raise StoreError('User id is not a valid integer', StoreErrorTypes.invalid_user_id)
+        
         if not user_id == self.__store_founder_id:
             raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
         if not self.__is_active:
@@ -599,6 +631,8 @@ class Store:
         * This function opens the store
         * Returns: none
         """
+        if user_id is None:
+            raise StoreError('User id is not a valid integer', StoreErrorTypes.invalid_user_id)
         if not user_id == self.__store_founder_id:
             raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
         if self.__is_active:
@@ -721,6 +755,11 @@ class Store:
         * Returns: the purchase policy ID
         * NOTE: in type_of_composite: 1 is AND, 2 is OR, 3 is Conditional
         """
+        
+        if policy_name is None or policy_name == '':
+            logger.error('[Store] Policy name is not a valid string in store with id: {self.__store_id}')
+            raise StoreError('Policy name is not a valid string', StoreErrorTypes.invalid_policy_name)
+        
         new_policy_id: int = -1
         if policy_id_left not in self.__purchase_policy or policy_id_right not in self.__purchase_policy:
             logger.error('[Store] Purchase policy components of new composite policy are not found in store with id: {self.__store_id}')
@@ -863,6 +902,10 @@ class Store:
         * This function restocks a product in the store
         * Returns: none
         """
+        if amount < 0:
+            raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
+        
+        
         if product_id in self.__store_products:
             self.__store_products[product_id].restock(amount)
             logger.info('[Store] successfully restocked product with id: ' + str(product_id))
@@ -879,6 +922,10 @@ class Store:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
         if self.__store_products[product_id].amount < amount:
             raise StoreError('Amount is greater than the available amount of the product', StoreErrorTypes.invalid_amount)
+        
+        if amount < 0:
+            raise StoreError('Amount is not a valid integer', StoreErrorTypes.invalid_amount)
+        
         self.__store_products[product_id].remove_amount(amount)
         logger.info('Successfully removed product amount with id: {product_id}')
 
@@ -889,6 +936,9 @@ class Store:
         * Returns: none
         """
         product = self.get_product_by_id(product_id)
+        if new_description is None:
+            raise StoreError('Description is not a valid string', StoreErrorTypes.invalid_description)
+        
         if product is not None:
             product.change_description(new_description)
             logger.info('Successfully changed description of product with id: {product_id}')
@@ -902,6 +952,10 @@ class Store:
         * Returns: none
         """
         product = self.get_product_by_id(product_id)
+        
+        if new_price <0:
+            raise StoreError('Price is not a valid float', StoreErrorTypes.invalid_price)
+        
         if product is not None:
             product.change_price(new_price)
             logger.info('Successfully changed price of product with id: {product_id} to {new_price}')
@@ -1113,7 +1167,7 @@ class StoreFacade:
         * This function adds a category to the store
         * Returns: none
         """
-        if category_name is not None:
+        if category_name is not None or category_name != '':
             with self.__category_id_lock:
                 category = Category(self.__category_id_counter, category_name)
                 self.__categories[self.__category_id_counter] = category
@@ -1133,6 +1187,9 @@ class StoreFacade:
         category_to_remove = self.get_category_by_id(category_id)
         cond = category_to_remove.has_parent_category()
         parent_category = self.get_category_by_id(category_to_remove.parent_category_id) if cond else None
+        
+        if category_to_remove is None:
+            raise StoreError('Category is not found', StoreErrorTypes.category_not_found)
 
         #removing the subCategories of the category
         for subCategory in category_to_remove.sub_categories:
@@ -1153,6 +1210,9 @@ class StoreFacade:
         * Note: the parent category is assigned in the method addSubCategory of the category class
         * Returns: True if the subcategory is assigned successfully
         """
+        if sub_category_id == category_id:
+            raise StoreError('Category cannot be a subcategory of itself', StoreErrorTypes.sub_category_error)
+            
         sub_category = self.get_category_by_id(sub_category_id)
         category = self.get_category_by_id(category_id)
         category.add_sub_category(sub_category)
@@ -1164,6 +1224,11 @@ class StoreFacade:
         * Note: the parent category is removed in the method removeSubCategory of the category class
         * Returns: True if the subcategory is deleted successfully
         """
+        if sub_category_id is None:
+            raise StoreError('Sub category id is missing', StoreErrorTypes.sub_category_error)
+        if category_id is None:
+            raise StoreError('Category id is missing', StoreErrorTypes.category_not_found)
+        
         category = self.get_category_by_id(category_id)
         sub_category = self.get_category_by_id(sub_category_id)
         category.remove_sub_category(sub_category)
@@ -1373,8 +1438,8 @@ class StoreFacade:
         raise StoreError('Store not found', StoreErrorTypes.store_not_found)
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
-    def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
-                     store_id: Optional[int] = None, product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
+    def add_discount(self, description: str, store_id: int, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
+                    product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
         """
         * Parameters: description, startDate, endDate, percentage, categoryId, storeId, productId, appliedToSub
         * This function adds a discount to the store
@@ -1382,6 +1447,14 @@ class StoreFacade:
         * Returns: the integer ID of the discount
         """
         logger.info('[StoreFacade] attempting to add discount to store')
+        if store_id not in self.__stores:
+            logger.warning('[StoreFacade] store the discount is applied to is not found')
+            raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
+        
+        if percentage < 0 or percentage > 1:
+            logger.warning('[StoreFacade] percentage is not in the range of 0 to 1')
+            raise DiscountAndConstraintsError('Percentage is not in the range of 0 to 1', DiscountAndConstraintsErrorTypes.invalid_percentage)
+        
         if category_id is not None:
             if category_id not in self.__categories:
                 logger.warning('[StoreFacade] category the discount is applied to is not found')
@@ -1390,30 +1463,26 @@ class StoreFacade:
                 logger.warning('[StoreFacade] applied to subcategories is missing')
                 raise DiscountAndConstraintsError('Applied to subcategories is missing', DiscountAndConstraintsErrorTypes.discount_creation_error)
             logger.info('[StoreFacade] successfully added category discount to store')
-            new_category_discount = CategoryDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
+            new_category_discount = CategoryDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
             self.__discounts[self.__discount_id_counter] = new_category_discount
             self.__discount_id_counter += 1
         
-        elif store_id is not None:
-            if store_id not in self.__stores:
-                logger.warning('[StoreFacade] store the discount is applied to is not found')
-                raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
-            if product_id is not None: 
-                if product_id not in self.__stores[store_id].store_products:
-                    logger.warning('[StoreFacade] product the discount is applied to is not found')
-                    raise DiscountAndConstraintsError('Product is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
-                logger.info('[StoreFacade] successfully added product discount to store')
-                new_product_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
-                self.__discounts[self.__discount_id_counter] = new_product_discount
-                self.__discount_id_counter += 1
-            else:
-                logger.info('[StoreFacade] successfully added store discount to store')
-                new_store_discount = StoreDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, store_id)
-                self.__discounts[self.__discount_id_counter] = new_store_discount
-                self.__discount_id_counter += 1
+        elif product_id is not None: 
+            if product_id not in self.__stores[store_id].store_products:
+                logger.warning('[StoreFacade] product the discount is applied to is not found')
+                raise DiscountAndConstraintsError('Product is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
+            logger.info('[StoreFacade] successfully added product discount to store')
+            new_product_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
+            self.__discounts[self.__discount_id_counter] = new_product_discount
+            self.__discount_id_counter += 1
+        else:
+            logger.info('[StoreFacade] successfully added store discount to store')
+            new_store_discount = StoreDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, store_id)
+            self.__discounts[self.__discount_id_counter] = new_store_discount
+            self.__discount_id_counter += 1
         return self.__discount_id_counter - 1
 
-    def create_logical_composite_discount(self,description: str, start_date: datetime, ending_date: datetime, percentage: float,
+    def create_logical_composite_discount(self,description: str, store_id: int, start_date: datetime, ending_date: datetime, percentage: float,
                                            discount_id1: int, discount_id2: int, type_of_connection: int) -> int:
         """
         * Parameters: description, startDate, endDate, percentage, discountId1, discountId2, typeOfConnection
@@ -1422,6 +1491,10 @@ class StoreFacade:
         * Returns: the integer ID of the discount
         """
         logger.info('[StoreFacade] attempting to create logical composite discount')
+        if store_id not in self.__stores:
+            logger.warning('[StoreFacade] store the discount is applied to is not found')
+            raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
+        
         if discount_id1 not in self.__discounts or discount_id2 not in self.__discounts:
             logger.warning('[StoreFacade] one of the discounts is not found')
             raise DiscountAndConstraintsError('One of the discounts is not found', DiscountAndConstraintsErrorTypes.discount_not_found)
@@ -1435,7 +1508,7 @@ class StoreFacade:
 
         if type_of_connection == 1:
             logger.info('[StoreFacade] successfully created AND discount')
-            new_and_discount = AndDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            new_and_discount = AndDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_and_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1443,7 +1516,7 @@ class StoreFacade:
             self.__discounts.pop(discount_id2)
         elif type_of_connection == 2:
             logger.info('[StoreFacade] successfully created OR discount')
-            new_or_discount = OrDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            new_or_discount = OrDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_or_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1451,7 +1524,7 @@ class StoreFacade:
             self.__discounts.pop(discount_id2)
         else:
             logger.info('[StoreFacade] successfully created XOR discount')
-            new_xor_discount = XorDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            new_xor_discount = XorDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_xor_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1461,7 +1534,7 @@ class StoreFacade:
 
 
     
-    def create_numerical_composite_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float,
+    def create_numerical_composite_discount(self, description: str, store_id: int, start_date: datetime, ending_date: datetime, percentage: float,
                                             discount_ids: List[int], type_of_connection: int) -> int:
         """
         * Parameters: description, startDate, endDate, percentage, discountIds, typeOfConnection
@@ -1470,6 +1543,11 @@ class StoreFacade:
         * Returns: the integer ID of the discount
         """
         logger.info('[StoreFacade] attempting to create numerical composite discount')
+        
+        if store_id not in self.__stores:
+            logger.warning('[StoreFacade] store the discount is applied to is not found')
+            raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
+        
         if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_NUMERICAL_DISCOUNT_TYPES:
             logger.warning('[StoreFacade] type of connection is not valid')
             raise DiscountAndConstraintsError('Type of connection is not valid', DiscountAndConstraintsErrorTypes.invalid_type_of_composite_discount)
@@ -1487,7 +1565,7 @@ class StoreFacade:
             
         if type_of_connection == 1:
             logger.info('[StoreFacade] successfully created Max discount')
-            new_max_discount = MaxDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
+            new_max_discount = MaxDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discounts)
             self.__discounts[self.__discount_id_counter] = new_max_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1495,7 +1573,7 @@ class StoreFacade:
                 self.__discounts.pop(discount_id)
         else:
             logger.info('[StoreFacade] successfully created Additive discount')
-            new_additive_discount = AdditiveDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
+            new_additive_discount = AdditiveDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discounts)
             self.__discounts[self.__discount_id_counter] = new_additive_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1538,16 +1616,16 @@ class StoreFacade:
             if isinstance(predicate_properties[1], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] age is a negative value')
-                    raise DiscountAndConstraintsError('Age is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Age is a negative value', DiscountAndConstraintsErrorTypes.invalid_age_limit)
                 return predicate_type(predicate_properties[1])
             else:
                 logger.warning('[StoreFacade] age is not an integer')
-                raise DiscountAndConstraintsError('Age is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Age is not an integer', DiscountAndConstraintsErrorTypes.invalid_age_limit)
         elif predicate_type == LocationConstraint:
             if isinstance(predicate_properties[1], Dict):
                 if 'address' not in predicate_properties[1] or 'city' not in predicate_properties[1] or 'state' not in predicate_properties[1] or 'country' not in predicate_properties[1] or 'zip_code' not in predicate_properties[1]:
                     logger.warning('[StoreFacade] location is missing fields')
-                    raise DiscountAndConstraintsError('Location is missing fields', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Location is missing fields', DiscountAndConstraintsErrorTypes.invalid_location)
                 address = AddressDTO(predicate_properties[1]['address'], predicate_properties[1]['city'], predicate_properties[1]['state'], predicate_properties[1]['country'], predicate_properties[1]['zip_code'])
                 return predicate_type(address)
             else:
@@ -1555,39 +1633,42 @@ class StoreFacade:
                 raise DiscountAndConstraintsError('Location is not a dictionary', DiscountAndConstraintsErrorTypes.predicate_creation_error)
         elif predicate_type == TimeConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if predicate_properties[1] < 0 or predicate_properties[1] > 23 or predicate_properties[2] < 0 or predicate_properties[2] > 59 or predicate_properties[3] < 0 or predicate_properties[3] > 23 or predicate_properties[4] < 0 or predicate_properties[4] > 59:
+                    logger.warning('[StoreFacade] time is not valid')
+                    raise DiscountAndConstraintsError('Time is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
                 starting_time = time(predicate_properties[1], predicate_properties[2],0)
                 ending_time = time(predicate_properties[3], predicate_properties[4],0)
-                if starting_time > ending_time:
+                if starting_time >= ending_time:
                     logger.warning('[StoreFacade] starting time is greater than ending time')
-                    raise DiscountAndConstraintsError('Starting time is greater than ending time', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Starting time is greater than ending time', DiscountAndConstraintsErrorTypes.invalid_time_constraint)
                 return predicate_type(starting_time, ending_time)
             else:
                 logger.warning('[StoreFacade] starting time or ending time is not a datetime.time')
-                raise DiscountAndConstraintsError('Starting time or ending time is not a datetime.time', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Starting time or ending time is not a datetime.time', DiscountAndConstraintsErrorTypes.invalid_time_constraint)
         elif predicate_type == DayOfMonthConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
                 if predicate_properties[1] < 1 or predicate_properties[1] > 31 or predicate_properties[2] < 1 or predicate_properties[2] > 31:
                     logger.warning('[StoreFacade] day of month is not valid')
-                    raise DiscountAndConstraintsError('Day of month is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Day of month is not valid', DiscountAndConstraintsErrorTypes.invalid_day_of_month)
                 return predicate_type(predicate_properties[1], predicate_properties[2])
             else:
                 logger.warning('[StoreFacade] day of month is not an integer')
-                raise DiscountAndConstraintsError('Day of month is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Day of month is not an integer', DiscountAndConstraintsErrorTypes.invalid_day_of_month)
         elif predicate_type == DayOfWeekConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
                 if predicate_properties[1] < 1 or predicate_properties[1] > 7 or predicate_properties[2] < 1 or predicate_properties[2] > 7:
                     logger.warning('[StoreFacade] day of week is not valid')
-                    raise DiscountAndConstraintsError('Day of week is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Day of week is not valid', DiscountAndConstraintsErrorTypes.invalid_day_of_week)
                 return predicate_type(predicate_properties[1], predicate_properties[2])
             else:
                 logger.warning('[StoreFacade] day of week is not an integer')
-                raise DiscountAndConstraintsError('Day of week is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Day of week is not an integer', DiscountAndConstraintsErrorTypes.invalid_day_of_week)
         elif predicate_type == SeasonConstraint:
             if isinstance(predicate_properties[1], str):
                 return predicate_type(predicate_properties[1])
             else:
                 logger.warning('[StoreFacade] season is not an integer')
-                raise DiscountAndConstraintsError('Season is not an integer', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Season is not an integer', DiscountAndConstraintsErrorTypes.invalid_season)
         elif predicate_type == HolidaysOfCountryConstraint:
             if isinstance(predicate_properties[1], str):
                 return predicate_type(predicate_properties[1])
@@ -1598,113 +1679,113 @@ class StoreFacade:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[1] != -1 and predicate_properties[2] > predicate_properties[1]) or predicate_properties[2] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min price, max price or category id is not valid')
-                raise DiscountAndConstraintsError('Min price, max price or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min price, max price or category id is not valid', DiscountAndConstraintsErrorTypes.invalid_price)
         elif predicate_type == PriceProductConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min price, max price, product id or store id is not valid')
-                raise DiscountAndConstraintsError('Min price, max price, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min price, max price, product id or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_price)
         elif predicate_type == PriceBasketConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min price is greater than max price')
-                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min price, max price or store id is not valid')
-                raise DiscountAndConstraintsError('Min price, max price or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min price, max price or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_price)
         elif predicate_type == WeightCategoryConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min weight, max weight or category id is not valid')
-                raise DiscountAndConstraintsError('Min weight, max weight or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min weight, max weight or category id is not valid', DiscountAndConstraintsErrorTypes.invalid_weight)
         elif predicate_type == WeightProductConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min weight, max weight, product id or store id is not valid')
-                raise DiscountAndConstraintsError('Min weight, max weight, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min weight, max weight, product id or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_weight)
         elif predicate_type == WeightBasketConstraint:
             if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min weight is greater than max weight')
-                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
                 return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min weight, max weight or store id is not valid')
-                raise DiscountAndConstraintsError('Min weight, max weight or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min weight, max weight or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_weight)
         elif predicate_type == AmountCategoryConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
-                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.invalid_amount)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min amount or category id is not valid')
-                raise DiscountAndConstraintsError('Min amount or category id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min amount or category id is not valid', DiscountAndConstraintsErrorTypes.invalid_amount)
         elif predicate_type == AmountProductConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
-                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.invalid_amount)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
             else:
                 logger.warning('[StoreFacade] min amount, product id or store id is not valid')
-                raise DiscountAndConstraintsError('Min amount, product id or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min amount, product id or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_amount)
         elif predicate_type == AmountBasketConstraint:
             if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
                 if predicate_properties[1] < 0:
                     logger.warning('[StoreFacade] min amount is a negative value')
-                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.invalid_amount)
                 return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
             else:
                 logger.warning('[StoreFacade] min amount or store id is not valid')
-                raise DiscountAndConstraintsError('Min amount or store id is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                raise DiscountAndConstraintsError('Min amount or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_amount)
         return None
 
 
@@ -1761,6 +1842,10 @@ class StoreFacade:
             raise DiscountAndConstraintsError('Discount is not found',DiscountAndConstraintsErrorTypes.discount_not_found)
         logger.info('[StoreFacade] successfully changed discount percentage')
         discount = self.__discounts[discount_id]
+        if new_percentage < 0:
+            logger.error('[StoreFacade] percentage is negative')
+            raise DiscountAndConstraintsError('Percentage is negative',DiscountAndConstraintsErrorTypes.invalid_percentage)
+        
         discount.change_discount_percentage(new_percentage)
 
     def change_discount_description(self, discount_id: int, new_description: str) -> None:
@@ -1794,7 +1879,7 @@ class StoreFacade:
         # TODO: implement this function
         return None
     '''
-    def view_all_discount_information(self) -> List[dict]:
+    def view_all_discount_information_of_store(self, store_id: int) -> List[dict]:
         """
         * Parameters: none
         * This function is used for converting all the discounts into a List of dictionaries for our frontend to manage the discounts
@@ -1802,7 +1887,8 @@ class StoreFacade:
         """
         discount_info = []
         for discount in self.__discounts.values():
-            discount_info.append(discount.get_discount_info_as_dict())
+            if discount.store_id == store_id:
+                discount_info.append(discount.get_discount_info_as_dict())
         return discount_info
 
 
@@ -1880,11 +1966,15 @@ class StoreFacade:
             logger.error('[StoreFacade] discount is not found')
             raise DiscountAndConstraintsError('Discount is not found',DiscountAndConstraintsErrorTypes.discount_not_found)
         discount = self.__discounts[discount_id]
+        
+        if discount.store_id == store_id:
+            basket_info: BasketInformationForConstraintDTO = self.creating_basket_info_for_constraints(store_id, total_price_of_basket, shopping_basket, user_info)
 
-        basket_info: BasketInformationForConstraintDTO = self.creating_basket_info_for_constraints(store_id, total_price_of_basket, shopping_basket, user_info)
-
-        logger.info('[StoreFacade] successfully applied discount')
-        return discount.calculate_discount(basket_info)
+            logger.info('[StoreFacade] successfully applied discount')
+            return discount.calculate_discount(basket_info)
+        else:
+            logger.info(f'[StoreFacade] discount {discount_id} not applied on store {store_id}!')
+            return 0.0
     
     def get_total_price_before_discount(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
         """
