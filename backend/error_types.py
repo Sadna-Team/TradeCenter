@@ -96,6 +96,7 @@ class PurchaseErrorTypes(Enum):
     purchase_not_bid_purchase = 16
     database_error = 17
     invalid_name = 18
+    purchase_not_approved = 19
 
 
 class ThirdPartyHandlerErrorTypes(Enum):

@@ -93,6 +93,7 @@ class PurchaseStatus(Enum):
     accepted = 2
     completed = 3
     offer_rejected = 4
+    approved = 5
 
 
 # -----------------Purchase Class-----------------#
@@ -473,7 +474,7 @@ class BidPurchase(Purchase):
                         " all store owners/managers accepted the offer",
                         self.id)
                     return False
-            self.accept()
+            self._status = PurchaseStatus.approved
             logger.info("[BidPurchase] store accepted offer of bid purchase with purchase id: %s", self.id)
             return True
 
@@ -605,8 +606,8 @@ class BidPurchase(Purchase):
         self._list_of_store_owners_managers_that_accepted_offer = []
 
     def accept(self):
-        if self._status != PurchaseStatus.onGoing:
-            raise PurchaseError("Purchase is not on going", PurchaseErrorTypes.purchase_not_ongoing)
+        if self._status != PurchaseStatus.approved:
+            raise PurchaseError("Purchase is not approved", PurchaseErrorTypes.purchase_not_approved)
         self._status = PurchaseStatus.accepted
         self._total_price = self._proposed_price
         self._total_price_after_discounts = self._proposed_price
@@ -1255,6 +1256,19 @@ class PurchaseFacade:
 
         db.session.commit()
 
+    def is_bid_approved(self, purchase_id: int) -> bool:
+        """
+        Parameters: purchaseId
+        This function is responsible for checking if the bid is approved
+        Returns: bool
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            if purchase.status == PurchaseStatus.approved:
+                return True
+            return False
+        raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+
     def get_bid_purchases_of_user(self, user_id: int) -> List[BidPurchaseDTO]:
         """
         Parameters: userId
@@ -1290,6 +1304,22 @@ class PurchaseFacade:
                                                     purchase.list_of_store_owners_managers_that_accepted_offer,
                                                     purchase.user_who_rejected_id))
         return purchases
+    
+    def get_bid_purchase_by_id(self, purchase_id: int) -> BidPurchaseDTO:
+        """
+        Parameters: purchaseId
+        This function is responsible for returning the bid purchase by id
+        Returns: BidPurchase object
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            return BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,
+                                  purchase.store_id, purchase.product_id, purchase.date_of_purchase,
+                                  purchase.delivery_date, purchase.is_offer_to_store,
+                                  purchase.total_price, purchase.status.value,
+                                  purchase.list_of_store_owners_managers_that_accepted_offer,
+                                  purchase.user_who_rejected_id)
+        raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
 
     # -----------------General Purchase class related methods-----------------#
     def accept_purchase(self, purchase_id: int, delivery_date: datetime) -> None:
