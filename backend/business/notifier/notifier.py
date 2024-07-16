@@ -9,6 +9,10 @@ from flask import jsonify
 from backend.business.authentication.authentication import Authentication
 from backend.error_types import *
 
+# Database related imports
+from sqlalchemy.exc import SQLAlchemyError
+from backend.database import db
+
 # -------------logging configuration----------------
 import logging
 
@@ -17,14 +21,15 @@ logger = logging.getLogger('myapp')
 
 # ---------------------------------------------------
 
-
-
 class Notifier:
+
     # singleton
+
     __instance = None
     __create_lock = Lock()
     __sign_lock = Lock()
-    __store_lock: Dict[int, Lock] = {}
+    __store_lock: Dict[int, Lock] = {} #TODO #load_store_locks?
+
 
     def __new__(cls):
         if Notifier.__instance is None:
@@ -36,7 +41,7 @@ class Notifier:
             self._initialized = True
             self._user_facade: UserFacade = UserFacade()  # Singleton
             self._authentication: Authentication = Authentication()  # Singleton
-            self._listeners: Dict = {}  # Would it restart the listeners every time the server restarts?
+            #self._listeners: Dict = self.load_listeners() # Would it restart the listeners every time the server restarts?
             self._notification_id = 0
             self.socketio_manager = None
 
@@ -84,14 +89,24 @@ class Notifier:
         * Parameters: store_id: int, message: str
         * This function sends a message to multiple users.
         """
-        if store_id not in self._listeners:
-            raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+        for listeners in db.session.query(Listeners).filter_by(store_id=store_id).all():
+            if listeners is None:
+                raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
 
-        for owner in self._listeners[store_id]:
-            if self._authentication.is_logged_in(owner):
-                self._notify_real_time(owner, message)
-            else:
-                self._notify_delayed(owner, message)
+            for listener in listeners.get_listeners.split(','):
+                if self._authentication.is_logged_in(listener):
+                    self._notify_real_time(listener, message)
+                else:
+                    self._notify_delayed(listener, message)
+        
+        # if store_id not in self._listeners:
+        #     raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+
+        # for owner in self._listeners[store_id]:
+        #     if self._authentication.is_logged_in(owner):
+        #         self._notify_real_time(owner, message)
+        #     else:
+        #         self._notify_delayed(owner, message)
 
     # Notify on new purchase --- for store owner    
     def notify_new_purchase(self, store_id: int, purchase_id: int) -> None:
@@ -174,22 +189,32 @@ class Notifier:
         * It would alert him to the events that are relevant to the store (new purchase, store update, removed
         management position)
         """
-        with self.__sign_lock:
-            if store_id not in self._listeners:
-                self._listeners[store_id] = []
-                self.__store_lock[store_id] = Lock()
+        store = db.session.query(Listeners).filter_by(store_id=store_id)
+        if store is None:
+            new_listener = Listeners(store_id, str(user_id))
+            db.session.add(new_listener)
+            self.__store_lock[store_id] = Lock()
+        else:
+            db.session.query(Listeners).filter_by(store_id=store_id).first().add_listener_to_store(user_id)
+              
+        # with self.__sign_lock:
+        #     if store_id not in self._listeners:
+        #         self._listeners[store_id] = []
+        #         self.__store_lock[store_id] = Lock()
 
-        with self.__store_lock[store_id]:
-            if user_id not in self._listeners[store_id]:
-                self._listeners[store_id].append(user_id)
-            else:
-                raise UserError(f"User is already a listener for the store with ID: {store_id}", UserErrorTypes.user_already_listener_for_store)
+        # with self.__store_lock[store_id]:
+        #     if user_id not in self._listeners[store_id]:
+        #         self._listeners[store_id].append(user_id)
+        #     else:
+        #         raise UserError(f"User is already a listener for the store with ID: {store_id}", UserErrorTypes.user_already_listener_for_store)
 
     def unsign_listener(self, user_id: int, store_id: int) -> None:
         """
         * Parameters: user_id: int, store_id: int
         * This function removes a user (manager or owner) from the store listeners.
         """
+        
+        
         with self.__store_lock[store_id]:
             if store_id in self._listeners:
                 self._listeners[store_id].remove(user_id)
@@ -197,3 +222,25 @@ class Notifier:
                     self._listeners.pop(store_id)
             else:
                 raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+            
+
+class Listeners(db.Model):
+    __tablename__ = 'listeners'
+    store_id = db.Column(db.Integer, primary_key=True)
+    listeners = db.Column(db.String, nullable=False)
+
+    def __init__(self, store_id: int, listeners: str):
+        self.store_id = store_id
+        self.listeners = listeners
+
+        logger.info("[Listeners] created new listeners object for store_id: " + str(store_id) + " with listeners: " + listeners)
+
+    def add_listener_to_store(self, listener: int) -> None: 
+        self.listeners += ',' + str(listener)
+
+    def remove_listener_from_store(self, listener: int) -> None:
+        self.listeners = self.listeners.replace("," + str(listener), '')
+
+    @property.getter
+    def get_listeners(self):
+        return self.listeners
