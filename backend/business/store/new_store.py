@@ -1438,8 +1438,8 @@ class StoreFacade:
         raise StoreError('Store not found', StoreErrorTypes.store_not_found)
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
-    def add_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
-                     store_id: Optional[int] = None, product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
+    def add_discount(self, description: str, store_id: int, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
+                    product_id: Optional[int] = None, applied_to_sub: Optional[bool] = None) -> int:
         """
         * Parameters: description, startDate, endDate, percentage, categoryId, storeId, productId, appliedToSub
         * This function adds a discount to the store
@@ -1447,6 +1447,14 @@ class StoreFacade:
         * Returns: the integer ID of the discount
         """
         logger.info('[StoreFacade] attempting to add discount to store')
+        if store_id not in self.__stores:
+            logger.warning('[StoreFacade] store the discount is applied to is not found')
+            raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
+        
+        if percentage < 0 or percentage > 1:
+            logger.warning('[StoreFacade] percentage is not in the range of 0 to 1')
+            raise DiscountAndConstraintsError('Percentage is not in the range of 0 to 1', DiscountAndConstraintsErrorTypes.invalid_percentage)
+        
         if category_id is not None:
             if category_id not in self.__categories:
                 logger.warning('[StoreFacade] category the discount is applied to is not found')
@@ -1455,30 +1463,26 @@ class StoreFacade:
                 logger.warning('[StoreFacade] applied to subcategories is missing')
                 raise DiscountAndConstraintsError('Applied to subcategories is missing', DiscountAndConstraintsErrorTypes.discount_creation_error)
             logger.info('[StoreFacade] successfully added category discount to store')
-            new_category_discount = CategoryDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
+            new_category_discount = CategoryDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, None, category_id, applied_to_sub)
             self.__discounts[self.__discount_id_counter] = new_category_discount
             self.__discount_id_counter += 1
         
-        elif store_id is not None:
-            if store_id not in self.__stores:
-                logger.warning('[StoreFacade] store the discount is applied to is not found')
-                raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
-            if product_id is not None: 
-                if product_id not in self.__stores[store_id].store_products:
-                    logger.warning('[StoreFacade] product the discount is applied to is not found')
-                    raise DiscountAndConstraintsError('Product is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
-                logger.info('[StoreFacade] successfully added product discount to store')
-                new_product_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
-                self.__discounts[self.__discount_id_counter] = new_product_discount
-                self.__discount_id_counter += 1
-            else:
-                logger.info('[StoreFacade] successfully added store discount to store')
-                new_store_discount = StoreDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, store_id)
-                self.__discounts[self.__discount_id_counter] = new_store_discount
-                self.__discount_id_counter += 1
+        elif product_id is not None: 
+            if product_id not in self.__stores[store_id].store_products:
+                logger.warning('[StoreFacade] product the discount is applied to is not found')
+                raise DiscountAndConstraintsError('Product is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
+            logger.info('[StoreFacade] successfully added product discount to store')
+            new_product_discount = ProductDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, product_id, store_id)
+            self.__discounts[self.__discount_id_counter] = new_product_discount
+            self.__discount_id_counter += 1
+        else:
+            logger.info('[StoreFacade] successfully added store discount to store')
+            new_store_discount = StoreDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, None, store_id)
+            self.__discounts[self.__discount_id_counter] = new_store_discount
+            self.__discount_id_counter += 1
         return self.__discount_id_counter - 1
 
-    def create_logical_composite_discount(self,description: str, start_date: datetime, ending_date: datetime, percentage: float,
+    def create_logical_composite_discount(self,description: str, store_id: int, start_date: datetime, ending_date: datetime, percentage: float,
                                            discount_id1: int, discount_id2: int, type_of_connection: int) -> int:
         """
         * Parameters: description, startDate, endDate, percentage, discountId1, discountId2, typeOfConnection
@@ -1487,6 +1491,10 @@ class StoreFacade:
         * Returns: the integer ID of the discount
         """
         logger.info('[StoreFacade] attempting to create logical composite discount')
+        if store_id not in self.__stores:
+            logger.warning('[StoreFacade] store the discount is applied to is not found')
+            raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
+        
         if discount_id1 not in self.__discounts or discount_id2 not in self.__discounts:
             logger.warning('[StoreFacade] one of the discounts is not found')
             raise DiscountAndConstraintsError('One of the discounts is not found', DiscountAndConstraintsErrorTypes.discount_not_found)
@@ -1500,7 +1508,7 @@ class StoreFacade:
 
         if type_of_connection == 1:
             logger.info('[StoreFacade] successfully created AND discount')
-            new_and_discount = AndDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            new_and_discount = AndDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_and_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1508,7 +1516,7 @@ class StoreFacade:
             self.__discounts.pop(discount_id2)
         elif type_of_connection == 2:
             logger.info('[StoreFacade] successfully created OR discount')
-            new_or_discount = OrDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            new_or_discount = OrDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_or_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1516,7 +1524,7 @@ class StoreFacade:
             self.__discounts.pop(discount_id2)
         else:
             logger.info('[StoreFacade] successfully created XOR discount')
-            new_xor_discount = XorDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discount1, discount2)
+            new_xor_discount = XorDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discount1, discount2)
             self.__discounts[self.__discount_id_counter] = new_xor_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1526,7 +1534,7 @@ class StoreFacade:
 
 
     
-    def create_numerical_composite_discount(self, description: str, start_date: datetime, ending_date: datetime, percentage: float,
+    def create_numerical_composite_discount(self, description: str, store_id: int, start_date: datetime, ending_date: datetime, percentage: float,
                                             discount_ids: List[int], type_of_connection: int) -> int:
         """
         * Parameters: description, startDate, endDate, percentage, discountIds, typeOfConnection
@@ -1535,6 +1543,11 @@ class StoreFacade:
         * Returns: the integer ID of the discount
         """
         logger.info('[StoreFacade] attempting to create numerical composite discount')
+        
+        if store_id not in self.__stores:
+            logger.warning('[StoreFacade] store the discount is applied to is not found')
+            raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
+        
         if type_of_connection < 1 or type_of_connection > NUMBER_OF_AVAILABLE_NUMERICAL_DISCOUNT_TYPES:
             logger.warning('[StoreFacade] type of connection is not valid')
             raise DiscountAndConstraintsError('Type of connection is not valid', DiscountAndConstraintsErrorTypes.invalid_type_of_composite_discount)
@@ -1552,7 +1565,7 @@ class StoreFacade:
             
         if type_of_connection == 1:
             logger.info('[StoreFacade] successfully created Max discount')
-            new_max_discount = MaxDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
+            new_max_discount = MaxDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discounts)
             self.__discounts[self.__discount_id_counter] = new_max_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1560,7 +1573,7 @@ class StoreFacade:
                 self.__discounts.pop(discount_id)
         else:
             logger.info('[StoreFacade] successfully created Additive discount')
-            new_additive_discount = AdditiveDiscount(self.__discount_id_counter, description, start_date, ending_date, percentage, discounts)
+            new_additive_discount = AdditiveDiscount(self.__discount_id_counter, store_id, description, start_date, ending_date, percentage, discounts)
             self.__discounts[self.__discount_id_counter] = new_additive_discount
             self.__discount_id_counter += 1
             #removing the sub discounts
@@ -1866,7 +1879,7 @@ class StoreFacade:
         # TODO: implement this function
         return None
     '''
-    def view_all_discount_information(self) -> List[dict]:
+    def view_all_discount_information_of_store(self, store_id: int) -> List[dict]:
         """
         * Parameters: none
         * This function is used for converting all the discounts into a List of dictionaries for our frontend to manage the discounts
@@ -1874,7 +1887,8 @@ class StoreFacade:
         """
         discount_info = []
         for discount in self.__discounts.values():
-            discount_info.append(discount.get_discount_info_as_dict())
+            if discount.store_id == store_id:
+                discount_info.append(discount.get_discount_info_as_dict())
         return discount_info
 
 
@@ -1952,11 +1966,15 @@ class StoreFacade:
             logger.error('[StoreFacade] discount is not found')
             raise DiscountAndConstraintsError('Discount is not found',DiscountAndConstraintsErrorTypes.discount_not_found)
         discount = self.__discounts[discount_id]
+        
+        if discount.store_id == store_id:
+            basket_info: BasketInformationForConstraintDTO = self.creating_basket_info_for_constraints(store_id, total_price_of_basket, shopping_basket, user_info)
 
-        basket_info: BasketInformationForConstraintDTO = self.creating_basket_info_for_constraints(store_id, total_price_of_basket, shopping_basket, user_info)
-
-        logger.info('[StoreFacade] successfully applied discount')
-        return discount.calculate_discount(basket_info)
+            logger.info('[StoreFacade] successfully applied discount')
+            return discount.calculate_discount(basket_info)
+        else:
+            logger.info(f'[StoreFacade] discount {discount_id} not applied on store {store_id}!')
+            return 0.0
     
     def get_total_price_before_discount(self, shopping_cart: Dict[int, Dict[int, int]]) -> float:
         """

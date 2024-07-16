@@ -200,7 +200,7 @@ def default_set_up():
     discount_id2 = market_facade.add_discount(user_id1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31),0.2, store_id1, None, None, None)
     temp1 = market_facade.add_discount(user_id1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31),0.1, store_id1, products[0][0], None, None)
     temp2 = market_facade.add_discount(user_id1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31),0.3, store_id1, None, None, None)
-    composite = market_facade.create_numerical_composite_discount(user_id1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [temp1, temp2], 1)
+    composite = market_facade.create_numerical_composite_discount(user_id1,store_id1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [temp1, temp2], 1)
 
     discount_ids = [discount_id1, discount_id2, composite]
     return user_ids, store_ids, products, discount_ids
@@ -538,14 +538,14 @@ def test_add_discount_no_permission(default_set_up):
     store_id1 = store_ids[0]
     with pytest.raises(UserError) as e:
         market_facade.add_discount(user_id1+1, 'best you can find', datetime(2023, 10, 31), datetime(2050,10,31), 0.3, store_id1, None, None, None)
-    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager   
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions   
 
 
 def test_remove_discount(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
-    market_facade.remove_discount(user_id1, discount_id1)
+    market_facade.remove_discount(user_id1, discount_id1, store_ids[0])
     assert discount_id1 not in market_facade.store_facade.discounts
     
 def test_remove_discount_no_permission(default_set_up):
@@ -553,8 +553,8 @@ def test_remove_discount_no_permission(default_set_up):
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
     with pytest.raises(UserError) as e:
-        market_facade.remove_discount(user_id1+1, discount_id1)
-    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
+        market_facade.remove_discount(user_id1+1, discount_id1, store_ids[0])
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
         
 
 def test_create_logical_composite_discount(default_set_up):
@@ -562,7 +562,7 @@ def test_create_logical_composite_discount(default_set_up):
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
     discount_id2 = discount_ids[1]
-    composite = market_facade.create_logical_composite_discount(user_id1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
+    composite = market_facade.create_logical_composite_discount(user_id1, store_ids[0], 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
     assert composite in market_facade.store_facade.discounts
     assert market_facade.store_facade.discounts.get(composite).discount_description == 'max of the two'
     assert market_facade.store_facade.discounts.get(composite).starting_date == datetime(2024, 10, 31)
@@ -576,15 +576,15 @@ def test_create_logical_composite_discount_no_permission(default_set_up):
     discount_id1 = discount_ids[0]
     discount_id2 = discount_ids[1]
     with pytest.raises(UserError) as e:
-        market_facade.create_logical_composite_discount(user_id1+1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
-    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager    
+        market_facade.create_logical_composite_discount(user_id1+1, store_ids[0], 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), discount_id1, discount_id2, 1)
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions    
 
 def test_create_numerical_composite_discount(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
     discount_id2 = discount_ids[1]
-    composite = market_facade.create_numerical_composite_discount(user_id1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [discount_id1, discount_id2], 1)
+    composite = market_facade.create_numerical_composite_discount(user_id1, store_ids[0], 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [discount_id1, discount_id2], 1)
     assert composite in market_facade.store_facade.discounts
     assert market_facade.store_facade.discounts.get(composite).discount_description == 'max of the two'
     assert market_facade.store_facade.discounts.get(composite).starting_date == datetime(2024, 10, 31)
@@ -599,15 +599,15 @@ def test_create_numerical_composite_discount_no_permission(default_set_up):
     discount_id1 = discount_ids[0]
     discount_id2 = discount_ids[1]
     with pytest.raises(UserError) as e:
-        market_facade.create_numerical_composite_discount(user_id1+1, 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [discount_id1, discount_id2], 1)
-    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager    
+        market_facade.create_numerical_composite_discount(user_id1+1, store_ids[0], 'max of the two', datetime(2024, 10, 31), datetime(2050,10,31), [discount_id1, discount_id2], 1)
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions    
 
 def test_assign_predicate_to_discount(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
 
-    market_facade.assign_predicate_to_discount(user_id1, discount_id1,('age',21))
+    market_facade.assign_predicate_to_discount(user_id1, discount_id1, store_ids[0], ('age',21))
     assert isinstance(market_facade.store_facade.discounts.get(discount_id1).predicate, AgeConstraint)
     
     
@@ -616,8 +616,8 @@ def test_assign_predicate_to_discount_no_permission(default_set_up):
     user_id2 = user_ids[1]
     discount_id1 = discount_ids[0]
     with pytest.raises(UserError) as e:
-        market_facade.assign_predicate_to_discount(user_id2, discount_id1,('age',21))
-    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
+        market_facade.assign_predicate_to_discount(user_id2, discount_id1,store_ids[0],('age',21))
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     assert market_facade.store_facade.discounts.get(discount_id1).predicate == None
 
 
@@ -627,7 +627,7 @@ def test_change_discount_percentage(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
-    market_facade.change_discount_percentage(user_id1, discount_id1, 0.5)
+    market_facade.change_discount_percentage(user_id1, discount_id1, store_ids[0], 0.5)
     assert market_facade.store_facade.discounts.get(discount_id1).percentage == 0.5
     
 def test_change_discount_percentage_no_permission(default_set_up):
@@ -635,15 +635,15 @@ def test_change_discount_percentage_no_permission(default_set_up):
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
     with pytest.raises(UserError) as e:
-        market_facade.change_discount_percentage(user_id1+1, discount_id1, 0.5)
-    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager 
+        market_facade.change_discount_percentage(user_id1+1, discount_id1, store_ids[0], 0.5)
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions 
     assert market_facade.store_facade.discounts.get(discount_id1).percentage != 0.5
 
 def test_change_discount_description(default_set_up):
     user_ids, store_ids, products, discount_ids = default_set_up
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
-    market_facade.change_discount_description(user_id1, discount_id1, 'new description')
+    market_facade.change_discount_description(user_id1, discount_id1, store_ids[0], 'new description')
     assert market_facade.store_facade.discounts.get(discount_id1).discount_description == 'new description'
     
 def test_change_discount_description_no_permission(default_set_up):
@@ -651,8 +651,8 @@ def test_change_discount_description_no_permission(default_set_up):
     user_id1 = user_ids[0]
     discount_id1 = discount_ids[0]
     with pytest.raises(UserError) as e:
-        market_facade.change_discount_description(user_id1+1, discount_id1, 'new description')
-    assert e.value.user_error_type == UserErrorTypes.user_not_system_manager
+        market_facade.change_discount_description(user_id1+1, discount_id1, store_ids[0], 'new description')
+    assert e.value.user_error_type == UserErrorTypes.user_does_not_have_necessary_permissions
     assert market_facade.store_facade.discounts.get(discount_id1).discount_description != 'new description'
     
 #-----------------------------------------------------------
