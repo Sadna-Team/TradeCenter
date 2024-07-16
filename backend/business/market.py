@@ -330,11 +330,8 @@ class MarketFacade:
             logger.info(f"User {user_id} has checked out")
             return pur_id
         except Exception as e:
-            if products_removed:
-                for store_id, products in cart.items():
-                    for product_id in products:
-                        amount = products[product_id]
-                        self.store_facade.add_product_amount(store_id, product_id, amount)
+            db.session.rollback()
+            # WHEN EVERYTHING IN DB WORKS, SIMPLY ROLLBACK
             if purchase_accepted:
                 self.purchase_facade.cancel_accepted_purchase(pur_id)
             if basket_cleared:
@@ -858,6 +855,7 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to remove a product from the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.remove_product_from_store(store_id, product_id)
+        db.session.commit()
 
     def add_product_amount(self, user_id: int, store_id: int, product_id: int, amount: int):
         """
@@ -870,6 +868,7 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to add an amount of a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.add_product_amount(store_id, product_id, amount)
+        db.session.commit()
 
     def remove_product_amount(self, user_id: int, store_id: int, product_id: int, amount: int):
         """
@@ -883,6 +882,7 @@ class MarketFacade:
             raise UserError("User does not have the necessary permissions to remove an amount of a product from the "
                              "store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.remove_product_amount(store_id, product_id, amount)
+        db.session.commit()
 
     # -------------Store related methods-------------------#
     def add_store(self, founder_id: int, address: str, city: str, state: str, country: str, zip_code: str, store_name: str) -> int:
@@ -916,6 +916,7 @@ class MarketFacade:
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.store_facade.close_store(store_id, user_id)
         self.notifier.notify_update_store_status(store_id, True)
+        db.session.commit()
 
     def open_store(self, user_id: int, store_id: int):
         """
@@ -927,6 +928,7 @@ class MarketFacade:
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.store_facade.open_store(store_id, user_id)
         self.notifier.notify_update_store_status(store_id, False)
+        db.session.commit()
 
     def get_employees_info(self, user_id: int, store_id: int) -> Dict[int, str]:
         """
@@ -950,6 +952,7 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to add a tag to a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.add_tag_to_product(store_id, product_id, tag)
+        db.session.commit()
 
     def remove_tag_from_product(self, user_id: int, store_id: int, product_id: int, tag: str):
         """
@@ -962,6 +965,7 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to remove a tag to a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.remove_tag_from_product(store_id, product_id, tag)
+        db.session.commit()
 
     # -------------Product related methods-------------------#
     def change_product_price(self, user_id: int, store_id: int, product_id: int, new_price: float):
@@ -976,6 +980,7 @@ class MarketFacade:
             raise UserError(
                 "User does not have the necessary permissions to change the price of a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.change_price_of_product(store_id, product_id, new_price)
+        db.session.commit()
 
     def change_product_description(self, user_id: int, store_id: int, product_id: int, description: str):
         """
@@ -988,6 +993,7 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to change the price of a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.change_description_of_product(store_id, product_id, description)
+        db.session.commit()
 
     def change_product_weight(self, user_id: int, store_id: int, product_id: int, weight: float):
         """
@@ -998,6 +1004,7 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to change the price of a product in the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.change_weight_of_product(store_id, product_id, weight)
+        db.session.commit()
 
     # -------------Category related methods-------------------#
     def add_category(self, user_id: int, category_name: str) -> int:
@@ -1162,7 +1169,7 @@ class MarketFacade:
                 for store_id, products in cart.items():
                     for product_id in products:
                         amount = products[product_id]
-                        self.store_facade.add_product_amount(store_id, product_id, amount)
+                        self.add_product_amount(store_id, product_id, amount)
             if purchase_accepted:
                 self.purchase_facade.cancel_accepted_purchase(bid_id)
             # check if payment_id is defined
@@ -1748,6 +1755,7 @@ class MarketFacade:
         if not self.roles_facade.has_add_product_permission(store_id, user_id):
             raise UserError("User does not have the necessary permissions to add a product to the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         self.store_facade.edit_product_in_store(store_id, product_id, product_name, description, price, weight, tags, amount)
+        db.session.commit()
 
     def get_store_role(self, user_id: int, store_id: int) -> str:
         return self.roles_facade.get_store_role(user_id, store_id)

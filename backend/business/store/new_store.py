@@ -1441,7 +1441,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.remove_product(product_id)
-        db.session.commit()
+        db.session.flush()
 
     def add_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
@@ -1457,7 +1457,7 @@ class StoreFacade:
         except Exception as e:
             store.release_lock()
             raise e
-        db.session.commit()
+        db.session.flush()
         logger.info(f'Successfully added {amount} of product with id: {product_id} to store with id: {store_id}')
 
     def remove_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
@@ -1468,7 +1468,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.remove_product_amount(product_id, amount)
-        db.session.commit()
+        db.session.flush()
 
     def change_description_of_product(self, store_id: int, product_id: int, new_description: str) -> None:
         """
@@ -1478,7 +1478,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.change_description_of_product(product_id, new_description)
-        db.session.commit()
+        db.session.flush()
 
     def change_price_of_product(self, store_id: int, product_id: int, new_price: float) -> None:
         """
@@ -1488,7 +1488,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.change_price_of_product(product_id, new_price)
-        db.session.commit()
+        db.session.flush()
 
     def change_weight_of_product(self, store_id: int, product_id: int, new_weight: float) -> None:
         """
@@ -1498,7 +1498,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.change_weight_of_product(product_id, new_weight)
-        db.session.commit()
+        db.session.flush()
 
     def add_tag_to_product(self, store_id: int, product_id: int, tag: str) -> None:
         """
@@ -1509,7 +1509,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         store.add_tag_to_product(product_id, tag)
         self.__tags.add(tag)
-        db.session.commit()
+        db.session.flush()
 
     def remove_tag_from_product(self, store_id: int, product_id: int, tag: str) -> None:
         """
@@ -1521,7 +1521,7 @@ class StoreFacade:
         if store is None:
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         store.remove_tag_from_product(product_id, tag)
-        db.session.commit()
+        db.session.flush()
 
     def get_tags_of_product(self, store_id: int, product_id: int) -> List[str]:
         """
@@ -1560,7 +1560,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.close_store(user_id)
-        db.session.commit()
+        db.session.flush()
 
     def open_store(self, store_id: int, user_id: int) -> None:
         """
@@ -1571,7 +1571,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.open_store(user_id)
-        db.session.commit()
+        db.session.flush()
 
     def __store_exists(self, store_id: int) -> bool:
         logger.info('[StoreFacade] checking if store exists')
@@ -2333,7 +2333,7 @@ class StoreFacade:
             for store_id, products in shopping_cart.items():
                 for product_id, amount in products.items():
                     self.remove_product_amount(store_id, product_id, amount)
-            db.session.commit()
+            db.session.flush()
             self.__release_store_locks(list(shopping_cart.keys()))
         except Exception as e:
             self.__release_store_locks(list(shopping_cart.keys()))
@@ -2502,7 +2502,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.edit_product(product_id, product_name, description, price, tags, weight, amount)
-        db.session.commit()
+        db.session.flush()
 
     def validate_cart(self, cart: Dict[int, Dict[int, int]]) -> None:
         """
