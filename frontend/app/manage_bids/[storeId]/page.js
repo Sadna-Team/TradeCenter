@@ -186,17 +186,32 @@ const ManageBid = () => {
       const response = await api.post('/market/has_store_worker_accepted_bid', { bid_id: bidId, store_id: store_id});
       if (response.status !== 200) {
         console.error('Failed to check if store worker accepted bid', response);
-        return false;
+        return 0;
       }
-      return response.data.message;
+      if(response.data.message === false){
+        console.log("the response of the store worker accepted bid:", response.data.message)
+        return 0;
+      }else{
+        return 1;
+      }
     } catch (error) {
       console.error('Failed to check if store worker accepted bid', error);
-      return false;
+      return 0;
     }
   };
   
 
   const renderBid = (bid) => {  
+    let is_offer_to_store = "yes";
+    if (!bid.is_offer_to_store){
+      is_offer_to_store = "no";
+    }
+    let response = hasStoreWorkerAcceptedBid(bid.bid_id);
+    if(response === 1){
+      console.log("the store worker has accepted the bid")
+    }else{
+      console.log("the store worker has not accepted the bid")
+    }
     return (
       <div key={bid.bid_id} className="mb-4 p-4 border-2 border-gray-300 rounded-md">
         <button onClick={() => handleToggle(bid.bid_id)} className="text-left w-full">
@@ -208,7 +223,8 @@ const ManageBid = () => {
             <p><strong>Product ID:</strong> {bid.product_id}</p>
             <p><strong>Proposed Price:</strong> {bid.proposed_price}</p>
             <p><strong>Status:</strong> {bid.status}</p>
-            {bid.status === 'onGoing' && bid.is_offer_to_store && !hasStoreWorkerAcceptedBid(bid.bid_id) && (
+            <p><strong>Is Offer To Store: {is_offer_to_store}</strong></p>
+            {bid.status === 'onGoing' && bid.is_offer_to_store && response !== 1 && (
               <div className="flex justify-between mt-4">
                 <Button className="bg-green-500 text-white py-1 px-3 rounded" onClick={() => handleAcceptBid(bid.bid_id)}>Accept</Button>
                 <AlertDialog>
