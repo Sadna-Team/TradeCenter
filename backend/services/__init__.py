@@ -6,7 +6,7 @@ from .user_services.controllers import UserService, AuthenticationService
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from backend.database import clear_database
-
+from backend.business import market
 
 class InitialState:
 
@@ -232,7 +232,6 @@ class InitialState:
             try:
                 clear_database()
                 with session.begin():  # Start a transaction
-                    # clear the database
                     with open(self.file, 'r') as file:
                         initial_state = json.load(file)
 
