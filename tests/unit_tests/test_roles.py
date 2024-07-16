@@ -4,13 +4,23 @@ from backend.business.roles.roles import RolesFacade, StoreOwner, StoreManager, 
 from backend.error_types import *
 
 
+import unittest
+from unittest.mock import MagicMock
+from backend.business.roles.roles import RolesFacade
+from backend import create_app
 
 class TestRolesFacade(unittest.TestCase):
     def setUp(self):
+        self.app = create_app('testing')
+        from backend import app as app2
+        app2.app = self.app
+        self.app_context = self.app.app_context()
+        self.app_context.push()
         self.facade = RolesFacade()
         self.facade.clean_data()
-        self.facade.add_admin(0)
 
+    def tearDown(self):
+        self.app_context.pop()
     def test_add_store(self):
         self.facade.add_store(1, 2)
         self.assertIn(1, self.facade._RolesFacade__stores_to_roles)
