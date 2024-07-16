@@ -213,15 +213,19 @@ class Notifier:
         * Parameters: user_id: int, store_id: int
         * This function removes a user (manager or owner) from the store listeners.
         """
-        
-        
         with self.__store_lock[store_id]:
-            if store_id in self._listeners:
-                self._listeners[store_id].remove(user_id)
-                if not self._listeners[store_id]:
-                    self._listeners.pop(store_id)
-            else:
+            store = db.session.query(Listeners).filter_by(store_id=store_id).first()
+            if store is None:
                 raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+            store.remove_listener_from_store(user_id)
+        
+        # with self.__store_lock[store_id]:
+        #     if store_id in self._listeners:
+        #         self._listeners[store_id].remove(user_id)
+        #         if not self._listeners[store_id]:
+        #             self._listeners.pop(store_id)
+        #     else:
+        #         raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
             
 
 class Listeners(db.Model):
@@ -232,14 +236,15 @@ class Listeners(db.Model):
     def __init__(self, store_id: int, listeners: str):
         self.store_id = store_id
         self.listeners = listeners
-
         logger.info("[Listeners] created new listeners object for store_id: " + str(store_id) + " with listeners: " + listeners)
 
     def add_listener_to_store(self, listener: int) -> None: 
         self.listeners += ',' + str(listener)
+        logger.info("[Listeners] added listener: " + str(listener) + " to store_id: " + str(self.store_id))
 
     def remove_listener_from_store(self, listener: int) -> None:
         self.listeners = self.listeners.replace("," + str(listener), '')
+        logger.info("[Listeners] removed listener: " + str(listener) + " from store_id: " + str(self.store_id))
 
     @property.getter
     def get_listeners(self):
