@@ -50,7 +50,7 @@ const ManageBid = () => {
   const fetchBids = async () => {
     try {
       console.log("the store id:", store_id)
-      const response = await api.post('/market/show_store_bids', { 'store_id': store_id });
+      const response = await api.post('/market/get_store_bids', { 'store_id': store_id });
       if (response.status !== 200) {
         console.error('Failed to fetch bids', response);
         setErrorMessage('Failed to fetch bids');

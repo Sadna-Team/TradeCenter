@@ -422,7 +422,8 @@ def show_user_bids():
 
     return purchase_service.show_user_bids(system_manager_id, user_id)
 
-@market_bp.route('/show_store_bids', methods=['GET', 'POST'])
+
+@market_bp.route('/get_store_bids', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_bids():
     """
