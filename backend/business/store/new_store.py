@@ -118,7 +118,7 @@ class Product(db.Model):
         real_tags.append(tag)
         self._tags = real_tags
 
-    def remove_tag(self, tag: str) -> None:
+    def __remove_tag(self, tag: str) -> None:
         real_tags = self._tags
         real_tags.remove(tag)
         self._tags = real_tags
@@ -609,7 +609,7 @@ class Store(db.Model):
     # id of store is storeId. It is unique for each store
     __tablename__ = 'stores'
 
-    store_id = db.Column(db.Integer, primary_key=True)
+    store_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     _store_name = db.Column(db.String(100))
     _store_founder_id = db.Column(db.Integer)
     _is_active = db.Column(db.Boolean)
@@ -620,14 +620,12 @@ class Store(db.Model):
     _address = db.relationship('StoreAddress', uselist=False, backref='store')
     _store_products = db.relationship('Product', backref='store', lazy=True)
 
+    checkout_locks = {}
+    _product_id_locks = {}
 
-    def __init__(self, store_id: int, address: AddressDTO, store_name: str, store_founder_id: int):
-        self.store_id = store_id
-        self._address: StoreAddress = StoreAddress(store_id, address.address, address.city, address.state, address.country, address.zip_code)
-        
-        if store_name is None or store_name == '':
-            raise StoreError('Store name is not a valid string', StoreErrorTypes.invalid_store_name)
-        
+
+    def __init__(self, store_name: str, store_founder_id: int):
+        self._address: Optional[StoreAddress] = None
         self._store_name = store_name
         self._store_founder_id = store_founder_id
         self._is_active = True
@@ -636,10 +634,13 @@ class Store(db.Model):
         self._purchase_policy: Dict[int, PurchasePolicy] = {} # purchase policy
         self._founded_date = datetime.now()
         self._purchase_policy_id_counter = 0  # purchase policy Id
-        self.__checkout_lock = threading.Lock() # lock for checkout
-        logger.info('[Store] successfully created store with id: ' + str(store_id))
 
     # ---------------------getters and setters---------------------#
+
+    def set_new_address(self, address: AddressDTO) -> None:
+        self._address = StoreAddress(self.store_id, address.address, address.city, address.state, address.country,
+                                     address.zip_code)
+
     @property
     def address(self):
         return self._address
@@ -659,9 +660,9 @@ class Store(db.Model):
     @property
     def store_products(self) -> List[int]:
         # return a list of all the product ids in the store
-        res = db.session.query(Product.product_id).filter(Product.store_id == self.store_id).all()
+        res = db.session.query(Product).filter(Product.store_id == self.store_id).all()
         # remove duplicates
-        return list(set([product_id for product_id, in res]))
+        return list(set([product.product_id for product in res]))
 
     @property
     def founded_date(self) -> datetime:
@@ -684,9 +685,10 @@ class Store(db.Model):
             raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
         if not self._is_active:
             raise StoreError('Store is already closed', StoreErrorTypes.store_not_active)
-        with self.__checkout_lock:
-            self._is_active = False
-            logger.info('[Store] successfully closed store with id: ' + str(self.store_id))
+        self.acquire_lock()
+        self._is_active = False
+        self.release_lock()
+        logger.info('[Store] successfully closed store with id: ' + str(self.store_id))
             
 
     def open_store(self, user_id: int) -> None:
@@ -701,15 +703,30 @@ class Store(db.Model):
             raise StoreError('User is not the founder of the store', StoreErrorTypes.user_not_founder_of_store)
         if self._is_active:
             raise StoreError('Store is already open', StoreErrorTypes.store_already_open)
-        with self.__checkout_lock:
-            self._is_active = True
-            logger.info('[Store] successfully opened store with id: ' + str(self.store_id))
+        self.acquire_lock()
+        self._is_active = True
+        self.release_lock()
+        logger.info('[Store] successfully opened store with id: ' + str(self.store_id))
         
     def acquire_lock(self):
-        self.__checkout_lock.acquire()
+        if self.store_id not in self.checkout_locks:
+            self.checkout_locks[self.store_id] = threading.Lock()
+        self.checkout_locks[self.store_id].acquire()
 
     def release_lock(self):
-        self.__checkout_lock.release()
+        if self.store_id in self.checkout_locks:
+            self.checkout_locks[self.store_id].release()
+
+    def __acquire_product_id_lock(self) -> None:
+        if self.store_id not in self._product_id_locks:
+            self._product_id_locks[self.store_id] = threading.Lock()
+
+        self._product_id_locks[self.store_id].acquire()
+
+    def __release_product_id_lock(self) -> None:
+        if self.store_id in self._product_id_locks:
+            self._product_id_locks[self.store_id].release()
+
 
     # We assume that the marketFacade verified that the user attempting to add the product is a store Owner
     def add_product(self, name: str, description: str, price: float, tags: List[str], weight: float, amount: int = 0) -> int:
@@ -718,12 +735,13 @@ class Store(db.Model):
         * This function adds a product to the store
         * Returns: none
         """
-        with self._product_id_lock:
-            product = Product(self.store_id, self._product_id_counter, name, description, price, weight, amount)
-            for tag in tags:
-                product.add_tag(tag)
-            db.session.add(product)
-            self._product_id_counter += 1
+        self.__acquire_product_id_lock()
+        product = Product(self.store_id, self._product_id_counter, name, description, price, weight, amount)
+        for tag in tags:
+            product.add_tag(tag)
+        db.session.add(product)
+        self._product_id_counter += 1
+        self.__release_product_id_lock()
         logger.info('[Store] successfully added product to store with id: ' + str(self.store_id))
         return product.product_id
 
@@ -784,7 +802,7 @@ class Store(db.Model):
         
         elif category_id is None and product_id is not None:
             if db.session.query(Product).filter(Product.product_id == product_id).count() == 0:
-                logger.warn('[Store] Product is not found in the store with id: {self.__store_id}')
+                logger.warning('[Store] Product is not found in the store with id: {self.__store_id}')
                 raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
             product_policy_to_add = ProductSpecificPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, product_id)
             policy_id = product_policy_to_add.purchase_policy_id
@@ -792,7 +810,7 @@ class Store(db.Model):
             self._purchase_policy_id_counter += 1
         
         else:
-            logger.warn('[Store] Invalid input when trying to add a purchase policy to store with id: {self.__store_id}')
+            logger.warning('[Store] Invalid input when trying to add a purchase policy to store with id: {self.__store_id}')
             raise StoreError('Invalid purchase policy input', StoreErrorTypes.invalid_purchase_policy_input)
 
         if policy_id == -1:
@@ -1130,6 +1148,17 @@ class Store(db.Model):
         logger.info('[Store] successfully edited product in store with id: ' + str(self.store_id))
 # ---------------------end of classes---------------------#
 
+def create_store(address: AddressDTO, store_name: str, store_founder_id: int) -> Store:
+    if store_name is None or store_name == '':
+        raise StoreError('Store name is not a valid string', StoreErrorTypes.invalid_store_name)
+    st = Store(store_name, store_founder_id)
+    db.session.add(st)
+    db.session.flush()
+    st.set_new_address(address)
+    db.session.commit()
+    logger.info('[Store] successfully created store with id: ' + str(st.store_id))
+    return st
+
 class StoreAddress(db.Model):
     __tablename__ = 'store_addresses'
     store_id = db.Column(db.Integer, primary_key=True)
@@ -1200,11 +1229,9 @@ class StoreFacade:
         if not hasattr(self, '_initialized'):
             self._initialized = True
             self.__categories: Dict[int, Category] = {}  # category_id: Category
-            self.__stores: Dict[int, Store] = {}  # store_id: Store
             self.__discounts: Dict[int, Discount] = {}  # disctount_id: Discount
             self.__category_id_counter = 0  # Counter for category IDs
             self.__category_id_lock = threading.Lock() # lock for category id
-            self.__store_id_counter = 0  # Counter for store IDs
             self.__store_id_lock = threading.Lock() # lock for store id
             self.__discount_id_counter = 0  # Counter for discount IDs
             self.__discount_id_lock = threading.Lock() # lock for discount id
@@ -1216,10 +1243,8 @@ class StoreFacade:
         For testing purposes only
         """
         self.__categories = {}
-        self.__stores = {}
         self.__discounts = {}
         self.__category_id_counter = 0
-        self.__store_id_counter = 0
         self.__discount_id_counter = 0
         self.__tags = {
                        'alcoholic', 'tobacco', 'food', 'utilities',
@@ -1240,7 +1265,8 @@ class StoreFacade:
 
     @property
     def stores(self) -> List[int]:
-        return list(self.__stores.keys())
+        res = db.session.query(Store).all()
+        return list(set([store.store_id for store in res]))
     
 
     constraint_types = {
@@ -1396,9 +1422,10 @@ class StoreFacade:
         logger.info(f'Successfully added product: {product_name} to store with the id: {store_id}')
         if amount is None:
             amount = 0
-        product_id =  store.add_product(product_name, description, price, tags, weight, amount)
+        product_id = store.add_product(product_name, description, price, tags, weight, amount)
         for tag in tags:
             self.__tags.add(tag)
+        db.session.commit()
 
         return product_id
 
@@ -1411,6 +1438,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.remove_product(product_id)
+        db.session.commit()
 
     def add_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
         """
@@ -1426,6 +1454,7 @@ class StoreFacade:
         except Exception as e:
             store.release_lock()
             raise e
+        db.session.commit()
         logger.info(f'Successfully added {amount} of product with id: {product_id} to store with id: {store_id}')
 
     def remove_product_amount(self, store_id: int, product_id: int, amount: int) -> None:
@@ -1436,6 +1465,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.remove_product_amount(product_id, amount)
+        db.session.commit()
 
     def change_description_of_product(self, store_id: int, product_id: int, new_description: str) -> None:
         """
@@ -1445,6 +1475,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.change_description_of_product(product_id, new_description)
+        db.session.commit()
 
     def change_price_of_product(self, store_id: int, product_id: int, new_price: float) -> None:
         """
@@ -1454,6 +1485,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.change_price_of_product(product_id, new_price)
+        db.session.commit()
 
     def change_weight_of_product(self, store_id: int, product_id: int, new_weight: float) -> None:
         """
@@ -1463,6 +1495,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.change_weight_of_product(product_id, new_weight)
+        db.session.commit()
 
     def add_tag_to_product(self, store_id: int, product_id: int, tag: str) -> None:
         """
@@ -1473,6 +1506,7 @@ class StoreFacade:
         store = self.__get_store_by_id(store_id)
         store.add_tag_to_product(product_id, tag)
         self.__tags.add(tag)
+        db.session.commit()
 
     def remove_tag_from_product(self, store_id: int, product_id: int, tag: str) -> None:
         """
@@ -1484,6 +1518,7 @@ class StoreFacade:
         if store is None:
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         store.remove_tag_from_product(product_id, tag)
+        db.session.commit()
 
     def get_tags_of_product(self, store_id: int, product_id: int) -> List[str]:
         """
@@ -1506,10 +1541,10 @@ class StoreFacade:
         if store_name == "":
             raise StoreError('Store name is an empty string', StoreErrorTypes.invalid_store_name)
         with self.__store_id_lock:
-            store = Store(self.__store_id_counter, address, store_name, store_founder_id)
-            self.__stores[self.__store_id_counter] = store
-            self.__store_id_counter += 1
-        
+            store = create_store(address, store_name, store_founder_id)
+            db.session.add(store)
+            db.session.commit()
+
         logger.info(f'Successfully added store: {store_name}')
         return store.store_id
 
@@ -1522,6 +1557,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.close_store(user_id)
+        db.session.commit()
 
     def open_store(self, store_id: int, user_id: int) -> None:
         """
@@ -1532,6 +1568,10 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.open_store(user_id)
+        db.session.commit()
+
+    def __store_exists(self, store_id: int) -> bool:
+        return db.session.query(Store).filter(Store.store_id == store_id).first() is not None
 
     def __get_store_by_id(self, store_id: int) -> Store:
         """
@@ -1539,8 +1579,8 @@ class StoreFacade:
         * This function gets a store by its ID
         * Returns: the store with the given ID
         """
-        if store_id in self.__stores:
-            return self.__stores[store_id]
+        if self.__store_exists(store_id):
+            return db.session.query(Store).filter(Store.store_id == store_id).first()
         raise StoreError('Store not found', StoreErrorTypes.store_not_found)
         
     #For Testing
@@ -1550,9 +1590,7 @@ class StoreFacade:
         * This function gets a store by its ID
         * Returns: the store with the given ID
         """
-        if store_id in self.__stores:
-            return self.__stores[store_id]
-        raise StoreError('Store not found', StoreErrorTypes.store_not_found)
+        return self.__get_store_by_id(store_id)
 
     # we assume that the marketFacade verified that the user has necessary permissions to add a discount
     def add_discount(self, description: str, store_id: int, start_date: datetime, ending_date: datetime, percentage: float, category_id: Optional[int] = None,
@@ -1564,7 +1602,7 @@ class StoreFacade:
         * Returns: the integer ID of the discount
         """
         logger.info('[StoreFacade] attempting to add discount to store')
-        if store_id not in self.__stores:
+        if not self.__store_exists(store_id):
             logger.warning('[StoreFacade] store the discount is applied to is not found')
             raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
         
@@ -1585,7 +1623,7 @@ class StoreFacade:
             self.__discount_id_counter += 1
         
         elif product_id is not None: 
-            if product_id not in self.__stores[store_id].store_products:
+            if product_id not in self.__get_store_by_id(store_id).store_products:
                 logger.warning('[StoreFacade] product the discount is applied to is not found')
                 raise DiscountAndConstraintsError('Product is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
             logger.info('[StoreFacade] successfully added product discount to store')
@@ -1608,7 +1646,7 @@ class StoreFacade:
         * Returns: the integer ID of the discount
         """
         logger.info('[StoreFacade] attempting to create logical composite discount')
-        if store_id not in self.__stores:
+        if not self.__store_exists(store_id):
             logger.warning('[StoreFacade] store the discount is applied to is not found')
             raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
         
@@ -1661,7 +1699,7 @@ class StoreFacade:
         """
         logger.info('[StoreFacade] attempting to create numerical composite discount')
         
-        if store_id not in self.__stores:
+        if not self.__store_exists(store_id):
             logger.warning('[StoreFacade] store the discount is applied to is not found')
             raise DiscountAndConstraintsError('Store is not found', DiscountAndConstraintsErrorTypes.discount_creation_error)
         
@@ -2018,14 +2056,14 @@ class StoreFacade:
         products_dto: List[ProductForConstraintDTO] = []
         for store_id, product_id  in category.category_products:
             if product_id in shopping_basket:
-                if store_id not in self.__stores:
+                if not self.__store_exists(store_id):
                     logger.warning('[StoreFacade] store is not found')
                     raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
-                if product_id not in self.__stores[store_id].store_products:
+                if product_id not in self.__get_store_by_id(store_id).store_products:
                     logger.warning('[StoreFacade] product is not found in the store')
                     raise StoreError('Product is not found in the store',StoreErrorTypes.product_not_found)
                 
-                product = self.__stores[store_id].get_product_by_id(product_id)
+                product = self.__get_store_by_id(store_id).get_product_by_id(product_id)
                 
                 productDTO = ProductForConstraintDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
                 products_dto.append(productDTO)
@@ -2045,7 +2083,7 @@ class StoreFacade:
         * Returns: the basket information for the constraints
         """
         
-        if store_id not in self.__stores:
+        if not self.__store_exists(store_id):
             logger.error('[StoreFacade] store is not found')
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         
@@ -2058,10 +2096,10 @@ class StoreFacade:
         
         products: List[ProductForConstraintDTO] = []
         for product_id in shopping_basket:
-            if product_id not in self.__stores[store_id].store_products:
+            if product_id not in self.__get_store_by_id(store_id).store_products:
                 raise StoreError('Product is not found in the store',StoreErrorTypes.product_not_found)
             
-            product = self.__stores[store_id].get_product_by_id(product_id)
+            product = self.__get_store_by_id(store_id).get_product_by_id(product_id)
             productDTO = ProductForConstraintDTO(product_id, store_id, product.price, product.weight, shopping_basket[product_id])
             products.append(productDTO)
         
@@ -2170,11 +2208,11 @@ class StoreFacade:
         * This function assigns a predicate to a purchase policy
         * Returns: none
         """
-        if store_id not in self.__stores:
+        if not self.__store_exists(store_id):
             logger.error('[StoreFacade] store is not found')
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         
-        store = self.__stores[store_id]
+        store = self.__get_store_by_id(store_id)
 
         if predicate_builder is None:
             logger.error('[StoreFacade] predicate builder is missing')
@@ -2195,11 +2233,11 @@ class StoreFacade:
         * This function validates the purchase policies of the stores
         * Returns: True if the purchase policies are satisfied
         """
-        if store_id not in self.__stores:
+        if not self.__store_exists(store_id):
             logger.error('[StoreFacade] store is not found')
             raise StoreError('Store is not found',StoreErrorTypes.store_not_found)
         
-        store = self.__stores[store_id]
+        store = self.__get_store_by_id(store_id)
 
         basket_info: BasketInformationForConstraintDTO = self.creating_basket_info_for_constraints(store_id, total_price_of_basket, shopping_basket, user_info)
 
@@ -2290,6 +2328,7 @@ class StoreFacade:
             for store_id, products in shopping_cart.items():
                 for product_id, amount in products.items():
                     self.remove_product_amount(store_id, product_id, amount)
+            db.session.commit()
             self.__release_store_locks(list(shopping_cart.keys()))
         except Exception as e:
             self.__release_store_locks(list(shopping_cart.keys()))
@@ -2381,7 +2420,7 @@ class StoreFacade:
                         products[store_id] = []
                     products[store_id].append(product)
         else:
-            for store in self.__stores.values():
+            for store in db.query(Store).all():
                 for product_id in store.store_products:
                     product = store.get_product_dto_by_id(product_id)
                     if all(tag in product.tags for tag in tags):
@@ -2406,7 +2445,7 @@ class StoreFacade:
                         products[store_id] = []
                     products[store_id].append(product)
         else:
-            for store in self.__stores.values():
+            for store in db.query(Store).all():
                 for product_id in store.store_products:
                     product = store.get_product_dto_by_id(product_id)
                     if product.name == product_name:
@@ -2419,11 +2458,11 @@ class StoreFacade:
         start = (page - 1) * limit
         end = start + limit
         stores = {}
-        store_keys = list(self.__stores.keys())
+        store_keys = [store.store_id for store in db.session.query(Store).all()]
         store_keys.sort()
         store_keys = store_keys[start:end]
         for store_id in store_keys:
-            store = self.__stores[store_id]
+            store = self.__get_store_by_id(store_id)
             stores[store_id] = store.create_store_dto()
 
         return stores
@@ -2440,7 +2479,7 @@ class StoreFacade:
         * This function gets all the store names in the system
         * Returns: a dict from store_id to store_name
         """
-        return {store_id: store.store_name for store_id, store in self.__stores.items()}
+        return {store.store_id: store.store_name for store in db.session.query(Store).all()}
     
     def get_all_categories(self) -> Dict[int, CategoryDTO]:
         """
@@ -2458,6 +2497,7 @@ class StoreFacade:
         """
         store = self.__get_store_by_id(store_id)
         store.edit_product(product_id, product_name, description, price, tags, weight, amount)
+        db.session.commit()
 
     def validate_cart(self, cart: Dict[int, Dict[int, int]]) -> None:
         """
@@ -2469,7 +2509,7 @@ class StoreFacade:
             for product_id, amount in products.items():
                 logger.info('[StoreFacade] checking product availability')
                 logger.info(f'types are: {type(product_id)}, { type(amount)}, {type(store_id)}')
-                existing_amount = self.__stores[store_id].get_product_dto_by_id(product_id).amount
+                existing_amount = self.__get_store_by_id(store_id).get_product_dto_by_id(product_id).amount
                 if amount > existing_amount:
                     raise StoreError('Product amount is greater than the existing amount', StoreErrorTypes.product_not_available)
         
@@ -2514,10 +2554,10 @@ class StoreFacade:
         * This function gets all the stores in the system
         * Returns: a dict from store_id to storeDTO
         """
-        return {store_id: store.create_store_dto() for store_id, store in self.__stores.items()}
+        return {store.store_id: store.create_store_dto() for store in db.session.query(Store).all()}
 
     def get_store_id(self, store_name):
-        for store_id, store in self.__stores.items():
+        for store in db.query(Store).all():
             if store.store_name == store_name:
-                return store_id
+                return store.store_id
         return None
