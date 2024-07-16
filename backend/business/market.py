@@ -505,9 +505,13 @@ class MarketFacade:
 
         if not self.roles_facade.is_system_manager(user_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-
-        PaymentHandler().add_payment_method(method_name, payment_config)
-        logger.info(f"User {user_id} has added payment method {method_name}")
+        try:
+            PaymentHandler().add_payment_method(method_name, payment_config)
+            logger.info(f"User {user_id} has added payment method {method_name}")
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def edit_payment_method(self, user_id: int, method_name: str, editing_data: Dict):
         if self.user_facade.suspended(user_id):

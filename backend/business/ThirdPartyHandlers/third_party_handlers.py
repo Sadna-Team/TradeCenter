@@ -5,6 +5,10 @@ import time
 import threading
 from backend.error_types import *
 import requests
+from backend.database import db
+from sqlalchemy import Column, Integer, JSON
+from typing import ClassVar
+
 
 
 import logging
@@ -63,7 +67,7 @@ class ExternalPayment(PaymentAdapter):
             * if -1, payment failed.
         """
         logger.info(f"Processing payment of {amount} with details {payment_config}")
-        response = requests.post(self.URL, json=self.HANDSHAKE)
+        response = requests.post(self.URL, json=self.HANDSHAKE, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         if not response.ok or not response.reason == "OK":
@@ -72,7 +76,7 @@ class ExternalPayment(PaymentAdapter):
         
         payment_config["amount"] = str(amount)
         payment_config = payment_config | self.PAY
-        response = requests.post(self.URL, data=payment_config)
+        response = requests.post(self.URL, data=payment_config, timeout=5)
         print(payment_config)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to process payment", ThirdPartyHandlerErrorTypes.external_payment_failed)
@@ -87,14 +91,14 @@ class ExternalPayment(PaymentAdapter):
             * first sends a handshake request to the gateway to confirm connection, expects "OK" message.
             * then sends a cancel payment request to the gateway to cancel the payment. expect 1.
         """
-        response = requests.post(self.URL, json=self.HANDSHAKE)
+        response = requests.post(self.URL, json=self.HANDSHAKE, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         if not response.ok or not response.reason == "OK":
             raise ThirdPartyHandlerError("Failed to connect to external payment gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         # add to payment_config the CANCEL
         payment_config = self.CANCEL | {"transaction_id": payment_id}
-        response = requests.post(self.URL, data=payment_config)
+        response = requests.post(self.URL, data=payment_config, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to cancel payment", ThirdPartyHandlerErrorTypes.external_payment_failed)
         if not response.json() == 1:
@@ -102,25 +106,37 @@ class ExternalPayment(PaymentAdapter):
         return response.json()
         
 
-class PaymentHandler:
-    __instance: bool = None
-    EXISTING_PAYMENT_METHODS = ["bogo", "external payment"]  # NOTE: << should make the requested value a constant >>
+class PaymentHandler(db.Model):
+    __tablename__ = 'payment_handler'
+
+    id = Column(Integer, primary_key=True)
+    payment_config = Column(JSON, default={"bogo": {}, "external payment": {}})
+    
+    EXISTING_PAYMENT_METHODS: ClassVar[list] = ["bogo", "external payment"]
+
+    __instance: ClassVar['PaymentHandler'] = None
 
     def __new__(cls):
-        if PaymentHandler.__instance is None:
-            PaymentHandler.__instance = object.__new__(cls)
-        return PaymentHandler.__instance
+        if cls.__instance is None:
+            cls.__instance = super(PaymentHandler, cls).__new__(cls)
+            session = db.session
+            instance = session.query(cls).first()
+            if instance is None:
+                instance = cls()
+                session.add(instance)
+                session.commit()
+            cls.__instance = instance
+        return cls.__instance
 
     def __init__(self):
         if not hasattr(self, '_initialized'):
-            self._initialized: bool = True
-            self.payment_config: Dict = {"bogo": {}, "external payment": {}}
+            self._initialized = True
+            self.payment_config = {"bogo": {}, "external payment": {}}  # Initialize payment_config if not initialized
+            db.session.commit()
 
     def reset(self) -> None:
-        """
-            * reset is a method that resets the PaymentHandler's payment_config attribute.
-        """
         self.payment_config = {"bogo": {}, "external payment": {}}
+        db.session.commit()
 
     def _resolve_payment_strategy(self, payment_details: Dict) -> PaymentAdapter:
         """
@@ -172,6 +188,7 @@ class PaymentHandler:
             raise ThirdPartyHandlerError("payment method not supported", ThirdPartyHandlerErrorTypes.payment_method_not_supported)
         self.payment_config[method_name] = editing_data
         logger.info(f"Edited payment method {method_name}") 
+        db.session.flush()
 
     def add_payment_method(self, method_name: str, config: Dict) -> None:
         """
@@ -181,6 +198,7 @@ class PaymentHandler:
             raise ThirdPartyHandlerError("payment method already supported", ThirdPartyHandlerErrorTypes.payment_method_already_supported)
         self.payment_config[method_name] = config
         logger.info(f"Added payment method {method_name}")
+        db.session.flush()
 
     def remove_payment_method(self, method_name: str) -> None:
         """
@@ -192,6 +210,7 @@ class PaymentHandler:
         logger.info(f"Removing payment method {method_name}")
         del self.payment_config[method_name]
         logger.info(f"Removed payment method {method_name}")
+        db.session.flush()
 
     def get_payment_methods(self)-> List[str]:
         """
@@ -266,7 +285,7 @@ class ExternalSupply(SupplyAdapter):
             * if -1, supply failed.
         """
         logger.info(f"Processing supply with details {package_details}")
-        response = requests.post(self.URL, json=self.HANDSHAKE)
+        response = requests.post(self.URL, json=self.HANDSHAKE, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to connect to external supply gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         if not response.ok or not response.reason == "OK":
@@ -274,7 +293,7 @@ class ExternalSupply(SupplyAdapter):
         # add to payment_config the ORDER
         package_details_to_send = package_details.copy()
         package_details_to_send = package_details_to_send.get("additional details") | self.ORDER
-        response = requests.post(self.URL, data=package_details_to_send)
+        response = requests.post(self.URL, data=package_details_to_send, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to process supply", ThirdPartyHandlerErrorTypes.external_supply_failed)
         if not 10000 <= response.json() <= 100000:
@@ -294,14 +313,14 @@ class ExternalSupply(SupplyAdapter):
             * first sends a handshake request to the gateway to confirm connection, expects "OK" message.
             * then sends a cancel supply request to the gateway to cancel the supply. expect 1.
         """
-        response = requests.post(self.URL, json=self.HANDSHAKE)
+        response = requests.post(self.URL, json=self.HANDSHAKE, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to connect to external supply gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         if not response.ok or not response.reason == "OK":
             raise ThirdPartyHandlerError("Failed to connect to external supply gateway", ThirdPartyHandlerErrorTypes.handshake_failed)
         # add to payment_config the CANCEL
         package_details = self.CANCEL | {"transaction_id": order_id}
-        response = requests.post(self.URL, data=package_details)
+        response = requests.post(self.URL, data=package_details, timeout=5)
         if response.status_code != 200:
             raise ThirdPartyHandlerError("Failed to cancel supply", ThirdPartyHandlerErrorTypes.external_supply_failed)
         if not response.json() == 1:
@@ -310,26 +329,37 @@ class ExternalSupply(SupplyAdapter):
 
 
 # ----------------------------------------- Will be used for address validation using Google Maps API later on ----------------------------------------- #
-class SupplyHandler:
-    __instance = None
-    EXISTING_SUPPLY_METHODS = ["bogo", "external supply"]
+class SupplyHandler(db.Model):
+    __tablename__ = 'supply_handler'
+
+    id = Column(Integer, primary_key=True)
+    supply_config = Column(JSON, default={"bogo": {}, "external supply": {}})
+    
+    EXISTING_SUPPLY_METHODS: ClassVar[list] = ["bogo", "external supply"]
+
+    __instance: ClassVar['SupplyHandler'] = None
 
     def __new__(cls):
-        if SupplyHandler.__instance is None:
-            SupplyHandler.__instance = object.__new__(cls)
-        return SupplyHandler.__instance
+        if cls.__instance is None:
+            cls.__instance = super(SupplyHandler, cls).__new__(cls)
+            session = db.session
+            instance = session.query(cls).first()
+            if instance is None:
+                instance = cls()
+                session.add(instance)
+                session.commit()
+            cls.__instance = instance
+        return cls.__instance
 
     def __init__(self):
         if not hasattr(self, '_initialized'):
-            self._initialized: bool = True
+            self._initialized = True
             self.supply_config: Dict = {"bogo": {}, "external supply": {}}
-            self.active_shipments: Dict[int, Tuple[int, datetime]] = {}
-
+            db.session.commit()
+    
     def reset(self) -> None:
-        """
-            * reset is a method that resets the SupplyHandler's supply_config attribute.
-        """
         self.supply_config = {"bogo": {}, "external supply": {}}
+        db.session.commit()
 
     def _validate_supply_method(self, method_name: str, address: dict) -> bool:
         """
@@ -409,6 +439,7 @@ class SupplyHandler:
             raise ThirdPartyHandlerError("supply method not supported", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         self.supply_config[method_name] = editing_data
         logger.info(f"Edited supply method {method_name}")
+        db.session.flush()
 
     def add_supply_method(self, method_name: str, config: Dict) -> None:
         """
@@ -418,6 +449,7 @@ class SupplyHandler:
             raise ThirdPartyHandlerError("supply method already supported", ThirdPartyHandlerErrorTypes.supply_method_already_supported)
         self.supply_config[method_name] = config
         logger.info(f"Added supply method {method_name}")
+        db.session.flush()
 
     def remove_supply_method(self, method_name: str) -> None:
         """
@@ -427,6 +459,7 @@ class SupplyHandler:
             raise ThirdPartyHandlerError("supply method not supported", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         del self.supply_config[method_name]
         logger.info(f"Removed supply method {method_name}")
+        db.session.flush()
 
     def get_supply_methods(self) -> List[str]:
         """
