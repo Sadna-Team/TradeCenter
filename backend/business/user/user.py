@@ -24,17 +24,13 @@ logger = logging.getLogger("User Logger")
 from backend.business.DTOs import NotificationDTO, UserDTO, PurchaseUserDTO
 from .. import NotificationDTO
 
-Base = declarative_base()
-
-class ShoppingBasket(Base):
+class ShoppingBasket(db.Model):
     __tablename__ = 'shopping_baskets'
-    id = Column(Integer, primary_key=True)
-    store_id = Column(Integer, nullable=False)
-    cart_id = Column(Integer, ForeignKey('shopping_carts.id'), nullable=False)
-    products = Column(String, nullable=False)  # JSON string to store product quantities
-
-    shopping_cart = relationship("ShoppingCart", back_populates="shopping_baskets")
-
+    store_id = db.Column(db.Integer, nullable=False, primary_key=True)
+    cart_id = db.Column(db.Integer, db.ForeignKey('shopping_carts.user_id'), nullable=False, primary_key=True)
+    products = db.Column(db.String(100), nullable=False)  # JSON string to store product quantities
+    shopping_cart = db.relationship("ShoppingCart", back_populates="shopping_baskets")
+   
     def __init__(self, store_id: int, cart_id: int) -> None:
         self.store_id = store_id
         self.cart_id = cart_id
@@ -75,12 +71,10 @@ class ShoppingBasket(Base):
         db.session.commit()
 
 
-# Didn't do logs for this class
-class ShoppingCart(Base):
+class ShoppingCart(db.Model):
     __tablename__ = 'shopping_carts'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, nullable=False)
-    shopping_baskets = relationship("ShoppingBasket", back_populates="shopping_cart")
+    user_id = db.Column(db.Integer, nullable=False, primary_key=True)
+    shopping_baskets = db.relationship("ShoppingBasket", back_populates="shopping_cart")
 
     def __init__(self, user_id: int) -> None:
         self.user_id = user_id
@@ -88,7 +82,7 @@ class ShoppingCart(Base):
     def add_product_to_basket(self, store_id: int, product_id: int, quantity: int) -> None:
         basket = next((b for b in self.shopping_baskets if b.store_id == store_id), None)
         if not basket:
-            basket = ShoppingBasket(store_id, self.id)
+            basket = ShoppingBasket(store_id, self.user_id)
             self.shopping_baskets.append(basket)
             db.session.add(basket)
         basket.add_product(product_id, quantity)
@@ -115,15 +109,16 @@ class ShoppingCart(Base):
         db.session.commit()
 
 
-class Notification(Base):
+class Notification(db.Model):
     __tablename__ = 'notifications'
-    id = Column(Integer, primary_key=True)
-    message = Column(String, nullable=False)
-    date = Column(DateTime, nullable=False)
-    member_id = Column(Integer, ForeignKey('members.id'))
-    member = relationship('Member', back_populates='notifications')
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(1000), nullable=False)
+    date = db.Column(DateTime, nullable=False)
+    member_id = db.Column(db.Integer, db.ForeignKey('members.id'))
+    member = db.relationship('Member', back_populates='notifications')
 
-    def __init__(self, message: str, date: datetime) -> None:
+    def __init__(self, notification_id: int, message: str, date: datetime) -> None:
+        self.id = notification_id
         self.message = message
         self.date = date
 
@@ -205,20 +200,21 @@ class Guest(State):
         raise UserError("User is not registered", UserErrorTypes.user_not_registered)
 
 
-class Member(Base):
+class Member(db.Model):
     __tablename__ = 'members'
-    id = Column(Integer, primary_key=True)
-    email = Column(String, nullable=False)
-    username = Column(String, nullable=False)
-    password = Column(String, nullable=False)
-    birthdate = Column(DateTime, nullable=False)
-    phone = Column(String, nullable=False)
-    is_suspended = Column(Boolean, default=False)
-    suspended_until = Column(DateTime, nullable=True)
-    notifications = relationship('Notification', back_populates='member')
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(20), nullable=False)
+    username = db.Column(db.String(20), nullable=False)
+    password = db.Column(db.String(20), nullable=False)
+    birthdate = db.Column(db.DateTime, nullable=False)
+    phone = db.Column(db.String(10), nullable=False)
+    is_suspended = db.Column(db.Boolean, default=False)
+    suspended_until = db.Column(db.DateTime, nullable=True)
+    notifications = db.relationship('Notification', back_populates='member')
 
 
-    def __init__(self, email: str, username: str, password: str, year: str, month: str, day: str, phone: str) -> None:
+    def __init__(self, id: int, email: str, username: str, password: str, year: str, month: str, day: str, phone: str) -> None:
+        self.id = id
         self.email = email
         self.username = username
         self.password = password
@@ -245,21 +241,21 @@ class Member(Base):
         db.session.commit()
 
 
-class User(Base):
+class User(db.Model):
     __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    currency = Column(String, nullable=False)
-    member_id = Column(Integer, ForeignKey('members.id'), nullable=True)
-    member = relationship("Member", backref=backref("user", uselist=False))
-    shopping_cart_id = Column(Integer, ForeignKey('shopping_carts.id'))
-    shopping_cart = relationship("ShoppingCart", backref=backref("user", uselist=False))
+    id = db.Column(db.Integer, primary_key=True)
+    currency = db.Column(db.String(3), nullable=False)
+    member_id = db.Column(db.Integer, db.ForeignKey('members.id'), nullable=True)
+    member = db.relationship("Member", backref=backref("user", uselist=False))
+    shopping_cart = db.relationship("ShoppingCart", backref=backref("user", uselist=False))
 
-    def __init__(self, currency: str = 'USD') -> None:
+    def __init__(self, user_id: int, currency: str = 'USD') -> None:
         if currency not in c.currencies:
             raise UserError("Currency not supported", UserErrorTypes.currency_not_supported)
 
-        # self.id = user_id
+        self.id = user_id
         self.currency = currency
+        self.member_id = None
         self.member = None
         self.shopping_cart = ShoppingCart(self.id)
 
@@ -296,7 +292,8 @@ class User(Base):
     def register(self, email: str, username: str, password: str, year: int, month: int, day: int, phone: str) -> None:
         if self.is_member():
             raise UserError("User is already registered", UserErrorTypes.user_already_registered)
-        self.member = Member(email, username, password, year, month, day, phone)
+        self.member_id = db.session.query(Member).count() + 1
+        self.member = Member(self.member_id, email, username, password, year, month, day, phone)
         db.session.add(self.member)
         db.session.commit()
 
@@ -352,6 +349,7 @@ class UserFacade:
     __register_lock = threading.Lock()
     __notification_lock = threading.Lock()
     __suspend_lock = threading.Lock()
+    __id_serializer: int = 0
     _instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -367,6 +365,7 @@ class UserFacade:
         """
         For testing purposes only
         """
+        UserFacade.__id_serializer = 0
         db.session.query(User).delete()
         db.session.commit()
 
@@ -440,7 +439,10 @@ class UserFacade:
         return user.get_user_dto(role)
 
     def create_user(self, currency: str = "USD") -> int:
-        user = User(currency)
+        with UserFacade.__create_lock:
+            id = UserFacade.__id_serializer
+            UserFacade.__id_serializer += 1
+        user = User(id, currency)
         db.session.add(user)
         db.session.commit()
         return user.id
@@ -475,10 +477,10 @@ class UserFacade:
         return out
 
     def get_userid(self, username: str) -> int:
-        user = User.query.filter_by(username=username).first()
-        if not user:
+        member = Member.query.filter_by(username=username).first()
+        if not member:
             raise UserError("Username not found", UserErrorTypes.username_not_found)
-        return user.id
+        return member.id
 
     def clear_notifications(self, user_id: int) -> None:
         with UserFacade.__notification_lock:
@@ -514,10 +516,10 @@ class UserFacade:
         self.__get_user(user_id).clear_basket()
 
     def get_password(self, username: str) -> Tuple[int, str]:
-        user = User.query.filter_by(username=username).first()
-        if not user:
+        member = Member.query.filter_by(username=username).first()
+        if not member:
             raise UserError("Username not found", UserErrorTypes.username_not_found)
-        return user.id, user.get_password()
+        return member.id, member.get_password()
 
     def remove_user(self, user_id: int):
         user = User.query.filter_by(id=user_id).first()
