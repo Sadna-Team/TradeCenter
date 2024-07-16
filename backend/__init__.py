@@ -82,6 +82,7 @@ def create_app(mode='development'):
 
     with app.app_context():
         # Ensure that the database tables are created
+        # db.drop_all()
         db.create_all()
 
         if not hasattr(app, 'initialization_done'):

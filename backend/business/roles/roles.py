@@ -27,45 +27,33 @@ class Permissions(db.Model):
     add_manager = db.Column(db.Boolean, nullable=False, default=False)
     get_bid = db.Column(db.Boolean, nullable=False, default=False)
 
-    def __init__(self):
-        self.__add_product: bool = False
-        self.__change_purchase_policy: bool = False
-        self.__change_purchase_types: bool = False
-        self.__change_discount_policy: bool = False
-        self.__change_discount_types: bool = False
-        self.__add_manager: bool = False
-        self.__get_bid: bool = False
-
-    # Property methods omitted for brevity
-
     def set_permissions(self, add_product: bool, change_purchase_policy: bool, change_purchase_types: bool,
                         change_discount_policy: bool, change_discount_types: bool, add_manager: bool,
                         get_bid: bool) -> None:
-        self.__add_product = add_product
-        self.__change_purchase_policy = change_purchase_policy
-        self.__change_purchase_types = change_purchase_types
-        self.__change_discount_policy = change_discount_policy
-        self.__change_discount_types = change_discount_types
-        self.__add_manager = add_manager
-        self.__get_bid = get_bid
-
+        self.add_product = add_product
+        self.change_purchase_policy = change_purchase_policy
+        self.change_purchase_types = change_purchase_types
+        self.change_discount_policy = change_discount_policy
+        self.change_discount_types = change_discount_types
+        self.add_manager = add_manager
+        self.get_bid = get_bid
 
 
 class AbstractBaseModel(db.Model):
     __abstract__ = True
     __metaclass__ = ABCMeta
 
-    @declared_attr
-    def id(cls):
-        return db.Column(db.Integer, primary_key=True)
+    # @declared_attr
+    # def id(cls):
+    #     return db.Column(db.Integer, primary_key=True)
 
 class StoreRole(AbstractBaseModel):
     __tablename__ = 'store_roles'
 
-    id = db.Column(db.Integer, primary_key=True)
+    # id = db.Column(db.Integer, primary_key=True)
+    store_id = db.Column(db.Integer, nullable=False, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False, primary_key=True)
     type = db.Column(db.String(50))
-    store_id = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
     __mapper_args__ = {
         'polymorphic_on': type,
         'polymorphic_identity': 'store_role'
@@ -83,7 +71,6 @@ class StoreRole(AbstractBaseModel):
 class StoreOwner(StoreRole):
     __tablename__ = 'store_owners'
 
-    id = db.Column(db.Integer, db.ForeignKey('store_roles.id'), primary_key=True)
     __mapper_args__ = {
         'polymorphic_identity': 'store_owner',
     }
@@ -95,10 +82,10 @@ class StoreOwner(StoreRole):
         return "StoreOwner"
 
 
+
 class StoreManager(StoreRole):
     __tablename__ = 'store_managers'
 
-    id = db.Column(db.Integer, db.ForeignKey('store_roles.id'), primary_key=True)
     permissions_id = db.Column(db.Integer, db.ForeignKey('permissions.id'))
     permissions = db.relationship('Permissions', backref=backref('manager', uselist=False))
 
@@ -110,13 +97,8 @@ class StoreManager(StoreRole):
         super().__init__(store_id, user_id)
         self.permissions = Permissions()
 
-    # @property
-    # def permissions(self) -> Permissions:
-    #     return self.permissions
-
     def __str__(self):
         return "StoreManager"
-
 
 
 class Nomination(db.Model):
@@ -127,8 +109,12 @@ class Nomination(db.Model):
     store_id = db.Column(db.Integer, nullable=False)
     nominator_id = db.Column(db.Integer, nullable=False)
     nominee_id = db.Column(db.Integer, nullable=False)
-    role_id = db.Column(db.Integer, db.ForeignKey('store_roles.id'))
-    role = db.relationship('StoreRole', backref='nominations')
+    role_store_id = db.Column(db.Integer, db.ForeignKey('store_roles.store_id'))
+    role_user_id = db.Column(db.Integer, db.ForeignKey('store_roles.user_id'))
+    role = db.relationship('StoreRole',
+                           backref='nominations',
+                           primaryjoin="and_(Nomination.role_store_id == StoreRole.store_id, Nomination.role_user_id == StoreRole.user_id)",
+                           foreign_keys="[Nomination.role_store_id, Nomination.role_user_id]")
 
     def __init__(self, store_id, nominator_id: int, nominee_id: int, role: StoreRole):
         self.nomination_id = Nomination.__nomination_id_serializer
@@ -138,30 +124,12 @@ class Nomination(db.Model):
         self.nominee_id = nominee_id
         self.role = role
 
-    # @property
-    # def nomination_id(self) -> int:
-    #     return self.nomination_id
-    #
-    # @property
-    # def store_id(self) -> int:
-    #     return self.store_id
-    #
-    # @property
-    # def nominator_id(self) -> int:
-    #     return self.nominator_id
-    #
-    # @property
-    # def nominee_id(self) -> int:
-    #     return self.nominee_id
-    #
-    # @property
-    # def role(self) -> StoreRole:
-    #     return self.role
-
     @classmethod
     def get_max_nomination_id(cls):
         max_id = db.session.query(db.func.max(cls.nomination_id)).scalar()
         return max_id if max_id is not None else 0
+
+
 
 
 class TreeNode(db.Model):
@@ -181,7 +149,6 @@ class TreeNode(db.Model):
         self.parent_id = parent_id
 
 
-
 class StoreTree(db.Model):
     __tablename__ = 'store_trees'
 
@@ -191,7 +158,6 @@ class StoreTree(db.Model):
 
     def __init__(self, root: TreeNode):
         self.root = root
-
 
 
 class Node:
@@ -548,11 +514,13 @@ class RolesFacade:
             if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, manager_id):
                 raise RoleError("Actor is not an owner of the manager", RoleErrorTypes.actor_is_not_owner_of_manager)
 
-            permissions_id = f"{manager_id}_{store_id}"
+            # permissions_id = f"{manager_id}_{store_id}"
             self.__stores_to_roles[store_id][manager_id].permissions.set_permissions(
-                permissions_id, add_product, change_purchase_policy, change_purchase_types, change_discount_policy,
+                add_product, change_purchase_policy, change_purchase_types, change_discount_policy,
                 change_discount_types, add_manager, get_bid
             )
+
+            permissions_id = self.__stores_to_roles[store_id][manager_id].permissions_id
 
             # Save to database
             permissions_model = db.session.query(Permissions).filter_by(id=permissions_id).one_or_none()
