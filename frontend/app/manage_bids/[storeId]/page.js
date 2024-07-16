@@ -49,7 +49,8 @@ const ManageBid = () => {
 
   const fetchBids = async () => {
     try {
-      const response = await api.post('/market/show_store_bids', { store_id });
+      console.log("the store id:", store_id)
+      const response = await api.post('/market/show_store_bids', { 'store_id': store_id });
       if (response.status !== 200) {
         console.error('Failed to fetch bids', response);
         setErrorMessage('Failed to fetch bids');
@@ -85,8 +86,8 @@ const ManageBid = () => {
   const handleAcceptBid = async (bidId) => {
     try {
       const response = await api.post('/market/store_worker_accept_bid', {
-        store_id: store_id,
-        bid_id: bidId,
+        'store_id': store_id,
+        'bid_id': bidId,
       });
       if (response.status !== 200) {
         console.error('Failed to accept bid', response);
@@ -119,9 +120,9 @@ const ManageBid = () => {
         }
 
         const response = await api.post('/market/store_worker_counter_bid', {
-          store_id: store_id,
-          bid_id: currentBidId,
-          proposed_price: parseFloat(editCounterBid),
+          'store_id': store_id,
+          'bid_id': currentBidId,
+          'proposed_price': parseFloat(editCounterBid),
         });
 
         if (response.status !== 200) {
@@ -145,8 +146,8 @@ const ManageBid = () => {
     const removeBid = async () => {
       try {
         const response = await api.post('/market/store_worker_decline_bid', {
-          store_id: store_id,
-          bid_id: bidId,
+          'store_id': store_id,
+          'bid_id': bidId,
         });
         if (response.status !== 200) {
           console.error('Failed to remove bid', response);

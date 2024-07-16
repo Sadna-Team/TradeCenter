@@ -12,6 +12,7 @@ import {
   DialogTrigger,
   DialogFooter
 } from "@/components/Dialog";
+import Button from "@/components/Button";
 import { Input } from "@/components/Input";
 
 
@@ -85,7 +86,7 @@ export default function ProductPage() {
       }
 
       const data = response.data;
-      setSuccessMessage(data.message);
+      setSuccessMessage(`Sucessfully added bid offer with id: ${data.message}`);
       console.log('Bid offer response:', data);
     } catch (error) {
       setErrorMessage('Error adding bid offer on product');
@@ -104,7 +105,7 @@ export default function ProductPage() {
   };
 
   const handleBidDialogConfirm = () => {
-    if (isNaN(currentProposedPrice) || currentProposedPrice <= 0) {
+    if (isNaN(currentProposedPrice) || currentProposedPrice < 0) {
       setErrorMessage('Please enter a valid proposed price.');
       return;
     }
@@ -154,7 +155,7 @@ export default function ProductPage() {
           </button>
         </div>
         <button
-          className="bg-blue-500 text-white py-2 px-4 rounded mb-4"
+          className="bg-blue-500 text-white py-2 px-4 rounded mb-4 mr-2"
           onClick={addToCart}
         >
           Add to Cart

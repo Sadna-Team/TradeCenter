@@ -401,7 +401,7 @@ def user_counter_bid():
 
     return purchase_service.user_counter_bid(user_id, bid_id, proposed_price)
 
-@market_bp.route('/show_user_bids', methods=['GET'])
+@market_bp.route('/show_user_bids', methods=['GET', 'POST'])
 @jwt_required()
 def show_user_bids():
     """
@@ -422,7 +422,7 @@ def show_user_bids():
 
     return purchase_service.show_user_bids(system_manager_id, user_id)
 
-@market_bp.route('/show_store_bids', methods=['GET'])
+@market_bp.route('/show_store_bids', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_bids():
     """
