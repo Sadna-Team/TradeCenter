@@ -1,10 +1,7 @@
 # ----------------- imports -----------------#
 from abc import ABC, abstractmethod
 from datetime import datetime
-from enum import Enum
 from typing import List, Tuple, Optional, Dict
-
-from sqlalchemy.exc import SQLAlchemyError
 
 from backend.business.DTOs import BidPurchaseDTO, PurchaseProductDTO, PurchaseDTO
 import threading

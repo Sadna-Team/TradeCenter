@@ -85,7 +85,7 @@ class Notifier:
         notification = NotificationDTO(self._generate_notification_id(), message, datetime.now())
         self.send_real_time_notification(user_id, notification)
 
-    def _notify_multiple(self, store_id: int, message: str) -> None:
+    def _notify_multiple(self, store_id: int, message: str, send_by = None) -> None:
         """
         * Parameters: store_id: int, message: str
         * This function sends a message to multiple users.
@@ -127,6 +127,39 @@ class Notifier:
         * This function notifies the store owner(s) of a new purchase in the store.
         """
         msg = f"User {user_id} has created a bid purchase"
+        self._notify_multiple(store_id, msg)
+
+
+    def notify_bid_cancelled_by_store_worker(self, store_id: int, user_id: int) -> None:
+        """
+        * Parameters: store_id: int, user_id(Who created a bid purchase): int
+        * This function notifies the store owner(s) of a new purchase in the store.
+        """
+        msg = f"User {user_id} has cancelled a bid purchase"
+        self._notify_multiple(store_id, msg, user_id)
+
+    def notify_bid_cancelled_by_user(self, store_id: int, user_id: int) -> None:
+        """
+        * Parameters: store_id: int, user_id(Who created a bid purchase): int
+        * This function notifies the store owner(s) of a new purchase in the store.
+        """
+        msg = f"User {user_id} has cancelled a bid purchase"
+        self._notify_multiple(store_id, msg)
+
+    def notify_bid_counter_offer(self, store_id: int, user_id: int) -> None:
+        """
+        * Parameters: store_id: int, user_id(Who created a bid purchase): int
+        * This function notifies the store owner(s) of a new purchase in the store.
+        """
+        msg = f"User {user_id} has created a counter offer"
+        self._notify_multiple(store_id, msg)
+
+    def notify_bid_accepted(self, store_id: int, user_id: int) -> None:
+        """
+        * Parameters: store_id: int, user_id(Who created a bid purchase): int
+        * This function notifies the store owner(s) of a new purchase in the store.
+        """
+        msg = f"User {user_id} has accepted a bid purchase"
         self._notify_multiple(store_id, msg)
 
     def notify_general_listeners(self, store_id: int, message: str) -> None:
