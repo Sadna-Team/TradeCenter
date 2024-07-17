@@ -6,6 +6,7 @@ from typing import Optional
 from backend.business.DTOs import BasketInformationForConstraintDTO, CategoryDTO
 from backend.business.store.constraints import Constraint
 from backend.error_types import *
+from backend.database import db
 
 
 # -------------logging configuration----------------
@@ -18,7 +19,24 @@ logger = logging.getLogger('myapp')
 DATE_FORMAT = '%Y-%m-%d'
 
 # --------------- Discount base ---------------#
-class Discount(ABC):
+class Discount(db.Model):
+    __tablename__ = 'discounts'
+
+    discount_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    store_id = db.Column(db.Integer, db.ForeignKey('stores.store_id'), nullable=False)
+    discount_description = db.Column(db.String(100), nullable=True)
+    starting_date = db.Column(db.DateTime, nullable=False)
+    ending_date = db.Column(db.DateTime, nullable=False)
+    percentage = db.Column(db.Float, nullable=False)
+    predicate = db.Column(db.String(250), nullable=True)
+
+    discount_type = db.Column(db.String(50))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'discount',
+        'polymorphic_on': discount_type
+    }
+
     def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint]):
         if isinstance(starting_date,str):
@@ -99,6 +117,16 @@ class Discount(ABC):
 
 # --------------- Category Discount ---------------#
 class CategoryDiscount(Discount):
+    __tablename__ = 'category_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    category_id = db.Column(db.Integer, nullable=False)
+    applied_to_subcategories = db.Column(db.Boolean, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'category_discount',
+    }
+
     """
     * This class is responsible for creating a discount that is applied to a specific category.
     """
@@ -163,6 +191,14 @@ class CategoryDiscount(Discount):
 
 # --------------- Store Discount ---------------#
 class StoreDiscount(Discount):
+    __tablename__ = 'store_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'store_discount',
+    }
+
     """
     * This class is responsible for creating a discount that is applied to a specific store.
     """
@@ -208,6 +244,15 @@ class StoreDiscount(Discount):
 
 # --------------- Product Discount ---------------#
 class ProductDiscount(Discount):
+    __tablename__ = 'product_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    product_id = db.Column(db.Integer, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'product_discount',
+    }
+
     # class responsible for returning the total price of the product discount.
     def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint], product_id: int, store_id: int):
@@ -257,9 +302,27 @@ class ProductDiscount(Discount):
             "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
         }
 
+discount_association = db.Table('discount_association',
+    db.Column('parent_id', db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True),
+    db.Column('child_id', db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+)
+
 
 # --------------- And Discount ---------------#
 class AndDiscount(Discount):
+    __tablename__ = 'and_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    discount1_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'))
+    discount2_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'))
+
+    discount1 = db.relationship("Discount", foreign_keys=[discount1_id], backref=db.backref('parent1', remote_side=[discount_id]))
+    discount2 = db.relationship("Discount", foreign_keys=[discount2_id], backref=db.backref('parent2', remote_side=[discount_id]))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'and_discount',
+    }
+
     """
     * This class is responsible for creating a discount composite that is applied when both discounts are applicable.
     """
@@ -320,6 +383,19 @@ class AndDiscount(Discount):
 
 # --------------- Or Discount ---------------#
 class OrDiscount(Discount):
+    __tablename__ = 'or_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    discount1_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'))
+    discount2_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'))
+
+    discount1 = db.relationship("Discount", foreign_keys=[discount1_id], backref=db.backref('parent1', remote_side=[discount_id]))
+    discount2 = db.relationship("Discount", foreign_keys=[discount2_id], backref=db.backref('parent2', remote_side=[discount_id]))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'or_discount',
+    }
+
     """
     * This class is responsible for creating a discount composite that is applied when at least one of the discounts is applicable.
     """
@@ -387,6 +463,18 @@ class OrDiscount(Discount):
 
 # --------------- Xor Discount ---------------#
 class XorDiscount(Discount):
+    __tablename__ = 'xor_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    discount1_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'))
+    discount2_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'))
+
+    discount1 = db.relationship("Discount", foreign_keys=[discount1_id], backref=db.backref('parent1', remote_side=[discount_id]))
+    discount2 = db.relationship("Discount", foreign_keys=[discount2_id], backref=db.backref('parent2', remote_side=[discount_id]))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'xor_discount',
+    }
     def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, discount1: Discount, discount2: Discount): # add decision rule
         super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
@@ -441,6 +529,18 @@ class XorDiscount(Discount):
 
 # --------------- Max Discount classes ---------------#
 class MaxDiscount(Discount):
+    __tablename__ = 'max_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    discounts = db.relationship("Discount", secondary=discount_association, 
+                             primaryjoin=(discount_id == discount_association.c.parent_id),
+                             secondaryjoin=(discount_id == discount_association.c.child_id),
+                             backref=db.backref('parent', remote_side=[discount_id]))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'max_discount',
+    }
+
     # class responsible for returning the total price of the maximum discount.
     def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, ListDiscount: list[Discount]):
@@ -479,6 +579,18 @@ class MaxDiscount(Discount):
 
 # --------------- Additive Discount classes ---------------#
 class AdditiveDiscount(Discount):
+    __tablename__ = 'additive_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    discounts = db.relationship("Discount", secondary=discount_association, 
+                             primaryjoin=(discount_id == discount_association.c.parent_id),
+                             secondaryjoin=(discount_id == discount_association.c.child_id),
+                             backref=db.backref('parent', remote_side=[discount_id]))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'additive_discount',
+    }
+
     # class responsible for returning the total price of the maximum discount.
     def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, ListDiscount: list[Discount]):
