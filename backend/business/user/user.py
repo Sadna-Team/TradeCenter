@@ -233,11 +233,7 @@ class User(db.Model):
     def clear_notifications(self) -> None:
         if self.is_member():
             self.member.clear_notifications()
-        
-        notifications = Notification.query.filter_by(member_id=self.member.id).all()
-        for notification in notifications:
-            db.session.delete(notification)
-        db.session.commit()
+
 
     def add_product_to_basket(self, store_id: int, product_id: int, quantity: int) -> None:
         if quantity < 0:
@@ -352,7 +348,7 @@ class UserFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.__id_serializer = db.session.query(User).count()+1
+            self.__id_serializer = db.session.query(User).count()
 
     def clean_data(self):
         """
@@ -473,6 +469,7 @@ class UserFacade:
                 out.append(notification.get_notification_dto().to_json())
         self.clear_notifications(user_id)
         return out
+
 
     def get_userid(self, username: str) -> int:
         member = Member.query.filter_by(username=username).first()

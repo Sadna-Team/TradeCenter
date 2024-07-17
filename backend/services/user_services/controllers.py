@@ -36,6 +36,8 @@ class UserService:
                 list: list of notifications
         """
         try:
+            if not Authentication().is_logged_in(user_id):
+                raise UserError(UserErrorTypes.user_not_logged_in)
             notifications = self.user_facade.get_notifications(user_id)
             notifications = [notification.get() for notification in notifications]
             logger.info('notifications retrieved successfully')
