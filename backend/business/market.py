@@ -1114,6 +1114,16 @@ class MarketFacade:
             delivery_date = SupplyHandler().get_delivery_time(package_details, address)
 
             # accept the purchase
+            product_dtos = self.store_facade.get_store_product_information(user_id, bid.store_id)
+            purchase_product = None
+            for product in product_dtos:
+                if product.product_id == bid.product_id:
+                    purchase_product = PurchaseProductDTO(product.product_id, product.name, product.description, bid.proposed_price, 1)
+            
+            if purchase_product is None:
+                raise StoreError("Product not found", StoreErrorTypes.product_not_found)
+            
+            self.purchase_facade.set_bid_product_purchase(bid_id, purchase_product)
             self.purchase_facade.accept_purchase(bid_id, delivery_date)
             purchase_accepted = True
 
