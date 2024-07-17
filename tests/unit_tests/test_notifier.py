@@ -1,17 +1,26 @@
 import unittest
 from unittest.mock import MagicMock
 from backend.business.notifier import Notifier
-from backend.error_types import *
-
+from backend.error_types import StoreError, StoreErrorTypes, UserError, UserErrorTypes
+from backend import create_app
 
 
 class TestNotifier(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.app = create_app(mode='testing')
+        from backend import app as app2
+        app2.app = cls.app
+
     def setUp(self) -> None:
+        self.app_context = self.app.app_context()
+        self.app_context.push()
         self.notifier = Notifier()
 
     def tearDown(self) -> None:
         self.notifier.clean_data()
+        self.app_context.pop()
 
     def test_notify_new_purchase(self):
         self.notifier._user_facade.notify_user = MagicMock()
@@ -21,9 +30,9 @@ class TestNotifier(unittest.TestCase):
 
     def test_notify_new_purchase_no_listeners(self):
         self.notifier._listeners = {}
-        with self.assertRaises(StoreError) as e:
+        with self.assertRaises(StoreError) as context:
             self.notifier.notify_new_purchase(1, 1)
-        assert e.exception.store_error_type == StoreErrorTypes.no_listeners_for_store
+        self.assertEqual(context.exception.store_error_type, StoreErrorTypes.no_listeners_for_store)
 
     def test_notify_update_store_status(self):
         self.notifier._user_facade.notify_user = MagicMock()
@@ -39,9 +48,9 @@ class TestNotifier(unittest.TestCase):
 
     def test_notify_update_store_status_no_listeners(self):
         self.notifier._listeners = {}
-        with self.assertRaises(StoreError) as e:
+        with self.assertRaises(StoreError) as context:
             self.notifier.notify_update_store_status(1, True, "details")
-        assert e.exception.store_error_type == StoreErrorTypes.no_listeners_for_store
+        self.assertEqual(context.exception.store_error_type, StoreErrorTypes.no_listeners_for_store)
 
     def test_notify_removed_management_position(self):
         self.notifier._user_facade.notify_user = MagicMock()
@@ -51,9 +60,9 @@ class TestNotifier(unittest.TestCase):
 
     def test_notify_removed_management_position_no_listeners(self):
         self.notifier._listeners = {}
-        with self.assertRaises(StoreError) as e:
+        with self.assertRaises(StoreError) as context:
             self.notifier.notify_removed_management_position(1, 1)
-        assert e.exception.store_error_type == StoreErrorTypes.no_listeners_for_store
+        self.assertEqual(context.exception.store_error_type, StoreErrorTypes.no_listeners_for_store)
 
     def test_general_message(self):
         self.notifier._user_facade.notify_user = MagicMock()
@@ -84,9 +93,9 @@ class TestNotifier(unittest.TestCase):
 
     def test_sign_listener_existing(self):
         self.notifier._listeners = {1: [1]}
-        with self.assertRaises(UserError) as e:
+        with self.assertRaises(UserError) as context:
             self.notifier.sign_listener(1, 1)
-        assert e.exception.user_error_type == UserErrorTypes.user_already_listener_for_store
+        self.assertEqual(context.exception.user_error_type, UserErrorTypes.user_already_listener_for_store)
 
     def test_unsign_listener(self):
         self.notifier._listeners = {1: [1]}
@@ -95,6 +104,10 @@ class TestNotifier(unittest.TestCase):
 
     def test_unsign_listener_no_listeners(self):
         self.notifier._listeners = {}
-        with self.assertRaises(StoreError) as e:
+        with self.assertRaises(StoreError) as context:
             self.notifier.unsign_listener(1, 1)
-        assert e.exception.store_error_type == StoreErrorTypes.no_listeners_for_store
+        self.assertEqual(context.exception.store_error_type, StoreErrorTypes.no_listeners_for_store)
+
+
+if __name__ == '__main__':
+    unittest.main()
