@@ -1399,7 +1399,7 @@ const renderDiscount = (discount, type) => (
         <div className={`flex ${['productDiscount', 'storeDiscount', 'categoryDiscount'].includes(type) ? 'justify-between' : 'justify-center'} mt-4`}>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className="bg-red-500 text-white py-1 px-3 rounded">Remove Discount</Button>
+              <Button className="bg-red-500 text-white py-1 px-3 rounded mr-2">Remove Discount</Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="bg-white">
               <AlertDialogHeader>

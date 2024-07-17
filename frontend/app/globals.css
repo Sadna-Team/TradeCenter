@@ -123,3 +123,34 @@ body {
 
 }
 
+
+
+  .status-text {
+    margin-right: 0; /* Adjust as needed */
+  }
+  .status-value.text-dark-pastel-blue {
+    color: #779ecb; /* Dark pastel blue color */
+  }
+
+  .status-value.text-dark-pastel-green {
+    color: #115313; /* Dark pastel green color */
+  }
+
+  .status-value.text-dark-pastel-turqoise {
+    color: #21a4c2; /* Dark pastel turqoise color */
+  }
+
+  .status-value.text-dark-pastel-red {
+    color: #df2a27; /* Dark pastel red color */
+  }
+
+  .status-value.text-light-pastel-green{
+    color: #16cd4c; /* light pastel green color */
+  }
+
+
+  .bid-button {
+    justify-content: space-between;
+  }
+
+

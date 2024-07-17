@@ -2,14 +2,28 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
 import api from '@/lib/api'; // Import the configured axios instance
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from "@/components/Dialog";
+import Button from "@/components/Button";
+import { Input } from "@/components/Input";
+
 
 export default function ProductPage() {
   const { storeid, productid } = useParams();
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [currentProposedPrice, setCurrentProposedPrice] = useState(0);
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -58,6 +72,47 @@ export default function ProductPage() {
     }
   };
 
+  const BidOffer = async () => {
+    try {
+      const response = await api.post('/market/user_bid_offer', {
+        store_id: storeid,
+        product_id: productid,
+        proposed_price: currentProposedPrice,
+      });
+
+      if (response.status !== 200) {
+        console.error('Failed to check if store worker accepted bid', response);
+        return;
+      }
+
+      const data = response.data;
+      setSuccessMessage(`Sucessfully added bid offer with id: ${data.message}`);
+      console.log('Bid offer response:', data);
+    } catch (error) {
+      setErrorMessage('Error adding bid offer on product');
+      console.error('Error adding bid offer on product:', error.response ? error.response.data : error.message);
+    }
+  };
+  
+  const handleBidDialogOpen = () => {
+    setIsDialogOpen(true);
+  };
+
+  const handleBidDialogClose = () => {
+    setIsDialogOpen(false);
+    setErrorMessage('');
+    setCurrentProposedPrice(0);
+  };
+
+  const handleBidDialogConfirm = () => {
+    if (isNaN(currentProposedPrice) || currentProposedPrice < 0) {
+      setErrorMessage('Please enter a valid proposed price.');
+      return;
+    }
+    BidOffer();
+    handleBidDialogClose();
+  };
+
   if (errorMessage) {
     return <div className="min-h-screen bg-gray-100 p-4">{errorMessage}</div>;
   }
@@ -79,22 +134,64 @@ export default function ProductPage() {
             <span key={index} className="ml-2 text-blue-600">{tag}</span>
           ))}
         </div>
-        <div className="amount-control" style={{ marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
-          <button className="amount-btn" 
-            style={{ backgroundColor: '#D5DBDB', color: '#333', border: 'none', padding: '8px 12px', fontSize: '1rem', cursor: 'pointer', marginRight: '4px' }} 
-            onClick={() => {quantity > 1 ? setQuantity(quantity - 1) : setQuantity(quantity)}}>-</button>
-          <input type="text" className="amount-input" 
-          style={{ width: '50px', textAlign: 'center', fontSize: '1rem', padding: '8px', margin: '0 4px' }} value={quantity} readOnly />
-          <button className="amount-btn" 
-            style={{ backgroundColor: '#D5DBDB', color: '#333', border: 'none', padding: '8px 12px', fontSize: '1rem', cursor: 'pointer', marginLeft: '4px' }} 
-            onClick={() => setQuantity(quantity+1)}>+</button>
+        <div className="amount-control mb-4 flex items-center">
+          <button
+            className="amount-btn bg-gray-300 text-gray-800 border-none py-2 px-3 mr-2"
+            onClick={() => { quantity > 1 ? setQuantity(quantity - 1) : setQuantity(quantity) }}
+          >
+            -
+          </button>
+          <input
+            type="text"
+            className="amount-input w-16 text-center py-2"
+            value={quantity}
+            readOnly
+          />
+          <button
+            className="amount-btn bg-gray-300 text-gray-800 border-none py-2 px-3 ml-2"
+            onClick={() => setQuantity(quantity + 1)}
+          >
+            +
+          </button>
         </div>
         <button
-          className="bg-blue-500 text-white py-2 px-4 rounded"
+          className="bg-blue-500 text-white py-2 px-4 rounded mb-4 mr-2"
           onClick={addToCart}
         >
           Add to Cart
         </button>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <button
+              className="bg-blue-500 text-white py-2 px-4 rounded"
+              onClick={handleBidDialogOpen}
+            >
+              Bid
+            </button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] bg-white">
+            <DialogHeader>
+              <DialogTitle>Proposed Price</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              {errorMessage && (
+                <div className="text-red-500 text-sm">{errorMessage}</div>
+              )}
+              <Input
+                placeholder="Proposed Price"
+                value={currentProposedPrice}
+                onChange={(e) => setCurrentProposedPrice(e.target.value)}
+                className="border border-black"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" onClick={handleBidDialogConfirm}>Confirm</Button>
+              <Button type="button" onClick={handleBidDialogClose}>Exit</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {successMessage && <p className="text-green-500 mt-4">{successMessage}</p>}
       </div>
     </div>

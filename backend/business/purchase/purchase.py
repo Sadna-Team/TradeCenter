@@ -323,6 +323,7 @@ class BidPurchase(Purchase):
     _is_offer_to_store = db.Column(db.Boolean)
     _list_of_store_owners_managers_that_accepted_offer_demo = db.Column(db.String)
     _user_who_rejected_id = db.Column(db.Integer)
+    #_product = db.relationship('PurchaseProduct', backref='bid_purchase', lazy=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'bid_purchase',
@@ -342,6 +343,7 @@ class BidPurchase(Purchase):
         self._is_offer_to_store: bool = True
         self._list_of_store_owners_managers_that_accepted_offer_demo: str = ""
         self._user_who_rejected_id: int = -1
+        #self._product: PurchaseProductDTO = PurchaseProductDTO(product_id, "", "", -1, -1) #temporary placeholder 
         logger.info('[BidPurchase] successfully created bid purchase object with purchase id: %s',
                     self.id)
 
@@ -358,6 +360,10 @@ class BidPurchase(Purchase):
     def store_id(self):
         return self._store_id
 
+    #@property 
+    # def product(self):
+    #    return self._product
+    
     @property
     def is_offer_to_store(self):
         return self._is_offer_to_store
@@ -512,6 +518,21 @@ class BidPurchase(Purchase):
             self._proposed_price = proposed_price
             self._is_offer_to_store = False
 
+    
+    def store_worker_accepted_offer(self, user_id:int) -> int:
+        if self._status != PurchaseStatus.onGoing:
+            logger.warn(
+                "[BidPurchase] store worker could not accept offer of bid purchase with purchase id: %s, since "
+                "purchase is not ongoing",
+                self.id)
+            raise PurchaseError("Purchase is not on going", PurchaseErrorTypes.purchase_not_ongoing)
+        
+        if user_id in self._list_of_store_owners_managers_that_accepted_offer:
+            logger.info(f"[BidPurchase] store worker with user id: {user_id} accepted offer of bid purchase with purchase id: {self.id}")
+            return 1
+        logger.info(f"[BidPurchase] store worker with user id: {user_id} did not accept offer of bid purchase with purchase id: {self.id}")
+        return 0
+    
     #FOR NOW THE IMPLEMENTATION IS AS FOLLOWS: if a manager counters the offer of a user, the user can either counter it back, reject, or accept 
     # NOTE: in the case of accept, the user will accept the counter and then propose the new price again to all store owners/managers to accept
     def user_accept_counter_offer(self, user_id: int) -> None:
@@ -572,6 +593,32 @@ class BidPurchase(Purchase):
         self._user_who_rejected_id = user_id
         logger.info("[BidPurchase] user rejected offer of bid purchase with purchase id: %s", self.id)
 
+    def user_cancel_bid(self, user_id: int) -> None:
+        """
+        Parameters: userId
+        This function is responsible for the user cancelling the offer
+        NOTE: the user can only reject the offer if the purchase is ongoing
+        Returns: none
+        """
+        if self._status != PurchaseStatus.onGoing and self._status != PurchaseStatus.approved:
+            logger.info(
+                "[BidPurchase] user could not reject offer of bid purchase with purchase id: %s, since purchase is "
+                "not ongoing or not approved",
+                self.id)
+            raise PurchaseError("Purchase is not on going", PurchaseErrorTypes.purchase_not_ongoing)
+        if self._user_id != user_id:
+            logger.info(
+                "[BidPurchase] user could not reject offer of bid purchase with purchase id: %s, since user id is "
+                "invalid",
+                self.id)
+            raise PurchaseError("User id is invalid", PurchaseErrorTypes.invalid_user_id)
+
+        self._status = PurchaseStatus.offer_rejected
+        self._user_who_rejected_id = user_id
+        logger.info("[BidPurchase] user rejected offer of bid purchase with purchase id: %s", self.id)
+
+
+
     #NOTE: in the case of the user countering again, the manager who originally countered will be removed from the list of store owners/managers that accepted the offer
     def user_counter_offer(self, user_id: int, proposed_price: float) -> None:
         """
@@ -612,8 +659,26 @@ class BidPurchase(Purchase):
 
     def complete(self):
         if self._status != PurchaseStatus.accepted:
+            logger.warn(f"[BidPurchase] purchase with purchase id: {self.id} could not be completed since it is not accepted")
             raise PurchaseError("Purchase is not accepted", PurchaseErrorTypes.purchase_not_accepted)
+        logger.info(f"[BidPurchase] purchase with purchase id: {self.id} completed")
         self._status = PurchaseStatus.completed
+        
+    # def set_product_purchase(self, product: PurchaseProductDTO):
+    #    self._product = product
+
+    def get_bid_purchase_dto(self) -> dict:
+        return {
+            "bid_id": self.id,
+            "store_id": self._store_id,
+            "product_id": self._product_id,
+            "proposed_price": self._proposed_price,
+            "is_offer_to_store": self._is_offer_to_store,
+            "list_of_store_owners_managers_that_accepted_offer": self._list_of_store_owners_managers_that_accepted_offer,
+            "user_who_rejected_id": self._user_who_rejected_id,
+            "status": self._status.name            
+        }
+        
 
 
 class PurchaseProduct(db.Model):
@@ -626,6 +691,7 @@ class PurchaseProduct(db.Model):
     _description = db.Column(db.String(200))
     _price = db.Column(db.Float)
     _amount = db.Column(db.Integer)
+
 
     __table_args__ = (
         db.PrimaryKeyConstraint('product_id', 'purchase_id', 'store_id'),
@@ -1111,6 +1177,15 @@ class PurchaseFacade:
                                                          sub_purchase.total_price_after_discounts,
                                                          sub_purchase.status.value, conv_prod))
                     # if another type of purchase
+       # for purchase in db.session.query(BidPurchase).all():
+        #    if purchase.user_id == user_id:
+        #        if isinstance(purchase, BidPurchase):
+        #            if store_id is None or purchase.store_id == store_id:
+        #                if purchase.status == PurchaseStatus.completed:
+        #                    conv_prod = [prod.get_dto() for prod in purchase.product] 
+        #                    purchases.append(PurchaseDTO(purchase.id, purchase.store_id, purchase.date_of_purchase,
+        #                                                purchase.proposed_price, purchase.proposed_price,
+        #                                                purchase.status.value, conv_prod))
         return purchases
 
     def get_purchases_of_store(self, store_id: int) -> List[PurchaseDTO]:
@@ -1129,6 +1204,15 @@ class PurchaseFacade:
                                                      sub_purchase.date_of_purchase, sub_purchase.total_price,
                                                      sub_purchase.total_price_after_discounts,
                                                      sub_purchase.status.value, conv_prod, purchase.user_id))
+        
+        #for purchase in db.session.query(BidPurchase).all():
+        #    if isinstance(purchase, BidPurchase):
+        #        if purchase.store_id == store_id:
+        #            if purchase.status == PurchaseStatus.completed:
+        #                conv_prod = [prod.get_dto() for prod in purchase.product] 
+        #                purchases.append(PurchaseDTO(purchase.id, purchase.store_id, purchase.date_of_purchase,
+        #                                            purchase.proposed_price, purchase.proposed_price,
+        #                                            purchase.status.value, conv_prod))
         return purchases
 
     # -----------------BidPurchase class related methods-----------------#
@@ -1146,6 +1230,22 @@ class PurchaseFacade:
             db.session.commit()
 
             return pur.id
+        
+
+    def set_bid_product_purchase(self, bid_id: int ,product_purchase: PurchaseProductDTO):
+        """
+        Parameters: productPurchase
+        This function is responsible for setting the bid product purchase
+        Returns: none
+        """
+        pass
+        #purchase = self.__get_purchase_by_id(bid_id)
+        #if isinstance(purchase, BidPurchase):
+        #    purchase.set_product_purchase(product_purchase)
+        #else:
+        #    raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+
+       # db.session.commit()
 
     def store_owner_manager_accept_offer(self, purchase_id: int, store_worker_id: int) -> None:
         """
@@ -1238,6 +1338,23 @@ class PurchaseFacade:
 
         db.session.commit()
 
+    def cancel_bid(self, purchase_id: int, user_id: int) -> None:
+        """
+        Parameters: purchaseId, userId
+        This function is responsible for the user rejecting the offer
+        NOTE: the user can only reject the offer if the purchase is ongoing
+        Returns: none
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            purchase.user_cancel_bid(user_id)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+
+        db.session.commit()
+
+
+
     def user_counter_offer(self, purchase_id: int, user_id: int, proposed_price: float) -> None:
         """
         Parameters: purchaseId, userId, proposedPrice
@@ -1276,31 +1393,48 @@ class PurchaseFacade:
         for purchase in db.session.query(BidPurchase).all():
             if isinstance(purchase, BidPurchase):
                 if purchase.user_id == user_id:
-                    purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,
-                                                    purchase.store_id, purchase.product_id, purchase.date_of_purchase,
-                                                    purchase.delivery_date, purchase.is_offer_to_store,
-                                                    purchase.total_price, purchase.status.value,
-                                                    purchase.list_of_store_owners_managers_that_accepted_offer,
-                                                    purchase.user_who_rejected_id))
+                    purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price, purchase.store_id, purchase.product_id, purchase.date_of_purchase, purchase.delivery_date, purchase.is_offer_to_store, purchase.total_price, purchase.status.value, purchase.list_of_store_owners_managers_that_accepted_offer, purchase.user_who_rejected_id))
         return purchases
+    
+    def view_user_bids(self, user_id) -> List[dict]:
+        """
+        Parameters: userId
+        This function is responsible for returning the bid purchases of the user
+        Returns: list of BidPurchase objects
+        """
+        purchases: List[dict] = []
+        for purchase in db.session.query(BidPurchase).all():
+            if isinstance(purchase, BidPurchase):
+                if purchase.user_id == user_id:
+                    purchases.append(purchase.get_bid_purchase_dto())
+        return purchases
+        
 
-    def get_bid_purchases_of_store(self, store_id: int) -> List[BidPurchaseDTO]:
+    def get_bid_purchases_of_store(self, store_id: int) -> List[dict]:
         """
         Parameters: storeId
         This function is responsible for returning the bid purchases of the store
         Returns: list of BidPurchase objects
         """
-        purchases: List[BidPurchaseDTO] = []
+        purchases: List[dict] = []
         for purchase in db.session.query(BidPurchase).all():
             if isinstance(purchase, BidPurchase):
                 if purchase.store_id == store_id:
-                    purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price,
-                                                    purchase.store_id, purchase.product_id, purchase.date_of_purchase,
-                                                    purchase.delivery_date, purchase.is_offer_to_store,
-                                                    purchase.total_price, purchase.status.value,
-                                                    purchase.list_of_store_owners_managers_that_accepted_offer,
-                                                    purchase.user_who_rejected_id))
+                    purchases.append(purchase.get_bid_purchase_dto())
         return purchases
+    
+    def view_all_bids_of_system(self) -> List[dict]:
+        """
+        Parameters: none
+        This function is responsible for returning the bid purchases of the system
+        Returns: list of BidPurchase objects
+        """
+        purchases: List[dict] = []
+        for purchase in db.session.query(BidPurchase).all():
+            if isinstance(purchase, BidPurchase):
+                purchases.append(purchase.get_bid_purchase_dto())
+        return purchases
+    
     
     def get_bid_purchase_by_id(self, purchase_id: int) -> BidPurchaseDTO:
         """
@@ -1317,6 +1451,19 @@ class PurchaseFacade:
                                   purchase.list_of_store_owners_managers_that_accepted_offer,
                                   purchase.user_who_rejected_id)
         raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+    
+    def store_worker_accepted_offer(self, user_id: int, purchase_id: int) -> int:
+        """
+        Parameters: userId, purchaseId
+        This function is responsible for the store worker accepting the offer
+        NOTE: the store worker can only accept the offer if the purchase is ongoing
+        Returns: none
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            return purchase.store_worker_accepted_offer(user_id)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
 
     # -----------------General Purchase class related methods-----------------#
     def accept_purchase(self, purchase_id: int, delivery_date: datetime) -> None:

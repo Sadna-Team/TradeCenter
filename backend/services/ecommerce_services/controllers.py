@@ -209,6 +209,20 @@ class PurchaseService:
             logger.error('user_counter_bid_decline was not successful')
             return jsonify({'message': str(e)}), 400
         
+
+    def user_bid_cancel(self, user_id: int, bid_id: int):
+        """
+            User counter bid decline
+        """
+        try:
+            info = self.__market_facade.user_bid_cancel(user_id, bid_id)
+            logger.info('user_counter_bid_decline was successful')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('user_counter_bid_decline was not successful')
+            return jsonify({'message': str(e)}), 400
+        
+        
     def user_counter_bid(self, user_id: int, bid_id: int, proposed_price: int):
         """
             User counter bid
@@ -233,6 +247,18 @@ class PurchaseService:
             logger.error('show_user_bids was not successful')
             return jsonify({'message': str(e)}), 400
         
+    def view_user_bids(self, user_id: int):
+        """
+            View user bids
+        """
+        try:
+            info = self.__market_facade.view_user_bids(user_id)
+            logger.info('view_user_bids was successful')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('view_user_bids was not successful')
+            return jsonify({'message': str(e)}), 400
+        
     def show_store_bids(self, store_owner_id: int, store_id: int):
         """
             Show store bids
@@ -243,4 +269,29 @@ class PurchaseService:
             return jsonify({'message': info}), 200
         except Exception as e:
             logger.error('show_store_bids was not successful')
+            return jsonify({'message': str(e)}), 400
+        
+    def view_all_bids_of_system(self, system_manager_id: int):
+        """
+            View all bids of the system
+        """
+        try:
+            info = self.__market_facade.view_all_bids_of_system(system_manager_id)
+            logger.info('view_all_bids_of_system was successful')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('view_all_bids_of_system was not successful')
+            return jsonify({'message': str(e)}), 400
+        
+        
+    def has_store_worker_accepted_bid(self, user_id: int, store_id: int, bid_id: int):
+        """
+            Has store worker accepted bid
+        """
+        try:
+            info = self.__market_facade.has_store_worker_accepted_bid(user_id,store_id, bid_id)
+            logger.info(f'has_store_worker_accepted_bid was successful for user {user_id}')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('has_store_worker_accepted_bid was not successful')
             return jsonify({'message': str(e)}), 400
