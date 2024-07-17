@@ -24,6 +24,8 @@ class AppFactory:
         return cls.__instance
 
     def __init__(self):
+        self.app = None
+        self.logger = None
         if not hasattr(self, '_initialized'):
             self._initialized = True
             self.app = create_app(config_mode)

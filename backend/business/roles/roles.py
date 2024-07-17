@@ -535,7 +535,8 @@ class RolesFacade:
 
     def add_system_manager(self, actor: int, user_id: int) -> None:
         with self.__system_managers_lock:
-            if not self.is_system_manager(actor):
+            res = db.session.query(SystemManagerModel).filter_by(is_admin=True).first() is not None
+            if not self.is_system_manager(actor) and res:
                 raise RoleError("Actor is not a system manager", RoleErrorTypes.actor_not_system_manager)
             if self.is_system_manager(user_id):
                 return
