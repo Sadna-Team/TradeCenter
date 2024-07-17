@@ -245,6 +245,7 @@ class StoreService:
             Add a product to a store
         """
         try:
+            logger.info(f'adding product to store:\nuser_id: {user_id}\nstore_id: {store_id}\nproduct_name: {product_name}\ndescription: {description}\nprice: {price}\nweight: {weight}\ntags: {tags}\namount: {amount}')
             self.__market_facade.add_product(user_id, store_id, product_name, description, price, weight, tags, amount)
             logger.info('product was added successfully')
             return jsonify({'message': 'product was added successfully'}), 200

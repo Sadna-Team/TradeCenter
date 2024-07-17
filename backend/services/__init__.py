@@ -102,18 +102,17 @@ class InitialState:
 
             response, status_code =  self.authentication_service.get_user_id(token)
             if status_code != 200:
-                return False
+                raise ValueError(f"Failed to get user id for {username}\n status code: {status_code}\n response: {response.json}")
             user_id = response.json['user_id']
 
             response, status_code =  self.store_service.get_store_id(store_name)
             if status_code != 200:
-                return False
+                raise ValueError(f"Failed to get store id for {store_name}\n status code: {status_code}\n response: {response.json}")
             store_id = response.json['message']
-
             response, status_code =  self.store_service.add_product_to_store(user_id, store_id, product_name, 'description', price, 1,
                                                                [], quantity)
             if status_code != 200:
-                return False
+                raise ValueError(f"Failed to add product {product_name} to store {store_name}\n status code: {status_code}\n response: {response.json}")
             return True
 
     def add_owner(self, username_actor, username, store_name):

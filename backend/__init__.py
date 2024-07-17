@@ -58,6 +58,7 @@ def handle_leave():
     handle_disconnect(room)
 
 def create_app(mode='development'):
+    logger.info(f"Creating app with mode {mode}")
     app = Flask(__name__)
     app.config.from_object(config[mode])  # Load the appropriate configuration
 
@@ -82,7 +83,6 @@ def create_app(mode='development'):
 
     with app.app_context():
         # Ensure that the database tables are created
-        # db.drop_all()
         db.create_all()
         if mode == 'testing':
             clear_database()
