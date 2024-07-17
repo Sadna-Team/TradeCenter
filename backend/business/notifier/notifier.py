@@ -42,9 +42,28 @@ class Notifier:
             self._initialized = True
             self._user_facade: UserFacade = UserFacade()  # Singleton
             self._authentication: Authentication = Authentication()  # Singleton
-            #self._listeners: Dict = self.load_listeners() # Would it restart the listeners every time the server restarts?
+            #self._listeners: Dict = {} # Would it restart the listeners every time the server restarts?
             self._notification_id = 0
             self.socketio_manager = None
+
+    @property
+    def _listeners(self):
+        listeners = db.session.query(Listeners).all()
+        result = {}
+        for listener in listeners:
+            result[listener.store_id] = [int(x) for x in listener.get_listeners.split(',')]
+        return result
+    
+    @_listeners.setter
+    def _listeners(self, listeners):
+        #delete all listeners
+        db.session.query(Listeners).delete()
+        db.session.commit()
+
+        for store_id in listeners.keys():
+            for listener in listeners[store_id]:
+                self.sign_listener(listener, store_id)
+
 
     def clean_data(self) -> None:
         """
@@ -92,8 +111,11 @@ class Notifier:
         """
         from backend.app import app
         with app.app_context():
-            for listeners in db.session.query(Listeners).filter_by(store_id=store_id).all():
-                if listeners is None:
+            all_listeners = db.session.query(Listeners).filter_by(store_id=store_id).all()
+            if len(all_listeners) == 0:
+                raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+            for listeners in all_listeners:
+                if listeners.get_listeners == '':
                     raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
 
                 for listener in listeners.get_listeners.split(','):
@@ -226,10 +248,11 @@ class Notifier:
         management position)
         """
         with current_app.app_context():
-            store = db.session.query(Listeners).filter_by(store_id=store_id)
-            if store is None:
+            store = db.session.query(Listeners).filter_by(store_id=store_id).all()
+            if len(store) == 0:
                 new_listener = Listeners(store_id, str(user_id))
                 db.session.add(new_listener)
+                db.session.commit()
                 self.__store_lock[store_id] = Lock()
             else:
                 db.session.query(Listeners).filter_by(store_id=store_id).first().add_listener_to_store(user_id)
@@ -252,10 +275,10 @@ class Notifier:
         """
         with current_app.app_context():
             with self.__store_lock[store_id]:
-                store = db.session.query(Listeners).filter_by(store_id=store_id).first()
-                if store is None:
+                store = db.session.query(Listeners).filter_by(store_id=store_id).all()
+                if len(store) == 0:
                     raise StoreError(f"No listeners for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
-                store.remove_listener_from_store(user_id)
+                db.session.query(Listeners).filter_by(store_id=store_id).first().remove_listener_from_store(user_id)
             
         # with self.__store_lock[store_id]:
         #     if store_id in self._listeners:
@@ -277,11 +300,21 @@ class Listeners(db.Model):
         logger.info("[Listeners] created new listeners object for store_id: " + str(store_id) + " with listeners: " + listeners)
 
     def add_listener_to_store(self, listener: int) -> None: 
+        if str(listener) in self.listeners.split(','):
+            raise UserError(f"User is already a listener for the store with ID: {self.store_id}", UserErrorTypes.user_already_listener_for_store)
+        
         self.listeners += ',' + str(listener)
+        db.session.commit()
         logger.info("[Listeners] added listener: " + str(listener) + " to store_id: " + str(self.store_id))
 
     def remove_listener_from_store(self, listener: int) -> None:
-        self.listeners = self.listeners.replace("," + str(listener), '')
+        curr_listeners = self.listeners.split(',')
+        if str(listener) not in curr_listeners:
+            raise UserError(f"User is not a listener for the store with ID: {self.store_id}", UserErrorTypes.user_not_listener_for_store)
+        self.listeners = ','.join([str(x) for x in curr_listeners if x != str(listener)])
+        if self.listeners == '':
+            db.session.query(Listeners).filter_by(store_id=self.store_id).delete()
+        db.session.commit()
         logger.info("[Listeners] removed listener: " + str(listener) + " from store_id: " + str(self.store_id))
 
     @property
