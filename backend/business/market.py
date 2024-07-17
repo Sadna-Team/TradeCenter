@@ -1312,7 +1312,7 @@ class MarketFacade:
             raise UserError("User does not have the necessary permissions to get the bids of the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         return self.purchase_facade.get_bid_purchases_of_store(store_id)
     
-    def has_store_worker_accepted_bid(self, user_id:int, store_id:int, bid_id:int) -> bool:
+    def has_store_worker_accepted_bid(self, user_id:int, store_id:int, bid_id:int) -> int:
         """
         Parameters: userId, storeId, bidId
         This function checks if a store worker has accepted a bid
@@ -1322,7 +1322,7 @@ class MarketFacade:
             logger.warn(f"User {user_id} is suspended")
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         if not self.roles_facade.has_get_bid_permission(store_id, user_id):
-            logger.warn(f"User {user_id} does not have the necessary permissions to check if a store worker has accepted a bid"s)
+            logger.warn(f"User {user_id} does not have the necessary permissions to check if a store worker has accepted a bids")
             raise UserError("User does not have the necessary permissions to check if a store worker has accepted a bid", UserErrorTypes.user_does_not_have_necessary_permissions)
         logger.info(f"checking if store worker {user_id} has accepted a bid")
         return self.purchase_facade.store_worker_accepted_offer(user_id, bid_id)
