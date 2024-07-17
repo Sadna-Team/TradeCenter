@@ -368,6 +368,7 @@ class Discount(db.Model):
             predicate_builder = build_nested_array(parsed)            
         else: 
             predicate_builder = constraint_types[parsed[0]](*parsed[1:])
+        logger.info("[Discount] Predicate: " + str(predicate_builder))
         return discount_predicate_builder(predicate_builder)
 
     @abstractmethod
