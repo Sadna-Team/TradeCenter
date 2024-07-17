@@ -233,11 +233,7 @@ class User(db.Model):
     def clear_notifications(self) -> None:
         if self.is_member():
             self.member.clear_notifications()
-        
-        notifications = Notification.query.filter_by(member_id=self.member.id).all()
-        for notification in notifications:
-            db.session.delete(notification)
-        db.session.commit()
+
 
     def add_product_to_basket(self, store_id: int, product_id: int, quantity: int) -> None:
         if quantity < 0:
@@ -261,7 +257,7 @@ class User(db.Model):
             raise UserError("Empty fields", UserErrorTypes.empty_fields)
         if self.is_member():
             raise UserError("User is already registered", UserErrorTypes.user_already_registered)
-        self.member_id = db.session.query(Member).count() + 1
+        self.member_id = db.session.query(Member).count()
         self.member = Member(self.member_id, email, username, password, year, month, day, phone)
         db.session.add(self.member)
         db.session.commit()
@@ -352,7 +348,7 @@ class UserFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.__id_serializer = db.session.query(User).count()+1
+            self.__id_serializer = db.session.query(User).count()
 
     def clean_data(self):
         """
@@ -474,6 +470,7 @@ class UserFacade:
         self.clear_notifications(user_id)
         return out
 
+
     def get_userid(self, username: str) -> int:
         member = Member.query.filter_by(username=username).first()
         if not member:
@@ -524,8 +521,8 @@ class UserFacade:
         if not user:
             raise UserError("User not found", UserErrorTypes.user_not_found)
         
-        cart = ShoppingCart.query.filter_by(user_id=user_id).first()
-        db.session.delete(cart)
+        # cart = ShoppingCart.query.filter_by(user_id=user_id).first()
+        # db.session.delete(cart)
 
         for basket in ShoppingBasket.query.filter_by(user_id=user_id).all():
             db.session.delete(basket)

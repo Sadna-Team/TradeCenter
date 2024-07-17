@@ -7,6 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from backend.database import clear_database
 from backend.business import market
+from backend.business.market import MarketFacade
 
 class InitialState:
 
@@ -229,7 +230,9 @@ class InitialState:
         with self.app.app_context():
             session: Session = self.db.session  # Get the SQLAlchemy session
             try:
-                clear_database()
+                # clear_database()
+                # MarketFacade().create_admin()
+                print("filling database")
                 with session.begin():  # Start a transaction
                     with open(self.file, 'r') as file:
                         initial_state = json.load(file)

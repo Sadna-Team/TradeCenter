@@ -30,12 +30,32 @@ default_address = { 'address': 'randomstreet 34th',
 
 
 
-@pytest.fixture
+@pytest.fixture(scope='session', autouse=True)
 def app():
+    # Setup: Create the Flask app
+    """app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'test_secret_key'  # Set a test secret key
+    jwt = JWTManager(app)
+    bcrypt = Bcrypt(app)
+    auth = Authentication()
+    auth.clean_data()
+    auth.set_jwt(jwt, bcrypt)"""
+    global app
+
+    from backend.app_factory import create_app_instance
     app = create_app(mode='testing')
-    from backend import app as app2
-    app2.app = app
-    return app
+
+    # Push application context for testing
+    app_context = app.app_context()
+    app_context.push()
+
+    # Make the app context available in tests
+    yield app
+
+    clean_data()
+
+    app_context.pop()
+
 
 @pytest.fixture
 def client(app):

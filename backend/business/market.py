@@ -66,6 +66,7 @@ class MarketFacade:
         self.user_facade.register_user(man_id, "admin@admin.com", "admin", hashed_password,
                                        2000, 1, 1, "123456789")
         self.roles_facade.add_admin(man_id)
+        db.session.commit()
         logger.info(f"Admin was created")
 
     def clean_data(self):
@@ -355,7 +356,8 @@ class MarketFacade:
             raise e
 
     def on_arrival_lambda(self, purchase_id: int):
-        from backend.app import app
+        from backend.app import create_app_instance
+        app = create_app_instance()
         with app.app_context():
             self.purchase_facade.complete_purchase(purchase_id)
 

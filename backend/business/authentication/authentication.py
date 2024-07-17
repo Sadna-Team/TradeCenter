@@ -45,7 +45,8 @@ class Authentication:
         """
         For testing purposes only
         """
-        from backend.app import app
+        from backend.app import create_app_instance
+        app = create_app_instance()
         with app.app_context():
             # with db.session.begin():
             #     db.session.query(Authentication).delete()
@@ -117,8 +118,8 @@ class Authentication:
         if user_id not in self.logged_in:
             raise UserError("User is not logged in", UserErrorTypes.user_not_logged_in)
         else:
-            with db.session.begin():
-                db.session.add(AuthenticationModel(blacklisted_token=jti))
+            # with db.session.begin():
+            db.session.add(AuthenticationModel(blacklisted_token=jti))
             self.blacklist.add(jti)
             self.logged_in.remove(user_id)
             return self.start_guest()
@@ -127,11 +128,11 @@ class Authentication:
         if user_id not in self.guests:
             raise UserError("User is not a guest", UserErrorTypes.user_is_not_guest)
         else:
-            with db.session.begin():
-                db.session.add(AuthenticationModel(blacklisted_token=jti))
+            # with db.session.begin():
+            db.session.add(AuthenticationModel(blacklisted_token=jti))
             self.blacklist.add(jti)
             self.guests.remove(user_id)
-            UserFacade.remove_user(user_id)
+            self.user_facade.remove_user(user_id)
 
     def is_logged_in(self, user_id):
         set = self.logged_in
@@ -149,6 +150,7 @@ class Authentication:
         """
         Load the blacklist from the database into the blacklist set
         """
-        with current_app.app_context():
-            blacklisted_tokens = db.session.query(AuthenticationModel.blacklisted_token).all()
+        # from backend.app_factory import create_app_instance
+        # with create_app_instance().app_context():
+        blacklisted_tokens = db.session.query(AuthenticationModel.blacklisted_token).all()
         self.blacklist = {token[0] for token in blacklisted_tokens}

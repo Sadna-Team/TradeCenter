@@ -251,6 +251,7 @@ class StoreService:
             return jsonify({'message': 'product was added successfully'}), 200
         except Exception as e:
             logger.error('product was not added')
+            print(e)
             return jsonify({'message': str(e)}), 400
 
     def remove_product_from_store(self, user_id: int, store_id: int, product_id: int):

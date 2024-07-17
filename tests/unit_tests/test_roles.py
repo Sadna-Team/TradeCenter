@@ -9,10 +9,9 @@ from unittest.mock import patch, MagicMock
 def roles_facade():
 
 
-    from backend import create_app
-    app = create_app('testing')
-    from backend import app as app2
-    app2.app = app
+    from backend.app_factory import create_app_instance
+    app = create_app_instance('testing')
+
     with app.app_context():
         from backend.database import clear_database
         MarketFacade().clean_data()

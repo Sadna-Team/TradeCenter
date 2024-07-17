@@ -32,12 +32,31 @@ default_address_checkout = {'address': 'randomstreet 34th',
                             'zip_code': '12345'}
 
 
-@pytest.fixture
+@pytest.fixture(scope='session', autouse=True)
 def app():
-    app = create_app(mode='testing')
-    from backend import app as app2
-    app2.app = app
-    return app
+    # Setup: Create the Flask app
+    """app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'test_secret_key'  # Set a test secret key
+    jwt = JWTManager(app)
+    bcrypt = Bcrypt(app)
+    auth = Authentication()
+    auth.clean_data()
+    auth.set_jwt(jwt, bcrypt)"""
+    global app
+
+    from backend.app_factory import create_app_instance
+    app = create_app_instance(mode='testing')
+    
+    # Push application context for testing
+    app_context = app.app_context()
+    app_context.push()
+
+    # Make the app context available in tests
+    yield app
+
+    clean_data()
+
+    app_context.pop()
 
 @pytest.fixture
 def clean(app):

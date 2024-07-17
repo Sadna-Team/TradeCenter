@@ -768,7 +768,7 @@ class Store(db.Model):
         """
         try:
             return db.session.query(Product).filter(Product.product_id == product_id).one()
-        except KeyError:
+        except Exception:
             raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
 
     def get_product_dto_by_id(self, product_id: int) -> ProductDTO:
