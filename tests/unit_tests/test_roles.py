@@ -14,10 +14,8 @@ def roles_facade():
     from backend import app as app2
     app2.app = app
     with app.app_context():
-        from backend.database import clear_database
         MarketFacade().clean_data()
         facade = RolesFacade()
-        # facade.clean_data()
 
         yield facade
 

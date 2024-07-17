@@ -104,8 +104,10 @@ class Authentication:
     def login_user(self, username: str, password: str):
         user_id, hashed_password = self.user_facade.get_password(username)
         if not self.verify_password(password, hashed_password):
+            logger.error('Invalid credentials')
             raise UserError("Invalid credentials", UserErrorTypes.invalid_credentials)
         elif user_id in self.logged_in:
+            logger.error('User is already logged in')
             raise UserError("User is already logged in", UserErrorTypes.user_logged_in)
         else:
             token = self.generate_token(user_id)
@@ -131,7 +133,8 @@ class Authentication:
                 db.session.add(AuthenticationModel(blacklisted_token=jti))
             self.blacklist.add(jti)
             self.guests.remove(user_id)
-            UserFacade.remove_user(user_id)
+            if not UserFacade().is_member(user_id):
+                UserFacade().remove_user(user_id)
 
     def is_logged_in(self, user_id):
         set = self.logged_in
@@ -149,7 +152,6 @@ class Authentication:
         """
         Load the blacklist from the database into the blacklist set
         """
-        from backend.app import app
-        with app.app_context():
+        with current_app.app_context():
             blacklisted_tokens = db.session.query(AuthenticationModel.blacklisted_token).all()
         self.blacklist = {token[0] for token in blacklisted_tokens}

@@ -329,16 +329,16 @@ class RolesFacade:
         return admin.user_id
 
     def clean_data(self):
-        from backend.app import app
-        with app.app_context():
-            db.session.query(Permissions).delete()
-            db.session.query(StoreOwner).delete()
-            db.session.query(StoreManager).delete()
-            db.session.query(TreeNode).delete()
-            db.session.query(StoreRole).delete()
-            db.session.query(Nomination).delete()
-            db.session.query(SystemManagerModel).delete()
-            db.session.commit()
+        # from backend.app import app
+        # with app.app_context():
+        db.session.query(Permissions).delete()
+        db.session.query(StoreOwner).delete()
+        db.session.query(StoreManager).delete()
+        db.session.query(TreeNode).delete()
+        db.session.query(StoreRole).delete()
+        db.session.query(Nomination).delete()
+        db.session.query(SystemManagerModel).delete()
+        db.session.commit()
 
     def add_store(self, store_id: int, owner_id: int) -> None:
         from flask import current_app as app
@@ -535,7 +535,7 @@ class RolesFacade:
 
     def add_system_manager(self, actor: int, user_id: int) -> None:
         with self.__system_managers_lock:
-            res = db.session.query(SystemManagerModel).filter_by(is_admin=True).first() is not None
+            res = db.session.query(SystemManagerModel).filter_by(is_admin=True).first()
             if not self.is_system_manager(actor) and res:
                 raise RoleError("Actor is not a system manager", RoleErrorTypes.actor_not_system_manager)
             if self.is_system_manager(user_id):

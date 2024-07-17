@@ -9,7 +9,8 @@ from backend.database import clear_database
 from backend.business import market
 
 class InitialState:
-    def __init__(self, app, db, file='backend/services/initial_state.json'):
+
+    def __init__(self, app, db, file='services/initial_state.json'):
         self.purchase_service = PurchaseService()
         self.store_service = StoreService()
         self.user_service = UserService()
@@ -226,9 +227,12 @@ class InitialState:
             return False
         print("Initializing system from file...")
         with self.app.app_context():
+            clear_database()
             session: Session = self.db.session  # Get the SQLAlchemy session
             try:
-                clear_database()
+                from backend.business.market import MarketFacade
+                MarketFacade().clean_data()
+                # MarketFacade().create_admin()
                 with session.begin():  # Start a transaction
                     with open(self.file, 'r') as file:
                         initial_state = json.load(file)
