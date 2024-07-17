@@ -716,7 +716,12 @@ class MarketFacade:
             logger.warning(f"User {user_id} does not have permissions to assign a predicate to a discount")
             raise UserError("User does not have necessary permissions to manage discount",
                             UserErrorTypes.user_does_not_have_necessary_permissions)
-        self.store_facade.assign_predicate_to_discount(discount_id, predicate_properties)
+        try:
+            self.store_facade.assign_predicate_to_discount(discount_id, predicate_properties)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def change_discount_percentage(self, user_id: int, discount_id: int, store_id: int, new_percentage: float) -> None:
         """
@@ -731,7 +736,12 @@ class MarketFacade:
             logger.warning(f"User {user_id} does not have permissions to change the percentage of a discount")
             raise UserError("User does not have necessary permissions to manage discount",
                             UserErrorTypes.user_does_not_have_necessary_permissions)
-        self.store_facade.change_discount_percentage(discount_id, new_percentage)
+        try:
+            self.store_facade.change_discount_percentage(discount_id, new_percentage)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def change_discount_description(self, user_id: int, discount_id: int, store_id: int, new_description: str) -> None:
         """
@@ -746,8 +756,12 @@ class MarketFacade:
             logger.warning(f"User {user_id} does not have permissions to change the description of a discount")
             raise UserError("User does not have necessary permissions to manage discount",
                             UserErrorTypes.user_does_not_have_necessary_permissions)
-
-        self.store_facade.change_discount_description(discount_id, new_description)
+        try:
+            self.store_facade.change_discount_description(discount_id, new_description)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def remove_discount(self, user_id: int, discount_id: int, store_id: int) -> None:
         if self.user_facade.suspended(user_id):
