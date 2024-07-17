@@ -9,8 +9,7 @@ from backend.database import clear_database
 from backend.business import market
 
 class InitialState:
-
-    def __init__(self, app, db, file='services/initial_state.json'):
+    def __init__(self, app, db, file='backend/services/initial_state.json'):
         self.purchase_service = PurchaseService()
         self.store_service = StoreService()
         self.user_service = UserService()
