@@ -1286,7 +1286,20 @@ class PurchaseFacade:
             return False
         raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
 
-    def get_bid_purchases_of_user(self, user_id: int) -> List[dict]:
+    def get_bid_purchases_of_user(self, user_id: int) -> List[BidPurchaseDTO]:
+        """
+        Parameters: userId
+        This function is responsible for returning the bid purchases of the user
+        Returns: list of BidPurchase objects
+        """
+        purchases: List[BidPurchaseDTO] = []
+        for purchase in db.session.query(BidPurchase).all():
+            if isinstance(purchase, BidPurchase):
+                if purchase.user_id == user_id:
+                    purchases.append(BidPurchaseDTO(purchase.purchase_id, purchase.user_id, purchase.proposed_price, purchase.store_id, purchase.product_id, purchase.date_of_purchase, purchase.delivery_date, purchase.is_offer_to_store, purchase.total_price, purchase.status.value, purchase.list_of_store_owners_managers_that_accepted_offer, purchase.user_who_rejected_id))
+        return purchases
+    
+    def view_user_bids(self, user_id) -> List[dict]:
         """
         Parameters: userId
         This function is responsible for returning the bid purchases of the user
@@ -1298,6 +1311,7 @@ class PurchaseFacade:
                 if purchase.user_id == user_id:
                     purchases.append(purchase.get_bid_purchase_dto())
         return purchases
+        
 
     def get_bid_purchases_of_store(self, store_id: int) -> List[dict]:
         """

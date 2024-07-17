@@ -233,6 +233,18 @@ class PurchaseService:
             logger.error('show_user_bids was not successful')
             return jsonify({'message': str(e)}), 400
         
+    def view_user_bids(self, user_id: int):
+        """
+            View user bids
+        """
+        try:
+            info = self.__market_facade.view_user_bids(user_id)
+            logger.info('view_user_bids was successful')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('view_user_bids was not successful')
+            return jsonify({'message': str(e)}), 400
+        
     def show_store_bids(self, store_owner_id: int, store_id: int):
         """
             Show store bids

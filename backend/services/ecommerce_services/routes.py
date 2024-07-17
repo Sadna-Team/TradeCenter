@@ -333,7 +333,7 @@ def store_worker_counter_bid():
 
     return purchase_service.store_worker_counter_bid(store_id, user_id, bid_id, proposed_price)
 
-@market_bp.route('/user_counter_bid_accept', methods=['POST'])
+@market_bp.route('/user_counter_accept', methods=['POST'])
 @jwt_required()
 def user_counter_bid_accept():
     """
@@ -355,7 +355,7 @@ def user_counter_bid_accept():
 
     return purchase_service.user_counter_bid_accept(user_id, bid_id)
 
-@market_bp.route('/user_counter_bid_decline', methods=['POST'])
+@market_bp.route('/user_counter_decline', methods=['POST'])
 @jwt_required()
 def user_counter_bid_decline():
     """
@@ -377,7 +377,7 @@ def user_counter_bid_decline():
 
     return purchase_service.user_counter_bid_decline(user_id, bid_id)
 
-@market_bp.route('/user_counter_bid', methods=['POST'])
+@market_bp.route('/user_counter_offer_bid', methods=['POST'])
 @jwt_required()
 def user_counter_bid():
     """
@@ -401,7 +401,7 @@ def user_counter_bid():
 
     return purchase_service.user_counter_bid(user_id, bid_id, proposed_price)
 
-@market_bp.route('/show_user_bids', methods=['GET', 'POST'])
+@market_bp.route('/get_user_bid', methods=['GET', 'POST'])
 @jwt_required()
 def show_user_bids():
     """
@@ -421,6 +421,25 @@ def show_user_bids():
         return jsonify({'message': str(e)}), 400
 
     return purchase_service.show_user_bids(system_manager_id, user_id)
+
+@market_bp.route('/view_bids_of_user', methods=['GET', 'POST'])
+@jwt_required()
+def view_user_bids():
+    """
+        Use Case:
+        View bids of user
+        
+        Data:
+            user_id (int): id of the user
+    """
+    logger.info('recieved request to view bids of user')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+    except Exception as e:
+        logger.error('view_bids_of_user - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    return purchase_service.view_user_bids(user_id)
 
 
 @market_bp.route('/get_store_bids', methods=['GET', 'POST'])

@@ -1266,7 +1266,7 @@ class MarketFacade:
         logger.info(f"User {user_id} has counter offered a counter bid")
         
     
-    def show_user_bids(self, system_manager_id: int, user_id: int) -> dict:
+    def show_user_bids(self, system_manager_id: int, user_id: int) -> List[BidPurchaseDTO]:
         """
         Parameters: userId
         This function shows the bids of a user
@@ -1278,6 +1278,16 @@ class MarketFacade:
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
         return self.purchase_facade.get_bid_purchases_of_user(user_id)
         
+    def view_user_bids(self, user_id:int) -> dict:
+        """
+        Parameters: userId
+        This function views the bids of a user
+        Returns a list of bids
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        return self.purchase_facade.view_user_bids(user_id)
+    
     def show_store_bids(self, user_id: int, store_id: int) -> dict:
         """
         Parameters: userId, storeId
