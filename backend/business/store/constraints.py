@@ -34,6 +34,10 @@ class Constraint(ABC):
     def get_constraint_info_as_string(self) -> str:
         pass
 
+    @abstractmethod
+    def get_constraint_string(self) -> str:
+        pass
+
 # ------------------------------------ Leaf Classes of Composite: ------------------------------------ #
 
 # --------------- age constraint class ---------------#
@@ -68,6 +72,9 @@ class AgeConstraint(Constraint):
     
     def get_constraint_info_as_string(self) -> str:
         return "Age constraint with age limit: " + str(self.__age_limit)
+    
+    def get_constraint_string(self) -> str:
+        return f"(age, {self.__age_limit})"
 
 # --------------- location constraint class ---------------# 
 class LocationConstraint(Constraint):
@@ -101,7 +108,8 @@ class LocationConstraint(Constraint):
     def get_constraint_info_as_string(self) -> str:
         return "Location constraint with location: " + "address: " + self.__location.address + ", city: " + self.__location.city + ", state: " + self.__location.state + ", country: " + self.__location.country + ", zip code: " + self.__location.zip_code
     
-
+    def get_constraint_string(self) -> str:
+        return f"(location, {self.__location.address}, {self.__location.city}, {self.__location.state}, {self.__location.country}, {self.__location.zip_code})"
 # --------------- time constraint class ---------------#
 class TimeConstraint(Constraint):
     def __init__(self, start_time: time, end_time: time):
@@ -135,7 +143,8 @@ class TimeConstraint(Constraint):
     def get_constraint_info_as_string(self) -> str:
         return "Time constraint with start time: " + str(self.__start_time) + " and end time: " + str(self.__end_time)
     
-
+    def get_constraint_string(self) -> str:
+        return f"(time, {self.__start_time.hour}, {self.__start_time.minute}, {self.__end_time.hour}, {self.__end_time.minute})"
 # --------------- day constraint class ---------------#
 class DayOfMonthConstraint(Constraint):
     def __init__(self, start_day: int, end_day: int):
@@ -173,6 +182,9 @@ class DayOfMonthConstraint(Constraint):
     def get_constraint_info_as_string(self) -> str:
         return "Day of month constraint with start day: " + str(self.__start_day) + " and end day: " + str(self.__end_day)
 
+    def get_constraint_string(self) -> str:
+        return f"(day_of_month, {self.__start_day}, {self.__end_day})"
+
 # --------------- day of week constraint class ---------------#
 class DayOfWeekConstraint(Constraint):
     def __init__(self, start_day: int, end_day: int):
@@ -209,13 +221,19 @@ class DayOfWeekConstraint(Constraint):
     
     def get_constraint_info_as_string(self) -> str:
         return "Day of week constraint with start day: " + str(self.__start_day) + " and end day: " + str(self.__end_day)
+    
+    def get_constraint_string(self) -> str:
+        return f"(day_of_week, {self.__start_day}, {self.__end_day})"
+    
+
+
 
 # --------------- season constraint class ---------------#
 class SeasonConstraint(Constraint):
     def __init__(self, season: str):
         if season not in seasons.keys():
             raise DiscountAndConstraintsError("Season is not valid", DiscountAndConstraintsErrorTypes.invalid_season)
-        
+        self.__season = season
         self.__start_month = seasons[season][1]
         self.__start_day_of_month = seasons[season][0]
         self.__end_month = seasons[season][3]
@@ -269,6 +287,9 @@ class SeasonConstraint(Constraint):
             if value == (self.__start_day_of_month, self.__start_month, self.__end_day_of_month, self.__end_month):
                 season = key
         return "Season constraint of season: " + season
+    
+    def get_constraint_string(self) -> str:
+        return f"(season, {self.__season})"
 
 
 # --------------- holiday constraint class ---------------#
@@ -299,6 +320,9 @@ class HolidaysOfCountryConstraint(Constraint):
     
     def get_constraint_info_as_string(self) -> str:
         return "Holidays of country constraint with country code: " + str(self.__country_code)
+    
+    def get_constraint_string(self) -> str:
+        return f"(holidays_of_country, {self.__country_code})"
     
 # --------------- price basket constraint class ---------------#
 class PriceBasketConstraint(Constraint):
@@ -351,6 +375,9 @@ class PriceBasketConstraint(Constraint):
             return "Price basket constraint with min price: " + str(self.__min_price) + " in store: " + str(self.__store_id)
         return "Price basket constraint with min price: " + str(self.__min_price) + " and max price: " + str(self.__max_price) + " in store: " + str(self.__store_id)
 
+    def get_constraint_string(self) -> str:
+        return f"(price_basket, {self.__min_price}, {self.__max_price}, {self.__store_id})"
+    
 # --------------- price product constraint class  ---------------#
 class PriceProductConstraint(Constraint):
     def __init__(self, min_price: float, max_price: float, product_id: int, store_id: int):
@@ -412,6 +439,9 @@ class PriceProductConstraint(Constraint):
         return "Price product constraint with min price: " + str(self.__min_price) + " and max price: " + str(self.__max_price) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
 
 
+    def get_constraint_string(self) -> str:
+        return f"(price_product, {self.__min_price}, {self.__max_price}, {self.__product_id}, {self.__store_id})"
+    
 # --------------- price category constraint class  ---------------#
 class PriceCategoryConstraint(Constraint):
     def __init__(self, min_price: float, max_price: float, category_id: int):
@@ -470,6 +500,8 @@ class PriceCategoryConstraint(Constraint):
             return "Price category constraint with min price: " + str(self.__min_price) + " of category: " + str(self.__category_id)
         return "Price category constraint with min price: " + str(self.__min_price) + " and max price: " + str(self.__max_price) + " of category: " + str(self.__category_id)
 
+    def get_constraint_string(self) -> str:
+        return f"(price_category, {self.__min_price}, {self.__max_price}, {self.__category_id})"
 
 # --------------- amount basket constraint class  ---------------#
 class AmountBasketConstraint(Constraint):
@@ -524,6 +556,9 @@ class AmountBasketConstraint(Constraint):
             return "Amount basket constraint with min amount: " + str(self.__min_amount) + " in store: " + str(self.__store_id)
         return "Amount basket constraint with min amount: " + str(self.__min_amount) + "and max amount" + str(self.__min_amount) +" in store: " + str(self.__store_id)
 
+    def get_constraint_string(self) -> str:
+        return f"(amount_basket, {self.__min_amount}, {self.__max_amount}, {self.__store_id})"
+    
 # --------------- amount product constraint class  ---------------#
 class AmountProductConstraint(Constraint):
     def __init__(self, min_amount: int, max_amount: int, product_id: int, store_id: int):
@@ -585,6 +620,9 @@ class AmountProductConstraint(Constraint):
             return "Amount product constraint with min amount: " + str(self.__min_amount) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
         return "Amount product constraint with min amount: " + str(self.__min_amount) + " and max amount: " + str(self.__max_amount) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
 
+    def get_constraint_string(self) -> str:
+        return f"(amount_product, {self.__min_amount}, {self.__max_amount}, {self.__product_id}, {self.__store_id})"
+    
 # --------------- amount category constraint class  ---------------#
 class AmountCategoryConstraint(Constraint):
     def __init__(self, min_amount: int, max_amount: int, category_id: int):
@@ -644,6 +682,9 @@ class AmountCategoryConstraint(Constraint):
             return "Amount category constraint with min amount: " + str(self.__min_amount) + " of category: " + str(self.__category_id)
         return "Amount category constraint with min amount: " + str(self.__min_amount) + " and max amount: " + str(self.__max_amount) + " of category: " + str(self.__category_id)
 
+    def get_constraint_string(self) -> str:
+        return f"(amount_category, {self.__min_amount}, {self.__max_amount}, {self.__category_id})"
+    
 # --------------- weight basket constraint class  ---------------#
 class WeightBasketConstraint(Constraint):
     def __init__(self, min_weight: float, max_weight: float, store_id: int):
@@ -698,6 +739,9 @@ class WeightBasketConstraint(Constraint):
             return "Weight basket constraint with min weight: " + str(self.__min_weight) + " in store: " + str(self.__store_id)
         return "Weight basket constraint with min weight: " + str(self.__min_weight) + " and max weight: " + str(self.__max_weight) + " in store: " + str(self.__store_id)
 
+    def get_constraint_string(self) -> str:
+        return f"(weight_basket, {self.__min_weight}, {self.__max_weight}, {self.__store_id})"
+    
 # --------------- weight product constraint class  ---------------#
 class WeightProductConstraint(Constraint):
     def __init__(self, min_weight: float, max_weight: float, product_id: int, store_id: int):
@@ -759,7 +803,9 @@ class WeightProductConstraint(Constraint):
             return "Weight product constraint with min weight: " + str(self.__min_weight) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
         return "Weight product constraint with min weight: " + str(self.__min_weight) + " and max weight: " + str(self.__max_weight) + " of product: " + str(self.__product_id) + " in store: " + str(self.__store_id)
     
-
+    def get_constraint_string(self) -> str:
+        return f"(weight_product, {self.__min_weight}, {self.__max_weight}, {self.__product_id}, {self.__store_id})"
+    
 # --------------- weight category constraint class  ---------------#
 class WeightCategoryConstraint(Constraint):
     def __init__(self, min_weight: float, max_weight: float, category_id: int):
@@ -819,6 +865,9 @@ class WeightCategoryConstraint(Constraint):
         return "Weight category constraint with min weight: " + str(self.__min_weight) + " and max weight: " + str(self.__max_weight) + " of category: " + str(self.__category_id)
 
 
+    def get_constraint_string(self) -> str:
+        return f"(weight_category, {self.__min_weight}, {self.__max_weight}, {self.__category_id})"
+
 # ------------------------------------ Composite Classes of Composite: ------------------------------------ #
 # --------------- And constraint class ---------------#
 class AndConstraint(Constraint):
@@ -850,6 +899,8 @@ class AndConstraint(Constraint):
     def get_constraint_info_as_string(self) -> str:
         return self.__constraint1.get_constraint_info_as_string() + " and " + self.__constraint2.get_constraint_info_as_string()
 
+    def get_constraint_string(self) -> str:
+        return f"(and, {self.__constraint1.get_constraint_string()}, {self.__constraint2.get_constraint_string()})"
 # --------------- Or constraint class ---------------#
 class OrConstraint(Constraint):
     def __init__(self, constraint1: Constraint, constraint2: Constraint):
@@ -880,6 +931,8 @@ class OrConstraint(Constraint):
     def get_constraint_info_as_string(self) -> str:
         return self.__constraint1.get_constraint_info_as_string() + " or " + self.__constraint2.get_constraint_info_as_string()
     
+    def get_constraint_string(self) -> str:
+        return f"(or, {self.__constraint1.get_constraint_string()}, {self.__constraint2.get_constraint_string()})"
 
 # --------------- Xor constraint class ---------------#
 class XorConstraint(Constraint):
@@ -911,6 +964,9 @@ class XorConstraint(Constraint):
     def get_constraint_info_as_string(self) -> str:
         return self.__constraint1.get_constraint_info_as_string() + " xor " + self.__constraint2.get_constraint_info_as_string()
 
+    def get_constraint_string(self) -> str:
+        return f"(xor, {self.__constraint1.get_constraint_string()}, {self.__constraint2.get_constraint_string()})"
+    
 # --------------- Implies constraint class ---------------#
 # this class is used to represent the implication between two constraints, where if the first constraint is satisfied, then the second constraint must be satisfied as well
 class ImpliesConstraint(Constraint):
@@ -942,3 +998,6 @@ class ImpliesConstraint(Constraint):
     def get_constraint_info_as_string(self) -> str:
         return self.__constraint1.get_constraint_info_as_string() + " implies " + self.__constraint2.get_constraint_info_as_string()
     
+
+    def get_constraint_string(self) -> str:
+        return f"(implies, {self.__constraint1.get_constraint_string()}, {self.__constraint2.get_constraint_string()})"
