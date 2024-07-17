@@ -68,6 +68,10 @@ export default function Sidebar({ isOpen, onClose, hasStores, isSystemManager })
       <Link href="/add-store" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
         Add Store
       </Link>
+      <Link href="/user_manage_bids" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
+        View Bids
+      </Link>
+      
       {(showMyStoresLink || hasStores) && (
         <Link href="/my-stores" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
           My Stores
@@ -84,9 +88,11 @@ export default function Sidebar({ isOpen, onClose, hasStores, isSystemManager })
       <Link href="/nominations" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
         Nominations
       </Link>
-      <Link href="/bid-status" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
-        Bid Status
-      </Link>
+      {isSystemManager && (
+        <Link href="/bids-of-system" onClick={onClose} className="py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded">
+        View All Bids
+        </Link>
+        )}
     </div>
   );
 }

@@ -233,10 +233,14 @@ class Notifier:
         * Parameters: user_id: int, message: str
         * This function notifies a user on a new message.
         """
-        if self._authentication.is_logged_in(user_id):
-            self._notify_real_time(user_id, message)
-        else:
-            self._notify_delayed(user_id, message)
+        try:
+            if self._authentication.is_logged_in(user_id):
+                # logger.info(f"send message to user {user_id}")
+                self._notify_real_time(user_id, message)
+            else:
+                self._notify_delayed(user_id, message)
+        except Exception as e:
+            logger.error(f"Failed to send message to user {user_id} with error: {e}")
 
     # Notify and wait for 
 

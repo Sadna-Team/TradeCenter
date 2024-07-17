@@ -131,13 +131,19 @@ class Authentication:
                 db.session.add(AuthenticationModel(blacklisted_token=jti))
             self.blacklist.add(jti)
             self.guests.remove(user_id)
+            UserFacade.remove_user(user_id)
 
     def is_logged_in(self, user_id):
-        return user_id in self.logged_in
+        set = self.logged_in
+        ans = user_id in set
+
+        logger.info(f'User {user_id} is logged in: {ans}')
+        return ans
 
     def get_user_id(self, token):
         decoded = decode_token(token)
         return decoded['sub']
+        
 
     def load_blacklist_from_db(self):
         """

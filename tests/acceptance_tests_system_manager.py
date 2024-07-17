@@ -59,9 +59,10 @@ def admin_token(client, token):
     return data['token']
 
 @pytest.fixture
-def clean():
+def clean(app):
     yield
-    clean_data()
+    with app.app_context():
+        clean_data()
     
 @pytest.fixture
 def client1(app):
