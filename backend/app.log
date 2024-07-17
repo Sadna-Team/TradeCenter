@@ -2,18 +2,34 @@ flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 New Store Logger - INFO - successfully created storeFacade
 myapp - INFO - [PurchaseFacade] successfully created purchase facade object
+Market logger - INFO - Creating admin
+User Logger - INFO - User 0 created
+User Logger - INFO - User 0 added to database
+Market logger - INFO - Admin user was created
 Market logger - INFO - Admin was created
+User Logger - INFO - User 1 created
+User Logger - INFO - User 1 added to database
 myapp - INFO - guest entered the app successfully - user_id: 1
 myapp - INFO - User registered successfully
-Market logger - INFO - User 0 has added user 1 as a system manager
+Market logger - INFO - User 0 has added user 2 as a system manager
+User Logger - INFO - User 2 created
+User Logger - INFO - User 2 added to database
 myapp - INFO - guest entered the app successfully - user_id: 2
 myapp - INFO - User registered successfully
+User Logger - INFO - User 3 created
+User Logger - INFO - User 3 added to database
 myapp - INFO - guest entered the app successfully - user_id: 3
 myapp - INFO - User registered successfully
+User Logger - INFO - User 4 created
+User Logger - INFO - User 4 added to database
 myapp - INFO - guest entered the app successfully - user_id: 4
 myapp - INFO - User registered successfully
+User Logger - INFO - User 5 created
+User Logger - INFO - User 5 added to database
 myapp - INFO - guest entered the app successfully - user_id: 5
 myapp - INFO - User registered successfully
+User Logger - INFO - User 6 created
+User Logger - INFO - User 6 added to database
 myapp - INFO - guest entered the app successfully - user_id: 6
 myapp - INFO - User registered successfully
 myapp - INFO - User logged in successfully
@@ -26,33 +42,12 @@ New Store Logger - INFO - [Product] successfully created product with id: 0
 New Store Logger - INFO - [Store] successfully added product to store with id: 0
 myapp - INFO - product was added successfully
 myapp - INFO - store id was sent successfully
-Market logger - INFO - User 2 has nominated user 3 to be the manager of store 0
+myapp - INFO - User 4 is logged in: False
+myapp - ERROR - Failed to send message to user 4 with error: __init__() missing 1 required positional argument: 'date'
+Market logger - INFO - User 3 has nominated user 4 to be the manager of store 0
 myapp - INFO - store manager was added successfully
-Roles Logger - INFO - User 3 accepted the nomination 0 in store 0
-myapp - INFO - promotion accepted successfully
-Market logger - INFO - User 2 has changed the permissions of user 3 in store 0
-myapp - INFO - manager permissions were edited successfully
-myapp - INFO - store id was sent successfully
-Market logger - INFO - User 2 has nominated user 4 to be the owner of store 0
-myapp - INFO - store owner was added successfully
-Roles Logger - INFO - User 4 accepted the nomination 1 in store 0
-myapp - INFO - promotion accepted successfully
-myapp - INFO - store id was sent successfully
-Market logger - INFO - User 2 has nominated user 5 to be the owner of store 0
-myapp - INFO - store owner was added successfully
-Roles Logger - INFO - User 5 accepted the nomination 2 in store 0
-myapp - INFO - promotion accepted successfully
-myapp - INFO - guest entered the app successfully - user_id: 7
-myapp - INFO - User logged out successfully
-myapp - INFO - Guest logged out successfully
-myapp - INFO - Guest logged out successfully
-myapp - INFO - Guest logged out successfully
-myapp - INFO - Guest logged out successfully
-myapp - INFO - Guest logged out successfully
-backend - INFO - Starting app...
-werkzeug - WARNING - Werkzeug appears to be used in a production deployment. Consider switching to a production web server instead.
+myapp - ERROR - accept_promotion - Nominee id does not match the nomination
 werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:5000
  * Running on http://10.100.102.18:5000
 werkzeug - INFO - [33mPress CTRL+C to quit[0m

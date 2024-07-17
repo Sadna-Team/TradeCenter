@@ -54,7 +54,9 @@ class MarketFacade:
         logger.info("test notification sent")
 
     def __create_admin(self, currency: str = "USD") -> None:
+        logger.info(f"Creating admin")
         man_id = self.user_facade.create_user(currency)
+        logger.info(f"Admin user was created")
         hashed_password = self.auth_facade.hash_password("admin")
         self.user_facade.register_user(man_id, "admin@admin.com", "admin", hashed_password,
                                        2000, 1, 1, "123456789")
@@ -112,9 +114,13 @@ class MarketFacade:
         self.clean_data()
 
         # users:
+        print("creating user 1")
         uid1 = self.user_facade.create_user("USD")
+        print("creating user 2")
         uid2 = self.user_facade.create_user("USD")
+        print("creating user 3")
         uid3 = self.user_facade.create_user("USD")
+        print("creating user 4")
         uid4 = self.user_facade.create_user("USD")
 
         uc1 = {
@@ -390,6 +396,7 @@ class MarketFacade:
                                            f" {store_id}. nomination id: {nomination_id} ",
                                        datetime.now())
         self.notifier.notify_general_message(new_manager_id, notification.get_message())
+        # logger.info("\n\naaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n\naaaaaaaaaaaaaaaaaaaaaaaa\n\naaaaaaaaaaaaaaaaaaaaaaaa\n\n")
 
         logger.info(f"User {owner_id} has nominated user {new_manager_id} to be the manager of store {store_id}")
 
@@ -478,7 +485,7 @@ class MarketFacade:
     def add_system_manager(self, actor: int, username: str):
         if self.user_facade.suspended(actor):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-
+        
         user_id = self.user_facade.get_user_id_from_username(username)
         if self.user_facade.suspended(user_id):
             raise UserError("New wanted system manager is suspended", UserErrorTypes.user_suspended)
