@@ -1,139 +1,179 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta
 from typing import Dict, List, Optional
 from threading import Lock
 from backend.business.notifier.notifier import Notifier
 from backend.error_types import *
+from backend.database import db
+from sqlalchemy.ext.declarative import declared_attr
 from backend.business.DTOs import RoleNominationDTO, UserDTO
+import sqlalchemy.exc
 
 import logging
 
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
-                     format='%(name)s - %(levelname)s - %(message)s')
+                    format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Roles Logger")
 
-class Permissions:
-    def __init__(self):
-        self.__add_product: bool = False
-        self.__change_purchase_policy: bool = False
-        self.__change_purchase_types: bool = False
-        self.__change_discount_policy: bool = False
-        self.__change_discount_types: bool = False
-        self.__add_manager: bool = False
-        self.__get_bid: bool = False
+class Permissions(db.Model):
+    __tablename__ = 'permissions'
 
-    @property
-    def add_product(self) -> bool:
-        return self.__add_product
+    store_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, primary_key=True)
+    add_product = db.Column(db.Boolean, nullable=False, default=False)
+    change_purchase_policy = db.Column(db.Boolean, nullable=False, default=False)
+    change_purchase_types = db.Column(db.Boolean, nullable=False, default=False)
+    change_discount_policy = db.Column(db.Boolean, nullable=False, default=False)
+    change_discount_types = db.Column(db.Boolean, nullable=False, default=False)
+    add_manager = db.Column(db.Boolean, nullable=False, default=False)
+    get_bid = db.Column(db.Boolean, nullable=False, default=False)
 
-    @property
-    def change_purchase_policy(self) -> bool:
-        return self.__change_purchase_policy
-
-    @property
-    def change_purchase_types(self) -> bool:
-        return self.__change_purchase_types
-
-    @property
-    def change_discount_policy(self) -> bool:
-        return self.__change_discount_policy
-
-    @property
-    def change_discount_types(self) -> bool:
-        return self.__change_discount_types
-
-    @property
-    def add_manager(self) -> bool:
-        return self.__add_manager
-
-    @property
-    def get_bid(self) -> bool:
-        return self.__get_bid
+    def __init__(self, store_id, user_id):
+        self.store_id = store_id
+        self.user_id = user_id
+        self.add_product = False
+        self.change_purchase_policy = False
+        self.change_purchase_types = False
+        self.change_discount_policy = False
+        self.change_discount_types = False
+        self.add_manager = False
+        self.get_bid = False
 
     def set_permissions(self, add_product: bool, change_purchase_policy: bool, change_purchase_types: bool,
-                        change_discount_policy: bool, change_discount_types: bool, add_manager: bool,
-                        get_bid: bool) -> None:
-        self.__add_product = add_product
-        self.__change_purchase_policy = change_purchase_policy
-        self.__change_purchase_types = change_purchase_types
-        self.__change_discount_policy = change_discount_policy
-        self.__change_discount_types = change_discount_types
-        self.__add_manager = add_manager
-        self.__get_bid = get_bid
+                        change_discount_policy: bool, change_discount_types: bool, add_manager: bool, get_bid: bool):
+        self.add_product = add_product
+        self.change_purchase_policy = change_purchase_policy
+        self.change_purchase_types = change_purchase_types
+        self.change_discount_policy = change_discount_policy
+        self.change_discount_types = change_discount_types
+        self.add_manager = add_manager
+        self.get_bid = get_bid
 
+class AbstractBaseModel(db.Model):
+    __abstract__ = True
+    __metaclass__ = ABCMeta
 
-class StoreRole(ABC):
-    @abstractmethod
-    def __init__(self):
-        pass
+    @declared_attr
+    def store_id(cls):
+        return db.Column(db.Integer, primary_key=True)
+
+    @declared_attr
+    def user_id(cls):
+        return db.Column(db.Integer, primary_key=True)
+
+class StoreRole(AbstractBaseModel):
+    __tablename__ = 'store_roles'
+
+    type = db.Column(db.String(50))
+
+    __mapper_args__ = {
+        'polymorphic_on': type,
+        'polymorphic_identity': 'store_role'
+    }
+
+    def __init__(self, store_id, user_id):
+        self.store_id = store_id
+        self.user_id = user_id
 
     def __str__(self):
         return self.__class__.__name__
 
-
 class StoreOwner(StoreRole):
-    def __init__(self):
-        super().__init__()
+    __tablename__ = 'store_owners'
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'store_owner',
+        'inherit_condition': (
+            (StoreRole.store_id == db.column('store_owners.store_id')) &
+            (StoreRole.user_id == db.column('store_owners.user_id'))
+        )
+    }
+
+    def __init__(self, store_id, user_id):
+        super().__init__(store_id, user_id)
 
     def __str__(self):
         return "StoreOwner"
 
-
 class StoreManager(StoreRole):
-    def __init__(self):
-        self.__permissions: Permissions = Permissions()
+    __tablename__ = 'store_managers'
 
-    @property
-    def permissions(self) -> Permissions:
-        return self.__permissions
+    __mapper_args__ = {
+        'polymorphic_identity': 'store_manager',
+        'inherit_condition': (
+            (StoreRole.store_id == db.column('store_managers.store_id')) &
+            (StoreRole.user_id == db.column('store_managers.user_id'))
+        )
+    }
+
+    def __init__(self, store_id, user_id):
+        super().__init__(store_id, user_id)
+        self.permissions = Permissions(store_id, user_id)
 
     def __str__(self):
         return "StoreManager"
 
-
-class Nomination:
+class Nomination(db.Model):
+    __tablename__ = 'nominations'
     __nomination_id_serializer = 0
 
+    nomination_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    store_id = db.Column(db.Integer, nullable=False)
+    nominator_id = db.Column(db.Integer, nullable=False)
+    nominee_id = db.Column(db.Integer, nullable=False)
+    role_store_id = db.Column(db.Integer, nullable=False)
+    role_user_id = db.Column(db.Integer, nullable=False)
+    role_type = db.Column(db.String(50), nullable=False)
+
     def __init__(self, store_id, nominator_id: int, nominee_id: int, role: StoreRole):
-        self.__nomination_id = Nomination.__nomination_id_serializer
+        self.nomination_id = Nomination.__nomination_id_serializer
         Nomination.__nomination_id_serializer += 1
-        self.__store_id: int = store_id
-        self.__nominator_id: int = nominator_id
-        self.__nominee_id: int = nominee_id
-        self.__role: StoreRole = role
+        self.store_id = store_id
+        self.nominator_id = nominator_id
+        self.nominee_id = nominee_id
+        self.role_store_id = role.store_id
+        self.role_user_id = role.user_id
+        self.role_type = role.type
+        self.role = role
 
-    @property
-    def nomination_id(self) -> int:
-        return self.__nomination_id
+    @classmethod
+    def get_max_nomination_id(cls):
+        max_id = db.session.query(db.func.max(cls.nomination_id)).scalar()
+        return max_id if max_id is not None else 0
 
-    @property
-    def store_id(self) -> int:
-        return self.__store_id
+    # when loading from db, the role is not stored in the db, so we need to set it manually
+    def set_role(self, role: StoreRole):
+        self.role = role
 
-    @property
-    def nominator_id(self) -> int:
-        return self.__nominator_id
 
-    @property
-    def nominee_id(self) -> int:
-        return self.__nominee_id
+class TreeNode(db.Model):
+    __tablename__ = 'tree_nodes'
 
-    @property
-    def role(self) -> StoreRole:
-        return self.__role
+    data = db.Column(db.Integer, nullable=False, primary_key=True)
+    store_id = db.Column(db.Integer, nullable=False, primary_key=True)
+    parent_id = db.Column(db.Integer, nullable=True)
+    is_root = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __init__(self, data: int, store_id: int, parent_id: Optional[int] = None, is_root: bool = False):
+        self.data = data
+        self.store_id = store_id
+        self.parent_id = parent_id
+        self.is_root = is_root
+
 
 
 class Node:
-    def __init__(self, data):
+    def __init__(self, data, store_tree_id=None, parent_id=None):
         self.__data: int = data
         self.children: List[Node] = []
+        self.store_tree_id = store_tree_id
+        self.parent_id = parent_id
 
     def add_child(self, child: int) -> None:
-        self.children.append(Node(child))
+        self.children.append(Node(child, self.store_tree_id, self.__data))
 
     @property
     def data(self) -> int:
         return self.__data
-
 
 class Tree:
     def __init__(self, root: Node) -> None:
@@ -169,7 +209,6 @@ class Tree:
                 return found
         return None
 
-    # remove all children of the node with the given user_id and return a list of the removed children
     def remove_node(self, user_id: int) -> List[int]:
         removed = []
         removed_node = self.__find_node(self.__root, user_id)
@@ -194,9 +233,31 @@ class Tree:
             else:
                 self.__trim_tree(child, data)
 
+    @staticmethod
+    def from_db(store_id: int) -> 'Tree':
+        root_node = db.session.query(TreeNode).filter_by(store_id=store_id, is_root=True).one_or_none()
+        if not root_node:
+            raise StoreError(f"No root node found for store_id: {store_id}", StoreErrorTypes.store_not_found)
+        root = Node(root_node.data, root_node.store_id, root_node.parent_id)
+        tree = Tree(root)
+        Tree.__load_children(root)
+        return tree
+
+    @staticmethod
+    def __load_children(node: Node) -> None:
+        child_nodes = db.session.query(TreeNode).filter_by(parent_id=node.data).all()
+        for child_node in child_nodes:
+            child = Node(child_node.data, child_node.store_id, child_node.parent_id)
+            node.add_child(child.data)
+            Tree.__load_children(child)
+
+class SystemManagerModel(db.Model):
+    __tablename__ = 'system_managers'
+
+    user_id = db.Column(db.Integer, primary_key=True)
+    is_admin = db.Column(db.Boolean, nullable=False)
 
 class RolesFacade:
-    # singleton
     __instance = None
 
     def __new__(cls):
@@ -207,371 +268,517 @@ class RolesFacade:
     def __init__(self):
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.__stores_to_role_tree: Dict[int, Tree] = {}  # Dict[store_id, Tree[user_id]]
-            self.__stores_to_roles: Dict[int, Dict[int, StoreRole]] = {}  # Dict[store_id, Dict[user_id, StoreRole]]
-            self.__systems_nominations: Dict[int, Nomination] = {}
-            self.__system_managers: List[int] = []
-            self.__system_admin: int = -1
             self.__notifier = Notifier()
-            Nomination._Nomination__nomination_id_serializer = 0
+
+            Nomination.__nomination_id_serializer = Nomination.get_max_nomination_id() + 1
 
             self.__creation_lock = Lock()
-            self.__stores_locks: Dict[int, Lock] = {}  # Dict[store_id, Lock]
+            self.__stores_locks: Dict[int, Lock] = {}
             self.__system_managers_lock = Lock()
 
+    def __load_trees_from_db(self) -> Dict[int, Tree]:
+        trees = {}
+        root_nodes = db.session.query(TreeNode).filter_by(is_root=True).all()
+        for root_node in root_nodes:
+            trees[root_node.store_id] = Tree.from_db(root_node.store_id)
+        return trees
+
+    def __load_roles_from_db(self) -> Dict[int, Dict[int, StoreRole]]:
+        roles = {}
+        store_roles = db.session.query(StoreRole).all()
+
+        for store_role in store_roles:
+            store_id = store_role.store_id
+            if store_id not in roles:
+                roles[store_id] = {}
+
+            if store_role.type == 'store_owner':
+                roles[store_id][store_role.user_id] = StoreOwner(store_id=store_id, user_id=store_role.user_id)
+            elif store_role.type == 'store_manager':
+                manager = StoreManager(store_id=store_id, user_id=store_role.user_id)
+                roles[store_id][store_role.user_id] = manager
+
+        return roles
+
+    def __load_nominations_from_db(self) -> Dict[int, Nomination]:
+        nominations = {}
+        db_nominations = db.session.query(Nomination).all()
+        for db_nomination in db_nominations:
+            if db_nomination.role_type == 'store_owner':
+                role = StoreOwner(store_id=db_nomination.store_id, user_id=db_nomination.nominee_id)
+            else:
+                role = StoreManager(store_id=db_nomination.store_id, user_id=db_nomination.nominee_id)
+
+            nomination = Nomination(
+                store_id=db_nomination.store_id,
+                nominator_id=db_nomination.nominator_id,
+                nominee_id=db_nomination.nominee_id,
+                role=role
+            )
+            nominations[db_nomination.nomination_id] = nomination
+        return nominations
+
+    def __load_system_managers_from_db(self) -> List[int]:
+        managers = db.session.query(SystemManagerModel).all()
+        return [manager.user_id for manager in managers]
+
+    def __load_system_admin_from_db(self) -> int:
+        admin = db.session.query(SystemManagerModel).filter_by(is_admin=True).one_or_none()
+        if admin is None:
+            return -1
+        return admin.user_id
+
     def clean_data(self):
-        """
-        For testing purposes only
-        """
-        self.__stores_to_role_tree.clear()
-        self.__stores_to_roles.clear()
-        self.__systems_nominations.clear()
-        self.__system_managers.clear()
-        self.__system_admin = -1
-        Nomination._Nomination__nomination_id_serializer = 0
-        self.__notifier.clean_data()
+        from backend.app import app
+        with app.app_context():
+            db.session.query(Permissions).delete()
+            db.session.query(StoreOwner).delete()
+            db.session.query(StoreManager).delete()
+            db.session.query(TreeNode).delete()
+            db.session.query(StoreRole).delete()
+            db.session.query(Nomination).delete()
+            db.session.query(SystemManagerModel).delete()
+            db.session.commit()
 
     def add_store(self, store_id: int, owner_id: int) -> None:
-        """
-        Add the first owner to the store roles (the store is already created)
-        Called in the market facade
-        """
-        if store_id in self.__stores_to_roles:
-            raise RoleError("Store already exists",RoleErrorTypes.store_already_exists)
-        self.__stores_to_roles[store_id] = {owner_id: StoreOwner()}
-        self.__stores_to_role_tree[store_id] = Tree(Node(owner_id))
-        self.__stores_locks[store_id] = Lock()
-        self.__notifier.sign_listener(owner_id, store_id)
+        from flask import current_app as app
+        with app.app_context():
+            if db.session.query(TreeNode).filter_by(store_id=store_id, is_root=True).first():
+                raise RoleError("Store already exists", RoleErrorTypes.store_already_exists)
 
+            # Create root node for the store tree
+            root_node = TreeNode(data=owner_id, store_id=store_id, is_root=True)
+
+            # Add the root node to the session and commit
+            db.session.add(root_node)
+            db.session.commit()
+
+            # Add store owner role and commit to database
+            store_owner = StoreOwner(store_id=store_id, user_id=owner_id)
+            db.session.add(store_owner)
+            db.session.commit()
+
+            # Initialize store lock
+            self.__stores_locks[store_id] = Lock()
+
+            self.__notifier.sign_listener(owner_id, store_id)
 
     def remove_store(self, store_id: int, actor_id: int) -> None:
-        if store_id not in self.__stores_to_roles:
-            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
-        if actor_id not in self.__stores_to_roles[store_id]:
-            raise RoleError('Actor is not a member of the store',RoleErrorTypes.user_not_member_of_store)
-        if not self.__stores_to_role_tree[store_id].is_root(actor_id):
-            raise RoleError('Actor is not the root owner of the store',RoleErrorTypes.actor_not_founder)
-        del self.__stores_to_roles[store_id]
-        del self.__stores_to_role_tree[store_id]
-        # remove all nominations in closed store
-        for nomination_id, nomination in self.__systems_nominations.items():
-            if nomination.store_id == store_id:
-                del self.__systems_nominations[nomination_id]
+        if not db.session.query(StoreRole).filter_by(store_id=store_id).first():
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
+        if not db.session.query(StoreRole).filter_by(store_id=store_id, user_id=actor_id).first():
+            raise RoleError('Actor is not a member of the store', RoleErrorTypes.user_not_member_of_store)
+        if not self.is_root(store_id, actor_id):
+            raise RoleError('Actor is not the root owner of the store', RoleErrorTypes.actor_not_founder)
 
+        # Remove from database
+        db.session.query(TreeNode).filter(TreeNode.store_id == store_id).delete()
+        db.session.commit()
 
+        db.session.query(StoreRole).filter(StoreRole.store_id == store_id).delete()
+        db.session.commit()
+
+        self.__stores_locks.pop(store_id, None)
 
     def nominate_owner(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
         with self.__stores_locks[store_id]:
             self.__check_nomination_validation(store_id, nominator_id, nominee_id)
-            # check that nominator is an owner
-            if not isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner):
-                raise RoleError("Nominator is not an owner",RoleErrorTypes.nominator_not_owner)
-            nomination = Nomination(store_id, nominator_id, nominee_id, StoreOwner())
-            self.__systems_nominations[nomination.nomination_id] = nomination
+            if not isinstance(self.get_role(store_id, nominator_id), StoreOwner):
+                raise RoleError("Nominator is not an owner", RoleErrorTypes.nominator_not_owner)
+
+            nomination = Nomination(store_id, nominator_id, nominee_id, StoreOwner(store_id, nominee_id))
+
+            # Save to database
+            db.session.add(nomination)
+            db.session.commit()
+
             return nomination.nomination_id
 
     def nominate_manager(self, store_id: int, nominator_id: int, nominee_id: int) -> int:
         with self.__stores_locks[store_id]:
             self.__check_nomination_validation(store_id, nominator_id, nominee_id)
-            # check that nominator is an owner or that he is a manager with permissions to add a manager
             if not self.__authorized_to_add_manager(store_id, nominator_id):
-                raise RoleError("Nominator is not authorized to nominate a manager",RoleErrorTypes.nominator_cant_nominate_manager)
-            nomination = Nomination(store_id, nominator_id, nominee_id, StoreManager())
-            self.__systems_nominations[nomination.nomination_id] = nomination
+                raise RoleError("Nominator is not authorized to nominate a manager",
+                                RoleErrorTypes.nominator_cant_nominate_manager)
+
+            nomination = Nomination(store_id, nominator_id, nominee_id, StoreManager(store_id, nominee_id))
+
+            # Save to database
+            db.session.add(nomination)
+            db.session.commit()
+
             return nomination.nomination_id
 
     def __authorized_to_add_manager(self, store_id: int, nominator_id: int) -> bool:
-        return isinstance(self.__stores_to_roles[store_id][nominator_id], StoreOwner) or \
-            (isinstance(self.__stores_to_roles[store_id][nominator_id], StoreManager) and
-             self.__stores_to_roles[store_id][nominator_id].permissions.add_manager)
+        role = self.get_role(store_id, nominator_id)
+        return isinstance(role, StoreOwner) or (isinstance(role, StoreManager) and role.permissions.add_manager)
 
     def __check_nomination_validation(self, store_id: int, nominator_id: int, nominee_id: int) -> None:
-        if store_id not in self.__stores_to_roles:
-            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
-        if nominator_id not in self.__stores_to_roles[store_id]:
-            raise RoleError("Nominator is not a member of the store",RoleErrorTypes.nominator_not_member_of_store)
-        if nominee_id in self.__stores_to_roles[store_id]:
-            raise RoleError("Nominee is already a member of the store",RoleErrorTypes.nominee_already_exists_in_store)
+        if not db.session.query(StoreRole).filter_by(store_id=store_id).first():
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
+        if not db.session.query(StoreRole).filter_by(store_id=store_id, user_id=nominator_id).first():
+            raise RoleError("Nominator is not a member of the store", RoleErrorTypes.nominator_not_member_of_store)
+        if db.session.query(StoreRole).filter_by(store_id=store_id, user_id=nominee_id).first():
+            raise RoleError("Nominee is already a member of the store", RoleErrorTypes.nominee_already_exists_in_store)
 
     def accept_nomination(self, nomination_id: int, nominee_id: int) -> None:
-
-        if nomination_id not in self.__systems_nominations.keys():
-            raise RoleError(f"Nomination does not exist - given id - {nomination_id}, {type(nomination_id)}",RoleErrorTypes.nomination_does_not_exist)
-        nomination = self.__systems_nominations[nomination_id]
+        nomination = db.session.query(Nomination).filter_by(nomination_id=nomination_id).one_or_none()
+        if not nomination:
+            raise RoleError(f"Nomination does not exist - given id - {nomination_id}",
+                            RoleErrorTypes.nomination_does_not_exist)
         if nominee_id != nomination.nominee_id:
-            raise RoleError("Nominee id does not match the nomination",RoleErrorTypes.nominee_id_error)
-        self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
-        self.__stores_to_role_tree[nomination.store_id].add_child_to_father(nomination.nominator_id, nominee_id)
-        # add role to the store
-        self.__stores_to_roles[nomination.store_id][nominee_id] = nomination.role
-        self.__notifier.sign_listener(nominee_id, nomination.store_id)
+            raise RoleError("Nominee id does not match the nomination", RoleErrorTypes.nominee_id_error)
+        role_type = nomination.role_type
 
-        # delete all nominations of the nominee in the store
-        for n_id, nomination in self.__systems_nominations.copy().items():
-            if nomination.nominee_id == nominee_id and nomination.store_id == nomination.store_id:
-                del self.__systems_nominations[n_id]
-        logger.info(f"User {nominee_id} accepted the nomination {nomination_id} in store {nomination.store_id}")
+        self.__stores_locks.setdefault(nomination.store_id, Lock())
+        with self.__stores_locks[nomination.store_id]:
 
+            if role_type == 'store_owner':
+                if db.session.query(StoreRole).filter_by(store_id=nomination.store_id, user_id=nominee_id).first():
+                    raise RoleError("Nominee is already a member of the store",
+                                    RoleErrorTypes.nominee_already_exists_in_store)
+                role = StoreOwner(store_id=nomination.store_id, user_id=nominee_id)
+            else:
+                if db.session.query(StoreRole).filter_by(store_id=nomination.store_id, user_id=nominee_id).first():
+                    raise RoleError("Nominee is already a member of the store",
+                                    RoleErrorTypes.nominee_already_exists_in_store)
+                role = StoreManager(store_id=nomination.store_id, user_id=nominee_id)
+                db.session.add(role.permissions)
+                db.session.commit()
+            db.session.add(role)
+            db.session.commit()
+
+            # Add the user to the store tree
+            treeNode = TreeNode(data=nominee_id, store_id=nomination.store_id, parent_id=nomination.nominator_id)
+            db.session.add(treeNode)
+            db.session.commit()
+
+            self.__notifier.sign_listener(nominee_id, nomination.store_id)
+
+            # Delete all nominations of the nominee in the store
+            db.session.query(Nomination).filter_by(store_id=nomination.store_id, nominee_id=nominee_id).delete()
+            db.session.commit()
+            logger.info(f"User {nominee_id} accepted the nomination {nomination_id} in store {nomination.store_id}")
 
     def decline_nomination(self, nomination_id: int, nominee_id) -> None:
-        if nomination_id not in self.__systems_nominations:
-            raise RoleError("Nomination does not exist",RoleErrorTypes.nomination_does_not_exist)
-        nomination = self.__systems_nominations[nomination_id]
+        nomination = db.session.query(Nomination).filter_by(nomination_id=nomination_id).one_or_none()
+        if not nomination:
+            raise RoleError("Nomination does not exist", RoleErrorTypes.nomination_does_not_exist)
         if nominee_id != nomination.nominee_id:
-            raise RoleError("Nominee id does not match the nomination",RoleErrorTypes.nominee_id_error)
-        del self.__systems_nominations[nomination_id]
+            raise RoleError("Nominee id does not match the nomination", RoleErrorTypes.nominee_id_error)
+
+        db.session.query(Nomination).filter_by(nomination_id=nomination_id).delete()
+        db.session.commit()
+
         logger.info(f"User {nominee_id} declined the nomination {nomination_id} in store {nomination.store_id}")
 
     def set_manager_permissions(self, store_id: int, actor_id: int, manager_id: int, add_product: bool,
                                 change_purchase_policy: bool, change_purchase_types: bool, change_discount_policy: bool,
                                 change_discount_types: bool, add_manager: bool, get_bid: bool) -> None:
-        '''
-        Actor_id is the owner/manager of the store and tries to change the permissions of the manager_id '''
-
         with self.__stores_locks[store_id]:
-            if store_id not in self.__stores_to_roles:
-                raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
-            if manager_id not in self.__stores_to_roles[store_id]:
-                raise RoleError("Manager is not a member of the store",RoleErrorTypes.manager_not_member_of_store)
-            if not isinstance(self.__stores_to_roles[store_id][manager_id], StoreManager):
-                raise RoleError("User is not a manager",RoleErrorTypes.user_not_manager)
-            if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, manager_id):
-                raise RoleError("Actor is not an owner of the manager",RoleErrorTypes.actor_is_not_owner_of_manager)
-            (self.__stores_to_roles[store_id][manager_id].permissions
-             .set_permissions(add_product, change_purchase_policy, change_purchase_types, change_discount_policy,
-                              change_discount_types, add_manager, get_bid))
+            if not db.session.query(StoreRole).filter_by(store_id=store_id).first():
+                raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
+            if not db.session.query(StoreRole).filter_by(store_id=store_id, user_id=manager_id).first():
+                raise RoleError("Manager is not a member of the store", RoleErrorTypes.manager_not_member_of_store)
+            if not isinstance(self.get_role(store_id, manager_id), StoreManager):
+                raise RoleError("User is not a manager", RoleErrorTypes.user_not_manager)
+            if not self.is_descendant(store_id, actor_id, manager_id):
+                raise RoleError("Actor is not an owner of the manager", RoleErrorTypes.actor_is_not_owner_of_manager)
+
+            permissions_model = db.session.query(Permissions).filter_by(store_id=store_id, user_id=manager_id).one_or_none()
+            if permissions_model is None:
+                permissions_model = Permissions(store_id, manager_id)
+                db.session.add(permissions_model)
+
+            permissions_model.set_permissions(add_product, change_purchase_policy, change_purchase_types,
+                                              change_discount_policy, change_discount_types, add_manager, get_bid)
+
+            db.session.commit()
 
     def remove_role(self, store_id: int, actor_id: int, removed_id: int) -> None:
         with self.__stores_locks[store_id]:
-            if store_id not in self.__stores_to_roles:
-                raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
-            if removed_id not in self.__stores_to_roles[store_id]:
-                raise RoleError("Removed user is not a member of the store",RoleErrorTypes.user_not_member_of_store)
+            if not db.session.query(StoreRole).filter_by(store_id=store_id).first():
+                raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
+            if not db.session.query(StoreRole).filter_by(store_id=store_id, user_id=removed_id).first():
+                raise RoleError("Removed user is not a member of the store", RoleErrorTypes.user_not_member_of_store)
             if not self.__authorized_to_add_manager(store_id, actor_id) and actor_id != removed_id:
-                raise RoleError("Actor is not authorized to remove a role",RoleErrorTypes.actor_not_authorized_to_remove_role)
-            if not self.__stores_to_role_tree[store_id].is_descendant(actor_id, removed_id):
-                raise RoleError("Actor is not an ancestor of the removed user",RoleErrorTypes.actor_not_ancestor_of_role)
-            if self.__stores_to_role_tree[store_id].is_root(removed_id):
-                raise RoleError("Cannot remove the root owner of the store",RoleErrorTypes.cant_remove_founder)
-            # self.__notifier.notify_removed_management_position(store_id, removed_id)
-            removed = self.__stores_to_role_tree[store_id].remove_node(removed_id)
+                raise RoleError("Actor is not authorized to remove a role",
+                                RoleErrorTypes.actor_not_authorized_to_remove_role)
+            if not self.is_descendant(store_id, actor_id, removed_id):
+                raise RoleError("Actor is not an ancestor of the removed user",
+                                RoleErrorTypes.actor_not_ancestor_of_role)
+            if self.is_root(store_id, removed_id):
+                raise RoleError("Cannot remove the root owner of the store", RoleErrorTypes.cant_remove_founder)
 
-            for user_id in removed:
+            removed_nodes = self.remove_node(store_id, removed_id)
+            for user_id in removed_nodes:
                 self.__notifier.notify_removed_management_position(store_id, user_id)
                 self.__notifier.unsign_listener(user_id, store_id)
-                del self.__stores_to_roles[store_id][user_id]
+                db.session.query(StoreRole).filter_by(store_id=store_id, user_id=user_id).delete()
+                db.session.query(Permissions).filter_by(store_id=store_id, user_id=user_id).delete()
+            db.session.commit()
 
-    def get_employees_info(self, store_id: int, actor_id: int) -> Dict[int, str]:  # Dict[user_id, role]
-        with self.__stores_locks[store_id]:
-            if store_id not in self.__stores_to_roles:
-                raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
-            if actor_id not in self.__stores_to_roles[store_id]:
-                raise RoleError("Actor is not a member of the store",RoleErrorTypes.actor_not_member_of_store)
-            employees = {}
-            for user_id, role in self.__stores_to_roles[store_id].items():
-                employees[user_id] = role.__str__()
+    def get_employees_info(self, store_id: int, actor_id: int) -> Dict[int, str]:
+        if not db.session.query(StoreRole).filter_by(store_id=store_id).first():
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
+        if not db.session.query(StoreRole).filter_by(store_id=store_id, user_id=actor_id).first():
+            raise RoleError("Actor is not a member of the store", RoleErrorTypes.actor_not_member_of_store)
 
-            return employees
+        employees = {}
+        roles = db.session.query(StoreRole).filter_by(store_id=store_id).all()
+        for role in roles:
+            employees[role.user_id] = role.__str__()
+        return employees
 
     def is_system_manager(self, user_id: int) -> bool:
-        return user_id in self.__system_managers
+        return db.session.query(SystemManagerModel).filter_by(user_id=user_id).first() is not None
 
     def add_system_manager(self, actor: int, user_id: int) -> None:
-        """
-        if Actor is a system manager, he adds a new system manager
-        """
         with self.__system_managers_lock:
             if not self.is_system_manager(actor):
-                raise RoleError("Actor is not a system manager",RoleErrorTypes.actor_not_system_manager)
-            self.__system_managers.append(user_id)
+                raise RoleError("Actor is not a system manager", RoleErrorTypes.actor_not_system_manager)
+            if self.is_system_manager(user_id):
+                return
+            system_manager_model = SystemManagerModel(user_id=user_id, is_admin=False)
+            db.session.add(system_manager_model)
+            db.session.commit()
 
     def remove_system_manager(self, actor: int, user_id: int) -> None:
         with self.__system_managers_lock:
-            if user_id == self.__system_admin:
-                raise RoleError("Cannot remove the system admin",RoleErrorTypes.cant_remove_system_admin)
+            if self.__load_system_admin_from_db() == user_id:
+                raise RoleError("Cannot remove the system admin", RoleErrorTypes.cant_remove_system_admin)
             if not self.is_system_manager(actor):
-                raise RoleError("Actor is not a system manager",RoleErrorTypes.actor_not_system_manager)
-            if user_id not in self.__system_managers:
-                raise RoleError("User is not a system manager",RoleErrorTypes.user_not_system_manager)
-            self.__system_managers.remove(user_id)
+                raise RoleError("Actor is not a system manager", RoleErrorTypes.actor_not_system_manager)
+            if not self.is_system_manager(user_id):
+                raise RoleError("User is not a system manager", RoleErrorTypes.user_not_system_manager)
+            db.session.query(SystemManagerModel).filter_by(user_id=user_id).delete()
+            db.session.commit()
 
     def add_admin(self, user_id: int) -> None:
-        """
-        this method should not be called (but the facade initialization)
-        Add the first system manager to the system
-        :return:
-        """
-        self.__system_managers.append(user_id)
-        self.__system_admin = user_id
+        if self.__load_system_admin_from_db() != -1:
+            return
+
+        system_manager_model = SystemManagerModel(user_id=user_id, is_admin=True)
+        db.session.add(system_manager_model)
+        db.session.commit()
 
     def __has_permission(self, store_id: int, user_id: int) -> bool:
-        if store_id not in self.__stores_to_roles:
-            return False
-        if user_id not in self.__stores_to_roles[store_id]:
-            return False
-        if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
+        role = self.get_role(store_id, user_id)
+        if isinstance(role, StoreOwner):
             return True
-        raise RoleError("User is a manager",RoleErrorTypes.user_is_manager)
+        if isinstance(role, StoreManager):
+            return False
+        raise RoleError("Invalid role type", RoleErrorTypes.invalid_role)
 
     def has_add_product_permission(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
             try:
                 return self.__has_permission(store_id, user_id)
-            except ValueError:
-                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                    return self.__stores_to_roles[store_id][user_id].permissions.add_product
+            except RoleError:
+                role = self.get_role(store_id, user_id)
+                if isinstance(role, StoreManager):
+                    return role.permissions.add_product
                 return False
 
     def has_change_purchase_policy_permission(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
             try:
                 return self.__has_permission(store_id, user_id)
-            except ValueError:
-                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                    return self.__stores_to_roles[store_id][user_id].permissions.change_purchase_policy
+            except RoleError:
+                role = self.get_role(store_id, user_id)
+                if isinstance(role, StoreManager):
+                    return role.permissions.change_purchase_policy
                 return False
 
     def has_change_purchase_types_permission(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
             try:
                 return self.__has_permission(store_id, user_id)
-            except ValueError:
-                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                    return self.__stores_to_roles[store_id][user_id].permissions.change_purchase_types
+            except RoleError:
+                role = self.get_role(store_id, user_id)
+                if isinstance(role, StoreManager):
+                    return role.permissions.change_purchase_types
                 return False
 
     def has_change_discount_policy_permission(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
             try:
                 return self.__has_permission(store_id, user_id)
-            except ValueError:
-                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                    return self.__stores_to_roles[store_id][user_id].permissions.change_discount_policy
+            except RoleError:
+                role = self.get_role(store_id, user_id)
+                if isinstance(role, StoreManager):
+                    return role.permissions.change_discount_policy
                 return False
 
     def has_change_discount_types_permission(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
             try:
                 return self.__has_permission(store_id, user_id)
-            except ValueError:
-                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                    return self.__stores_to_roles[store_id][user_id].permissions.change_discount_types
+            except RoleError:
+                role = self.get_role(store_id, user_id)
+                if isinstance(role, StoreManager):
+                    return role.permissions.change_discount_types
                 return False
 
     def has_add_manager_permission(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
             try:
                 return self.__has_permission(store_id, user_id)
-            except ValueError:
-                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                    return self.__stores_to_roles[store_id][user_id].permissions.add_manager
+            except RoleError:
+                role = self.get_role(store_id, user_id)
+                if isinstance(role, StoreManager):
+                    return role.permissions.add_manager
                 return False
 
     def has_get_bid_permission(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
             try:
                 return self.__has_permission(store_id, user_id)
-            except ValueError:
-                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                    return self.__stores_to_roles[store_id][user_id].permissions.get_bid
+            except RoleError:
+                role = self.get_role(store_id, user_id)
+                if isinstance(role, StoreManager):
+                    return role.permissions.get_bid
                 return False
 
     def is_owner(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
-            if user_id in self.__stores_to_roles[store_id]:
-                if isinstance(self.__stores_to_roles[store_id][user_id], StoreOwner):
-                    return True
-            return False
-       
+            role = self.get_role(store_id, user_id)
+            return isinstance(role, StoreOwner)
 
     def is_manager(self, store_id: int, user_id: int) -> bool:
         with self.__stores_locks[store_id]:
-            if user_id in self.__stores_to_roles[store_id]:
-                if isinstance(self.__stores_to_roles[store_id][user_id], StoreManager):
-                    return True
-            return False
+            role = self.get_role(store_id, user_id)
+            return isinstance(role, StoreManager)
 
-    def get_store_owners(self, store_id: int) -> Dict[int, str]:  # Dict[user_id, role]
+    def get_store_owners(self, store_id: int) -> Dict[int, str]:
         with self.__stores_locks[store_id]:
             owners = {}
-            for user_id, role in self.__stores_to_roles[store_id].items():
-                owners[user_id] = role.__str__()
+            roles = db.session.query(StoreRole).filter_by(store_id=store_id).all()
+            for role in roles:
+                owners[role.user_id] = role.__str__()
             return owners
 
     def get_user_nominations(self, user_id: int) -> Dict[int, RoleNominationDTO]:
         nominations = {}
-        for nomination_id, nomination in self.__systems_nominations.items():
-            if nomination.nominee_id == user_id:
-                nominations[nomination_id] = RoleNominationDTO(nomination_id, nomination.store_id,
-                                                               nomination.nominator_id, nomination.nominee_id,
-                                                               nomination.role.__str__())
+        db_nominations = db.session.query(Nomination).filter_by(nominee_id=user_id).all()
+        for db_nomination in db_nominations:
+            nominations[db_nomination.nomination_id] = RoleNominationDTO(
+                db_nomination.nomination_id,
+                db_nomination.store_id,
+                db_nomination.nominator_id,
+                db_nomination.nominee_id,
+                db_nomination.role.__str__()
+            )
         return nominations
 
     def get_my_stores(self, user_id) -> List[int]:
         stores = []
-        for store_id, roles in self.__stores_to_roles.items():
-            if user_id in roles:
-                stores.append(store_id)
+        roles = db.session.query(StoreRole).filter_by(user_id=user_id).all()
+        for role in roles:
+            stores.append(role.store_id)
         return stores
 
     def get_store_role(self, user_id: int, store_id: int) -> str:
         with self.__stores_locks[store_id]:
-            if user_id in self.__stores_to_roles[store_id]:
-                # if it is the store owner, return ''founder''
-                if self.__stores_to_role_tree[store_id].is_root(user_id):
+            role = db.session.query(StoreRole).filter_by(store_id=store_id, user_id=user_id).one_or_none()
+            if role:
+                if self.is_root(store_id, user_id):
                     return "Founder"
-                return self.__stores_to_roles[store_id][user_id].__str__()
+                return role.__str__()
             return "User is not a member of the store"
 
     def get_user_stores(self, user_id: int) -> List[int]:
         stores = []
-        for store_id, roles in self.__stores_to_roles.items():
-            if user_id in roles:
-                stores.append(store_id)
+        roles = db.session.query(StoreRole).filter_by(user_id=user_id).all()
+        for role in roles:
+            stores.append(role.store_id)
         return stores
 
     def get_user_employees(self, user_id, store_id) -> List[UserDTO]:
-        # check if store exists
-        if store_id not in self.__stores_to_roles:
-            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+        if not db.session.query(StoreRole).filter_by(store_id=store_id).first():
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
         with self.__stores_locks[store_id]:
-            if user_id not in self.__stores_to_roles[store_id]:
+            if not db.session.query(StoreRole).filter_by(store_id=store_id, user_id=user_id).first():
                 raise RoleError("User is not a member of the store", RoleErrorTypes.user_not_member_of_store)
             employees = []
-            # return all users under the user_id
-            for user, role in self.__stores_to_roles[store_id].items():
-                if self.__stores_to_role_tree[store_id].is_descendant(user_id, user) and not user == user_id:
+            roles = db.session.query(StoreRole).filter_by(store_id=store_id).all()
+            for role in roles:
+                if self.is_descendant(store_id, user_id, role.user_id) and user_id != role.user_id:
                     if isinstance(role, StoreOwner):
-                        employees.append(UserDTO(user_id=user, role=role.__str__(), is_owner=True, add_product=True,
-                                                 change_purchase_policy=True, change_purchase_types=True,
-                                                 change_discount_policy=True, change_discount_types=True,
-                                                 add_manager=True, get_bid=True))
+                        employees.append(UserDTO(
+                            user_id=role.user_id,
+                            role=role.__str__(),
+                            is_owner=True,
+                            add_product=True,
+                            change_purchase_policy=True,
+                            change_purchase_types=True,
+                            change_discount_policy=True,
+                            change_discount_types=True,
+                            add_manager=True,
+                            get_bid=True
+                        ))
                     else:
-                        employees.append(UserDTO(user_id=user, role=role.__str__(), is_owner=False,
-                                                 add_product=role.permissions.add_product,
-                                                 change_purchase_policy=role.permissions.change_purchase_policy,
-                                                 change_purchase_types=role.permissions.change_purchase_types,
-                                                 change_discount_policy=role.permissions.change_discount_policy,
-                                                 change_discount_types=role.permissions.change_discount_types,
-                                                 add_manager=role.permissions.add_manager,
-                                                 get_bid=role.permissions.get_bid))
-
+                        employees.append(UserDTO(
+                            user_id=role.user_id,
+                            role=role.__str__(),
+                            is_owner=False,
+                            add_product=role.permissions.add_product,
+                            change_purchase_policy=role.permissions.change_purchase_policy,
+                            change_purchase_types=role.permissions.change_purchase_types,
+                            change_discount_policy=role.permissions.change_discount_policy,
+                            change_discount_types=role.permissions.change_discount_types,
+                            add_manager=role.permissions.add_manager,
+                            get_bid=role.permissions.get_bid
+                        ))
             return employees
 
     def get_employed_users(self, store_id: int) -> List[int]:
-        if store_id not in self.__stores_to_roles:
-            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+        if not db.session.query(StoreRole).filter_by(store_id=store_id).first():
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
         with self.__stores_locks[store_id]:
-            return list(self.__stores_to_roles[store_id].keys())
+            roles = db.session.query(StoreRole).filter_by(store_id=store_id).all()
+            return [role.user_id for role in roles]
 
     def get_bid_owners_managers(self, store_id: int) -> List[int]:
-        if store_id not in self.__stores_to_roles:
-            raise StoreError("Store does not exist",StoreErrorTypes.store_not_found)
+        if not db.session.query(StoreRole).filter_by(store_id=store_id).first():
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
         with self.__stores_locks[store_id]:
             owners_managers = []
-            for user_id, role in self.__stores_to_roles[store_id].items():
+            roles = db.session.query(StoreRole).filter_by(store_id=store_id).all()
+            for role in roles:
                 if isinstance(role, StoreOwner):
-                    owners_managers.append(user_id)
+                    owners_managers.append(role.user_id)
                 elif isinstance(role, StoreManager) and role.permissions.get_bid:
-                    owners_managers.append(user_id)
+                    owners_managers.append(role.user_id)
             return owners_managers
+
+    def get_role(self, store_id: int, user_id: int) -> StoreRole:
+        return db.session.query(StoreRole).filter_by(store_id=store_id, user_id=user_id).one_or_none()
+
+    def get_permissions(self, store_id: int, user_id: int) -> Permissions:
+        return db.session.query(Permissions).filter_by(store_id=store_id, user_id=user_id).one_or_none()
+
+    def is_root(self, store_id: int, user_id: int) -> bool:
+        root_node = db.session.query(TreeNode).filter_by(store_id=store_id, is_root=True).one_or_none()
+        if not root_node:
+            raise StoreError("Store does not exist", StoreErrorTypes.store_not_found)
+        return root_node.data == user_id
+
+    def is_descendant(self, store_id: int, ancestor_id: int, descendant_id: int) -> bool:
+        tree = Tree.from_db(store_id)
+        return tree.is_descendant(ancestor_id, descendant_id)
+
+    def remove_node(self, store_id: int, user_id: int) -> List[int]:
+        tree = Tree.from_db(store_id)
+        removed_nodes = tree.remove_node(user_id)
+        db.session.query(TreeNode).filter(TreeNode.store_id == store_id, TreeNode.data == user_id).delete()
+        db.session.commit()
+        return removed_nodes
+
+    def is_admin_created(self):
+        return self.__load_system_admin_from_db() != -1
+
+    def get_nomination(self, nomination_id: int) -> Nomination:
+
+        nomination = db.session.query(Nomination).filter_by(nomination_id=nomination_id).one_or_none()
+        return nomination

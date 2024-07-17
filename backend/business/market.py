@@ -45,7 +45,7 @@ class MarketFacade:
             self.notifier = Notifier()
 
             # create the admin?
-            self.__create_admin()
+            self.create_admin()
 
             # self.default_setup2()
 
@@ -53,8 +53,13 @@ class MarketFacade:
         self.notifier.send_real_time_notification(user_id, NotificationDTO(-1, "test", datetime.now()))
         logger.info("test notification sent")
 
-    def __create_admin(self, currency: str = "USD") -> None:
+
+
+    def create_admin(self, currency: str = "USD") -> None:
+        if self.roles_facade.is_admin_created():
+            return
         logger.info(f"Creating admin")
+
         man_id = self.user_facade.create_user(currency)
         logger.info(f"Admin user was created")
         hashed_password = self.auth_facade.hash_password("admin")
@@ -76,7 +81,7 @@ class MarketFacade:
         SupplyHandler().reset()
 
         # create the admin?
-        self.__create_admin()
+        self.create_admin()
 
     def default_setup2(self):
         uid1 = self.user_facade.create_user("USD")

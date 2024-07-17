@@ -4,6 +4,7 @@ from backend.app_factory import create_logger_instance
 from backend import socketio_manager
 
 
+
 app = create_app_instance()
 logger = create_logger_instance()
 
