@@ -8,14 +8,33 @@ from typing import Optional
 from backend.business.DTOs import BasketInformationForConstraintDTO
 from backend.business.store.constraints import Constraint
 from backend.error_types import *
+from backend.database import db
 
 
-logger = logging.getLogger('myapp')
+
+import logging
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
+                     format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("Purchase Policy Logger")
 
 # ---------------------------------------------------
 
 # --------------- PurchasePolicyStrategy class ---------------#
-class PurchasePolicy(ABC):
+class PurchasePolicy(db.Model):
+    __tablename__ = 'purchase_policies'
+
+    purchase_policy_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    store_id = db.Column(db.Integer, db.ForeignKey('stores.store_id'), nullable=False)
+    policy_name = db.Column(db.String(100), nullable=False)
+    predicate = db.Column(db.String(250), nullable=True)
+
+    policy_type = db.Column(db.String(50))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'purchase_policy',
+        'polymorphic_on': policy_type
+    }
+
     # interface responsible for representing discounts in general. discountId unique verifier.
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, predicate: Optional[Constraint] = None):
         if policy_name is None or policy_name == "":
@@ -57,6 +76,15 @@ class PurchasePolicy(ABC):
         pass
 # --------------- ProductPolicy class ---------------#
 class ProductSpecificPurchasePolicy(PurchasePolicy):
+    __tablename__ = 'product_specific_policies'
+
+    purchase_policy_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'), primary_key=True)
+    product_id = db.Column(db.Integer, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'product_specific_policy',
+    }
+
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, product_id: int, predicate: Optional[Constraint] = None):
         super().__init__(purchase_policy_id, store_id, policy_name, predicate)
         self._product_id = product_id
@@ -91,6 +119,15 @@ class ProductSpecificPurchasePolicy(PurchasePolicy):
     
 # --------------- CategoryPolicy class ---------------#
 class CategorySpecificPurchasePolicy(PurchasePolicy):
+    __tablename__ = 'category_specific_policies'
+
+    purchase_policy_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'), primary_key=True)
+    category_id = db.Column(db.Integer, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'category_specific_policy',
+    }
+
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, category_id: int, predicate: Optional[Constraint] = None):
         super().__init__(purchase_policy_id, store_id, policy_name, predicate)
         self._category_id = category_id
@@ -131,6 +168,14 @@ class CategorySpecificPurchasePolicy(PurchasePolicy):
 
 # --------------- StorePolicy class ---------------#
 class BasketSpecificPurchasePolicy(PurchasePolicy):
+    __tablename__ = 'basket_specific_policies'
+
+    purchase_policy_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'), primary_key=True)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'basket_specific_policy',
+    }
+
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, predicate: Optional[Constraint] = None):
         super().__init__(purchase_policy_id, store_id, policy_name, predicate)
         logger.info("[StoreSpecificPurchasePolicy] Store Specific Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
@@ -160,6 +205,19 @@ class BasketSpecificPurchasePolicy(PurchasePolicy):
 
 # --------------- CompositePolicy class ---------------#
 class AndPurchasePolicy(PurchasePolicy):
+    __tablename__ = 'and_policies'
+
+    purchase_policy_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'), primary_key=True)
+    policy_left_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'))
+    policy_right_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'))
+
+    policy_left = db.relationship("PurchasePolicy", foreign_keys=[policy_left_id], backref=db.backref('parent_left', remote_side=[purchase_policy_id]))
+    policy_right = db.relationship("PurchasePolicy", foreign_keys=[policy_right_id], backref=db.backref('parent_right', remote_side=[purchase_policy_id]))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'and_policy',
+    }
+
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
         super().__init__(purchase_policy_id, store_id, policy_name, None)
         self._policy_left = policy_left
@@ -201,6 +259,19 @@ class AndPurchasePolicy(PurchasePolicy):
 
 # --------------- CompositePolicy class ---------------#
 class OrPurchasePolicy(PurchasePolicy):
+    __tablename__ = 'or_policies'
+
+    purchase_policy_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'), primary_key=True)
+    policy_left_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'))
+    policy_right_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'))
+
+    policy_left = db.relationship("PurchasePolicy", foreign_keys=[policy_left_id], backref=db.backref('parent_left', remote_side=[purchase_policy_id]))
+    policy_right = db.relationship("PurchasePolicy", foreign_keys=[policy_right_id], backref=db.backref('parent_right', remote_side=[purchase_policy_id]))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'or_policy',
+    }
+
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
         super().__init__(purchase_policy_id, store_id, policy_name, None)
         self._policy_left = policy_left
@@ -241,6 +312,19 @@ class OrPurchasePolicy(PurchasePolicy):
 
 # --------------- CompositePolicy class ---------------#
 class ConditioningPurchasePolicy(PurchasePolicy):
+    __tablename__ = 'conditioning_policies'
+
+    purchase_policy_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'), primary_key=True)
+    policy_left_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'))
+    policy_right_id = db.Column(db.Integer, db.ForeignKey('purchase_policies.purchase_policy_id'))
+
+    policy_left = db.relationship("PurchasePolicy", foreign_keys=[policy_left_id], backref=db.backref('parent_left', remote_side=[purchase_policy_id]))
+    policy_right = db.relationship("PurchasePolicy", foreign_keys=[policy_right_id], backref=db.backref('parent_right', remote_side=[purchase_policy_id]))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'conditioning_policy',
+    }
+    
     def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
         super().__init__(purchase_policy_id, store_id, policy_name, None)
         self._policy_left = policy_left
