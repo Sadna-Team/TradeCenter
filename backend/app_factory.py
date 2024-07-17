@@ -6,39 +6,52 @@ import logging
 config_mode = os.getenv('FLASK_CONFIG', 'default')
 
 
-def create_app_instance(mode='development'):
-    factory = AppFactory()
-    return factory.get_app(mode)
-
-def create_logger_instance():
-    factory = AppFactory()
-    return factory.logger
 
 class AppFactory:
-    # singleton
     __instance = None
 
     def __new__(cls):
         if AppFactory.__instance is None:
             AppFactory.__instance = super(AppFactory, cls).__new__(cls)
-        return cls.__instance
+            AppFactory.__instance.__initialized = False
+        return AppFactory.__instance
 
     def __init__(self):
+        if self.__initialized:
+            return
         self.app = None
         self.logger = None
-        if not hasattr(self, '_initialized'):
-            self._initialized = True
-            self.logger = logging.getLogger('myapp')
-            self.logger.info("Creating app factory, this message should only appear once")
-            print("Creating app factory, this message should only appear once")
-            self.__dev_app = create_app2('development')
-            self.__test_app = create_app2('testing')
-            
 
-    def get_app(self, mode):
-        if mode == 'development':
-            return self.__dev_app
-        elif mode == 'testing':
-            return self.__test_app
-        else:
-            return None
+        self.__initialized = True
+
+    def init_app(self, mode='development'):
+        if self.app is None:
+            self.app = create_app(mode)
+            self.logger = logging.getLogger('myapp')
+        return self.app
+
+    def set_app(self, app):
+        self.app = app
+
+    def get_app(self):
+        if self.app is None:
+            self.app = create_app('development')
+            self.logger = logging.getLogger('myapp')
+        return self.app
+
+
+def get_app():
+    return AppFactory().get_app()
+
+def set_app(app):
+    AppFactory().set_app(app)
+
+
+def create_app_instance(mode='development'):
+    return AppFactory().init_app(mode)
+
+
+def create_logger_instance(mode='development'):
+    factory = AppFactory().init_app(mode)
+    return factory.logger
+

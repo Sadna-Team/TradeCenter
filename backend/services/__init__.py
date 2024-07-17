@@ -6,6 +6,7 @@ from .user_services.controllers import UserService, AuthenticationService
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from backend.database import clear_database
+from flask import current_app
 from backend.business import market
 from backend.business.market import MarketFacade
 
@@ -226,8 +227,12 @@ class InitialState:
         reset = input("Reset database? (y/n): ")
         if reset.lower() == 'n':
             return False
+        from backend.app_factory import set_app
+        set_app(self.app)
         print("Initializing system from file...")
-        with self.app.app_context():
+        with current_app.app_context():
+            clear_database()
+            market.MarketFacade().clean_data()
             session: Session = self.db.session  # Get the SQLAlchemy session
             try:
                 # clear_database()

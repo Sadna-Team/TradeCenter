@@ -356,9 +356,9 @@ class MarketFacade:
             raise e
 
     def on_arrival_lambda(self, purchase_id: int):
-        from backend.app_factory import create_app_instance
-        app = create_app_instance()
-        with app.app_context():
+
+        from backend.app_factory import get_app
+        with get_app().app_context():
             self.purchase_facade.complete_purchase(purchase_id)
 
     def get_stores(self, page: int, limit: int) -> Dict[int, StoreDTO]:

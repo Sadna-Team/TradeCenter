@@ -7,6 +7,15 @@ from backend.business.store.discount import StoreDiscount
 from backend.business.store.new_store import Product, Category, StoreFacade, create_store
 from backend.business.DTOs import AddressDTO, ProductDTO, PurchaseUserDTO, UserInformationForConstraintDTO
 from backend.error_types import *
+from backend.app_factory import create_app_instance
+
+@pytest.fixture
+def app():
+    app = create_app_instance('testing')
+    from backend.database import clear_database
+    with app.app_context():
+        clear_database()
+        yield app
 
 @pytest.fixture
 def product():
@@ -35,7 +44,7 @@ def subsub_category(sub_category):
     return Category(category_id=2, category_name='subsub_category')
 
 @pytest.fixture
-def store():
+def store(app):
     address = AddressDTO('address', 'city', 'state', 'country', 'zip_code')
     return create_store(address=address, store_name='store', store_founder_id=0)
 
@@ -53,7 +62,7 @@ def product_dto2():
 
 
 @pytest.fixture
-def store_facade():
+def store_facade(app):
     StoreFacade().clean_data()
     return StoreFacade()
 

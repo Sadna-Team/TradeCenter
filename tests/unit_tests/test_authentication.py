@@ -5,7 +5,7 @@ from flask_bcrypt import Bcrypt
 from backend.business.authentication.authentication import Authentication
 from unittest.mock import MagicMock
 from backend.error_types import *
-from backend.app_factory import create_app_instace
+from backend.app_factory import create_app_instance
 
 class TestAuthentication(unittest.TestCase):
     def setUp(self):
@@ -16,7 +16,7 @@ class TestAuthentication(unittest.TestCase):
         # self.jwt = JWTManager(self.app)
         # self.bcrypt = Bcrypt(self.app)
         # self.auth.set_jwt(self.jwt, self.bcrypt)
-        self.app = create_app_instace(mode='testing')
+        self.app = create_app_instance(mode='testing')
 
         self.auth = Authentication()
         self.auth.clean_data()

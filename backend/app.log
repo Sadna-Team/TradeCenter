@@ -1,0 +1,174 @@
+myapp - INFO - Creating app with mode development
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
+New Store Logger - INFO - successfully created storeFacade
+myapp - INFO - [PurchaseFacade] successfully created purchase facade object
+third_party_handlers logger - INFO - Instance: None
+Market logger - INFO - Creating admin
+User Logger - INFO - User 0 created
+User Logger - INFO - User 0 added to database
+Market logger - INFO - Admin user was created
+Market logger - INFO - Admin was created
+User Logger - INFO - User 1 created
+User Logger - INFO - User 1 added to database
+myapp - INFO - guest entered the app successfully - user_id: 1
+myapp - INFO - User registered successfully
+Market logger - INFO - User 0 has added user 1 as a system manager
+User Logger - INFO - User 2 created
+User Logger - INFO - User 2 added to database
+myapp - INFO - guest entered the app successfully - user_id: 2
+myapp - INFO - User registered successfully
+User Logger - INFO - User 3 created
+User Logger - INFO - User 3 added to database
+myapp - INFO - guest entered the app successfully - user_id: 3
+myapp - INFO - User registered successfully
+User Logger - INFO - User 4 created
+User Logger - INFO - User 4 added to database
+myapp - INFO - guest entered the app successfully - user_id: 4
+myapp - INFO - User registered successfully
+User Logger - INFO - User 5 created
+User Logger - INFO - User 5 added to database
+myapp - INFO - guest entered the app successfully - user_id: 5
+myapp - INFO - User registered successfully
+User Logger - INFO - User 6 created
+User Logger - INFO - User 6 added to database
+myapp - INFO - guest entered the app successfully - user_id: 6
+myapp - INFO - User registered successfully
+myapp - INFO - User logged in successfully
+New Store Logger - INFO - [Store] successfully created store with id: 7
+New Store Logger - INFO - Successfully added store: s1
+myapp - INFO - [Listeners] created new listeners object for store_id: 7 with listeners: 2
+myapp - INFO - store was added successfully
+myapp - INFO - store id was sent successfully
+myapp - INFO - adding product to store:
+user_id: 2
+store_id: 7
+product_name: Bamba
+description: description
+price: 30
+weight: 1
+tags: []
+amount: 20
+Market logger - INFO - User 2 is trying to add a product to store 7
+Market logger - INFO - User 2 is not suspended
+Market logger - INFO - User 2 has permissions to add a product to store 7
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - Successfully added product: Bamba to store with the id: 7
+New Store Logger - INFO - attempting to add product: Bamba to store with id: 7
+New Store Logger - INFO - [Product] successfully created product with id: 0
+New Store Logger - INFO - [Store] successfully added product to store with id: 7
+New Store Logger - INFO - Successfully added product: Bamba to store with the id: 7
+New Store Logger - INFO - Successfully added tags to product: Bamba in store with the id: 7
+myapp - INFO - product was added successfully
+myapp - INFO - store id was sent successfully
+myapp - INFO - User 3 is logged in: False
+Market logger - INFO - User 2 has nominated user 3 to be the manager of store 7
+myapp - INFO - store manager was added successfully
+myapp - INFO - [Listeners] added listener: 3 to store_id: 7
+Roles Logger - INFO - User 3 accepted the nomination 0 in store 7
+myapp - INFO - promotion accepted successfully
+Market logger - INFO - User 2 has changed the permissions of user 3 in store 7
+myapp - INFO - manager permissions were edited successfully
+myapp - INFO - store id was sent successfully
+myapp - INFO - User 4 is logged in: False
+Market logger - INFO - User 2 has nominated user 4 to be the owner of store 7
+myapp - INFO - store owner was added successfully
+myapp - INFO - [Listeners] added listener: 4 to store_id: 7
+Roles Logger - INFO - User 4 accepted the nomination 1 in store 7
+myapp - INFO - promotion accepted successfully
+myapp - INFO - store id was sent successfully
+myapp - INFO - User 5 is logged in: False
+Market logger - INFO - User 2 has nominated user 5 to be the owner of store 7
+myapp - INFO - store owner was added successfully
+myapp - INFO - [Listeners] added listener: 5 to store_id: 7
+Roles Logger - INFO - User 5 accepted the nomination 2 in store 7
+myapp - INFO - promotion accepted successfully
+User Logger - INFO - User 7 created
+User Logger - INFO - User 7 added to database
+myapp - INFO - guest entered the app successfully - user_id: 7
+myapp - INFO - User logged out successfully
+myapp - INFO - Guest logged out successfully
+myapp - INFO - Guest logged out successfully
+myapp - INFO - Guest logged out successfully
+myapp - INFO - Guest logged out successfully
+myapp - INFO - Guest logged out successfully
+backend - INFO - Starting app...
+myapp - INFO - recieved request from a guest to enter the app
+User Logger - INFO - User 8 created
+User Logger - INFO - User 8 added to database
+myapp - INFO - guest entered the app successfully - user_id: 8
+myapp - INFO - received request to get stores
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - stores were sent successfully
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+myapp - INFO - my stores were sent successfully
+myapp - INFO - received request to check if the user is a system manager
+myapp - INFO - my stores were sent successfully
+myapp - INFO - received request to check if the user is a system manager
+myapp - INFO - received request to get stores
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - stores were sent successfully
+myapp - INFO - Connect data: None
+myapp - INFO - Client 1 connected
+myapp - INFO - Connect data: 1
+myapp - INFO - Client 1 connected
+myapp - INFO - Client joining room 1
+myapp - INFO - received request to send store info
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - store info was sent successfully
+myapp - INFO - received request to send store info
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - store info was sent successfully
+myapp - INFO - received request to get product info
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - product info was sent successfully
+myapp - INFO - received request to get product info
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - product info was sent successfully
+myapp - INFO - received request to add a product to the basket
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+Market logger - INFO - User 1 has added 1 of product 0 to the basket
+myapp - INFO - product added to the basket successfully
+myapp - INFO - user 1 requested to show his cart
+myapp - INFO - shopping cart: {7: {0: 1}}
+myapp - INFO - user 1 requested to show his cart
+myapp - INFO - shopping cart: {7: {0: 1}}
+myapp - INFO - received request to get product info
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - product info was sent successfully
+myapp - INFO - received request to get total price after discounts
+New Store Logger - INFO - [StoreFacade] attempting to get total price after discount
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] successfully calculated total price after discount to be 30.0
+myapp - INFO - total price after discount was sent successfully
+myapp - ERROR - Failed to retrieve active payment methods
+myapp - ERROR - Failed to retrieve active supply methods
+myapp - ERROR - Failed to retrieve active payment methods
+myapp - ERROR - Failed to retrieve active supply methods
+myapp - INFO - received request to get stores
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - stores were sent successfully
+myapp - INFO - Client None disconnected

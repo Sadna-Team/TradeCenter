@@ -1,8 +1,16 @@
 import axios from 'axios';
 
 // Create an instance of axios
+let apiUrl;
+
+if (typeof window !== 'undefined') {
+  apiUrl = process.env.NEXT_PUBLIC_API_URL || `http://${window.location.hostname}:5000`;
+} else {
+  apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+}
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+  baseURL: apiUrl,
 });
 
 // Add a request interceptor

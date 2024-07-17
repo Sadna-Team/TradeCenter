@@ -1193,10 +1193,13 @@ def create_store(address: AddressDTO, store_name: str, store_founder_id: int) ->
     if store_name is None or store_name == '':
         raise StoreError('Store name is not a valid string', StoreErrorTypes.invalid_store_name)
     st = Store(store_name, store_founder_id)
-    db.session.add(st)
-    db.session.flush()
-    st.set_new_address(address)
-    db.session.commit()
+    from backend.app_factory import get_app
+    with get_app().app_context():
+        db.session.add(st)
+        db.session.flush()
+        st.set_new_address(address)
+        db.session.commit()
+        db.session.refresh(st)
     logger.info('[Store] successfully created store with id: ' + str(st.store_id))
     return st
 

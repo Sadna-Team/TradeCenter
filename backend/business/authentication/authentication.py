@@ -45,9 +45,10 @@ class Authentication:
         """
         For testing purposes only
         """
-        from backend.app_factory import create_app_instance
-        app = create_app_instance()
-        with app.app_context():
+        # from backend.app import create_app_instance
+        # app = create_app_instance()
+        from backend.app_factory import get_app
+        with get_app().app_context():
             # with db.session.begin():
             #     db.session.query(Authentication).delete()
             db.session.query(AuthenticationModel).delete()
@@ -132,7 +133,8 @@ class Authentication:
             db.session.add(AuthenticationModel(blacklisted_token=jti))
             self.blacklist.add(jti)
             self.guests.remove(user_id)
-            self.user_facade.remove_user(user_id)
+            if not self.user_facade.is_member(user_id):
+                self.user_facade.remove_user(user_id)
 
     def is_logged_in(self, user_id):
         set = self.logged_in
