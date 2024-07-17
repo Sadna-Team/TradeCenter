@@ -108,6 +108,7 @@ class Authentication:
         elif user_id in self.logged_in:
             raise UserError("User is already logged in", UserErrorTypes.user_logged_in)
         else:
+            print('username: ' + username)
             token = self.generate_token(user_id)
             notification = self.user_facade.get_notifications(user_id)
             self.logged_in.add(user_id)
