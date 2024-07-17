@@ -298,7 +298,7 @@ def policy_predicate_builder(self, predicate_properties: Tuple) -> Optional[Cons
 class PurchasePolicy(db.Model):
     __tablename__ = 'purchase_policies'
 
-    purchase_policy_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    purchase_policy_id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     _store_id = db.Column(db.Integer, db.ForeignKey('stores.store_id'), nullable=False)
     _policy_name = db.Column(db.String(100), nullable=False)
     _predicate = db.Column(db.String(250), nullable=True)
@@ -319,12 +319,12 @@ class PurchasePolicy(db.Model):
         self._store_id = store_id
         self._policy_name = policy_name
         self._predicate = predicate
-        logger.info("[PurchasePolicy] Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
+        logger.info("[PurchasePolicy] Purchase Policy with id: " + str(self.purchase_policy_id) + " created successfully!")
 
 
     @property
     def purchase_policy_id(self):
-        return self._purchase_policy_id
+        return self.purchase_policy_id
     
     @property
     def store_id(self):
