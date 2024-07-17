@@ -66,6 +66,7 @@ class MarketFacade:
         self.user_facade.register_user(man_id, "admin@admin.com", "admin", hashed_password,
                                        2000, 1, 1, "123456789")
         self.roles_facade.add_admin(man_id)
+        db.session.commit()
         logger.info(f"Admin was created")
 
     def clean_data(self):

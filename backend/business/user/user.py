@@ -261,7 +261,7 @@ class User(db.Model):
             raise UserError("Empty fields", UserErrorTypes.empty_fields)
         if self.is_member():
             raise UserError("User is already registered", UserErrorTypes.user_already_registered)
-        self.member_id = db.session.query(Member).count() + 1
+        self.member_id = db.session.query(Member).count()
         self.member = Member(self.member_id, email, username, password, year, month, day, phone)
         db.session.add(self.member)
         db.session.commit()
@@ -524,8 +524,8 @@ class UserFacade:
         if not user:
             raise UserError("User not found", UserErrorTypes.user_not_found)
         
-        cart = ShoppingCart.query.filter_by(user_id=user_id).first()
-        db.session.delete(cart)
+        # cart = ShoppingCart.query.filter_by(user_id=user_id).first()
+        # db.session.delete(cart)
 
         for basket in ShoppingBasket.query.filter_by(user_id=user_id).all():
             db.session.delete(basket)

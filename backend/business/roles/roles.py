@@ -562,7 +562,7 @@ class RolesFacade:
 
         system_manager_model = SystemManagerModel(user_id=user_id, is_admin=True)
         db.session.add(system_manager_model)
-        db.session.commit()
+        db.session.flush()
 
     def __has_permission(self, store_id: int, user_id: int) -> bool:
         role = self.get_role(store_id, user_id)
