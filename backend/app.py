@@ -2,12 +2,11 @@
 from backend.app_factory import create_app_instance
 from backend.app_factory import create_logger_instance
 from backend import socketio_manager
-from backend import create_app
-
-
+from backend import create_app # This import is not used, but it is necessary for the code to run
 
 
 if __name__ == "__main__":
+    print("Starting app...")
     app = create_app_instance()
     logger = create_logger_instance()
     # app = create_app('')

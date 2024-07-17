@@ -1,5 +1,5 @@
 from flask import Flask
-from backend import create_app
+from backend import create_app2
 import os
 import logging
 
@@ -8,14 +8,11 @@ config_mode = os.getenv('FLASK_CONFIG', 'default')
 
 def create_app_instance(mode='development'):
     factory = AppFactory()
-    return factory.init_app(mode)
+    return factory.get_app(mode)
 
-
-
-def create_logger_instance(mode='development'):
+def create_logger_instance():
     factory = AppFactory()
     return factory.logger
-
 
 class AppFactory:
     # singleton
@@ -31,10 +28,17 @@ class AppFactory:
         self.logger = None
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            # self.app = create_app(mode)
-            # self.logger = logging.getLogger('myapp')
-        
-    def init_app(self, mode='development'):
-        self.app = create_app(mode)
-        self.logger = logging.getLogger('myapp')
-        return self.app
+            self.logger = logging.getLogger('myapp')
+            self.logger.info("Creating app factory, this message should only appear once")
+            print("Creating app factory, this message should only appear once")
+            self.__dev_app = create_app2('development')
+            self.__test_app = create_app2('testing')
+            
+
+    def get_app(self, mode):
+        if mode == 'development':
+            return self.__dev_app
+        elif mode == 'testing':
+            return self.__test_app
+        else:
+            return None

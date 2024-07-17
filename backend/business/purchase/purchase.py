@@ -1556,7 +1556,7 @@ class PurchaseFacade:
     def clean_data(self):
         # self._purchases = {}
         # self._purchases_id_counter = 0
-        from backend.app import create_app_instance
+        from backend.app_factory import create_app_instance
         app = create_app_instance()
         with app.app_context():
             db.session.query(PurchaseProduct).delete()

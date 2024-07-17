@@ -109,7 +109,8 @@ class Notifier:
         * Parameters: store_id: int, message: str
         * This function sends a message to multiple users.
         """
-        from backend.app import app
+        from backend.app_factory import create_app_instance
+        app = create_app_instance()
         with app.app_context():
             all_listeners = db.session.query(Listeners).filter_by(store_id=store_id).all()
             if len(all_listeners) == 0:

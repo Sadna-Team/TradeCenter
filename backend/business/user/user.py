@@ -508,10 +508,15 @@ class UserFacade:
         return member.id, member.get_password()
 
     def remove_user(self, user_id: int):
+
         user = User.query.filter_by(id=user_id).first()
         if not user:
             raise UserError("User not found", UserErrorTypes.user_not_found)
         
+        member = Member.query.filter_by(id=user.member_id).first()
+        if member:
+            return
+
         # cart = ShoppingCart.query.filter_by(user_id=user_id).first()
         # db.session.delete(cart)
 

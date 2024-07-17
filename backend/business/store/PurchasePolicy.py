@@ -298,7 +298,7 @@ def policy_predicate_builder(self, predicate_properties: Tuple) -> Optional[Cons
 class PurchasePolicy(db.Model):
     __tablename__ = 'purchase_policies'
 
-    purchase_policy_id = db.Column(db.Integer, primary_key=True)
+    purchase_policy_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     store_id = db.Column(db.Integer)
     _policy_name = db.Column(db.String(100), nullable=False)
     _predicate = db.Column(db.String(250), nullable=True)
@@ -315,11 +315,10 @@ class PurchasePolicy(db.Model):
     }
 
     # interface responsible for representing discounts in general. discountId unique verifier.
-    def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, predicate: Optional[Constraint] = None):
+    def __init__(self, store_id: int, policy_name: str, predicate: Optional[Constraint] = None):
         if policy_name is None or policy_name == "":
             raise PurchaseError("invalid policy name", PurchaseErrorTypes.invalid_name)
         
-        self.purchase_policy_id = purchase_policy_id
         self.store_id = store_id
         self._policy_name = policy_name
         self._predicate = predicate
@@ -369,10 +368,10 @@ class ProductSpecificPurchasePolicy(PurchasePolicy):
         db.PrimaryKeyConstraint('purchase_policy_id'),
     )
 
-    def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, product_id: int, predicate: Optional[str] = None):
-        super().__init__(purchase_policy_id, store_id, policy_name, predicate)
+    def __init__(self, store_id: int, policy_name: str, product_id: int, predicate: Optional[str] = None):
+        super().__init__(store_id, policy_name, predicate)
         self._product_id = product_id
-        logger.info("[ProductSpecificPurchasePolicy] Product Specific Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
+        logger.info("[ProductSpecificPurchasePolicy] Product Specific Purchase Policy created successfully!")
 
 
     @property
@@ -410,10 +409,10 @@ class CategorySpecificPurchasePolicy(PurchasePolicy):
         'polymorphic_identity': 'category_specific_policy',
     }
 
-    def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, category_id: int, predicate: Optional[Constraint] = None):
-        super().__init__(purchase_policy_id, store_id, policy_name, predicate)
+    def __init__(self, store_id: int, policy_name: str, category_id: int, predicate: Optional[Constraint] = None):
+        super().__init__(store_id, policy_name, predicate)
         self._category_id = category_id
-        logger.info("[CategorySpecificPurchasePolicy] Category Specific Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
+        logger.info("[CategorySpecificPurchasePolicy] Category Specific Purchase Policy created successfully!")
 
     @property
     def category_id(self):
@@ -454,9 +453,9 @@ class BasketSpecificPurchasePolicy(PurchasePolicy):
         'polymorphic_identity': 'basket_specific_policy',
     }
 
-    def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, predicate: Optional[Constraint] = None):
-        super().__init__(purchase_policy_id, store_id, policy_name, predicate)
-        logger.info("[StoreSpecificPurchasePolicy] Store Specific Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
+    def __init__(self, store_id: int, policy_name: str, predicate: Optional[Constraint] = None):
+        super().__init__(store_id, policy_name, predicate)
+        logger.info("[StoreSpecificPurchasePolicy] Store Specific Purchase Policy created successfully!")
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:
         if self._predicate is None:
@@ -495,11 +494,11 @@ class AndPurchasePolicy(PurchasePolicy):
         'polymorphic_identity': 'and_policy',
     }
 
-    def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
-        super().__init__(purchase_policy_id, store_id, policy_name, None)
+    def __init__(self, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
+        super().__init__(store_id, policy_name, None)
         self.policy_left = policy_left
         self.policy_right = policy_right
-        logger.info("[AndPurchasePolicy] And Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
+        logger.info("[AndPurchasePolicy] And Purchase Policy created successfully!")
     
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:
@@ -543,11 +542,11 @@ class OrPurchasePolicy(PurchasePolicy):
         'polymorphic_identity': 'or_policy',
     }
 
-    def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
-        super().__init__(purchase_policy_id, store_id, policy_name, None)
+    def __init__(self, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
+        super().__init__(store_id, policy_name, None)
         self.policy_left = policy_left
         selfpolicy_right = policy_right
-        logger.info("[OrPurchasePolicy] Or Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
+        logger.info("[OrPurchasePolicy] Or Purchase Policy created successfully!")
     
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:
@@ -591,11 +590,11 @@ class ConditioningPurchasePolicy(PurchasePolicy):
         'polymorphic_identity': 'conditioning_policy',
     }
     
-    def __init__(self, purchase_policy_id: int, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
-        super().__init__(purchase_policy_id, store_id, policy_name, None)
+    def __init__(self, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
+        super().__init__(store_id, policy_name, None)
         self.policy_left = policy_left
         self.policy_right = policy_right
-        logger.info("[ConditioningPurchasePolicy] Conditioning Purchase Policy with id: " + str(purchase_policy_id) + " created successfully!")
+        logger.info("[ConditioningPurchasePolicy] Conditioning Purchase Policy created successfully!")
     
 
     def check_constraint(self, basket: BasketInformationForConstraintDTO) -> bool:

@@ -615,7 +615,7 @@ class Store(db.Model):
     _is_active = db.Column(db.Boolean)
     _product_id_counter = db.Column(db.Integer)
     _founded_date = db.Column(db.DateTime)
-    _purchase_policy_id_counter = db.Column(db.Integer)
+    #_purchase_policy_id_counter = db.Column(db.Integer)
 
     _address = db.relationship('StoreAddress', uselist=False, backref='store')
     _store_products = db.relationship('Product', backref='store', lazy=True)
@@ -631,9 +631,9 @@ class Store(db.Model):
         self._is_active = True
         self._product_id_counter = 0  # product Id
         self._product_id_lock = threading.Lock() # lock for product id
-        self._purchase_policy: Dict[int, PurchasePolicy] = {} # purchase policy
+        #self._purchase_policy: Dict[int, PurchasePolicy] = {} # purchase policy
         self._founded_date = datetime.now()
-        self._purchase_policy_id_counter = 0  # purchase policy Id
+        #self._purchase_policy_id_counter = 0  # purchase policy Id
 
     # ---------------------getters and setters---------------------#
 
@@ -670,7 +670,8 @@ class Store(db.Model):
 
     @property
     def purchase_policy(self) -> List[int]:
-        return list(self._purchase_policy.keys())
+        res = db.session.query(PurchasePolicy).filter(PurchasePolicy.store_id == self.store_id).all()
+        return list(set([policy.policy_id for policy in res]))
     # ---------------------methods--------------------------------
     def close_store(self, user_id: int) -> None:
         """
@@ -789,25 +790,28 @@ class Store(db.Model):
         if policy_name is None or policy_name == '':
             raise StoreError('Policy name is not a valid string', StoreErrorTypes.invalid_policy_name)
         if category_id is None and product_id is None:
-            basket_policy_to_add = BasketSpecificPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name)
-            self._purchase_policy[self._purchase_policy_id_counter] = basket_policy_to_add
+            basket_policy_to_add = BasketSpecificPurchasePolicy(self.store_id, policy_name)
+            db.session.add(basket_policy_to_add)
+            #self._purchase_policy[self._purchase_policy_id_counter] = basket_policy_to_add
             policy_id = basket_policy_to_add.purchase_policy_id
-            self._purchase_policy_id_counter += 1
+            #self._purchase_policy_id_counter += 1
 
         elif category_id is not None and product_id is None:
-            category_policy_to_add = CategorySpecificPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, category_id)
-            self._purchase_policy[self._purchase_policy_id_counter] = category_policy_to_add
+            category_policy_to_add = CategorySpecificPurchasePolicy(self.store_id, policy_name, category_id)
+            db.session.add(category_policy_to_add)
+            #self._purchase_policy[self._purchase_policy_id_counter] = category_policy_to_add
             policy_id = category_policy_to_add.purchase_policy_id
-            self._purchase_policy_id_counter += 1
+            #self._purchase_policy_id_counter += 1
         
         elif category_id is None and product_id is not None:
             if db.session.query(Product).filter(Product.product_id == product_id).count() == 0:
                 logger.warning('[Store] Product is not found in the store with id: {self.__store_id}')
                 raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
-            product_policy_to_add = ProductSpecificPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, product_id)
+            product_policy_to_add = ProductSpecificPurchasePolicy(self.store_id, policy_name, product_id)
+            db.session.add(product_policy_to_add)
             policy_id = product_policy_to_add.purchase_policy_id
-            self._purchase_policy[self._purchase_policy_id_counter] = product_policy_to_add
-            self._purchase_policy_id_counter += 1
+            # self._purchase_policy[self._purchase_policy_id_counter] = product_policy_to_add
+            # self._purchase_policy_id_counter += 1
 
         else:
             logger.warning('[Store] Invalid input when trying to add a purchase policy to store with id: {self.__store_id}')
@@ -816,11 +820,24 @@ class Store(db.Model):
         if policy_id == -1:
             raise StoreError('Something unexpected happened when adding the purchase policy to the store with id: {self.__store_id}', StoreErrorTypes.unexpected_error)
 
-        db.session.add(self._purchase_policy[policy_id])
+        # db.session.add(self._purchase_policy[policy_id])
         db.session.commit()
 
         logger.info('[Store] successfully added purchase policy to store with id: {self.__store_id}')
         return policy_id
+
+    def __get_purchase_policy_by_id(self, policy_id: int) -> PurchasePolicy:
+        """
+        * Parameters: policyId
+        * This function gets a purchase policy by its ID
+        * Returns: the purchase policy with the given ID
+        """
+        try:
+            pur = db.session.query(PurchasePolicy).filter(PurchasePolicy.purchase_policy_id == policy_id).one()
+            if pur.store_id != self.store_id:
+                raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
+        except Exception:
+            raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
 
     def remove_purchase_policy(self, policy_id: int) -> None:
         """
@@ -828,9 +845,10 @@ class Store(db.Model):
         * This function removes a purchase policy from the store
         * Returns: none
         """
-        if policy_id not in self._purchase_policy:
-            raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
-        self._purchase_policy.pop(policy_id)
+        # if policy_id not in self._purchase_policy:
+        #     raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
+        # self._purchase_policy.pop(policy_id)
+        self.__get_purchase_policy_by_id(policy_id) # check for existance
         
         db.session.query(PurchasePolicy).filter(PurchasePolicy.purchase_policy_id == policy_id).delete()
         db.session.commit()
@@ -850,49 +868,59 @@ class Store(db.Model):
             raise StoreError('Policy name is not a valid string', StoreErrorTypes.invalid_policy_name)
         
         new_policy_id: int = -1
-        if policy_id_left not in self._purchase_policy or policy_id_right not in self._purchase_policy:
-            logger.error('[Store] Purchase policy components of new composite policy are not found in store with id: {self.__store_id}')
-            raise StoreError('Failed to create composite policy due to having atleast one of the policies missing', StoreErrorTypes.policy_not_satisfied)
+        new_policy: PurchasePolicy = None
+        # if policy_id_left not in self._purchase_policy or policy_id_right not in self._purchase_policy:
+        #     logger.error('[Store] Purchase policy components of new composite policy are not found in store with id: {self.__store_id}')
+        #     raise StoreError('Failed to create composite policy due to having atleast one of the policies missing', StoreErrorTypes.policy_not_satisfied)
+        left_policy = self.__get_purchase_policy_by_id(policy_id_left)
+        right_policy = self.__get_purchase_policy_by_id(policy_id_right)
         
         
-        left_policy = self._purchase_policy[policy_id_left]
-        right_policy = self._purchase_policy[policy_id_right]
+        # left_policy = self._purchase_policy[policy_id_left]
+        # right_policy = self._purchase_policy[policy_id_right]
         if type_of_composite == 1:
-            and_composite_policy = AndPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
-            self._purchase_policy[self._purchase_policy_id_counter] = and_composite_policy
+            and_composite_policy = AndPurchasePolicy(self.store_id, policy_name, left_policy, right_policy)
+            # self._purchase_policy[self._purchase_policy_id_counter] = and_composite_policy
             new_policy_id = and_composite_policy.purchase_policy_id
-            self._purchase_policy_id_counter += 1
+            # self._purchase_policy_id_counter += 1
             
-            #we will now remove the two policies that were used to create the composite policy
-            self._purchase_policy.pop(policy_id_left)
-            self._purchase_policy.pop(policy_id_right)
+            # #we will now remove the two policies that were used to create the composite policy
+            # self._purchase_policy.pop(policy_id_left)
+            # self._purchase_policy.pop(policy_id_right)
+            new_policy = and_composite_policy
 
         elif type_of_composite == 2:
-            or_composite_policy = OrPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
-            self._purchase_policy[self._purchase_policy_id_counter] = or_composite_policy
+            or_composite_policy = OrPurchasePolicy(self.store_id, policy_name, left_policy, right_policy)
+            # self._purchase_policy[self._purchase_policy_id_counter] = or_composite_policy
             new_policy_id = or_composite_policy.purchase_policy_id
-            self._purchase_policy_id_counter += 1
+            # self._purchase_policy_id_counter += 1
 
-            #we will now remove the two policies that were used to create the composite policy
-            self._purchase_policy.pop(policy_id_left)
-            self._purchase_policy.pop(policy_id_right)
+            # #we will now remove the two policies that were used to create the composite policy
+            # self._purchase_policy.pop(policy_id_left)
+            # self._purchase_policy.pop(policy_id_right)
+            new_policy = or_composite_policy
 
         elif type_of_composite == 3:
-            conditional_composite_policy = ConditioningPurchasePolicy(self._purchase_policy_id_counter, self.store_id, policy_name, left_policy, right_policy)
-            self._purchase_policy[self._purchase_policy_id_counter] = conditional_composite_policy
+            conditional_composite_policy = ConditioningPurchasePolicy(self.store_id, policy_name, left_policy, right_policy)
+            # self._purchase_policy[self._purchase_policy_id_counter] = conditional_composite_policy
             new_policy_id = conditional_composite_policy.purchase_policy_id
-            self._purchase_policy_id_counter += 1
+            # self._purchase_policy_id_counter += 1
 
-            #we will now remove the two policies that were used to create the composite policy
-            self._purchase_policy.pop(policy_id_left)
-            self._purchase_policy.pop(policy_id_right)
+            # #we will now remove the two policies that were used to create the composite policy
+            # self._purchase_policy.pop(policy_id_left)
+            # self._purchase_policy.pop(policy_id_right)
+            new_policy = conditional_composite_policy
         else:
             raise StoreError('Invalid type of composite', StoreErrorTypes.invalid_purchase_policy_input)
         
         if new_policy_id == -1:
             raise StoreError('Failed to create composite policy in store with id: {self.__store_id}', StoreErrorTypes.unexpected_error)
         
-        db.session.add(self._purchase_policy[new_policy_id])
+        # remove left and right policies
+        db.session.query(PurchasePolicy).filter(PurchasePolicy.purchase_policy_id == policy_id_left).delete()
+        db.session.query(PurchasePolicy).filter(PurchasePolicy.purchase_policy_id == policy_id_right).delete()
+
+        db.session.add(new_policy)
         db.session.commit()
 
         logger.info('[Store] successfully created composite purchase policy in store with id: {self.__store_id}')
@@ -904,9 +932,11 @@ class Store(db.Model):
         * This function assigns a predicate to a purchase policy
         * Returns: none
         """
-        if policy_id not in self._purchase_policy:
-            raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
-        self._purchase_policy[policy_id].set_predicate(predicate)
+        # if policy_id not in self._purchase_policy:
+        #     raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
+        pol = self.__get_purchase_policy_by_id(policy_id)
+        pol.set_predicate(predicate)
+        #self._purchase_policy[policy_id].set_predicate(predicate)
 
     def check_purchase_policies_of_store(self, basket: BasketInformationForConstraintDTO) -> bool:
         """
@@ -919,7 +949,7 @@ class Store(db.Model):
         if basket.store_id != self.store_id:
             raise PurchaseError('Basket is not from the same store', PurchaseErrorTypes.basket_not_for_store)
 
-        for policy in self._purchase_policy.values():
+        for policy in db.session.query(PurchasePolicy).filter(PurchasePolicy.store_id == self.store_id).all():
             if not policy.check_constraint(basket):
                 return False
         return True
@@ -1084,10 +1114,11 @@ class Store(db.Model):
         * This function gets a purchase policy by its ID
         * Returns: the purchase policy with the given ID
         """
-        try:
-            return self._purchase_policy[policy_id]
-        except KeyError:
-            raise StoreError("purchase policy is not found", StoreErrorTypes.policy_not_found)
+        # try:
+        #     return self._purchase_policy[policy_id]
+        # except KeyError:
+        #     raise StoreError("purchase policy is not found", StoreErrorTypes.policy_not_found)
+        return self.__get_purchase_policy_by_id(policy_id)
         
     def view_all_purchase_policies(self) -> List[dict]:
         """
@@ -1096,7 +1127,7 @@ class Store(db.Model):
         * Returns: all the purchase policies of the store
         """
         policies = []
-        for policy in self._purchase_policy.values():
+        for policy in db.session.query(PurchasePolicy).filter(PurchasePolicy.store_id == self.store_id).all():
             policies.append(policy.get_policy_info_as_dict())
         return policies
 

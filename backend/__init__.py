@@ -57,7 +57,12 @@ def handle_leave():
     leave_room(room)
     handle_disconnect(room)
 
-def create_app(mode='development'):
+def create_app1(mode='development'):
+    from backend.app_factory import create_app_instance
+    app = create_app_instance(mode)
+    return app
+
+def create_app2(mode='development'):
     logger.info(f"Creating app with mode {mode}")
     app = Flask(__name__)
     app.config.from_object(config[mode])  # Load the appropriate configuration

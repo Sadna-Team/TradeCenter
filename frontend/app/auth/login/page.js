@@ -22,7 +22,7 @@ export default function Login() {
     try {
       // Send POST request to authenticate user
       const response = await api.post('/auth/login', { username, password });
-
+      console.log('Response:', response.data); // Optional: log the response data for debugging
       const data = response.data;
       const token = data.token; // Extract the token from the response data
       const admin = data.admin; // Extract the admin status from the response data
