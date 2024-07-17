@@ -488,7 +488,7 @@ def show_store_bids():
     return purchase_service.show_store_bids(store_owner_id, store_id)
 
 
-@market_bp.route('/has_store_worker_accepted_bid', methods=['POST'])
+@market_bp.route('/has_store_worker_accept_bid', methods=['POST'])
 @jwt_required()
 def has_store_worker_accepted_bid():
     """
@@ -499,7 +499,7 @@ def has_store_worker_accepted_bid():
             store_id (int): id of the store
             bid_id (int): id of the bid
     """
-    logger.info('recieved request to check if store worker has accepted bid')
+    logger.info('received request to check if store worker has accepted bid')
     try:
         user_id = get_jwt_identity()
         data = request.get_json()

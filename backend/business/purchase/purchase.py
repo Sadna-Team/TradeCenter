@@ -517,7 +517,18 @@ class BidPurchase(Purchase):
 
     
     def store_worker_accepted_offer(self, user_id:int) -> bool:
-        return user_id in self._list_of_store_owners_managers_that_accepted_offer
+        if self._status != PurchaseStatus.onGoing:
+            logger.warn(
+                "[BidPurchase] store worker could not accept offer of bid purchase with purchase id: %s, since "
+                "purchase is not ongoing",
+                self.id)
+            raise PurchaseError("Purchase is not on going", PurchaseErrorTypes.purchase_not_ongoing)
+        
+        if user_id in self._list_of_store_owners_managers_that_accepted_offer:
+            logger.info(f"[BidPurchase] store worker with user id: {user_id} accepted offer of bid purchase with purchase id: {self.id}")
+            return True
+        logger.info(f"[BidPurchase] store worker with user id: {user_id} did not accept offer of bid purchase with purchase id: {self.id}")
+        return False
     
     #FOR NOW THE IMPLEMENTATION IS AS FOLLOWS: if a manager counters the offer of a user, the user can either counter it back, reject, or accept 
     # NOTE: in the case of accept, the user will accept the counter and then propose the new price again to all store owners/managers to accept

@@ -32,19 +32,18 @@ const ManageUserBids = () => {
   
   const fetchBids = async () => {
     try {
-      console.log("the store id:", store_id)
       const response = await api.post('/market/view_bids_of_user', {});
       if (response.status !== 200) {
         console.error('Failed to fetch bids', response);
         setErrorMessage('Failed to fetch bids');
         return;
       }
-      console.log("the bids of the store:", response.data.message)
+      console.log("the bids of the user:", response.data.message)
       let data = response.data.message;
 
       if(data === null || data === undefined) {
-        console.error('Failed to fetch bids of store', response);
-        setErrorMessage('Failed to fetch bids of store');
+        console.error('Failed to fetch bids of user', response);
+        setErrorMessage('Failed to fetch bids of user');
         return;
       }
 
@@ -207,7 +206,7 @@ const ManageUserBids = () => {
             <p><strong>Product ID:</strong> {bid.product_id}</p>
             <p><strong>Proposed Price:</strong> {bid.proposed_price}</p>
             <p><strong>Is Offer To Store:</strong> {is_offer_to_store}</p>
-            {bid.status === 'onGoing' && bid.is_store_offer && (
+            {bid.status === 'onGoing' && bid.is_offer_to_store && (
               <div className="flex justify-between mt-4">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -225,7 +224,7 @@ const ManageUserBids = () => {
                 </AlertDialog>
               </div>
             )}
-            {bid.status === 'onGoing' && !bid.is_store_offer && (
+            {bid.status === 'onGoing' && !bid.is_offer_to_store && (
               <div className="flex justify-between mt-4">
                 <Button className="bg-green-500 text-white py-1 px-3 rounded" onClick={() => handleAcceptBid(bid.bid_id)}>Accept</Button>
                 <AlertDialog>

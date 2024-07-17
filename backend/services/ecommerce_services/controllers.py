@@ -277,7 +277,7 @@ class PurchaseService:
         """
         try:
             info = self.__market_facade.has_store_worker_accepted_bid(user_id,store_id, bid_id)
-            logger.info('has_store_worker_accepted_bid was successful')
+            logger.info(f'has_store_worker_accepted_bid was successful for user {user_id}')
             return jsonify({'message': info}), 200
         except Exception as e:
             logger.error('has_store_worker_accepted_bid was not successful')

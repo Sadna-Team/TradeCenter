@@ -183,7 +183,7 @@ const ManageBid = () => {
 
   const hasStoreWorkerAcceptedBid = async (bidId) => {
     try {
-      const response = await api.post('/market/has_store_worker_accepted_bid', { bid_id: bidId, store_id: store_id});
+      const response = await api.post('/market/has_store_worker_accept_bid', { bid_id: bidId, store_id: store_id});
       if (response.status !== 200) {
         console.error('Failed to check if store worker accepted bid', response);
         return 0;
