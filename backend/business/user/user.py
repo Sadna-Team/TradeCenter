@@ -336,7 +336,7 @@ class UserFacade:
     __create_lock = threading.Lock()
     __register_lock = threading.Lock()
     __notification_lock = threading.Lock()
-    __suspend_lock = threading.Lock()
+    # __suspend_lock = threading.Lock()
     __id_serializer: int = 0
     _instance = None
 
@@ -365,8 +365,7 @@ class UserFacade:
         # suspended_users = SuspendedUser.query.all()
         # return {su.user_id: su.suspension_end for su in suspended_users}
         users = User.query.all()
-        with UserFacade.__suspend_lock:
-            out = {user.id: user.member.suspended_until for user in users if user.is_suspended()}
+        out = {user.id: user.member.suspended_until for user in users if user.is_suspended()}
         return out
 
     def suspended(self, user_id: int) -> bool:
@@ -376,10 +375,9 @@ class UserFacade:
         * Return True if we can't continue
         """
         user = User.query.filter_by(id=user_id).first()
-        with UserFacade.__suspend_lock:
-            if not user:
-                return False
-            ans = user.is_suspended()
+        if not user:
+            return False
+        ans = user.is_suspended()
         return ans
 
     def suspend_user_permanently(self, user_id: int):
@@ -388,9 +386,8 @@ class UserFacade:
         * user_id: the id of the user to suspend
         """
         user = User.query.filter_by(id=user_id).first()
-        with UserFacade.__suspend_lock:
-            if not user:
-                raise UserError("User not found", UserErrorTypes.user_not_found)
+        if not user:
+            raise UserError("User not found", UserErrorTypes.user_not_found)
             user.change_suspend(True, None)
 
     def suspend_user_temporarily(self, user_id: int, date_details: dict, time_details: dict):
@@ -403,9 +400,8 @@ class UserFacade:
         date = datetime(int(date_details["year"]), int(date_details["month"]), int(date_details["day"]), int(time_details["hour"]), int(time_details["minute"]))    
 
         user = User.query.filter_by(id=user_id).first()
-        with UserFacade.__suspend_lock:
-            if not user:
-                raise UserError("User not found", UserErrorTypes.user_not_found)
+        if not user:
+            raise UserError("User not found", UserErrorTypes.user_not_found)
             user.change_suspend(True, date)
 
     def unsuspend_user(self, user_id: int):
@@ -415,9 +411,8 @@ class UserFacade:
         * user_id: the id of the user to unsuspend
         """
         user = User.query.filter_by(id=user_id).first()
-        with UserFacade.__suspend_lock:
-            if not user:
-                raise UserError("User not found", UserErrorTypes.user_not_found)
+        if not user:
+            raise UserError("User not found", UserErrorTypes.user_not_found)
             user.change_suspend(False, None)
 
     def get_user(self, user_id: int) -> User:
@@ -487,27 +482,23 @@ class UserFacade:
                 Notification(notification.get_message(), notification.get_date()))
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
-        with UserFacade.__suspend_lock:
-            if self.suspended(user_id):
-                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.get_user(user_id).add_product_to_basket(store_id, product_id, quantity)
 
     def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
-        with UserFacade.__suspend_lock:
-            if self.suspended(user_id):
-                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         return self.get_user(user_id).get_shopping_cart()
 
     def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
-        with UserFacade.__suspend_lock:
-            if self.suspended(user_id):
-                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.get_user(user_id).remove_product_from_basket(store_id, product_id, quantity)
 
     def clear_basket(self, user_id: int) -> None:
-        with UserFacade.__suspend_lock:
-            if self.suspended(user_id):
-                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.get_user(user_id).clear_basket()
 
     def get_password(self, username: str) -> Tuple[int, str]:
