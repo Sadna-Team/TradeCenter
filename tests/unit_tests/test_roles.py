@@ -11,6 +11,9 @@ def roles_facade():
 
     from backend.app_factory import create_app_instance
     app = create_app_instance('testing')
+    from backend.database import clear_database
+    with app.app_context():
+        clear_database()
 
     with app.app_context():
         from backend.database import clear_database

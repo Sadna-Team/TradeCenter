@@ -1,0 +1,8 @@
+myapp - INFO - Creating app with mode development
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
+flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
+New Store Logger - INFO - successfully created storeFacade
+myapp - INFO - [PurchaseFacade] successfully created purchase facade object
+User Logger - INFO - User 0 created
+myapp - ERROR - start - guest failed to enter the app
+backend - INFO - Starting app...

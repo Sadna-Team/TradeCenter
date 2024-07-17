@@ -8,6 +8,7 @@ from backend import create_app
 
 
 if __name__ == "__main__":
+    print("In mainnnnnn")
     app = create_app_instance()
     logger = create_logger_instance()
     # app = create_app('')

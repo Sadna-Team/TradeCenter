@@ -6,35 +6,43 @@ import logging
 config_mode = os.getenv('FLASK_CONFIG', 'default')
 
 
-def create_app_instance(mode='development'):
-    factory = AppFactory()
-    return factory.init_app(mode)
-
-
-
-def create_logger_instance(mode='development'):
-    factory = AppFactory()
-    return factory.logger
-
-
 class AppFactory:
-    # singleton
     __instance = None
 
     def __new__(cls):
         if AppFactory.__instance is None:
             AppFactory.__instance = super(AppFactory, cls).__new__(cls)
-        return cls.__instance
+            AppFactory.__instance.__initialized = False
+        return AppFactory.__instance
 
     def __init__(self):
+        if self.__initialized:
+            return
         self.app = None
         self.logger = None
-        if not hasattr(self, '_initialized'):
-            self._initialized = True
-            # self.app = create_app(mode)
-            # self.logger = logging.getLogger('myapp')
-        
+        self.__initialized = True
+
     def init_app(self, mode='development'):
-        self.app = create_app(mode)
-        self.logger = logging.getLogger('myapp')
+        if self.app is None:
+            self.app = create_app(mode)
+            self.logger = logging.getLogger('myapp')
         return self.app
+
+    def get_app(self):
+        if self.app is None:
+            self.app = create_app('development')
+            self.logger = logging.getLogger('myapp')
+        return self.app
+
+
+def get_app():
+    return AppFactory().get_app()
+
+
+def create_app_instance(mode='development'):
+    return AppFactory().init_app(mode)
+
+
+def create_logger_instance(mode='development'):
+    factory = AppFactory().init_app(mode)
+    return factory.logger
