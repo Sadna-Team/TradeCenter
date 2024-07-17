@@ -92,25 +92,25 @@ def client3(app):
     return app.test_client()
 
 @pytest.fixture
-def token1(client1):
+def token1(app, client1):
     response = client1.get('/auth/')
     data = json.loads(response.data)
     return data['token']
 
 @pytest.fixture
-def token2(client2):
+def token2(app, client2):
     response = client2.get('/auth/')
     data = json.loads(response.data)
     return data['token']
 
 @pytest.fixture
-def guest_token(client3):
+def guest_token(app, client3):
     response = client3.get('/auth/')
     data = json.loads(response.data)
     return data['token']
 
 @pytest.fixture
-def owner_token(client1, token1):
+def owner_token(app, client1, token1):
     headers = { 'Authorization': 'Bearer ' + token1 }
     manager_credentials = register_credentials.copy()
     manager_credentials['username'] = 'store_owner'
@@ -123,21 +123,22 @@ def owner_token(client1, token1):
     return data['token']
 
 @pytest.fixture
-def user_token(client2, token2):
+def user_token(app, client2, token2):
     headers = { 'Authorization': 'Bearer ' + token2 }
     data = {"register_credentials": register_credentials}
     response = client2.post('auth/register', headers=headers, json=data)
     data = { "username": "test", "password": "test" }
     response = client2.post('auth/login', headers=headers, json=data)
     data = json.loads(response.data)
-    print(data)
     return data['token']
 
 @pytest.fixture
-def init_store(client1, owner_token):
+def init_store(app, client1, owner_token):
     data = {'store_name': 'test_store', 'address': 'test_address', 'city': 'test_city', 'state': 'test_state', 'country': 'test_country', 'zip_code': '12345'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client1.post('store/add_store', headers=headers, json=data)
+    print(response.data)
+    assert response.status_code == 200
 
     data = {"store_id": 0, 
             "product_name": "test_product", 
@@ -148,6 +149,7 @@ def init_store(client1, owner_token):
             "amount": 10}
     
     response = client1.post('store/add_product', headers=headers, json=data)
+    assert response.status_code == 200
 
     data = {"store_id": 0, 
         "product_name": "funny", 
@@ -158,6 +160,7 @@ def init_store(client1, owner_token):
         "amount": 10}
 
     response = client1.post('store/add_product', headers=headers, json=data)
+    assert response.status_code == 200
 
 # def create_and_login_user(username, password, email, phone, year, month, day):
 #     response = client.get('/auth/')
@@ -219,7 +222,6 @@ def test_start(app, client1):
     global token
     response = client1.get('/auth/')
     data = json.loads(response.data)
-    print(data)
     assert response.status_code == 200
     assert 'token' in data
 
@@ -342,11 +344,9 @@ def test_login_failed_already_logged_in(app, client1, token1, user_token):
     }
 
     response = client1.post('/auth/login', headers=headers, json=data)
-    assert response.status_code == 400
+    assert response.status_code == 401
     
     
-
-
 def test_logout(app, client1, user_token):
     data = {
         'username': 'test',
@@ -359,8 +359,6 @@ def test_logout(app, client1, user_token):
     response = client1.post('/auth/logout', headers=headers)
     assert response.status_code == 200
     
-    
-
 
 def test_logout_failed_not_logged_in(app, client1, token1):
     data = {
@@ -406,11 +404,27 @@ def test_show_notifications_failed_not_logged_in(app, client1, token1):
     
 
 
-def test_add_product_to_basket(app, client1, user_token):
-    response = client1.post('/user/add_to_basket', headers={
+def test_add_product_to_basket(app, client2, user_token, client1, owner_token):
+    data = {'store_name': 'test_store', 'address': 'test_address', 'city': 'test_city', 'state': 'test_state', 'country': 'test_country', 'zip_code': '12345'}
+    headers = {'Authorization': 'Bearer ' + owner_token}
+    response = client1.post('store/add_store', headers=headers, json=data)
+    print(response.data)
+    assert response.status_code == 200
+
+    data = {"store_id": 0, 
+            "product_name": "test_product", 
+            "description": "test_description",
+            "price": 10.0,
+            "weight": 1.0,
+            "tags": ["tag1", "tag2"],
+            "amount": 10}
+    
+    response = client1.post('store/add_product', headers=headers, json=data)
+    assert response.status_code == 200
+    response = client2.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
-        'store_id': 0,
+        'store_id': 1,
         'product_id': 0,
         'quantity': 1
     })
@@ -424,7 +438,7 @@ def test_add_product_to_basket_failed_amount_exceeds(app, client1, user_token):
     response = client1.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
-        'store_id': 0,
+        'store_id': 1,
         'product_id': 0,
         'quantity': 100
     })

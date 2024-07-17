@@ -85,7 +85,8 @@ def create_app(mode='development'):
         # Ensure that the database tables are created
         db.create_all()
         if mode == 'testing':
-            clear_database()
+            # clear_database()
+            print("mode = testing")
         if not hasattr(app, 'initialization_done'):
             app.initialization_done = True
             authentication = Authentication()
