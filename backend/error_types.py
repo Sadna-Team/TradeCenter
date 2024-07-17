@@ -52,6 +52,7 @@ class UserErrorTypes(Enum):
     user_does_not_have_necessary_permissions = 15
     user_not_a_member = 16
     user_not_a_manager_or_owner = 17
+    empty_fields = 18
 
 class RoleErrorTypes(Enum):
     actor_not_member_of_store = 1
