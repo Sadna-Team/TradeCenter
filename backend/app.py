@@ -9,7 +9,6 @@ logger = logging.getLogger('myapp')
 
 config_mode = os.getenv('FLASK_CONFIG', 'default')
 
-
 if __name__ == "__main__":
     app = create_app(config_mode)
     app.logger.info("Starting app...")

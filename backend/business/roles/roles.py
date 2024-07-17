@@ -148,11 +148,9 @@ class Nomination(db.Model):
 class TreeNode(db.Model):
     __tablename__ = 'tree_nodes'
 
-    id = db.Column(db.Integer, primary_key=True)
-    data = db.Column(db.Integer, nullable=False)
-    store_id = db.Column(db.Integer, nullable=False)
-    parent_id = db.Column(db.Integer, db.ForeignKey('tree_nodes.id'))
-    children = db.relationship("TreeNode", backref=db.backref('parent', remote_side=[id]))
+    data = db.Column(db.Integer, nullable=False, primary_key=True)
+    store_id = db.Column(db.Integer, nullable=False, primary_key=True)
+    parent_id = db.Column(db.Integer, nullable=True)
     is_root = db.Column(db.Boolean, nullable=False, default=False)
 
     def __init__(self, data: int, store_id: int, parent_id: Optional[int] = None, is_root: bool = False):
@@ -160,6 +158,8 @@ class TreeNode(db.Model):
         self.store_id = store_id
         self.parent_id = parent_id
         self.is_root = is_root
+
+
 
 class Node:
     def __init__(self, data, store_tree_id=None, parent_id=None):
@@ -331,6 +331,9 @@ class RolesFacade:
     def clean_data(self):
         from backend.app import app
         with app.app_context():
+            db.session.query(Permissions).delete()
+            db.session.query(StoreOwner).delete()
+            db.session.query(StoreManager).delete()
             db.session.query(TreeNode).delete()
             db.session.query(StoreRole).delete()
             db.session.query(Nomination).delete()
@@ -338,7 +341,7 @@ class RolesFacade:
             db.session.commit()
 
     def add_store(self, store_id: int, owner_id: int) -> None:
-        from backend.app import app
+        from flask import current_app as app
         with app.app_context():
             if db.session.query(TreeNode).filter_by(store_id=store_id, is_root=True).first():
                 raise RoleError("Store already exists", RoleErrorTypes.store_already_exists)
@@ -370,6 +373,9 @@ class RolesFacade:
 
         # Remove from database
         db.session.query(TreeNode).filter(TreeNode.store_id == store_id).delete()
+        db.session.commit()
+
+        db.session.query(StoreRole).filter(StoreRole.store_id == store_id).delete()
         db.session.commit()
 
         self.__stores_locks.pop(store_id, None)
@@ -525,7 +531,7 @@ class RolesFacade:
         return employees
 
     def is_system_manager(self, user_id: int) -> bool:
-        return db.session.query(SystemManagerModel).filter_by(user_id=user_id).first() is not None or db.session.query(SystemManagerModel).filter_by(is_admin=True).first() is None
+        return db.session.query(SystemManagerModel).filter_by(user_id=user_id).first() is not None
 
     def add_system_manager(self, actor: int, user_id: int) -> None:
         with self.__system_managers_lock:
@@ -749,6 +755,9 @@ class RolesFacade:
     def get_role(self, store_id: int, user_id: int) -> StoreRole:
         return db.session.query(StoreRole).filter_by(store_id=store_id, user_id=user_id).one_or_none()
 
+    def get_permissions(self, store_id: int, user_id: int) -> Permissions:
+        return db.session.query(Permissions).filter_by(store_id=store_id, user_id=user_id).one_or_none()
+
     def is_root(self, store_id: int, user_id: int) -> bool:
         root_node = db.session.query(TreeNode).filter_by(store_id=store_id, is_root=True).one_or_none()
         if not root_node:
@@ -762,9 +771,14 @@ class RolesFacade:
     def remove_node(self, store_id: int, user_id: int) -> List[int]:
         tree = Tree.from_db(store_id)
         removed_nodes = tree.remove_node(user_id)
-        db.session.query(TreeNode).filter(TreeNode.store_tree_id == store_id, TreeNode.data == user_id).delete()
+        db.session.query(TreeNode).filter(TreeNode.store_id == store_id, TreeNode.data == user_id).delete()
         db.session.commit()
         return removed_nodes
 
     def is_admin_created(self):
         return self.__load_system_admin_from_db() != -1
+
+    def get_nomination(self, nomination_id: int) -> Nomination:
+
+        nomination = db.session.query(Nomination).filter_by(nomination_id=nomination_id).one_or_none()
+        return nomination
