@@ -40,6 +40,8 @@ class ShoppingBasket(db.Model):
         self.products = json.dumps({})  # Store products as a JSON string
 
     def add_product(self, product_id: int, quantity: int) -> None:
+        if quantity < 0:
+            raise StoreError("Quantity can't be negative", StoreErrorTypes.invalid_amount)
         products = self.get_dto()
         products[product_id] = products.get(product_id, 0) + quantity
         self.products = json.dumps(products)
@@ -54,6 +56,8 @@ class ShoppingBasket(db.Model):
         return ans
 
     def remove_product(self, product_id: int, quantity: int):
+        if quantity < 0:
+            raise StoreError("Quantity can't be negative", StoreErrorTypes.invalid_amount)
         products = self.get_dto()
         if product_id not in products:
             raise StoreError("Product not found", StoreErrorTypes.product_not_found)
@@ -67,6 +71,8 @@ class ShoppingBasket(db.Model):
         db.session.commit()
 
     def subtract_product(self, product_id: int, quantity: int):
+        if quantity < 0:
+            raise StoreError("Quantity can't be negative", StoreErrorTypes.invalid_amount)
         products = self.get_dto()
         if product_id not in products:
             raise StoreError("Product not found", StoreErrorTypes.product_not_found)
@@ -109,6 +115,8 @@ class ShoppingCart():
         return {basket.store_id: basket.get_dto() for basket in self.baskets}
 
     def remove_product_from_basket(self, store_id: int, product_id: int, quantity: int) -> None:
+        if quantity < 0: 
+            raise StoreError("Quantity can't be negative", StoreErrorTypes.invalid_amount)
         basket = next((b for b in self.baskets if b.store_id == store_id), None)
         if not basket:
             raise StoreError("Store not found", StoreErrorTypes.store_not_found)
@@ -117,6 +125,8 @@ class ShoppingCart():
         db.session.commit()
 
     def subtract_product_from_cart(self, store_id: int, product_id: int, quantity: int) -> None:
+        if quantity < 0:
+            raise StoreError("Quantity can't be negative", StoreErrorTypes.invalid_amount)
         basket = next((b for b in self.baskets if b.store_id == store_id), None)
         if not basket:
             raise StoreError("Store not found", StoreErrorTypes.store_not_found)
@@ -230,6 +240,8 @@ class User(db.Model):
         db.session.commit()
 
     def add_product_to_basket(self, store_id: int, product_id: int, quantity: int) -> None:
+        if quantity < 0:
+            raise StoreError("Quantity can't be negative", StoreErrorTypes.invalid_amount)
         # self.shopping_cart.add_product_to_basket(store_id, product_id, quantity)
         basket = next((b for b in self.baskets if b.store_id == store_id), None)
         if not basket:
@@ -245,6 +257,8 @@ class User(db.Model):
         return {basket.store_id: basket.get_dto() for basket in self.baskets}
 
     def register(self, email: str, username: str, password: str, year: int, month: int, day: int, phone: str) -> None:
+        if email == "" or username == "" or password == "":
+            raise UserError("Empty fields", UserErrorTypes.empty_fields)
         if self.is_member():
             raise UserError("User is already registered", UserErrorTypes.user_already_registered)
         self.member_id = db.session.query(Member).count() + 1
@@ -253,6 +267,8 @@ class User(db.Model):
         db.session.commit()
 
     def remove_product_from_basket(self, store_id: int, product_id: int, quantity: int):
+        if quantity < 0:
+            raise StoreError("Quantity can't be negative", StoreErrorTypes.invalid_amount)
         # self.shopping_cart.remove_product_from_basket(store_id, product_id, quantity)
         basket = next((b for b in self.baskets if b.store_id == store_id), None)
         if not basket:
@@ -262,6 +278,8 @@ class User(db.Model):
         db.session.commit()
 
     def subtract_product_from_cart(self, store_id: int, product_id: int, quantity: int):
+        if quantity < 0:
+            raise StoreError("Quantity can't be negative", StoreErrorTypes.invalid_amount)
         # self.shopping_cart.subtract_product_from_cart(store_id, product_id, quantity)
         basket = next((b for b in self.baskets if b.store_id == store_id), None)
         if not basket:
