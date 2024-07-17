@@ -10,8 +10,8 @@ def create_app_instance(mode='development'):
     return AppFactory(mode).app
 
 
-def create_logger_instance():
-    return AppFactory().logger
+def create_logger_instance(mode='development'):
+    return AppFactory(mode).logger
 
 
 class AppFactory:
@@ -24,6 +24,7 @@ class AppFactory:
         return cls.__instance
 
     def __init__(self, mode='development'):
+        print(mode)
         self.app = None
         self.logger = None
         if not hasattr(self, '_initialized'):

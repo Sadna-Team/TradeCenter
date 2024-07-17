@@ -218,11 +218,11 @@ register_credentials = {
 def test_start(app, client1):
     global token
     response = client1.get('/auth/')
-    assert response.status_code == 200
     data = json.loads(response.data)
+    print(data)
+    assert response.status_code == 200
     assert 'token' in data
 
-    
 
 def test_register(app, client1, token1):
     headers = {
