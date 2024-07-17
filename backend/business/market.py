@@ -1322,6 +1322,18 @@ class MarketFacade:
             raise UserError("User does not have the necessary permissions to get the bids of the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         return self.purchase_facade.get_bid_purchases_of_store(store_id)
     
+    def view_all_bids_of_system(self, user_id: int) -> dict:
+        """
+        Parameters: userId
+        This function views all the bids of the system
+        Returns a list of bids
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if not self.roles_facade.is_system_manager(user_id):
+            raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
+        return self.purchase_facade.view_all_bids_of_system()
+    
     def has_store_worker_accepted_bid(self, user_id:int, store_id:int, bid_id:int) -> int:
         """
         Parameters: userId, storeId, bidId

@@ -500,6 +500,27 @@ def show_store_bids():
 
     return purchase_service.show_store_bids(store_owner_id, store_id)
 
+@market_bp.route('/view_all_bids', methods=['GET', 'POST'])
+@jwt_required()
+def view_all_bids_of_system():
+    """
+        Use Case:
+        View all bids
+
+        Data:
+            None
+    """
+    logger.info('recieved request to view all bids')
+    try:
+        system_manager_id = get_jwt_identity()
+        data = request.get_json()
+    except Exception as e:
+        logger.error('view_all_bids - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.view_all_bids_of_system(system_manager_id)
+
+
 
 @market_bp.route('/has_store_worker_accept_bid', methods=['POST'])
 @jwt_required()

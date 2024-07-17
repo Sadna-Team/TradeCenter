@@ -140,6 +140,14 @@ body {
     color: #21a4c2; /* Dark pastel turqoise color */
   }
 
+  .status-value.text-dark-pastel-red {
+    color: #df2a27; /* Dark pastel red color */
+  }
+
+  .status-value.text-light-pastel-green{
+    color: #16cd4c; /* light pastel green color */
+  }
+
 
   .bid-button {
     justify-content: space-between;

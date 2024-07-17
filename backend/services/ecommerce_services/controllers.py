@@ -271,6 +271,19 @@ class PurchaseService:
             logger.error('show_store_bids was not successful')
             return jsonify({'message': str(e)}), 400
         
+    def view_all_bids_of_system(self, system_manager_id: int):
+        """
+            View all bids of the system
+        """
+        try:
+            info = self.__market_facade.view_all_bids_of_system(system_manager_id)
+            logger.info('view_all_bids_of_system was successful')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('view_all_bids_of_system was not successful')
+            return jsonify({'message': str(e)}), 400
+        
+        
     def has_store_worker_accepted_bid(self, user_id: int, store_id: int, bid_id: int):
         """
             Has store worker accepted bid
