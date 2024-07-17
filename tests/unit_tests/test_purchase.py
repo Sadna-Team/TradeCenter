@@ -40,10 +40,8 @@ def app():
     auth.set_jwt(jwt, bcrypt)"""
     global app
 
-    from backend import create_app
-    app = create_app(mode='testing')
-    from backend import app as app2
-    app2.app = app
+    from backend.app_factory import create_app_instance
+    app = create_app_instance(mode='testing')
 
     # Push application context for testing
     app_context = app.app_context()

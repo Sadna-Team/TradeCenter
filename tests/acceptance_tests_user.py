@@ -3,6 +3,7 @@ from backend import create_app, clean_data
 import json
 import threading
 import queue
+
 register_credentials = { 
         'username': 'test',
         'email': 'test@gmail.com',
@@ -43,17 +44,40 @@ default_address_checkout = { 'address': 'randomstreet 34th',
                             'zip_code': '12345'}
 
 
-@pytest.fixture
+@pytest.fixture(scope='session', autouse=True)
 def app():
-    app = create_app(mode='testing')
-    from backend import app as app2
-    app2.app = app
-    return app
+    # Setup: Create the Flask app
+    """app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'test_secret_key'  # Set a test secret key
+    jwt = JWTManager(app)
+    bcrypt = Bcrypt(app)
+    auth = Authentication()
+    auth.clean_data()
+    auth.set_jwt(jwt, bcrypt)"""
+    global app
+
+    from backend.app_factory import create_app_instance
+    app = create_app_instance(mode='testing')
+
+
+    # Push application context for testing
+    app_context = app.app_context()
+    app_context.push()
+
+    # Make the app context available in tests
+    yield app
+
+    clean_data()
+
+    app_context.pop()
+
 
 @pytest.fixture
 def clean(app):
     yield
-    clean_data()
+    with app.app_context():
+        clean_data()
+    
 
 @pytest.fixture
 def client1(app):
@@ -198,6 +222,8 @@ def test_start(app, client1):
     data = json.loads(response.data)
     assert 'token' in data
 
+    
+
 def test_register(app, client1, token1):
     headers = {
         'Authorization': 'Bearer ' + token1
@@ -208,6 +234,8 @@ def test_register(app, client1, token1):
     response = client1.post('auth/register', headers=headers, json=data1)
 
     assert response.status_code == 201
+
+    
 
 
 def test_register_failed_duplicate_username(app, client1, token1, token2):
@@ -220,6 +248,8 @@ def test_register_failed_duplicate_username(app, client1, token1, token2):
     response = client1.post('auth/register', headers=headers, json=data1)
     
     assert response.status_code == 201
+    
+    
 
     headers = {
         'Authorization': 'Bearer ' + token2
@@ -243,6 +273,8 @@ def test_register_failed_missing_data(app, client1, token1):
     response = client1.post('auth/register', headers=headers, json=data1)
 
     assert response.status_code == 400
+    
+    
 
 
 def test_login(app, client1, token1):
@@ -266,6 +298,8 @@ def test_login(app, client1, token1):
         'Authorization': 'Bearer ' + token1
     }
     response = client1.post('/auth/login', headers=headers, json=data)
+    
+    
 
 
 def test_login_failed_user_doesnt_exist(app, client1, token1):
@@ -279,6 +313,8 @@ def test_login_failed_user_doesnt_exist(app, client1, token1):
 
     response = client1.post('/auth/login', headers=headers, json=data)
     assert response.status_code == 401
+    
+    
 
 
 def test_login_failed_wrong_password(app, client1, token1):
@@ -292,6 +328,8 @@ def test_login_failed_wrong_password(app, client1, token1):
 
     response = client1.post('/auth/login', headers=headers, json=data)
     assert response.status_code == 401
+    
+    
 
 
 def test_login_failed_already_logged_in(app, client1, token1, user_token):
@@ -305,6 +343,8 @@ def test_login_failed_already_logged_in(app, client1, token1, user_token):
 
     response = client1.post('/auth/login', headers=headers, json=data)
     assert response.status_code == 400
+    
+    
 
 
 def test_logout(app, client1, user_token):
@@ -318,6 +358,8 @@ def test_logout(app, client1, user_token):
 
     response = client1.post('/auth/logout', headers=headers)
     assert response.status_code == 200
+    
+    
 
 
 def test_logout_failed_not_logged_in(app, client1, token1):
@@ -331,6 +373,8 @@ def test_logout_failed_not_logged_in(app, client1, token1):
 
     response = client1.post('/auth/logout', headers=headers)
     assert response.status_code == 400
+    
+    
 
 
 def test_logout_guest(app, client1, token1):
@@ -348,6 +392,8 @@ def test_show_notifications(app, client1, user_token):
 
     notifications = response.json['notifications']
     assert len(notifications) == 0
+    
+    
 
 
 def test_show_notifications_failed_not_logged_in(app, client1, token1):
@@ -356,6 +402,8 @@ def test_show_notifications_failed_not_logged_in(app, client1, token1):
     })
 
     assert response.status_code == 400
+    
+    
 
 
 def test_add_product_to_basket(app, client1, user_token):
@@ -368,6 +416,8 @@ def test_add_product_to_basket(app, client1, user_token):
     })
 
     assert response.status_code == 200
+    
+    
 
 
 def test_add_product_to_basket_failed_amount_exceeds(app, client1, user_token):
@@ -380,6 +430,8 @@ def test_add_product_to_basket_failed_amount_exceeds(app, client1, user_token):
     })
 
     assert response.status_code == 400
+    
+    
 
 
 def test_add_product_to_basket_store_not_exists(app, client1, user_token):
@@ -404,6 +456,8 @@ def test_add_product_to_basket_product_not_exists(app, client1, user_token):
     })
 
     assert response.status_code == 400
+    
+    
 
 
 def test_remove_product_from_basket(app, client1, user_token):
@@ -416,6 +470,8 @@ def test_remove_product_from_basket(app, client1, user_token):
     })
 
     assert response.status_code == 200
+    
+    
 
 
 def test_remove_product_from_basket_failed_not_logged_in(app, client1, token1):
@@ -428,6 +484,8 @@ def test_remove_product_from_basket_failed_not_logged_in(app, client1, token1):
     })
 
     assert response.status_code == 400
+    
+    
 
 
 def test_remove_product_from_basket_failed_store_not_exists(app, client1, user_token):
@@ -440,6 +498,8 @@ def test_remove_product_from_basket_failed_store_not_exists(app, client1, user_t
     })
 
     assert response.status_code == 400
+    
+    
 
 
 def test_remove_product_from_basket_failed_product_not_exists(app, client1, user_token):
@@ -452,6 +512,8 @@ def test_remove_product_from_basket_failed_product_not_exists(app, client1, user
     })
 
     assert response.status_code == 400
+    
+    
 
 
 def test_remove_product_from_basket_failed_quantity_exceeds(app, client1, user_token):
@@ -464,6 +526,8 @@ def test_remove_product_from_basket_failed_quantity_exceeds(app, client1, user_t
     })
 
     assert response.status_code == 400
+    
+    
 
 
 def test_show_cart(app, client1, user_token):
@@ -472,6 +536,8 @@ def test_show_cart(app, client1, user_token):
     })
 
     assert response.status_code == 200
+    
+    
 
 
 def test_search_by_category(app, client1, user_token):
@@ -480,6 +546,8 @@ def test_search_by_category(app, client1, user_token):
         'Authorization': f'Bearer {user_token}'
     }, json=data)
     assert response.status_code == 200
+    
+    
 
 
 def test_search_by_category_failed_store_not_exists(app, client1, user_token):
@@ -488,6 +556,8 @@ def test_search_by_category_failed_store_not_exists(app, client1, user_token):
         'Authorization': f'Bearer {user_token}'
     }, json=data)
     assert response.status_code == 400
+    
+    
 
 
 def test_search_by_category_failed_category_not_exists(app, client1, user_token):
@@ -496,6 +566,8 @@ def test_search_by_category_failed_category_not_exists(app, client1, user_token)
         'Authorization': f'Bearer {user_token}'
     }, json=data)
     assert response.status_code == 400
+    
+    
 
 
 def test_search_by_tags(app, client1, user_token):
@@ -504,6 +576,8 @@ def test_search_by_tags(app, client1, user_token):
         'Authorization': f'Bearer {user_token}'
     }, json=data)
     assert response.status_code == 200
+    
+    
 
 
 def test_search_by_tags_failed_store_not_exists(app, client1, user_token):
@@ -512,6 +586,8 @@ def test_search_by_tags_failed_store_not_exists(app, client1, user_token):
         'Authorization': f'Bearer {user_token}'
     }, json=data)
     assert response.status_code == 400
+    
+    
 
 
 def test_search_by_name(app, client1, user_token):
@@ -520,6 +596,8 @@ def test_search_by_name(app, client1, user_token):
         'Authorization': f'Bearer {user_token}'
     }, json=data)
     assert response.status_code == 200
+    
+    
 
 
 def test_search_by_name_failed_store_not_exists(app, client1, user_token):
@@ -528,6 +606,8 @@ def test_search_by_name_failed_store_not_exists(app, client1, user_token):
         'Authorization': f'Bearer {user_token}'
     }, json=data)
     assert response.status_code == 400
+    
+    
 
 
 def test_information_about_stores(app, client1, user_token):
@@ -535,6 +615,8 @@ def test_information_about_stores(app, client1, user_token):
         'Authorization': f'Bearer {user_token}'
     })
     assert response.status_code == 200
+    
+    
 
 
 
@@ -543,6 +625,8 @@ def test_information_about_stores_failed_store_not_exists(app, client1, user_tok
         'Authorization': f'Bearer {user_token}'
     })
     assert response.status_code == 400
+    
+    
 
 
 
@@ -561,6 +645,8 @@ def test_add_store(app, client1, owner_token):
     response = client1.post('store/add_store', headers=headers, json=data)
 
     assert response.status_code == 200
+    
+    
 
 
 def test_add_store_failed_user_not_a_member(app, client1, token1):
@@ -616,6 +702,8 @@ def test_show_purchase_history_of_user(app, client1, user_token):
         'Authorization': f'Bearer {token}'
     }, json={"user_id": 1})
     assert response.status_code == 200
+    
+    
 
 
 def test_show_purchase_history_of_user_failed_is_not_logged_in(app, client1, guest_token):
@@ -641,6 +729,8 @@ def test_show_purchase_history_of_user_failed_is_not_logged_in(app, client1, gue
     #show purchase history
     response = client1.get('market/user_purchase_history', headers={'Authorization': f'Bearer {guest_token}'}, json={"user_id": 1})
     assert response.status_code == 400
+    
+    
 
 
 def test_show_purchase_history_of_user_in_store(app, client1, user_token):
@@ -667,6 +757,8 @@ def test_show_purchase_history_of_user_in_store(app, client1, user_token):
     response = client1.get('market/user_purchase_history', headers
     ={'Authorization': f'Bearer {user_token}'}, json={"user_id": 1, "store_id": 0})
     assert response.status_code == 200
+    
+    
 
 
 def test_show_purchase_history_of_user_in_store_failed_is_not_logged_in(app, client1, guest_token):
@@ -679,6 +771,8 @@ def test_show_purchase_history_of_user_in_store_failed_is_not_logged_in(app, cli
         'quantity': 1
     })
     assert response.status_code == 200
+    
+    
 
     #purchase the product
     response = client1.post('market/checkout', headers={
@@ -692,3 +786,5 @@ def test_show_purchase_history_of_user_in_store_failed_is_not_logged_in(app, cli
     #show purchase history
     response = client1.get('market/user_purchase_history', headers={'Authorization': f'Bearer {guest_token}'}, json={"user_id": 1, "store_id": 0})
     assert response.status_code == 400
+    
+    
