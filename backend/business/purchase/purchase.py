@@ -117,6 +117,10 @@ class Purchase(db.Model):
 
     def __init__(self, user_id: int, date_of_purchase: Optional[datetime],
                  total_price: float, total_price_after_discounts: float, status: PurchaseStatus):
+        if total_price != -1 and total_price < 0:
+            raise PurchaseError("Total price is invalid", PurchaseErrorTypes.invalid_total_price)
+        if total_price_after_discounts != -1 and total_price_after_discounts < 0:
+            raise PurchaseError("Total price after discounts is invalid", PurchaseErrorTypes.invalid_total_price)
         self._user_id = user_id
         self._date_of_purchase = date_of_purchase or datetime.now()
         self._total_price = total_price
