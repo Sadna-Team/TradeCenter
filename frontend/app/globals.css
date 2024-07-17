@@ -131,6 +131,16 @@ body {
   .status-value.text-dark-pastel-blue {
     color: #779ecb; /* Dark pastel blue color */
   }
+
+  .status-value.text-dark-pastel-green {
+    color: #115313; /* Dark pastel green color */
+  }
+
+  .status-value.text-dark-pastel-turqoise {
+    color: #21a4c2; /* Dark pastel turqoise color */
+  }
+
+
   .bid-button {
     justify-content: space-between;
   }

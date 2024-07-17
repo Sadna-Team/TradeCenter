@@ -1,8 +1,8 @@
 "use client";
 import api from '@/lib/api';
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { ScrollArea } from '@/components/ScrollArea';
+import Link from 'next/link';
 import {
   Dialog,
   DialogContent,
@@ -184,7 +184,7 @@ const ManageUserBids = () => {
     const statusColors = {
       'onGoing': 'text-dark-pastel-blue',
       'accepted': 'text-dark-pastel-green',
-      'approved': 'text-turquoise'
+      'approved': 'text-dark-pastel-turqoise'
     };
 
     let is_offer_to_store = "yes";
@@ -246,7 +246,12 @@ const ManageUserBids = () => {
             )}
             {bid.status === 'approved' && (
               <div className="flex justify-between mt-4">
-                <Button className="bg-green-500 text-white py-1 px-3 rounded" onClick={() => window.location.href='/checkout_bid'}>Proceed to Checkout</Button>
+                <Link href={{
+                  pathname: `/checkout_bid/${bid.bid_id}`,
+                  query: { bidId: bid.bid_id },
+                }}>
+                  <div className="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded cursor-pointer">Proceed to Checkout</div>
+                </Link>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button className="bg-red-500 text-white py-1 px-3 rounded">Cancel</Button>

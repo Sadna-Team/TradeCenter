@@ -200,7 +200,7 @@ def search_products_by_name():
     return purchase_service.search_products_by_name(name, store_id)
 
 
-@market_bp.route('/bid_checkout', methods=['POST'])
+@market_bp.route('/checkout_bid', methods=['POST'])
 @jwt_required()
 def bid_checkout():
     """
@@ -215,12 +215,25 @@ def bid_checkout():
 
         payment_details_helper = data['payment_details']
         if not isinstance(payment_details_helper, dict):
-            raise Exception('payment details must be a dictionary')
+            raise ServiceLayerError('payment details must be a dictionary', ServiceLayerErrorTypes.payment_details_not_dict)
         payment_details = {str(key): str(value) for key, value in payment_details_helper.items()}
-
-        supply_method = str(data['supply_method'])
+        if "payment_additional_details" in data:
+            additional_details = data['payment_additional_details']
+            if not isinstance(additional_details, dict):
+                raise ServiceLayerError('additional details must be a dictionary', ServiceLayerErrorTypes.additional_details_not_dict)
+            additional_details = {str(key): str(value) for key, value in additional_details.items()}
+            payment_details["additional details"] = additional_details
+        
+        supply_details = {"supply method": str(data['supply_method'])}
+        if 'supply_additional_details' in data:
+            additional_details = data['supply_additional_details']
+            if not isinstance(additional_details, dict):
+                raise ServiceLayerError('additional details must be a dictionary', ServiceLayerErrorTypes.additional_details_not_dict)
+            additional_details = {str(key): str(value) for key, value in additional_details.items()}
+            supply_details["additional details"] = additional_details
 
         address_helper = data['address']
+
         if not isinstance(address_helper, dict):
             raise Exception('address must be a dictionary')
         address = {str(key): str(value) for key, value in address_helper.items()}
@@ -228,7 +241,7 @@ def bid_checkout():
         logger.error('bid_checkout - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.bid_checkout(user_id, bid_id, payment_details, supply_method, address)
+    return purchase_service.bid_checkout(user_id, bid_id, payment_details, supply_details, address)
     
     
 @market_bp.route('/user_bid_offer', methods=['POST'])
