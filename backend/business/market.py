@@ -1251,6 +1251,18 @@ class MarketFacade:
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.purchase_facade.user_reject_counter_offer(bid_id, user_id)
         logger.info(f"User {user_id} has declined a counter bid")
+
+    
+    def user_bid_cancel(self, user_id: int, bid_id: int) -> None:
+        """
+        Parameters: userId, bidId
+        This function cancels a bid
+        Returns None
+        """
+        if self.user_facade.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        self.purchase_facade.cancel_bid(bid_id, user_id)
+        logger.info(f"User {user_id} has cancelled a bid")
         
         
     #TODO send a notification to the store that the bid is accepted and ask the store to proceed to checkout

@@ -377,6 +377,30 @@ def user_counter_bid_decline():
 
     return purchase_service.user_counter_bid_decline(user_id, bid_id)
 
+
+@market_bp.route('/user_cancel_bid', methods=['POST'])
+@jwt_required()
+def user_bid_cancel():
+    """
+        Use Case:
+        User cancel bid 
+
+        Data:
+            user_id (int): id of the user
+            bid_id (int): id of the bid
+    """
+    logger.info('recieved request for a user to counter bid decline')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        bid_id = int(data['bid_id'])
+    except Exception as e:
+        logger.error('user_counter_bid_decline - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.user_bid_cancel(user_id, bid_id)
+
+
 @market_bp.route('/user_counter_offer_bid', methods=['POST'])
 @jwt_required()
 def user_counter_bid():

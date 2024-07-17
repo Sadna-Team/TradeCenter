@@ -102,6 +102,27 @@ const ManageUserBids = () => {
   };
 
 
+  //basically handle decline counter.
+  const handleCancelBid = (bidId) => {
+    const removeBid = async () => {
+      try {
+        const response = await api.post('/market/user_cancel_bid', { bid_id: bidId });
+        if (response.status !== 200) {
+          console.error('Failed to cancel bid', response);
+          setErrorMessage('Failed to cancel bid');
+          return;
+        }
+        fetchBids();
+        setErrorMessage('');
+      } catch (error) {
+        console.error('Failed to cancel bid', error);
+        setErrorMessage('Failed to cancel bid');
+      }
+    };
+    removeBid();
+  };
+
+
   const handleOpenEditDialog = (bidId) => {
     const bid = bids.find((bid) => bid.bid_id === bidId);
     if (bid) {
@@ -198,7 +219,7 @@ const ManageUserBids = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleRemoveBid(bid.bid_id)}>Yes, cancel</AlertDialogAction>
+                      <AlertDialogAction onClick={() => handleCancelBid(bid.bid_id)}>Yes, cancel</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -237,7 +258,7 @@ const ManageUserBids = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleRemoveBid(bid.bid_id)}>Yes, cancel</AlertDialogAction>
+                      <AlertDialogAction onClick={() => handleCancelBid(bid.bid_id)}>Yes, cancel</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>

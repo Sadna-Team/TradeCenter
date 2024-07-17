@@ -209,6 +209,20 @@ class PurchaseService:
             logger.error('user_counter_bid_decline was not successful')
             return jsonify({'message': str(e)}), 400
         
+
+    def user_bid_cancel(self, user_id: int, bid_id: int):
+        """
+            User counter bid decline
+        """
+        try:
+            info = self.__market_facade.user_bid_cancel(user_id, bid_id)
+            logger.info('user_counter_bid_decline was successful')
+            return jsonify({'message': info}), 200
+        except Exception as e:
+            logger.error('user_counter_bid_decline was not successful')
+            return jsonify({'message': str(e)}), 400
+        
+        
     def user_counter_bid(self, user_id: int, bid_id: int, proposed_price: int):
         """
             User counter bid

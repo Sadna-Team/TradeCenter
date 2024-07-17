@@ -579,6 +579,32 @@ class BidPurchase(Purchase):
         self._user_who_rejected_id = user_id
         logger.info("[BidPurchase] user rejected offer of bid purchase with purchase id: %s", self.id)
 
+    def user_cancel_bid(self, user_id: int) -> None:
+        """
+        Parameters: userId
+        This function is responsible for the user cancelling the offer
+        NOTE: the user can only reject the offer if the purchase is ongoing
+        Returns: none
+        """
+        if self._status != PurchaseStatus.onGoing and self._status != PurchaseStatus.approved:
+            logger.info(
+                "[BidPurchase] user could not reject offer of bid purchase with purchase id: %s, since purchase is "
+                "not ongoing or not approved",
+                self.id)
+            raise PurchaseError("Purchase is not on going", PurchaseErrorTypes.purchase_not_ongoing)
+        if self._user_id != user_id:
+            logger.info(
+                "[BidPurchase] user could not reject offer of bid purchase with purchase id: %s, since user id is "
+                "invalid",
+                self.id)
+            raise PurchaseError("User id is invalid", PurchaseErrorTypes.invalid_user_id)
+
+        self._status = PurchaseStatus.offer_rejected
+        self._user_who_rejected_id = user_id
+        logger.info("[BidPurchase] user rejected offer of bid purchase with purchase id: %s", self.id)
+
+
+
     #NOTE: in the case of the user countering again, the manager who originally countered will be removed from the list of store owners/managers that accepted the offer
     def user_counter_offer(self, user_id: int, proposed_price: float) -> None:
         """
@@ -1257,6 +1283,23 @@ class PurchaseFacade:
             raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
 
         db.session.commit()
+
+    def cancel_bid(self, purchase_id: int, user_id: int) -> None:
+        """
+        Parameters: purchaseId, userId
+        This function is responsible for the user rejecting the offer
+        NOTE: the user can only reject the offer if the purchase is ongoing
+        Returns: none
+        """
+        purchase = self.__get_purchase_by_id(purchase_id)
+        if isinstance(purchase, BidPurchase):
+            purchase.user_cancel_bid(user_id)
+        else:
+            raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
+
+        db.session.commit()
+
+
 
     def user_counter_offer(self, purchase_id: int, user_id: int, proposed_price: float) -> None:
         """
