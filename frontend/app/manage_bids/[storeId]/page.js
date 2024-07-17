@@ -201,29 +201,31 @@ const ManageBid = () => {
   };
   
 
-  const renderBid = (bid) => {  
+  const renderBid = (bid) => {
     let is_offer_to_store = "yes";
-    if (!bid.is_offer_to_store){
+    if (!bid.is_offer_to_store) {
       is_offer_to_store = "no";
     }
     let response = hasStoreWorkerAcceptedBid(bid.bid_id);
-    if(response === 1){
-      console.log("the store worker has accepted the bid")
-    }else{
-      console.log("the store worker has not accepted the bid")
+    if (response === 1) {
+      console.log("the store worker has accepted the bid");
+    } else {
+      console.log("the store worker has not accepted the bid");
     }
     return (
       <div key={bid.bid_id} className="mb-4 p-4 border-2 border-gray-300 rounded-md">
-        <button onClick={() => handleToggle(bid.bid_id)} className="text-left w-full">
-          {`Bid ID: ${bid.bid_id}, Status: ${bid.status}`}
+        <button onClick={() => handleToggle(bid.bid_id)} className="flex justify-between items-center w-full text-left bid-button">
+          <span>{`Bid ID: ${bid.bid_id}`}</span>
+          <span className="status-text">
+            Status: <span className={`status-value ${bid.status === 'onGoing' ? 'text-dark-pastel-blue' : ''}`}>{bid.status}</span>
+          </span>
         </button>
         {expandedBids[bid.bid_id] && (
           <div className="mt-2">
             <p><strong>Store ID:</strong> {bid.store_id}</p>
             <p><strong>Product ID:</strong> {bid.product_id}</p>
             <p><strong>Proposed Price:</strong> {bid.proposed_price}</p>
-            <p><strong>Status:</strong> {bid.status}</p>
-            <p><strong>Is Offer To Store: {is_offer_to_store}</strong></p>
+            <p><strong>Is Offer To Store:</strong> {is_offer_to_store}</p>
             {bid.status === 'onGoing' && bid.is_offer_to_store && response !== 1 && (
               <div className="flex justify-between mt-4">
                 <Button className="bg-green-500 text-white py-1 px-3 rounded" onClick={() => handleAcceptBid(bid.bid_id)}>Accept</Button>
@@ -250,8 +252,6 @@ const ManageBid = () => {
     );
   };
   
-
-
   return (
     <div className="flex flex-wrap justify-center">
       <div className="w-full max-w-md p-4">
@@ -286,7 +286,7 @@ const ManageBid = () => {
         </Dialog>
       </div>
     </div>
-  );  
+  );
 };
 
 export default ManageBid;

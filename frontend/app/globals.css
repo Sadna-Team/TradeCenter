@@ -123,3 +123,16 @@ body {
 
 }
 
+
+
+  .status-text {
+    margin-right: 0; /* Adjust as needed */
+  }
+  .status-value.text-dark-pastel-blue {
+    color: #779ecb; /* Dark pastel blue color */
+  }
+  .bid-button {
+    justify-content: space-between;
+  }
+
+
