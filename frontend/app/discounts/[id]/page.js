@@ -603,6 +603,7 @@ const ManageDiscount = () => {
     
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: finalComposite,
       };
 
@@ -612,6 +613,7 @@ const ManageDiscount = () => {
     case 'age': 
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['age']],
       };
       break;
@@ -619,6 +621,7 @@ const ManageDiscount = () => {
     case 'time':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['startingHour'], constraintValues['startingMinute'], constraintValues['endingHour'], constraintValues['endingMinute']],
       };
       break;
@@ -627,6 +630,7 @@ const ManageDiscount = () => {
       let location = {'address': constraintValues['address'], 'city': constraintValues['city'], 'state': constraintValues['state'], 'country': constraintValues['country'], 'zip_code': constraintValues['zipCode']}
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, location],
       };
       break;
@@ -634,6 +638,7 @@ const ManageDiscount = () => {
     case 'day_of_month':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['startingDay'], constraintValues['endingDay']],
       };
       break;
@@ -641,6 +646,7 @@ const ManageDiscount = () => {
     case 'day_of_week':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['startingDay'], constraintValues['endingDay']],
       };
       break;
@@ -648,6 +654,7 @@ const ManageDiscount = () => {
     case 'season':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['season']],
       };
       break;
@@ -655,6 +662,7 @@ const ManageDiscount = () => {
     case 'holidays_of_country':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['countryCode']],
       };
       break;
@@ -662,6 +670,7 @@ const ManageDiscount = () => {
     case 'price_basket':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['minPrice'], constraintValues['maxPrice'], constraintValues['store']],
       };
       break;
@@ -669,6 +678,7 @@ const ManageDiscount = () => {
     case 'price_product':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['minPrice'], constraintValues['maxPrice'], constraintValues['product'], constraintValues['store']],
       };
       break;
@@ -676,6 +686,7 @@ const ManageDiscount = () => {
     case 'price_category':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['minPrice'], constraintValues['maxPrice'], constraintValues['category']],
       };
       break;
@@ -683,6 +694,7 @@ const ManageDiscount = () => {
     case 'amount_basket':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['minAmount'], constraintValues['maxAmount'], constraintValues['store']],
       };
       break;
@@ -690,6 +702,7 @@ const ManageDiscount = () => {
     case 'amount_product':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['minAmount'], constraintValues['maxAmount'], constraintValues['product'], constraintValues['store']],
       };
       break;
@@ -697,6 +710,7 @@ const ManageDiscount = () => {
     case 'amount_category':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['minAmount'], constraintValues['maxAmount'], constraintValues['category']],
       };
       break;
@@ -704,6 +718,7 @@ const ManageDiscount = () => {
     case 'weight_category':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['minWeight'], constraintValues['maxWeight'], constraintValues['category']],
       };
       break;
@@ -711,6 +726,7 @@ const ManageDiscount = () => {
     case 'weight_basket':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['minWeight'], constraintValues['maxWeight'], constraintValues['store']],
       };
       break;
@@ -718,6 +734,7 @@ const ManageDiscount = () => {
     case 'weight_product':
       data = {
         discount_id: currentDiscountId,
+        store_id: store_id,
         predicate_builder: [selectedConstraintType, constraintValues['minWeight'], constraintValues['maxWeight'], constraintValues['product'], constraintValues['store']],
       };
       break;
