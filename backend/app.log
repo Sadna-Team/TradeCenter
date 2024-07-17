@@ -35,54 +35,54 @@ User Logger - INFO - User 6 added to database
 myapp - INFO - guest entered the app successfully - user_id: 6
 myapp - INFO - User registered successfully
 myapp - INFO - User logged in successfully
-New Store Logger - INFO - [Store] successfully created store with id: 7
+New Store Logger - INFO - [Store] successfully created store with id: 16
 New Store Logger - INFO - Successfully added store: s1
-myapp - INFO - [Listeners] created new listeners object for store_id: 7 with listeners: 2
+myapp - INFO - [Listeners] created new listeners object for store_id: 16 with listeners: 2
 myapp - INFO - store was added successfully
 myapp - INFO - store id was sent successfully
 myapp - INFO - adding product to store:
 user_id: 2
-store_id: 7
+store_id: 16
 product_name: Bamba
 description: description
 price: 30
 weight: 1
 tags: []
 amount: 20
-Market logger - INFO - User 2 is trying to add a product to store 7
+Market logger - INFO - User 2 is trying to add a product to store 16
 Market logger - INFO - User 2 is not suspended
-Market logger - INFO - User 2 has permissions to add a product to store 7
+Market logger - INFO - User 2 has permissions to add a product to store 16
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - Successfully added product: Bamba to store with the id: 7
-New Store Logger - INFO - attempting to add product: Bamba to store with id: 7
+New Store Logger - INFO - Successfully added product: Bamba to store with the id: 16
+New Store Logger - INFO - attempting to add product: Bamba to store with id: 16
 New Store Logger - INFO - [Product] successfully created product with id: 0
-New Store Logger - INFO - [Store] successfully added product to store with id: 7
-New Store Logger - INFO - Successfully added product: Bamba to store with the id: 7
-New Store Logger - INFO - Successfully added tags to product: Bamba in store with the id: 7
+New Store Logger - INFO - [Store] successfully added product to store with id: 16
+New Store Logger - INFO - Successfully added product: Bamba to store with the id: 16
+New Store Logger - INFO - Successfully added tags to product: Bamba in store with the id: 16
 myapp - INFO - product was added successfully
 myapp - INFO - store id was sent successfully
 myapp - INFO - User 3 is logged in: False
-Market logger - INFO - User 2 has nominated user 3 to be the manager of store 7
+Market logger - INFO - User 2 has nominated user 3 to be the manager of store 16
 myapp - INFO - store manager was added successfully
-myapp - INFO - [Listeners] added listener: 3 to store_id: 7
-Roles Logger - INFO - User 3 accepted the nomination 0 in store 7
+myapp - INFO - [Listeners] added listener: 3 to store_id: 16
+Roles Logger - INFO - User 3 accepted the nomination 0 in store 16
 myapp - INFO - promotion accepted successfully
-Market logger - INFO - User 2 has changed the permissions of user 3 in store 7
+Market logger - INFO - User 2 has changed the permissions of user 3 in store 16
 myapp - INFO - manager permissions were edited successfully
 myapp - INFO - store id was sent successfully
 myapp - INFO - User 4 is logged in: False
-Market logger - INFO - User 2 has nominated user 4 to be the owner of store 7
+Market logger - INFO - User 2 has nominated user 4 to be the owner of store 16
 myapp - INFO - store owner was added successfully
-myapp - INFO - [Listeners] added listener: 4 to store_id: 7
-Roles Logger - INFO - User 4 accepted the nomination 1 in store 7
+myapp - INFO - [Listeners] added listener: 4 to store_id: 16
+Roles Logger - INFO - User 4 accepted the nomination 1 in store 16
 myapp - INFO - promotion accepted successfully
 myapp - INFO - store id was sent successfully
 myapp - INFO - User 5 is logged in: False
-Market logger - INFO - User 2 has nominated user 5 to be the owner of store 7
+Market logger - INFO - User 2 has nominated user 5 to be the owner of store 16
 myapp - INFO - store owner was added successfully
-myapp - INFO - [Listeners] added listener: 5 to store_id: 7
-Roles Logger - INFO - User 5 accepted the nomination 2 in store 7
+myapp - INFO - [Listeners] added listener: 5 to store_id: 16
+Roles Logger - INFO - User 5 accepted the nomination 2 in store 16
 myapp - INFO - promotion accepted successfully
 User Logger - INFO - User 7 created
 User Logger - INFO - User 7 added to database
@@ -111,12 +111,12 @@ myapp - INFO - Client 1 connected
 myapp - INFO - Client joining room 1
 myapp - INFO - my stores were sent successfully
 myapp - INFO - received request to check if the user is a system manager
-myapp - INFO - my stores were sent successfully
-myapp - INFO - received request to check if the user is a system manager
 myapp - INFO - received request to get stores
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 myapp - INFO - stores were sent successfully
+myapp - INFO - my stores were sent successfully
+myapp - INFO - received request to check if the user is a system manager
 myapp - INFO - Connect data: None
 myapp - INFO - Client 1 connected
 myapp - INFO - Connect data: 1
@@ -148,9 +148,9 @@ New Store Logger - INFO - [StoreFacade] successfully got store by id
 Market logger - INFO - User 1 has added 1 of product 0 to the basket
 myapp - INFO - product added to the basket successfully
 myapp - INFO - user 1 requested to show his cart
-myapp - INFO - shopping cart: {7: {0: 1}}
+myapp - INFO - shopping cart: {16: {0: 1}}
 myapp - INFO - user 1 requested to show his cart
-myapp - INFO - shopping cart: {7: {0: 1}}
+myapp - INFO - shopping cart: {16: {0: 1}}
 myapp - INFO - received request to get product info
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
@@ -163,12 +163,59 @@ New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 New Store Logger - INFO - [StoreFacade] successfully calculated total price after discount to be 30.0
 myapp - INFO - total price after discount was sent successfully
-myapp - ERROR - Failed to retrieve active payment methods
-myapp - ERROR - Failed to retrieve active supply methods
-myapp - ERROR - Failed to retrieve active payment methods
-myapp - ERROR - Failed to retrieve active supply methods
-myapp - INFO - received request to get stores
+myapp - INFO - Active supply methods retrieved successfully
+myapp - INFO - Active payment methods retrieved successfully
+myapp - INFO - Active supply methods retrieved successfully
+myapp - INFO - Active payment methods retrieved successfully
+myapp - INFO - recieved request to checkout the shopping cart
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
-myapp - INFO - stores were sent successfully
-myapp - INFO - Client None disconnected
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] successfully applied discount
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] attempting to get total price after discount
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] successfully calculated total price after discount to be 30.0
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - [ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: 1
+myapp - INFO - [ImmediatePurchase] successfully created immediate purchase object with purchase id: 1
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - Successfully removed product amount with id: {product_id}
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'Binyamin', 'city': 'Modiin', 'state': 'Israel', 'country': 'Israel', 'zip_code': '7175260'}
+third_party_handlers logger - INFO - Estimated delivery time: 2024-07-17 23:39:19.155394 - for package {'stores': dict_keys([16]), 'supply method': 'bogo'} to address {'address': 'Binyamin', 'city': 'Modiin', 'state': 'Israel', 'country': 'Israel', 'zip_code': '7175260'}
+myapp - INFO - [PurchaseFacade] attempting to accept purchase with purchase id: 1
+third_party_handlers logger - INFO - Processing payment of 30.0 with details {'payment method': 'bogo'}
+third_party_handlers logger - INFO - Validating supply method bogo for address None
+third_party_handlers logger - INFO - Processed supply for package {'supply method': 'bogo', 'arrival time': datetime.datetime(2024, 7, 17, 23, 39, 19, 155394), 'purchase id': 1}
+myapp - INFO - User 2 is logged in: False
+myapp - INFO - User 3 is logged in: False
+myapp - INFO - User 4 is logged in: False
+myapp - INFO - User 5 is logged in: False
+Market logger - INFO - User 1 has checked out
+myapp - INFO - checkout was successful
+myapp - INFO - user 1 requested to show his cart
+myapp - INFO - shopping cart: {}
+myapp - INFO - user 1 requested to show his cart
+myapp - INFO - shopping cart: {}
+myapp - INFO - [PurchaseFacade] attempting to complete purchase with purchase id: 1
+myapp - INFO - recieved request to show the purchase history of a user
+myapp - INFO - show_purchase_history_of_user was successful
+myapp - INFO - recieved request to show the purchase history of a user
+myapp - INFO - show_purchase_history_of_user was successful

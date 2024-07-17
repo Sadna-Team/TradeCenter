@@ -1,8 +1,7 @@
 from flask import Flask
-from backend import create_app2
+from backend import create_app2 as create_app
 import os
 import logging
-
 config_mode = os.getenv('FLASK_CONFIG', 'default')
 
 

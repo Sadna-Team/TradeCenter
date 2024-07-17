@@ -4,17 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f3690357-1454-42c0-aae2-2d69214803ce" name="Changes" comment="NICE">
+    <list default="true" id="f3690357-1454-42c0-aae2-2d69214803ce" name="Changes" comment="try to fix - maybe rollback">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/app.log" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend/app_factory.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app_factory.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/business/authentication/authentication.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/business/authentication/authentication.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/business/market.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/business/market.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/business/purchase/purchase.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/business/purchase/purchase.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/business/roles/roles.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/business/roles/roles.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/business/user/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/business/user/user.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/database.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/services/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/services/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/business/ThirdPartyHandlers/third_party_handlers.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/business/ThirdPartyHandlers/third_party_handlers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,9 +19,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 6
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
   <component name="ProjectId" id="2jLVdP4xx8x4rIwAhKbe1UYcEGD" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -42,7 +37,7 @@
     "Python tests.pytest in test_new_store.py.executor": "Run",
     "Python tests.pytest in unit_tests.executor": "Run",
     "Python.app.executor": "Debug",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "fixing__acceptance__tests",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.tslint": "(autodetect)"
   }
@@ -178,7 +173,15 @@
       <option name="project" value="LOCAL‎" />
       <updated>1721242764262</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL‎-00002" summary="try to fix - maybe rollback">
+      <option name="closed" value="true" />
+      <created>1721248214444</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL‎-00002" />
+      <option name="project" value="LOCAL‎" />
+      <updated>1721248214444</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -186,7 +189,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="NICE" />
-    <option name="LAST_COMMIT_MESSAGE" value="NICE" />
+    <MESSAGE value="try to fix - maybe rollback" />
+    <option name="LAST_COMMIT_MESSAGE" value="try to fix - maybe rollback" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -197,24 +201,14 @@
           <option name="timeStamp" value="6" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/backend/services/user_services/routes.py</url>
-          <line>79</line>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/backend/services/user_services/routes.py</url>
-          <line>159</line>
-          <option name="timeStamp" value="15" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/backend/business/user/user.py</url>
           <line>486</line>
           <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/backend/business/user/user.py</url>
-          <line>378</line>
-          <option name="timeStamp" value="17" />
+          <url>file://$PROJECT_DIR$/backend/services/third_party_services/routes.py</url>
+          <line>45</line>
+          <option name="timeStamp" value="18" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -223,7 +217,7 @@
     <SUITE FILE_PATH="coverage/TradeCenter$pytest_in_test_new_store_py.coverage" NAME="pytest in test_new_store.py Coverage Results" MODIFIED="1721242640637" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/unit_tests" />
     <SUITE FILE_PATH="coverage/TradeCenter$pytest_in_acceptance_test_checkout_py.coverage" NAME="pytest in acceptance_test_checkout.py Coverage Results" MODIFIED="1721245735496" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/TradeCenter$pytest_for_tests_unit_tests_test_roles.coverage" NAME="pytest for tests.unit_tests.test_roles Coverage Results" MODIFIED="1721241980764" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/unit_tests" />
-    <SUITE FILE_PATH="coverage/TradeCenter$app.coverage" NAME="app Coverage Results" MODIFIED="1721245968287" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/backend" />
+    <SUITE FILE_PATH="coverage/TradeCenter$app.coverage" NAME="app Coverage Results" MODIFIED="1721248552391" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/backend" />
     <SUITE FILE_PATH="coverage/TradeCenter$pytest_in_unit_tests.coverage" NAME="pytest in unit_tests Coverage Results" MODIFIED="1721245699650" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/unit_tests" />
     <SUITE FILE_PATH="coverage/TradeCenter$pytest_in_test_authentication_py.coverage" NAME="pytest in test_authentication.py Coverage Results" MODIFIED="1721242027218" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/unit_tests" />
     <SUITE FILE_PATH="coverage/TradeCenter$pytest_in_test_constraint_py.coverage" NAME="pytest in test_constraint.py Coverage Results" MODIFIED="1721242034119" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests/unit_tests" />
