@@ -6,14 +6,13 @@ from typing import Optional
 from backend.business.DTOs import BasketInformationForConstraintDTO, CategoryDTO
 from backend.business.store.constraints import Constraint
 from backend.error_types import *
+from backend.database import db
 
 
 # -------------logging configuration----------------
 import logging
-
-
-logger = logging.getLogger('myapp')
-
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger('Discount Logger')
 # ---------------------------------------------------
 DATE_FORMAT = '%Y-%m-%d'
 
