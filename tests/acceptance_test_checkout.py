@@ -19,7 +19,22 @@ register_credentials = {
 
 default_payment_method = {'payment method': 'bogo'}
 
+default_payment_additional_details = {"currency": "USD",
+                                    "card_number": "1111222233334444",
+                                    "month": "12",
+                                    "year": "2025",
+                                    "holder": "michael adar", 
+                                    "cvv": "123",
+                                    "id": "1234567890", 
+                                    "currency": "USD"}
+
 default_supply_method = "bogo"
+
+default_supply_additional_details = {"name": "michael adar",
+                                    "address": "Rager 130 13",
+                                    "city": "Beer Sheva",
+                                    "zip": "123456",
+                                    "country": "Israel"}
 
 default_address_checkout = { 'address': 'randomstreet 34th', 
                             'city': 'arkham', 
@@ -31,12 +46,14 @@ default_address_checkout = { 'address': 'randomstreet 34th',
 @pytest.fixture
 def app():
     app = create_app(mode='testing')
+    from backend import app as app2
+    app2.app = app
     return app
-
 @pytest.fixture
 def clean(app):
     yield
-    clean_data()
+    with app.app_context():
+        clean_data()
 
 @pytest.fixture
 def client1(app):
@@ -125,6 +142,49 @@ def test_user_checkout_success(client2, user_token, init_store, clean):
     
     data = {"payment_details": default_payment_method, 
             "supply_method": default_supply_method, 
+            "address": default_address_checkout}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    print(response.data)
+    assert response.status_code == 200
+
+def test_user_checkout_extended_payment_success(client2, user_token, init_store, clean):
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_basket', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    data = {"payment_details": default_payment_method, 
+            "payment_additional_details": default_payment_additional_details,
+            "supply_method": default_supply_method, 
+            "address": default_address_checkout}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    print(response.data)
+    assert response.status_code == 200
+
+def test_user_checkout_extended_supply_success(client2, user_token, init_store, clean):
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_basket', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    data = {"payment_details": default_payment_method, 
+            "supply_method": default_supply_method, 
+            "supply_additional_details": default_supply_additional_details,
+            "address": default_address_checkout}
+    response = client2.post('market/checkout', headers=headers, json=data)
+    print(response.data)
+    assert response.status_code == 200
+
+def test_user_checkout_extended_all_success(client2, user_token, init_store, clean):
+    data = {"store_id": 0, "product_id": 0, "quantity": 1}
+    headers = {'Authorization': 'Bearer ' + user_token}
+    response = client2.post('user/add_to_basket', headers=headers, json=data)
+    assert response.status_code == 200
+    
+    data = {"payment_details": default_payment_method, 
+            "payment_additional_details": default_payment_additional_details,
+            "supply_method": default_supply_method, 
+            "supply_additional_details": default_supply_additional_details,
             "address": default_address_checkout}
     response = client2.post('market/checkout', headers=headers, json=data)
     print(response.data)

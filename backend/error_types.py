@@ -32,6 +32,7 @@ class StoreErrorTypes(Enum):
     invalid_purchase_policy_input = 28
     unexpected_error = 29
     invalid_product_name = 30
+    invalid_user_id = 31
 
 class UserErrorTypes(Enum):
     user_suspended = 1
@@ -51,6 +52,7 @@ class UserErrorTypes(Enum):
     user_does_not_have_necessary_permissions = 15
     user_not_a_member = 16
     user_not_a_manager_or_owner = 17
+    empty_fields = 18
 
 class RoleErrorTypes(Enum):
     actor_not_member_of_store = 1
@@ -74,6 +76,7 @@ class RoleErrorTypes(Enum):
     user_is_manager = 19
     store_already_exists = 20
     actor_not_founder = 21
+    invalid_role = 22
 
 
 class PurchaseErrorTypes(Enum):
@@ -93,6 +96,9 @@ class PurchaseErrorTypes(Enum):
     invalid_user_id = 14
     offer_to_store = 15
     purchase_not_bid_purchase = 16
+    database_error = 17
+    invalid_name = 18
+    purchase_not_approved = 19
 
 
 class ThirdPartyHandlerErrorTypes(Enum):
@@ -110,6 +116,10 @@ class ThirdPartyHandlerErrorTypes(Enum):
     payment_not_specified = 12
     payment_failed = 13
     support_not_specified = 14
+    supply_failed = 15
+    handshake_failed = 16
+    external_payment_failed = 17
+    external_supply_failed = 18
 
 class DiscountAndConstraintsErrorTypes(Enum):
     discount_not_found = 1
@@ -122,12 +132,21 @@ class DiscountAndConstraintsErrorTypes(Enum):
     no_predicate_found = 8
     invalid_season = 9
     invalid_date = 10
+    invalid_age_limit = 11
+    invalid_location = 12
+    invalid_time_constraint = 13
+    invalid_day_of_month = 14
+    invalid_day_of_week = 15
+    invalid_price = 16
+    invalid_amount = 17
+    invalid_weight = 18
 
 class ServiceLayerErrorTypes(Enum):
     payment_details_not_dict = 1
     address_not_dict = 2
     tags_not_list = 3
     config_not_dict = 4
+    additional_details_not_dict = 5
 
 
 # -------------------------------------- StoreErrors --------------------------------------

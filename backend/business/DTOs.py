@@ -441,7 +441,7 @@ class BasketInformationForConstraintDTO:
     def get(self) -> dict:
         return {"store_id": self.__store_id, "products": [product.get() for product in self.__products],
                 "total_price_of_basket": self.__total_price_of_basket,
-                "time_of_purchase": self.__time_of_purchase, "user_info": self.__user_info.get(),
+                "time_of_purchase": self.__time_of_purchase, "user_info": self.__user_info.get() if self.__user_info else None,
                 "categories": [category.__dict__ for category in self.__categories]}
 
 

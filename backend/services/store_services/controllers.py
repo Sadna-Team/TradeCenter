@@ -2,6 +2,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from backend.business import MarketFacade
+from backend.business.store import StoreFacade
 from flask import jsonify
 
 import logging
@@ -12,9 +13,10 @@ logger = logging.getLogger('myapp')
 class StoreService:
     def __init__(self):
         self.__market_facade = MarketFacade()
+        self.__store_facade = StoreFacade()
 
     def add_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, percentage: float, 
-                        store_id: Optional[int] = None, product_id: Optional[int] = None, category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None):
+                        store_id: int, product_id: Optional[int] = None, category_id: Optional[int] = None, applied_to_sub: Optional[bool] = None):
         """
             Add a discount to the system
         """
@@ -26,12 +28,12 @@ class StoreService:
             logger.error('discount was not added')
             return jsonify({'message': str(e)}), 400
         
-    def remove_discount(self, user_id: int, discount_id: int):
+    def remove_discount(self, user_id: int, discount_id: int, store_id: int):
         """
             Remove a discount from the system
         """
         try:
-            self.__market_facade.remove_discount(user_id, discount_id)
+            self.__market_facade.remove_discount(user_id, discount_id, store_id)
             logger.info('discount was removed successfully')
             return jsonify({'message': 'discount was removed successfully'}), 200
         except Exception as e:
@@ -39,73 +41,73 @@ class StoreService:
             return jsonify({'message': str(e)}), 400
         
         
-    def create_logical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_id1: int, discount_id2: int, type_of_composite: int):
+    def create_logical_composite_discount(self, user_id: int, store_id: int, description: str, start_date: datetime, end_date: datetime, discount_id1: int, discount_id2: int, type_of_composite: int):
         """
             Create a logical composite discount
         """
         try:
-            composite_discount_id = self.__market_facade.create_logical_composite_discount(user_id, description, start_date, end_date, discount_id1, discount_id2, type_of_composite)
+            composite_discount_id = self.__market_facade.create_logical_composite_discount(user_id, store_id, description, start_date, end_date, discount_id1, discount_id2, type_of_composite)
             logger.info('composite discount was created successfully')
             return jsonify({'message': composite_discount_id}), 200
         except Exception as e:
             logger.error('composite discount was not created')
             return jsonify({'message': str(e)}), 400
         
-    def create_numerical_composite_discount(self, user_id: int, description: str, start_date: datetime, end_date: datetime, discount_ids: List[int], type_of_composite: int):
+    def create_numerical_composite_discount(self, user_id: int, store_id: int, description: str, start_date: datetime, end_date: datetime, discount_ids: List[int], type_of_composite: int):
         """
             Create a numerical composite discount
         """
         try:
-            composite_discount_id = self.__market_facade.create_numerical_composite_discount(user_id, description, start_date, end_date, discount_ids, type_of_composite)
+            composite_discount_id = self.__market_facade.create_numerical_composite_discount(user_id, store_id, description, start_date, end_date, discount_ids, type_of_composite)
             logger.info('composite discount was created successfully')
             return jsonify({'message': composite_discount_id}), 200
         except Exception as e:
             logger.error('composite discount was not created')
             return jsonify({'message': str(e)}), 400
     
-    def assign_predicate_to_discount(self, user_id: int, discount_id: int, predicate_builder: Tuple):
+    def assign_predicate_to_discount(self, user_id: int, discount_id: int, store_id: int, predicate_builder: Tuple):
         """
             Assign a predicate to a discount
         """
         try:
             """ Maybe we have to receive the predicate_builder as a string and then build it here to a tuple?"""
-            self.__market_facade.assign_predicate_to_discount(user_id, discount_id, predicate_builder)
+            self.__market_facade.assign_predicate_to_discount(user_id, discount_id, store_id, predicate_builder)
             logger.info('predicate was assigned successfully')
             return jsonify({'message': 'predicate was assigned successfully'}), 200
         except Exception as e:
             logger.error('predicate was not assigned')
             return jsonify({'message': str(e)}), 400
         
-    def change_discount_percentage(self, user_id: int, discount_id: int, new_percentage: float) :
+    def change_discount_percentage(self, user_id: int, discount_id: int, store_id:int, new_percentage: float) :
         """
             Change the percentage of a discount
         """
         try:
-            self.__market_facade.change_discount_percentage(user_id, discount_id, new_percentage)
+            self.__market_facade.change_discount_percentage(user_id, discount_id, store_id, new_percentage)
             logger.info('discount percentage was changed successfully')
             return jsonify({'message': 'discount percentage was changed successfully'}), 200
         except Exception as e:
             logger.error('discount percentage was not changed')
             return jsonify({'message': str(e)}), 400
         
-    def change_discount_description(self, user_id: int, discount_id: int, new_description: str) :
+    def change_discount_description(self, user_id: int, discount_id: int, store_id: int, new_description: str) :
         """
             Change the description of a discount
         """
         try:
-            self.__market_facade.change_discount_description(user_id, discount_id, new_description)
+            self.__market_facade.change_discount_description(user_id, discount_id, store_id, new_description)
             logger.info('discount description was changed successfully')
             return jsonify({'message': 'discount description was changed successfully'}), 200
         except Exception as e:
             logger.error('discount description was not changed')
             return jsonify({'message': str(e)}), 400
         
-    def view_all_discount_info(self, user_id: int):
+    def view_all_discount_info(self, user_id: int, store_id: int):
         """
             View information about all discounts in the system
         """
         try:
-            info: dict = self.__market_facade.view_all_discount_information(user_id)
+            info: dict = self.__market_facade.view_all_discount_information_of_store(user_id,store_id)
             logger.info('discount info was sent successfully')
             return jsonify({'message': info}), 200
         except Exception as e:
@@ -243,6 +245,7 @@ class StoreService:
             Add a product to a store
         """
         try:
+            logger.info(f'adding product to store:\nuser_id: {user_id}\nstore_id: {store_id}\nproduct_name: {product_name}\ndescription: {description}\nprice: {price}\nweight: {weight}\ntags: {tags}\namount: {amount}')
             self.__market_facade.add_product(user_id, store_id, product_name, description, price, weight, tags, amount)
             logger.info('product was added successfully')
             return jsonify({'message': 'product was added successfully'}), 200
@@ -613,4 +616,29 @@ class StoreService:
             return jsonify({'message': categories}), 200
         except Exception as e:
             logger.error('product categories were not sent')
+            return jsonify({'message': str(e)}), 400
+
+    def get_store_id(self, store_name: str):
+        """
+            Get the id of a store
+        """
+        try:
+            store_id = self.__store_facade.get_store_id(store_name)
+            logger.info('store id was sent successfully')
+            return jsonify({'message': store_id}), 200
+        except Exception as e:
+            logger.error('store id was not sent')
+            return jsonify({'message': str(e)}), 400
+
+
+    def get_total_price_after_discount(self, user_id: int):
+        """
+            Get the total price after discount
+        """
+        try:
+            total_price = self.__market_facade.get_total_price_after_discount(user_id)
+            logger.info('total price after discount was sent successfully')
+            return jsonify({'message': total_price}), 200
+        except Exception as e:
+            logger.error('total price after discount was not sent')
             return jsonify({'message': str(e)}), 400

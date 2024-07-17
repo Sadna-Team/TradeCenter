@@ -37,8 +37,21 @@ def checkout():
         if not isinstance(payment_details_helper, dict):
             raise ServiceLayerError('payment details must be a dictionary', ServiceLayerErrorTypes.payment_details_not_dict)
         payment_details = {str(key): str(value) for key, value in payment_details_helper.items()}
+        if "payment_additional_details" in data:
+            additional_details = data['payment_additional_details']
+            if not isinstance(additional_details, dict):
+                raise ServiceLayerError('additional details must be a dictionary', ServiceLayerErrorTypes.additional_details_not_dict)
+            additional_details = {str(key): str(value) for key, value in additional_details.items()}
+            payment_details["additional details"] = additional_details
 
-        supply_method = str(data['supply_method'])
+        supply_details = {"supply method": str(data['supply_method'])}
+        if 'supply_additional_details' in data:
+            additional_details = data['supply_additional_details']
+            if not isinstance(additional_details, dict):
+                raise ServiceLayerError('additional details must be a dictionary', ServiceLayerErrorTypes.additional_details_not_dict)
+            additional_details = {str(key): str(value) for key, value in additional_details.items()}
+            supply_details["additional details"] = additional_details
+            
 
         address_helper = data['address']
         if not isinstance(address_helper, dict):
@@ -48,7 +61,7 @@ def checkout():
         logger.error('checkout - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.checkout(user_id, payment_details, supply_method, address)
+    return purchase_service.checkout(user_id, payment_details, supply_details, address)
 
 
 @market_bp.route('/store_purchase_history', methods=['GET', 'POST'])
@@ -187,7 +200,7 @@ def search_products_by_name():
     return purchase_service.search_products_by_name(name, store_id)
 
 
-@market_bp.route('/bid_checkout', methods=['POST'])
+@market_bp.route('/checkout_bid', methods=['POST'])
 @jwt_required()
 def bid_checkout():
     """
@@ -202,12 +215,25 @@ def bid_checkout():
 
         payment_details_helper = data['payment_details']
         if not isinstance(payment_details_helper, dict):
-            raise Exception('payment details must be a dictionary')
+            raise ServiceLayerError('payment details must be a dictionary', ServiceLayerErrorTypes.payment_details_not_dict)
         payment_details = {str(key): str(value) for key, value in payment_details_helper.items()}
-
-        supply_method = str(data['supply_method'])
+        if "payment_additional_details" in data:
+            additional_details = data['payment_additional_details']
+            if not isinstance(additional_details, dict):
+                raise ServiceLayerError('additional details must be a dictionary', ServiceLayerErrorTypes.additional_details_not_dict)
+            additional_details = {str(key): str(value) for key, value in additional_details.items()}
+            payment_details["additional details"] = additional_details
+        
+        supply_details = {"supply method": str(data['supply_method'])}
+        if 'supply_additional_details' in data:
+            additional_details = data['supply_additional_details']
+            if not isinstance(additional_details, dict):
+                raise ServiceLayerError('additional details must be a dictionary', ServiceLayerErrorTypes.additional_details_not_dict)
+            additional_details = {str(key): str(value) for key, value in additional_details.items()}
+            supply_details["additional details"] = additional_details
 
         address_helper = data['address']
+
         if not isinstance(address_helper, dict):
             raise Exception('address must be a dictionary')
         address = {str(key): str(value) for key, value in address_helper.items()}
@@ -215,7 +241,7 @@ def bid_checkout():
         logger.error('bid_checkout - ', str(e))
         return jsonify({'message': str(e)}), 400
 
-    return purchase_service.bid_checkout(user_id, bid_id, payment_details, supply_method, address)
+    return purchase_service.bid_checkout(user_id, bid_id, payment_details, supply_details, address)
     
     
 @market_bp.route('/user_bid_offer', methods=['POST'])
@@ -320,7 +346,7 @@ def store_worker_counter_bid():
 
     return purchase_service.store_worker_counter_bid(store_id, user_id, bid_id, proposed_price)
 
-@market_bp.route('/user_counter_bid_accept', methods=['POST'])
+@market_bp.route('/user_counter_accept', methods=['POST'])
 @jwt_required()
 def user_counter_bid_accept():
     """
@@ -342,7 +368,7 @@ def user_counter_bid_accept():
 
     return purchase_service.user_counter_bid_accept(user_id, bid_id)
 
-@market_bp.route('/user_counter_bid_decline', methods=['POST'])
+@market_bp.route('/user_counter_decline', methods=['POST'])
 @jwt_required()
 def user_counter_bid_decline():
     """
@@ -364,7 +390,31 @@ def user_counter_bid_decline():
 
     return purchase_service.user_counter_bid_decline(user_id, bid_id)
 
-@market_bp.route('/user_counter_bid', methods=['POST'])
+
+@market_bp.route('/user_cancel_bid', methods=['POST'])
+@jwt_required()
+def user_bid_cancel():
+    """
+        Use Case:
+        User cancel bid 
+
+        Data:
+            user_id (int): id of the user
+            bid_id (int): id of the bid
+    """
+    logger.info('recieved request for a user to counter bid decline')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        bid_id = int(data['bid_id'])
+    except Exception as e:
+        logger.error('user_counter_bid_decline - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.user_bid_cancel(user_id, bid_id)
+
+
+@market_bp.route('/user_counter_offer_bid', methods=['POST'])
 @jwt_required()
 def user_counter_bid():
     """
@@ -388,7 +438,7 @@ def user_counter_bid():
 
     return purchase_service.user_counter_bid(user_id, bid_id, proposed_price)
 
-@market_bp.route('/show_user_bids', methods=['GET'])
+@market_bp.route('/get_user_bid', methods=['GET', 'POST'])
 @jwt_required()
 def show_user_bids():
     """
@@ -409,7 +459,27 @@ def show_user_bids():
 
     return purchase_service.show_user_bids(system_manager_id, user_id)
 
-@market_bp.route('/show_store_bids', methods=['GET'])
+@market_bp.route('/view_bids_of_user', methods=['GET', 'POST'])
+@jwt_required()
+def view_user_bids():
+    """
+        Use Case:
+        View bids of user
+        
+        Data:
+            user_id (int): id of the user
+    """
+    logger.info('recieved request to view bids of user')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+    except Exception as e:
+        logger.error('view_bids_of_user - ', str(e))
+        return jsonify({'message': str(e)}), 400
+    return purchase_service.view_user_bids(user_id)
+
+
+@market_bp.route('/get_store_bids', methods=['GET', 'POST'])
 @jwt_required()
 def show_store_bids():
     """
@@ -429,6 +499,51 @@ def show_store_bids():
         return jsonify({'message': str(e)}), 400
 
     return purchase_service.show_store_bids(store_owner_id, store_id)
+
+@market_bp.route('/view_all_bids', methods=['GET', 'POST'])
+@jwt_required()
+def view_all_bids_of_system():
+    """
+        Use Case:
+        View all bids
+
+        Data:
+            None
+    """
+    logger.info('recieved request to view all bids')
+    try:
+        system_manager_id = get_jwt_identity()
+        data = request.get_json()
+    except Exception as e:
+        logger.error('view_all_bids - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.view_all_bids_of_system(system_manager_id)
+
+
+
+@market_bp.route('/has_store_worker_accept_bid', methods=['POST'])
+@jwt_required()
+def has_store_worker_accepted_bid():
+    """
+        Use Case:
+        Has store worker accepted bid
+
+        Data:
+            store_id (int): id of the store
+            bid_id (int): id of the bid
+    """
+    logger.info('received request to check if store worker has accepted bid')
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+        store_id = int(data['store_id'])
+        bid_id = int(data['bid_id'])
+    except Exception as e:
+        logger.error('has_store_worker_accepted_bid - ', str(e))
+        return jsonify({'message': str(e)}), 400
+
+    return purchase_service.has_store_worker_accepted_bid(user_id, store_id, bid_id)
 
 '''@market_bp.route('/search_store_products', methods=['GET'])
 @jwt_required()

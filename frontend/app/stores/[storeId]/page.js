@@ -269,10 +269,23 @@ const StoreDetail = () => {
               pathname: `/manage_policy/${store_id}`,
               query: { id: store_id },
             }}>
-            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded cursor-pointer">Policy Management</div>
+            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Manage Policies</div>
           </Link>}
+          {(storeRole === 'StoreOwner' || permission['change_discount_policy']) && 
+           <Link href={{
+              pathname: `/discounts/${store_id}`,
+              query: { id: store_id },
+            }}>
+            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Manage Discounts</div>
+          </Link>} 
+          {(storeRole === 'StoreOwner' || permission['get_bid']) && 
+           <Link href={{
+              pathname: `/manage_bids/${store_id}`,
+              query: { storeId: store_id },
+            }}>
+            <div className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-4 cursor-pointer">Manage Bids</div>
+          </Link>}   
         </div>
-
         {/* Products */}
         <div>
             {!isClosed && permission['add_product'] &&(

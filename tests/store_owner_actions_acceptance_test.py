@@ -387,7 +387,7 @@ def test_add_product_invalid_tags():
     data['tags'] = "tag1"
     headers = owner_headers
     response = client.post('store/add_product', headers=headers, json=data)
-    assert response.status_code == 500
+    assert response.status_code == 400
 
 remove_product_data = {"store_id": 0, "product_id": 0}
 
