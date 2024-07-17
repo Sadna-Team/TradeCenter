@@ -75,6 +75,7 @@ class RoleErrorTypes(Enum):
     user_is_manager = 19
     store_already_exists = 20
     actor_not_founder = 21
+    invalid_role = 22
 
 
 class PurchaseErrorTypes(Enum):
