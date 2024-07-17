@@ -61,3 +61,10 @@ best online store for selling your products! <br/>
   * to run all the test together (not recommended):
     * `docker-compose -f docker-compose.test.yml build`
     * `docker-compose -f docker-compose.test.yml up`
+
+## Running on remote server
+* run everything reguraly
+* run flask:
+  * `flask run --host=0.0.0.0 --port=5000`
+* disable firewall on windows
+
