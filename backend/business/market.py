@@ -515,9 +515,13 @@ class MarketFacade:
 
         if not self.roles_facade.is_system_manager(user_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-
-        PaymentHandler().add_payment_method(method_name, payment_config)
-        logger.info(f"User {user_id} has added payment method {method_name}")
+        try:
+            PaymentHandler().add_payment_method(method_name, payment_config)
+            logger.info(f"User {user_id} has added payment method {method_name}")
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def edit_payment_method(self, user_id: int, method_name: str, editing_data: Dict):
         if self.user_facade.suspended(user_id):
@@ -525,8 +529,13 @@ class MarketFacade:
 
         if not self.roles_facade.is_system_manager(user_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        PaymentHandler().edit_payment_method(method_name, editing_data)
-        logger.info(f"User {user_id} has edited payment method {method_name}")
+        try:
+            PaymentHandler().edit_payment_method(method_name, editing_data)
+            logger.info(f"User {user_id} has edited payment method {method_name}")
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def remove_payment_method(self, user_id: int, method_name: str):
         if self.user_facade.suspended(user_id):
@@ -534,8 +543,13 @@ class MarketFacade:
 
         if not self.roles_facade.is_system_manager(user_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        PaymentHandler().remove_payment_method(method_name)
-        logger.info(f"User {user_id} has removed payment method {method_name}")
+        try:
+            PaymentHandler().remove_payment_method(method_name)
+            logger.info(f"User {user_id} has removed payment method {method_name}")
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def add_supply_method(self, user_id: int, method_name: str, supply_config: Dict):
         if self.user_facade.suspended(user_id):
@@ -543,7 +557,13 @@ class MarketFacade:
 
         if not self.roles_facade.is_system_manager(user_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        SupplyHandler().add_supply_method(method_name, supply_config)
+        try:
+            SupplyHandler().add_supply_method(method_name, supply_config)
+            logger.info(f"User {user_id} has added supply method {method_name}")
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def edit_supply_method(self, user_id: int, method_name: str, editing_data: Dict):
         if self.user_facade.suspended(user_id):
@@ -551,7 +571,13 @@ class MarketFacade:
 
         if not self.roles_facade.is_system_manager(user_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        SupplyHandler().edit_supply_method(method_name, editing_data)
+        try:
+            SupplyHandler().edit_supply_method(method_name, editing_data)
+            logger.info(f"User {user_id} has edited supply method {method_name}")
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     def remove_supply_method(self, user_id: int, method_name: str):
         if self.user_facade.suspended(user_id):
@@ -559,7 +585,13 @@ class MarketFacade:
 
         if not self.roles_facade.is_system_manager(user_id):
             raise UserError("User is not a system manager", UserErrorTypes.user_not_system_manager)
-        SupplyHandler().remove_supply_method(method_name)
+        try:
+            SupplyHandler().remove_supply_method(method_name)
+            logger.info(f"User {user_id} has removed supply method {method_name}")
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     # -------------------------------------- Store Related Methods --------------------------------------#
     def search_by_category(self, category_id: int, store_id: Optional[int] = None) -> Dict[int, List[ProductDTO]]:

@@ -5,6 +5,13 @@ import time
 import threading
 from backend.error_types import *
 import requests
+from backend.database import db
+from sqlalchemy import Column, Integer, JSON
+from typing import ClassVar
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+
 
 
 import logging
@@ -102,47 +109,50 @@ class ExternalPayment(PaymentAdapter):
         return response.json()
         
 
-class PaymentHandler:
-    __instance: bool = None
-    EXISTING_PAYMENT_METHODS = ["bogo", "external payment"]  # NOTE: << should make the requested value a constant >>
+class PaymentHandler(db.Model):
+    __tablename__ = 'payment_handler'
+
+    id = Column(Integer, primary_key=True)
+    payment_config = Column(JSON, default={"bogo": {}, "external payment": {}})
+    
+    EXISTING_PAYMENT_METHODS: ClassVar[list] = ["bogo", "external payment"]
+
+    __instance: ClassVar['PaymentHandler'] = None
 
     def __new__(cls):
-        if PaymentHandler.__instance is None:
-            PaymentHandler.__instance = object.__new__(cls)
-        return PaymentHandler.__instance
+        if cls.__instance is None:
+            cls.__instance = super(PaymentHandler, cls).__new__(cls)
+            session = db.session
+            instance = session.query(cls).first()
+            logger.info(f"Instance: {instance}")
+            if instance is None:
+                instance = cls()
+                session.add(instance)
+                session.commit()
+            cls.__instance = instance
+        return cls.__instance
 
     def __init__(self):
         if not hasattr(self, '_initialized'):
-            self._initialized: bool = True
-            self.payment_config: Dict = {"bogo": {}, "external payment": {}}
+            self._initialized = True
+            self.payment_config = {"bogo": {}, "external payment": {}}  # Initialize payment_config if not initialized
 
     def reset(self) -> None:
-        """
-            * reset is a method that resets the PaymentHandler's payment_config attribute.
-        """
         self.payment_config = {"bogo": {}, "external payment": {}}
+        db.session.commit()
 
-    def _resolve_payment_strategy(self, payment_details: Dict) -> PaymentAdapter:
-        """
-            * _resolve_payment_strategy is a method that resolves a payment strategy based on the payment method.
-            * _resolve_payment_strategy should return an instance of a PaymentAdapter subclass.
-        """
-        method = payment_details.get("payment method")  # NOTE: << should make the requested value a constant >>
+    def _resolve_payment_strategy(self, payment_details: dict):
+        method = payment_details.get("payment method")
         if method not in self.payment_config:
             raise ThirdPartyHandlerError("payment method not supported", ThirdPartyHandlerErrorTypes.payment_method_not_supported)
-        elif method == "bogo":  # NOTE: << should make the requested value a constant >>
+        elif method == "bogo":
             return BogoPayment()
-        elif method == "external payment":  # NOTE: << should make the requested value a constant >>
+        elif method == "external payment":
             return ExternalPayment()
         else:
             raise ThirdPartyHandlerError("Invalid payment method", ThirdPartyHandlerErrorTypes.invalid_payment_method)
 
-    def process_payment(self, amount: float, payment_details: Dict) -> int:
-        """
-            * process_payment is a method that processes a payment using the PaymentHandler's PaymentAdapter object.
-            * process_payment should return True if the payment was successful, and False / raise exception otherwise.
-        """
-   
+    def process_payment(self, amount: float, payment_details: dict) -> int:
         logger.info(f"Processing payment of {amount} with details {payment_details}")
         handler = self._resolve_payment_strategy(payment_details)
         if payment_details.get("payment method") == "bogo":
@@ -153,56 +163,35 @@ class PaymentHandler:
             logger.info(f"Invalid payment method {payment_details.get('payment method')}")
             raise ThirdPartyHandlerError("Invalid payment method", ThirdPartyHandlerErrorTypes.invalid_payment_method)
 
-    def process_payment_cancel(self, payment_details: Dict, payment_id: int) -> int:
-        """
-            * process_payment_cancel is a method that cancels a payment using the PaymentHandler's PaymentAdapter object.
-            * process_payment_cancel should return True if the payment was successfully canceled, and False / raise exception otherwise.
-        """
-        return (self._resolve_payment_strategy(payment_details)
-                .cancel_payment(payment_id))
+    def process_payment_cancel(self, payment_details: dict, payment_id: int) -> int:
+        return self._resolve_payment_strategy(payment_details).cancel_payment(payment_id)
 
-    def edit_payment_method(self, method_name: str, editing_data: Dict) -> None:
-        """
-            * edit_payment_method is a method that edits the current methos configuration.
-            * edit_payment_method should return True if the payment method was edited successfully, and False / raise
-            exception otherwise.
-        """
-
+    def edit_payment_method(self, method_name: str, editing_data: dict) -> None:
         if method_name not in self.payment_config:
             raise ThirdPartyHandlerError("payment method not supported", ThirdPartyHandlerErrorTypes.payment_method_not_supported)
         self.payment_config[method_name] = editing_data
         logger.info(f"Edited payment method {method_name}") 
+        db.session.flush()
 
-    def add_payment_method(self, method_name: str, config: Dict) -> None:
-        """
-            * add_payment_method is a method that marks a user's payment method as fully supported in the system.
-        """
+    def add_payment_method(self, method_name: str, config: dict) -> None:
         if method_name in self.payment_config:
             raise ThirdPartyHandlerError("payment method already supported", ThirdPartyHandlerErrorTypes.payment_method_already_supported)
         self.payment_config[method_name] = config
         logger.info(f"Added payment method {method_name}")
+        db.session.flush()
 
     def remove_payment_method(self, method_name: str) -> None:
-        """
-            * remove_payment_method is a method that marks a user's payment method as unsupported in the system.
-        """
-        
         if method_name not in self.payment_config:
             raise ThirdPartyHandlerError("payment method not supported", ThirdPartyHandlerErrorTypes.payment_method_not_supported)
         logger.info(f"Removing payment method {method_name}")
         del self.payment_config[method_name]
         logger.info(f"Removed payment method {method_name}")
+        db.session.flush()
 
-    def get_payment_methods(self)-> List[str]:
-        """
-            * get_payment_methods is a method that returns the list of supported payment methods.
-        """
+    def get_payment_methods(self) -> list:
         return self.EXISTING_PAYMENT_METHODS
     
-    def get_active_payment_methods(self) -> List[str]:
-        """
-            * get_active_payment_methods is a method that returns the active payment methods.
-        """
+    def get_active_payment_methods(self) -> list:
         return list(self.payment_config.keys())
 
 
@@ -310,26 +299,37 @@ class ExternalSupply(SupplyAdapter):
 
 
 # ----------------------------------------- Will be used for address validation using Google Maps API later on ----------------------------------------- #
-class SupplyHandler:
-    __instance = None
-    EXISTING_SUPPLY_METHODS = ["bogo", "external supply"]
+class SupplyHandler(db.Model):
+    __tablename__ = 'supply_handler'
+
+    id = Column(Integer, primary_key=True)
+    supply_config = Column(JSON, default={"bogo": {}, "external supply": {}})
+    
+    EXISTING_SUPPLY_METHODS: ClassVar[list] = ["bogo", "external supply"]
+
+    __instance: ClassVar['SupplyHandler'] = None
 
     def __new__(cls):
-        if SupplyHandler.__instance is None:
-            SupplyHandler.__instance = object.__new__(cls)
-        return SupplyHandler.__instance
+        if cls.__instance is None:
+            cls.__instance = super(SupplyHandler, cls).__new__(cls)
+            session = db.session
+            instance = session.query(cls).first()
+            if instance is None:
+                instance = cls()
+                session.add(instance)
+                session.commit()
+            cls.__instance = instance
+        return cls.__instance
 
     def __init__(self):
         if not hasattr(self, '_initialized'):
-            self._initialized: bool = True
+            self._initialized = True
             self.supply_config: Dict = {"bogo": {}, "external supply": {}}
-            self.active_shipments: Dict[int, Tuple[int, datetime]] = {}
-
+            db.session.commit()
+    
     def reset(self) -> None:
-        """
-            * reset is a method that resets the SupplyHandler's supply_config attribute.
-        """
         self.supply_config = {"bogo": {}, "external supply": {}}
+        db.session.commit()
 
     def _validate_supply_method(self, method_name: str, address: dict) -> bool:
         """
@@ -409,6 +409,7 @@ class SupplyHandler:
             raise ThirdPartyHandlerError("supply method not supported", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         self.supply_config[method_name] = editing_data
         logger.info(f"Edited supply method {method_name}")
+        db.session.flush()
 
     def add_supply_method(self, method_name: str, config: Dict) -> None:
         """
@@ -418,6 +419,7 @@ class SupplyHandler:
             raise ThirdPartyHandlerError("supply method already supported", ThirdPartyHandlerErrorTypes.supply_method_already_supported)
         self.supply_config[method_name] = config
         logger.info(f"Added supply method {method_name}")
+        db.session.flush()
 
     def remove_supply_method(self, method_name: str) -> None:
         """
@@ -427,6 +429,7 @@ class SupplyHandler:
             raise ThirdPartyHandlerError("supply method not supported", ThirdPartyHandlerErrorTypes.supply_method_not_supported)
         del self.supply_config[method_name]
         logger.info(f"Removed supply method {method_name}")
+        db.session.flush()
 
     def get_supply_methods(self) -> List[str]:
         """
