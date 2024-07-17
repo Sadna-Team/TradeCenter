@@ -808,13 +808,16 @@ class Store(db.Model):
             policy_id = product_policy_to_add.purchase_policy_id
             self._purchase_policy[self._purchase_policy_id_counter] = product_policy_to_add
             self._purchase_policy_id_counter += 1
-        
+
         else:
             logger.warning('[Store] Invalid input when trying to add a purchase policy to store with id: {self.__store_id}')
             raise StoreError('Invalid purchase policy input', StoreErrorTypes.invalid_purchase_policy_input)
 
         if policy_id == -1:
             raise StoreError('Something unexpected happened when adding the purchase policy to the store with id: {self.__store_id}', StoreErrorTypes.unexpected_error)
+
+        db.session.add(self._purchase_policy[policy_id])
+        db.session.commit()
 
         logger.info('[Store] successfully added purchase policy to store with id: {self.__store_id}')
         return policy_id
@@ -828,6 +831,10 @@ class Store(db.Model):
         if policy_id not in self._purchase_policy:
             raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
         self._purchase_policy.pop(policy_id)
+        
+        db.session.query(PurchasePolicy).filter(PurchasePolicy.purchase_policy_id == policy_id).delete()
+        db.session.commit()
+
         logger.info('[Store] successfully removed purchase policy from store with id: {self.__store_id}')
         
     def create_composite_purchase_policy(self, policy_name: str, policy_id_left: int, policy_id_right: int, type_of_composite: int) -> int:
@@ -885,6 +892,9 @@ class Store(db.Model):
         if new_policy_id == -1:
             raise StoreError('Failed to create composite policy in store with id: {self.__store_id}', StoreErrorTypes.unexpected_error)
         
+        db.session.add(self._purchase_policy[new_policy_id])
+        db.session.commit()
+
         logger.info('[Store] successfully created composite purchase policy in store with id: {self.__store_id}')
         return new_policy_id
 
