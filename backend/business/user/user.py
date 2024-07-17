@@ -13,8 +13,9 @@ import json
 from ...database import db
 
 import logging
+
 logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w',
-                     format='%(name)s - %(levelname)s - %(message)s')
+                    format='%(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("User Logger")
 
 # NOTE: This is a workaround to avoid circular imports
@@ -24,14 +25,16 @@ logger = logging.getLogger("User Logger")
 from backend.business.DTOs import NotificationDTO, UserDTO, PurchaseUserDTO
 from .. import NotificationDTO
 
+
 class ShoppingBasket(db.Model):
     __tablename__ = 'shopping_baskets'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     store_id = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     products = db.Column(db.String(1000), nullable=False)  # JSON string to store product quantities
-    
+
     user = db.relationship("User", back_populates="baskets")
+
     # cart = db.relationship("ShoppingCart", back_populates='baskets')
 
     def __init__(self, store_id: int, user_id: int) -> None:
@@ -91,7 +94,6 @@ class ShoppingCart():
 
     # user = db.relationship("User", back_populates="shopping_cart", uselist=False)
 
-    
     # __table_args__ = (
     #     db.PrimaryKeyConstraint('user_id'),
     #     db.ForeignKeyConstraint([''],
@@ -115,7 +117,7 @@ class ShoppingCart():
         return {basket.store_id: basket.get_dto() for basket in self.baskets}
 
     def remove_product_from_basket(self, store_id: int, product_id: int, quantity: int) -> None:
-        if quantity < 0: 
+        if quantity < 0:
             raise StoreError("Quantity can't be negative", StoreErrorTypes.invalid_amount)
         basket = next((b for b in self.baskets if b.store_id == store_id), None)
         if not basket:
@@ -149,7 +151,7 @@ class Notification(db.Model):
 
     def get_notification_dto(self) -> NotificationDTO:
         return NotificationDTO(self.id, self.message, self.date)
-    
+
 
 class Member(db.Model):
     __tablename__ = 'members'
@@ -163,8 +165,8 @@ class Member(db.Model):
     suspended_until = db.Column(db.DateTime, nullable=True)
     notifications = db.relationship('Notification', back_populates='member')
 
-
-    def __init__(self, id: int, email: str, username: str, password: str, year: str, month: str, day: str, phone: str) -> None:
+    def __init__(self, id: int, email: str, username: str, password: str, year: str, month: str, day: str,
+                 phone: str) -> None:
         self.id = id
         self.email = email
         self.username = username
@@ -212,7 +214,7 @@ class User(db.Model):
 
     def is_member(self):
         return self.member is not None
-    
+
     def get_username(self):
         if self.is_member():
             return self.member.username
@@ -233,7 +235,6 @@ class User(db.Model):
     def clear_notifications(self) -> None:
         if self.is_member():
             self.member.clear_notifications()
-
 
     def add_product_to_basket(self, store_id: int, product_id: int, quantity: int) -> None:
         if quantity < 0:
@@ -258,7 +259,7 @@ class User(db.Model):
         if self.is_member():
             raise UserError("User is already registered", UserErrorTypes.user_already_registered)
         self.member_id = db.session.query(Member).count()
-        self.member = Member(self.member_id, email, username, password, year, month, day, phone)
+        self.member = Member(self.member_id, email, username, password, str(year), str(month), str(day), phone)
         db.session.add(self.member)
         db.session.commit()
 
@@ -303,7 +304,7 @@ class User(db.Model):
         if self.is_member():
             return self.member.is_suspended
         return False
-    
+
     def change_suspend(self, value: bool, suspended_until: Optional[datetime]):
         if self.is_member():
             self.member.set_suspense(value, suspended_until)
@@ -321,13 +322,13 @@ class User(db.Model):
         return UserDTO(self.id, self.member.email, self.member.username,
                        self.member.birthdate.year, self.member.birthdate.month,
                        self.member.birthdate.day, self.member.phone, role)
-    
+
     def set_cart(self, cart: Dict[int, Dict[int, int]]):
         # self.shopping_cart = ShoppingCart(self.id)
         for store_id, products in cart.items():
             for product_id, quantity in products.items():
                 self.add_product_to_basket(store_id, product_id, quantity)
-        
+
         db.session.commit()
 
 
@@ -336,7 +337,7 @@ class UserFacade:
     __create_lock = threading.Lock()
     __register_lock = threading.Lock()
     __notification_lock = threading.Lock()
-    __suspend_lock = threading.Lock()
+    # __suspend_lock = threading.Lock()
     __id_serializer: int = 0
     _instance = None
 
@@ -365,21 +366,19 @@ class UserFacade:
         # suspended_users = SuspendedUser.query.all()
         # return {su.user_id: su.suspension_end for su in suspended_users}
         users = User.query.all()
-        with UserFacade.__suspend_lock:
-            out = {user.id: user.member.suspended_until for user in users if user.is_suspended()}
+        out = {user.id: user.member.suspended_until for user in users if user.is_suspended()}
         return out
 
     def suspended(self, user_id: int) -> bool:
         """
-        If a user is a guest we continue, 
+        If a user is a guest we continue,
         otherwise we check if the user is registered and suspended
         * Return True if we can't continue
         """
         user = User.query.filter_by(id=user_id).first()
-        with UserFacade.__suspend_lock:
-            if not user:
-                return False
-            ans = user.is_suspended()
+        if not user:
+            return False
+        ans = user.is_suspended()
         return ans
 
     def suspend_user_permanently(self, user_id: int):
@@ -388,9 +387,8 @@ class UserFacade:
         * user_id: the id of the user to suspend
         """
         user = User.query.filter_by(id=user_id).first()
-        with UserFacade.__suspend_lock:
-            if not user:
-                raise UserError("User not found", UserErrorTypes.user_not_found)
+        if not user:
+            raise UserError("User not found", UserErrorTypes.user_not_found)
             user.change_suspend(True, None)
 
     def suspend_user_temporarily(self, user_id: int, date_details: dict, time_details: dict):
@@ -400,12 +398,12 @@ class UserFacade:
         * date_details: the date until the user is suspended (year, month, day)
         * time_details: the time until the user is suspended (hour, minute)
         """
-        date = datetime(int(date_details["year"]), int(date_details["month"]), int(date_details["day"]), int(time_details["hour"]), int(time_details["minute"]))    
+        date = datetime(int(date_details["year"]), int(date_details["month"]), int(date_details["day"]),
+                        int(time_details["hour"]), int(time_details["minute"]))
 
         user = User.query.filter_by(id=user_id).first()
-        with UserFacade.__suspend_lock:
-            if not user:
-                raise UserError("User not found", UserErrorTypes.user_not_found)
+        if not user:
+            raise UserError("User not found", UserErrorTypes.user_not_found)
             user.change_suspend(True, date)
 
     def unsuspend_user(self, user_id: int):
@@ -415,9 +413,8 @@ class UserFacade:
         * user_id: the id of the user to unsuspend
         """
         user = User.query.filter_by(id=user_id).first()
-        with UserFacade.__suspend_lock:
-            if not user:
-                raise UserError("User not found", UserErrorTypes.user_not_found)
+        if not user:
+            raise UserError("User not found", UserErrorTypes.user_not_found)
             user.change_suspend(False, None)
 
     def get_user(self, user_id: int) -> User:
@@ -440,7 +437,7 @@ class UserFacade:
         db.session.commit()
         logger.info(f"User {id} added to database")
         return user.id
-    
+
     def register_user(self, user_id, email: str, username: str, password: str,
                       year: int, month: int, day: int, phone: str) -> None:
         with UserFacade.__register_lock:
@@ -452,7 +449,7 @@ class UserFacade:
             member = Member.query.filter_by(username=username).first()
             if member:
                 raise UserError("Username already exists", UserErrorTypes.username_already_exists)
-            
+
             user.register(email, username, password, year, month, day, phone)
 
     def get_user_id_from_username(self, username: str) -> int:
@@ -470,7 +467,6 @@ class UserFacade:
         self.clear_notifications(user_id)
         return out
 
-
     def get_userid(self, username: str) -> int:
         member = Member.query.filter_by(username=username).first()
         if not member:
@@ -487,27 +483,23 @@ class UserFacade:
                 Notification(notification.get_message(), notification.get_date()))
 
     def add_product_to_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
-        with UserFacade.__suspend_lock:
-            if self.suspended(user_id):
-                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.get_user(user_id).add_product_to_basket(store_id, product_id, quantity)
 
     def get_shopping_cart(self, user_id: int) -> Dict[int, Dict[int, int]]:
-        with UserFacade.__suspend_lock:
-            if self.suspended(user_id):
-                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         return self.get_user(user_id).get_shopping_cart()
 
     def remove_product_from_basket(self, user_id: int, store_id: int, product_id: int, quantity: int) -> None:
-        with UserFacade.__suspend_lock:
-            if self.suspended(user_id):
-                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.get_user(user_id).remove_product_from_basket(store_id, product_id, quantity)
 
     def clear_basket(self, user_id: int) -> None:
-        with UserFacade.__suspend_lock:
-            if self.suspended(user_id):
-                raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        if self.suspended(user_id):
+            raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.get_user(user_id).clear_basket()
 
     def get_password(self, username: str) -> Tuple[int, str]:
@@ -517,10 +509,15 @@ class UserFacade:
         return member.id, member.get_password()
 
     def remove_user(self, user_id: int):
+
         user = User.query.filter_by(id=user_id).first()
         if not user:
             raise UserError("User not found", UserErrorTypes.user_not_found)
-        
+
+        member = Member.query.filter_by(id=user.member_id).first()
+        if member:
+            return
+
         # cart = ShoppingCart.query.filter_by(user_id=user_id).first()
         # db.session.delete(cart)
 
@@ -534,7 +531,7 @@ class UserFacade:
         user = User.query.filter_by(id=user_id).first()
         if not user:
             raise UserError("User not found", UserErrorTypes.user_not_found)
-        
+
         if not user.is_member():
             self.remove_user(user_id)
 

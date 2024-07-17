@@ -329,9 +329,8 @@ class RolesFacade:
         return admin.user_id
 
     def clean_data(self):
-        from backend.app import create_app_instance
-        app = create_app_instance()
-        with app.app_context():
+        from backend.app_factory import get_app
+        with get_app().app_context():
             db.session.query(Permissions).delete()
             db.session.query(StoreOwner).delete()
             db.session.query(StoreManager).delete()

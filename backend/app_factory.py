@@ -28,6 +28,9 @@ class AppFactory:
             self.logger = logging.getLogger('myapp')
         return self.app
 
+    def set_app(self, app):
+        self.app = app
+
     def get_app(self):
         if self.app is None:
             self.app = create_app('development')
@@ -37,6 +40,9 @@ class AppFactory:
 
 def get_app():
     return AppFactory().get_app()
+
+def set_app(app):
+    AppFactory().set_app(app)
 
 
 def create_app_instance(mode='development'):
