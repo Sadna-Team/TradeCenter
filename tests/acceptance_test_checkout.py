@@ -52,7 +52,8 @@ def app():
 @pytest.fixture
 def clean(app):
     yield
-    clean_data()
+    with app.app_context():
+        clean_data()
 
 @pytest.fixture
 def client1(app):

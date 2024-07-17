@@ -16,7 +16,7 @@ class TestAuthentication(unittest.TestCase):
         # self.jwt = JWTManager(self.app)
         # self.bcrypt = Bcrypt(self.app)
         # self.auth.set_jwt(self.jwt, self.bcrypt)
-        self.app = create_app('testing')
+        self.app = create_app(mode='testing')
         from backend import app as app2
         app2.app = self.app
         self.auth = Authentication()

@@ -183,11 +183,6 @@ const Cart = () => {
                         Checkout
                       </div>
                     </Link>
-                    <Link href="/bid">
-                      <div className="bg-blue-600 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded inline-block text-center">
-                        Bid
-                      </div>
-                    </Link>
                     <button onClick={onSaveCart} className="bg-gray-600 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded inline-block text-center">
                       Save Changes
                     </button>

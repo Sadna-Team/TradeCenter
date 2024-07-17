@@ -14,7 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy import create_engine
-from backend.database import db
+from backend.database import db, clear_database
 
 # -------------logging configuration----------------
 import logging
@@ -83,9 +83,9 @@ def create_app(mode='development'):
 
     with app.app_context():
         # Ensure that the database tables are created
-        db.drop_all()
         db.create_all()
-
+        if mode == 'testing':
+            clear_database()
         if not hasattr(app, 'initialization_done'):
             app.initialization_done = True
             authentication = Authentication()
@@ -96,8 +96,10 @@ def create_app(mode='development'):
 
             MarketFacade()
             if mode != 'testing':
+
                 InitialState(app, db).init_system_from_file()
             # MarketFacade().default_setup()
+
 
             from backend.services.user_services.routes import auth_bp, user_bp
             from backend.services.ecommerce_services.routes import market_bp
