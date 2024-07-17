@@ -45,7 +45,8 @@ class Authentication:
         """
         For testing purposes only
         """
-        from backend.app import app
+        from backend.app import create_app_instance
+        app = create_app_instance()
         with app.app_context():
             # with db.session.begin():
             #     db.session.query(Authentication).delete()
@@ -108,6 +109,7 @@ class Authentication:
         elif user_id in self.logged_in:
             raise UserError("User is already logged in", UserErrorTypes.user_logged_in)
         else:
+            print('username: ' + username)
             token = self.generate_token(user_id)
             notification = self.user_facade.get_notifications(user_id)
             self.logged_in.add(user_id)
@@ -131,7 +133,7 @@ class Authentication:
                 db.session.add(AuthenticationModel(blacklisted_token=jti))
             self.blacklist.add(jti)
             self.guests.remove(user_id)
-            UserFacade.remove_user(user_id)
+            self.user_facade.remove_user(user_id)
 
     def is_logged_in(self, user_id):
         set = self.logged_in

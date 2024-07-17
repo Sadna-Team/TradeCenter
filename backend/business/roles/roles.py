@@ -329,7 +329,8 @@ class RolesFacade:
         return admin.user_id
 
     def clean_data(self):
-        from backend.app import app
+        from backend.app import create_app_instance
+        app = create_app_instance()
         with app.app_context():
             db.session.query(Permissions).delete()
             db.session.query(StoreOwner).delete()
@@ -561,7 +562,7 @@ class RolesFacade:
 
         system_manager_model = SystemManagerModel(user_id=user_id, is_admin=True)
         db.session.add(system_manager_model)
-        db.session.commit()
+        db.session.flush()
 
     def __has_permission(self, store_id: int, user_id: int) -> bool:
         role = self.get_role(store_id, user_id)

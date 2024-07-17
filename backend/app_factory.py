@@ -6,12 +6,12 @@ import logging
 config_mode = os.getenv('FLASK_CONFIG', 'default')
 
 
-def create_app_instance():
-    return AppFactory().app
+def create_app_instance(mode='development'):
+    return AppFactory(mode).app
 
 
-def create_logger_instance():
-    return AppFactory().logger
+def create_logger_instance(mode='development'):
+    return AppFactory(mode).logger
 
 
 class AppFactory:
@@ -23,10 +23,11 @@ class AppFactory:
             AppFactory.__instance = super(AppFactory, cls).__new__(cls)
         return cls.__instance
 
-    def __init__(self):
+    def __init__(self, mode='development'):
+        print(mode)
         self.app = None
         self.logger = None
         if not hasattr(self, '_initialized'):
             self._initialized = True
-            self.app = create_app(config_mode)
+            self.app = create_app(mode)
             self.logger = logging.getLogger('myapp')
