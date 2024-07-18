@@ -1280,7 +1280,7 @@ class MarketFacade:
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         pur_id = self.purchase_facade.create_bid_purchase(user_id, proposed_price, store_id, product_id)
         users_to_notify = self.roles_facade.get_bid_owners_managers(store_id)
-        self.notifier.notify_new_bid(store_id, user_id, users_to_notify, pur_id)
+        self.notifier.notify_new_bid(users_to_notify, user_id, pur_id)
         logger.info(f"User {user_id} has created a bid purchase with id {pur_id}")
         return pur_id
 
