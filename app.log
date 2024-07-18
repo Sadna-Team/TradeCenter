@@ -1,8 +1,10 @@
 myapp - INFO - Creating app with mode development
 flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
-myapp - INFO - Creating app with mode development
-flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
-flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 New Store Logger - INFO - successfully created storeFacade
 myapp - INFO - [PurchaseFacade] successfully created purchase facade object
+Market logger - INFO - Creating admin
+User Logger - INFO - User 0 created
+User Logger - INFO - User 0 added to database
+Market logger - INFO - Admin user was created
+Market logger - INFO - Admin was created

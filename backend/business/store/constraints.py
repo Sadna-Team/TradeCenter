@@ -522,7 +522,7 @@ class AmountBasketConstraint(Constraint):
     def get_constraint_info_as_string(self) -> str:
         if self.__max_amount == -1:
             return "Amount basket constraint with min amount: " + str(self.__min_amount) + " in store: " + str(self.__store_id)
-        return "Amount basket constraint with min amount: " + str(self.__min_amount) + "and max amount" + str(self.__min_amount) +" in store: " + str(self.__store_id)
+        return "Amount basket constraint with min amount: " + str(self.__min_amount) + "and max amount" + str(self.__max_amount) +" in store: " + str(self.__store_id)
 
 # --------------- amount product constraint class  ---------------#
 class AmountProductConstraint(Constraint):

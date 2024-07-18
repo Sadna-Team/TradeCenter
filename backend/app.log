@@ -3,7 +3,6 @@ flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 flask_cors.core - WARNING - Unknown option passed to Flask-CORS: origin
 New Store Logger - INFO - successfully created storeFacade
 myapp - INFO - [PurchaseFacade] successfully created purchase facade object
-third_party_handlers logger - INFO - Instance: None
 Market logger - INFO - Creating admin
 User Logger - INFO - User 0 created
 User Logger - INFO - User 0 added to database
@@ -35,54 +34,54 @@ User Logger - INFO - User 6 added to database
 myapp - INFO - guest entered the app successfully - user_id: 6
 myapp - INFO - User registered successfully
 myapp - INFO - User logged in successfully
-New Store Logger - INFO - [Store] successfully created store with id: 16
+New Store Logger - INFO - [Store] successfully created store with id: 2
 New Store Logger - INFO - Successfully added store: s1
-myapp - INFO - [Listeners] created new listeners object for store_id: 16 with listeners: 2
+myapp - INFO - [Listeners] created new listeners object for store_id: 2 with listeners: 2
 myapp - INFO - store was added successfully
 myapp - INFO - store id was sent successfully
 myapp - INFO - adding product to store:
 user_id: 2
-store_id: 16
+store_id: 2
 product_name: Bamba
 description: description
 price: 30
 weight: 1
 tags: []
 amount: 20
-Market logger - INFO - User 2 is trying to add a product to store 16
+Market logger - INFO - User 2 is trying to add a product to store 2
 Market logger - INFO - User 2 is not suspended
-Market logger - INFO - User 2 has permissions to add a product to store 16
+Market logger - INFO - User 2 has permissions to add a product to store 2
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - Successfully added product: Bamba to store with the id: 16
-New Store Logger - INFO - attempting to add product: Bamba to store with id: 16
+New Store Logger - INFO - Successfully added product: Bamba to store with the id: 2
+New Store Logger - INFO - attempting to add product: Bamba to store with id: 2
 New Store Logger - INFO - [Product] successfully created product with id: 0
-New Store Logger - INFO - [Store] successfully added product to store with id: 16
-New Store Logger - INFO - Successfully added product: Bamba to store with the id: 16
-New Store Logger - INFO - Successfully added tags to product: Bamba in store with the id: 16
+New Store Logger - INFO - [Store] successfully added product to store with id: 2
+New Store Logger - INFO - Successfully added product: Bamba to store with the id: 2
+New Store Logger - INFO - Successfully added tags to product: Bamba in store with the id: 2
 myapp - INFO - product was added successfully
 myapp - INFO - store id was sent successfully
 myapp - INFO - User 3 is logged in: False
-Market logger - INFO - User 2 has nominated user 3 to be the manager of store 16
+Market logger - INFO - User 2 has nominated user 3 to be the manager of store 2
 myapp - INFO - store manager was added successfully
-myapp - INFO - [Listeners] added listener: 3 to store_id: 16
-Roles Logger - INFO - User 3 accepted the nomination 0 in store 16
+myapp - INFO - [Listeners] added listener: 3 to store_id: 2
+Roles Logger - INFO - User 3 accepted the nomination 0 in store 2
 myapp - INFO - promotion accepted successfully
-Market logger - INFO - User 2 has changed the permissions of user 3 in store 16
+Market logger - INFO - User 2 has changed the permissions of user 3 in store 2
 myapp - INFO - manager permissions were edited successfully
 myapp - INFO - store id was sent successfully
 myapp - INFO - User 4 is logged in: False
-Market logger - INFO - User 2 has nominated user 4 to be the owner of store 16
+Market logger - INFO - User 2 has nominated user 4 to be the owner of store 2
 myapp - INFO - store owner was added successfully
-myapp - INFO - [Listeners] added listener: 4 to store_id: 16
-Roles Logger - INFO - User 4 accepted the nomination 1 in store 16
+myapp - INFO - [Listeners] added listener: 4 to store_id: 2
+Roles Logger - INFO - User 4 accepted the nomination 1 in store 2
 myapp - INFO - promotion accepted successfully
 myapp - INFO - store id was sent successfully
 myapp - INFO - User 5 is logged in: False
-Market logger - INFO - User 2 has nominated user 5 to be the owner of store 16
+Market logger - INFO - User 2 has nominated user 5 to be the owner of store 2
 myapp - INFO - store owner was added successfully
-myapp - INFO - [Listeners] added listener: 5 to store_id: 16
-Roles Logger - INFO - User 5 accepted the nomination 2 in store 16
+myapp - INFO - [Listeners] added listener: 5 to store_id: 2
+Roles Logger - INFO - User 5 accepted the nomination 2 in store 2
 myapp - INFO - promotion accepted successfully
 User Logger - INFO - User 7 created
 User Logger - INFO - User 7 added to database
@@ -93,129 +92,475 @@ myapp - INFO - Guest logged out successfully
 myapp - INFO - Guest logged out successfully
 myapp - INFO - Guest logged out successfully
 myapp - INFO - Guest logged out successfully
-backend - INFO - Starting app...
+werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+werkzeug - INFO - [33mPress CTRL+C to quit[0m
 myapp - INFO - recieved request from a guest to enter the app
 User Logger - INFO - User 8 created
 User Logger - INFO - User 8 added to database
 myapp - INFO - guest entered the app successfully - user_id: 8
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:34:45] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:34:45] "OPTIONS /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - received request to get stores
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:34:45] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:07] "OPTIONS /auth/login HTTP/1.1" 200 -
 myapp - INFO - received request to login a user
 myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:08] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:08] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35QFHn HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:08] "GET /socket.io/?EIO=4&transport=polling&t=P35QFHn HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:08] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35QFMs&sid=5_Bxnv2Klq__GI0HAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:08] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35QFMu&sid=5_Bxnv2Klq__GI0HAAAA HTTP/1.1" 200 -
 myapp - INFO - Connect data: None
-myapp - INFO - Client 1 connected
-myapp - INFO - Connect data: 1
-myapp - INFO - Client 1 connected
-myapp - INFO - Client joining room 1
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:08] "POST /socket.io/?EIO=4&transport=polling&t=P35QFMs&sid=5_Bxnv2Klq__GI0HAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:09] "GET /socket.io/?EIO=4&transport=polling&t=P35QFMu&sid=5_Bxnv2Klq__GI0HAAAA HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:09] "GET /socket.io/?EIO=4&transport=websocket&sid=5_Bxnv2Klq__GI0HAAAA HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35QFjl HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "OPTIONS /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "GET /store/my_stores HTTP/1.1" 200 -
 myapp - INFO - received request to check if the user is a system manager
+myapp - INFO - received request to get stores
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "GET /socket.io/?EIO=4&transport=polling&t=P35QFjl HTTP/1.1" 200 -
+myapp - INFO - my stores were sent successfully
+New Store Logger - INFO - [StoreFacade] checking if store exists
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "GET /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "GET /store/my_stores HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:10] "POST /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user is a system manager
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:11] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35QFuF&sid=NlrMNx5Z3vwuAbAjAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:11] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35QFuG&sid=NlrMNx5Z3vwuAbAjAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:11] "GET /user/is_system_manager HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 0 connected
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:11] "POST /socket.io/?EIO=4&transport=polling&t=P35QFuF&sid=NlrMNx5Z3vwuAbAjAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:11] "GET /socket.io/?EIO=4&transport=polling&t=P35QFuG&sid=NlrMNx5Z3vwuAbAjAAAC HTTP/1.1" 200 -
+myapp - INFO - Connect data: 0
+myapp - INFO - Client 0 connected
+myapp - INFO - Client joining room 0
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:18] "OPTIONS /market/view_all_bids HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:18] "OPTIONS /market/view_all_bids HTTP/1.1" 200 -
+myapp - INFO - recieved request to view all bids
+myapp - INFO - view_all_bids_of_system was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:18] "POST /market/view_all_bids HTTP/1.1" 200 -
+myapp - INFO - recieved request to view all bids
+myapp - INFO - view_all_bids_of_system was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:18] "POST /market/view_all_bids HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:22] "OPTIONS /market/view_bids_of_user HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:22] "OPTIONS /market/view_bids_of_user HTTP/1.1" 200 -
+myapp - INFO - recieved request to view bids of user
+myapp - INFO - view_user_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:23] "POST /market/view_bids_of_user HTTP/1.1" 200 -
+myapp - INFO - recieved request to view bids of user
+myapp - INFO - view_user_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:23] "POST /market/view_bids_of_user HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:24] "OPTIONS /store/get_stores HTTP/1.1" 200 -
 myapp - INFO - received request to get stores
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 myapp - INFO - stores were sent successfully
-myapp - INFO - my stores were sent successfully
-myapp - INFO - received request to check if the user is a system manager
-myapp - INFO - Connect data: None
-myapp - INFO - Client 1 connected
-myapp - INFO - Connect data: 1
-myapp - INFO - Client 1 connected
-myapp - INFO - Client joining room 1
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:24] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:32] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:32] "OPTIONS /store/store_info HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:32] "POST /store/store_info HTTP/1.1" 200 -
 myapp - INFO - received request to send store info
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:32] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:35] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:35] "OPTIONS /store/get_product_info HTTP/1.1" 200 -
 myapp - INFO - received request to get product info
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 myapp - INFO - product info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:36] "POST /store/get_product_info HTTP/1.1" 200 -
 myapp - INFO - received request to get product info
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 New Store Logger - INFO - [StoreFacade] checking if store exists
 New Store Logger - INFO - [StoreFacade] successfully got store by id
 myapp - INFO - product info was sent successfully
-myapp - INFO - received request to add a product to the basket
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-Market logger - INFO - User 1 has added 1 of product 0 to the basket
-myapp - INFO - product added to the basket successfully
-myapp - INFO - user 1 requested to show his cart
-myapp - INFO - shopping cart: {16: {0: 1}}
-myapp - INFO - user 1 requested to show his cart
-myapp - INFO - shopping cart: {16: {0: 1}}
-myapp - INFO - received request to get product info
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-myapp - INFO - product info was sent successfully
-myapp - INFO - received request to get total price after discounts
-New Store Logger - INFO - [StoreFacade] attempting to get total price after discount
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] successfully calculated total price after discount to be 30.0
-myapp - INFO - total price after discount was sent successfully
-myapp - INFO - Active supply methods retrieved successfully
-myapp - INFO - Active payment methods retrieved successfully
-myapp - INFO - Active supply methods retrieved successfully
-myapp - INFO - Active payment methods retrieved successfully
-myapp - INFO - recieved request to checkout the shopping cart
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] successfully applied discount
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] attempting to get total price after discount
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] successfully calculated total price after discount to be 30.0
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-myapp - INFO - [ImmediateSubPurchases] successfully created immediate sub purchase object with purchase id: 1
-myapp - INFO - [ImmediatePurchase] successfully created immediate purchase object with purchase id: 1
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-New Store Logger - INFO - Successfully removed product amount with id: {product_id}
-New Store Logger - INFO - [StoreFacade] checking if store exists
-New Store Logger - INFO - [StoreFacade] successfully got store by id
-third_party_handlers logger - INFO - Validating supply method bogo for address {'address': 'Binyamin', 'city': 'Modiin', 'state': 'Israel', 'country': 'Israel', 'zip_code': '7175260'}
-third_party_handlers logger - INFO - Estimated delivery time: 2024-07-17 23:39:19.155394 - for package {'stores': dict_keys([16]), 'supply method': 'bogo'} to address {'address': 'Binyamin', 'city': 'Modiin', 'state': 'Israel', 'country': 'Israel', 'zip_code': '7175260'}
-myapp - INFO - [PurchaseFacade] attempting to accept purchase with purchase id: 1
-third_party_handlers logger - INFO - Processing payment of 30.0 with details {'payment method': 'bogo'}
-third_party_handlers logger - INFO - Validating supply method bogo for address None
-third_party_handlers logger - INFO - Processed supply for package {'supply method': 'bogo', 'arrival time': datetime.datetime(2024, 7, 17, 23, 39, 19, 155394), 'purchase id': 1}
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:36] "POST /store/get_product_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:42] "OPTIONS /market/user_bid_offer HTTP/1.1" 200 -
+myapp - INFO - recieved request for a user to bid offer
+myapp - INFO - [BidPurchase] successfully created bid purchase object with purchase id: None
 myapp - INFO - User 2 is logged in: False
 myapp - INFO - User 3 is logged in: False
 myapp - INFO - User 4 is logged in: False
 myapp - INFO - User 5 is logged in: False
-Market logger - INFO - User 1 has checked out
-myapp - INFO - checkout was successful
-myapp - INFO - user 1 requested to show his cart
-myapp - INFO - shopping cart: {}
-myapp - INFO - user 1 requested to show his cart
-myapp - INFO - shopping cart: {}
-myapp - INFO - [PurchaseFacade] attempting to complete purchase with purchase id: 1
-myapp - INFO - recieved request to show the purchase history of a user
-myapp - INFO - show_purchase_history_of_user was successful
-myapp - INFO - recieved request to show the purchase history of a user
-myapp - INFO - show_purchase_history_of_user was successful
+Market logger - INFO - User 0 has created a bid purchase
+myapp - INFO - user_bid_offer was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:42] "POST /market/user_bid_offer HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:47] "OPTIONS /market/view_bids_of_user HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:48] "OPTIONS /market/view_bids_of_user HTTP/1.1" 200 -
+myapp - INFO - recieved request to view bids of user
+myapp - INFO - view_user_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:48] "POST /market/view_bids_of_user HTTP/1.1" 200 -
+myapp - INFO - recieved request to view bids of user
+myapp - INFO - view_user_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:48] "POST /market/view_bids_of_user HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:56] "OPTIONS /market/view_all_bids HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:56] "OPTIONS /market/view_all_bids HTTP/1.1" 200 -
+myapp - INFO - recieved request to view all bids
+myapp - INFO - view_all_bids_of_system was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:56] "POST /market/view_all_bids HTTP/1.1" 200 -
+myapp - INFO - recieved request to view all bids
+myapp - INFO - view_all_bids_of_system was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:35:56] "POST /market/view_all_bids HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:25] "OPTIONS /auth/logout HTTP/1.1" 200 -
+myapp - INFO - recieved request to logout a user
+User Logger - INFO - User 9 created
+User Logger - INFO - User 9 added to database
+myapp - INFO - guest entered the app successfully - user_id: 9
+myapp - INFO - User logged out successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:26] "POST /auth/logout HTTP/1.1" 200 -
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:27] "GET /socket.io/?EIO=4&transport=websocket&sid=NlrMNx5Z3vwuAbAjAAAC HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:27] "[31m[1mPOST /auth/logout HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:28] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:28] "[31m[1mGET /user/is_system_manager HTTP/1.1[0m" 401 -
+myapp - INFO - recieved request from a guest to enter the app
+User Logger - INFO - User 10 created
+User Logger - INFO - User 10 added to database
+myapp - INFO - guest entered the app successfully - user_id: 10
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:28] "GET /auth/ HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:29] "[31m[1mGET /store/my_stores HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:29] "[31m[1mGET /user/is_system_manager HTTP/1.1[0m" 401 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:29] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:29] "POST /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:34] "OPTIONS /auth/login HTTP/1.1" 200 -
+myapp - INFO - received request to login a user
+myapp - INFO - User logged in successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:35] "POST /auth/login HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:35] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35QaX3 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:35] "GET /socket.io/?EIO=4&transport=polling&t=P35QaX3 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:35] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35Qabx&sid=M8XbOXu-P8OwizHYAAAE HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:35] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35Qaby&sid=M8XbOXu-P8OwizHYAAAE HTTP/1.1" 200 -
+myapp - INFO - Client 2 connected
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:35] "POST /socket.io/?EIO=4&transport=polling&t=P35Qabx&sid=M8XbOXu-P8OwizHYAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:36] "GET /socket.io/?EIO=4&transport=polling&t=P35Qaby&sid=M8XbOXu-P8OwizHYAAAE HTTP/1.1" 200 -
+myapp - INFO - Connect data: 2
+myapp - INFO - Client 2 connected
+myapp - INFO - Client joining room 2
+myapp - INFO - Client None disconnected
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:36] "GET /socket.io/?EIO=4&transport=websocket&sid=M8XbOXu-P8OwizHYAAAE HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:36] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "OPTIONS /store/get_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "OPTIONS /user/is_system_manager HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35Qau6 HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to get stores
+myapp - INFO - received request to check if the user is a system manager
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "GET /socket.io/?EIO=4&transport=polling&t=P35Qau6 HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "GET /user/is_system_manager HTTP/1.1" 200 -
+myapp - INFO - stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "POST /store/get_stores HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "GET /store/my_stores HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user is a system manager
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35Qb2d&sid=F-b99lF0FWqzaskmAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "OPTIONS /socket.io/?EIO=4&transport=polling&t=P35Qb2e&sid=F-b99lF0FWqzaskmAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:37] "GET /user/is_system_manager HTTP/1.1" 200 -
+myapp - INFO - Connect data: None
+myapp - INFO - Client 2 connected
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:38] "POST /socket.io/?EIO=4&transport=polling&t=P35Qb2d&sid=F-b99lF0FWqzaskmAAAG HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:38] "GET /socket.io/?EIO=4&transport=polling&t=P35Qb2e&sid=F-b99lF0FWqzaskmAAAG HTTP/1.1" 200 -
+myapp - INFO - Connect data: 2
+myapp - INFO - Client 2 connected
+myapp - INFO - Client joining room 2
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:44] "OPTIONS /market/view_bids_of_user HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:44] "OPTIONS /market/view_bids_of_user HTTP/1.1" 200 -
+myapp - INFO - recieved request to view bids of user
+myapp - INFO - view_user_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:44] "POST /market/view_bids_of_user HTTP/1.1" 200 -
+myapp - INFO - recieved request to view bids of user
+myapp - INFO - view_user_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:44] "POST /market/view_bids_of_user HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:47] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:48] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:48] "GET /store/my_stores HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:48] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:51] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - recieved request to get the role of a store
+myapp - INFO - received request to check if store is closed
+New Store Logger - INFO - [StoreFacade] checking if store exists
+myapp - INFO - received request to check if the user has add product permission
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - received request to send store info
+myapp - INFO - get_store_roles was successful
+New Store Logger - INFO - [StoreFacade] checking if store exists
+myapp - INFO - recieved request to get the role of a store
+myapp - INFO - store is not closed
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - get_store_roles was successful
+myapp - INFO - received request to check if store is closed
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /market/get_store_role HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - store is not closed
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /store/is_store_closed HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add product permission
+myapp - INFO - recieved request to get the role of a store
+myapp - INFO - received request to check if store is closed
+myapp - INFO - received request to check if the user has add product permission
+New Store Logger - INFO - [StoreFacade] checking if store exists
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - store is not closed
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "OPTIONS /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+myapp - INFO - get_store_roles was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "OPTIONS /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase policy permission
+myapp - INFO - received request to check if the user has change purchase policy permission
+myapp - INFO - received request to check if the user has change purchase policy permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:52] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase types permission
+myapp - INFO - received request to check if the user has change purchase types permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase types permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount policy permission
+myapp - INFO - received request to check if the user has change discount policy permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount policy permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:53] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:54] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount types permission
+myapp - INFO - received request to check if the user has change discount types permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:54] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:54] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount types permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:54] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:54] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:54] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:54] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add manager permission
+myapp - INFO - received request to check if the user has add manager permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:54] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:54] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add manager permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:55] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:55] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:55] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:55] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has get bid permission
+myapp - INFO - received request to check if the user has get bid permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:55] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:55] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has get bid permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:36:55] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:02] "OPTIONS /market/get_store_bids HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:02] "OPTIONS /market/get_store_bids HTTP/1.1" 200 -
+myapp - INFO - recieved request to show store bids
+myapp - INFO - show_store_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:02] "POST /market/get_store_bids HTTP/1.1" 200 -
+myapp - INFO - recieved request to show store bids
+myapp - INFO - show_store_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:02] "POST /market/get_store_bids HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:17] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:18] "OPTIONS /store/my_stores HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:18] "GET /store/my_stores HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - my stores were sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:18] "GET /store/my_stores HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /store/is_store_closed HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "OPTIONS /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - store info was sent successfully
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "POST /store/store_info HTTP/1.1" 200 -
+myapp - INFO - recieved request to get the role of a store
+myapp - INFO - get_store_roles was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "POST /market/get_store_role HTTP/1.1" 200 -
+myapp - INFO - received request to send store info
+myapp - INFO - received request to check if the user has add product permission
+New Store Logger - INFO - [StoreFacade] checking if store exists
+myapp - INFO - received request to check if store is closed
+New Store Logger - INFO - [StoreFacade] checking if store exists
+myapp - INFO - recieved request to get the role of a store
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - store is not closed
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "POST /store/is_store_closed HTTP/1.1" 200 -
+myapp - INFO - store info was sent successfully
+myapp - INFO - get_store_roles was successful
+myapp - INFO - received request to check if store is closed
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "POST /store/store_info HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "POST /market/get_store_role HTTP/1.1" 200 -
+New Store Logger - INFO - [StoreFacade] checking if store exists
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - store is not closed
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:20] "POST /store/is_store_closed HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add product permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if store is closed
+New Store Logger - INFO - [StoreFacade] checking if store exists
+myapp - INFO - recieved request to get the role of a store
+New Store Logger - INFO - [StoreFacade] successfully got store by id
+myapp - INFO - store is not closed
+myapp - INFO - get_store_roles was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /store/is_store_closed HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add product permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "OPTIONS /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /market/get_store_role HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "OPTIONS /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /user/has_add_product_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase policy permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase policy permission
+myapp - INFO - received request to check if the user has change purchase policy permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /user/has_change_purchase_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "OPTIONS /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change purchase types permission
+myapp - INFO - received request to check if the user has change purchase types permission
+myapp - INFO - received request to check if the user has change purchase types permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "POST /user/has_change_purchase_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:21] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "OPTIONS /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount policy permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount policy permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount policy permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "POST /user/has_change_discount_policy_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "OPTIONS /user/has_change_discount_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount types permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount types permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has change discount types permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "POST /user/has_change_discount_types_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:22] "OPTIONS /user/has_add_manager_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add manager permission
+myapp - INFO - received request to check if the user has add manager permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:23] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has add manager permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:23] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:23] "POST /user/has_add_manager_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:23] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:23] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:23] "OPTIONS /user/has_get_bid_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has get bid permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:23] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has get bid permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:23] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+myapp - INFO - received request to check if the user has get bid permission
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:23] "POST /user/has_get_bid_permission HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:25] "OPTIONS /market/get_store_bids HTTP/1.1" 200 -
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:25] "OPTIONS /market/get_store_bids HTTP/1.1" 200 -
+myapp - INFO - recieved request to show store bids
+myapp - INFO - show_store_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:25] "POST /market/get_store_bids HTTP/1.1" 200 -
+myapp - INFO - recieved request to show store bids
+myapp - INFO - show_store_bids was successful
+werkzeug - INFO - 127.0.0.1 - - [18/Jul/2024 13:37:26] "POST /market/get_store_bids HTTP/1.1" 200 -

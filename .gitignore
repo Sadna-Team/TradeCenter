@@ -1,5 +1,6 @@
 .vscode/
 .backendvenv/
+.idea/
 .frontendvenv/
 .pytest_cache/
 tests/__pycache__/
