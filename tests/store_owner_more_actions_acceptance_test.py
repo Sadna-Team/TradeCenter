@@ -840,6 +840,334 @@ def test_assign_predicate_to_purchase_policy_invalid_policy_id(app, clean11,clie
 
 #bid tests:
 
+# Use-Case: store worker accept bid 2.2.5.2.2.a
+def test_store_worker_accept_bid_success(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    response = client.post('store/accept_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 200
+
+# Use-Case: store worker accept bid 2.2.5.2.2.b
+def test_store_worker_accept_bid_failure_already_accepted(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    client.post('store/accept_bid', headers=headers, json={'bid_id': 0})
+    
+    response = client.post('store/accept_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 400
+
+# Use-Case: store worker accept bid 2.2.5.2.2.c
+def test_store_worker_accept_bid_failure_bid_not_ongoing(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_BID_NOT_ONGOING'] = True
+    
+    response = client.post('store/accept_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 400
+
+# Use-Case: store worker accept bid 2.2.5.2.2.d
+def test_store_worker_accept_bid_failure_bid_not_offer_to_store(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_BID_NOT_OFFER_TO_STORE'] = True
+    
+    response = client.post('store/accept_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 400
+
+# Use-Case: store worker accept bid 2.2.5.2.2.e
+def test_store_worker_accept_bid_failure_store_worker_suspended(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_STORE_WORKER_SUSPENDED'] = True
+    
+    response = client.post('store/accept_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 403
+
+# Use-Case: store worker accept bid 2.2.5.2.2.f
+def test_store_worker_accept_bid_failure_no_permissions(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_NO_PERMISSIONS'] = True
+    
+    response = client.post('store/accept_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 403
+
+# Use-Case: store worker decline bid 2.2.5.2.3.a
+def test_store_worker_decline_bid_success(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    response = client.post('store/decline_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 200
+
+# Use-Case: store worker decline bid 2.2.5.2.3.b
+def test_store_worker_decline_bid_failure_already_accepted(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    client.post('store/accept_bid', headers=headers, json={'bid_id': 0})
+    
+    response = client.post('store/decline_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 400
+
+# Use-Case: store worker decline bid 2.2.5.2.3.c
+def test_store_worker_decline_bid_failure_bid_not_ongoing(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_BID_NOT_ONGOING'] = True
+    
+    response = client.post('store/decline_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 400
+
+# Use-Case: store worker decline bid 2.2.5.2.3.d
+def test_store_worker_decline_bid_failure_bid_not_offer_to_store(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_BID_NOT_OFFER_TO_STORE'] = True
+    
+    response = client.post('store/decline_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 400
+
+# Use-Case: store worker decline bid 2.2.5.2.3.e
+def test_store_worker_decline_bid_failure_store_worker_suspended(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_STORE_WORKER_SUSPENDED'] = True
+    
+    response = client.post('store/decline_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 403
+
+# Use-Case: store worker decline bid 2.2.5.2.3.f
+def test_store_worker_decline_bid_failure_no_permissions(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_NO_PERMISSIONS'] = True
+    
+    response = client.post('store/decline_bid', headers=headers, json={'bid_id': 0})
+    assert response.status_code == 403
+
+# Use-Case: store worker counter bid 2.2.5.2.4.a
+def test_store_worker_counter_bid_success(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    response = client.post('store/counter_bid', headers=headers, json={'bid_id': 0, 'proposed_price': 25.0})
+    assert response.status_code == 200
+
+# Use-Case: store worker counter bid 2.2.5.2.4.b
+def test_store_worker_counter_bid_failure_already_accepted(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    client.post('store/accept_bid', headers=headers, json={'bid_id': 0})
+    
+    response = client.post('store/counter_bid', headers=headers, json={'bid_id': 0, 'proposed_price': 25.0})
+    assert response.status_code == 400
+
+# Use-Case: store worker counter bid 2.2.5.2.4.c
+def test_store_worker_counter_bid_failure_bid_not_ongoing(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_BID_NOT_ONGOING'] = True
+    
+    response = client.post('store/counter_bid', headers=headers, json={'bid_id': 0, 'proposed_price': 25.0})
+    assert response.status_code == 400
+
+# Use-Case: store worker counter bid 2.2.5.2.4.d
+def test_store_worker_counter_bid_failure_bid_not_offer_to_store(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_BID_NOT_OFFER_TO_STORE'] = True
+    
+    response = client.post('store/counter_bid', headers=headers, json={'bid_id': 0, 'proposed_price': 25.0})
+    assert response.status_code == 400
+
+# Use-Case: store worker counter bid 2.2.5.2.4.e
+def test_store_worker_counter_bid_failure_store_worker_suspended(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_STORE_WORKER_SUSPENDED'] = True
+    
+    response = client.post('store/counter_bid', headers=headers, json={'bid_id': 0, 'proposed_price': 25.0})
+    assert response.status_code == 403
+
+# Use-Case: store worker counter bid 2.2.5.2.4.f
+def test_store_worker_counter_bid_failure_no_permissions(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_NO_PERMISSIONS'] = True
+    
+    response = client.post('store/counter_bid', headers=headers, json={'bid_id': 0, 'proposed_price': 25.0})
+    assert response.status_code == 403
+
+# Use-Case: store worker counter bid 2.2.5.2.4.g
+def test_store_worker_counter_bid_failure_invalid_price(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    response = client.post('store/counter_bid', headers=headers, json={'bid_id': 0, 'proposed_price': -5.0})
+    assert response.status_code == 400
+
+# Use-Case: show store bids 2.2.5.2.11.a
+def test_show_store_bids_success(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    response = client.get('store/view_bids', headers=headers, json={'store_id': store_setup})
+    assert response.status_code == 200
+
+# Use-Case: show store bids 2.2.5.2.11.b
+def test_show_store_bids_failure_store_not_found(app, clean, client, owner_token):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    
+    response = client.get('store/view_bids', headers=headers, json={'store_id': 999})
+    assert response.status_code == 404
+
+# Use-Case: show store bids 2.2.5.2.11.c
+def test_show_store_bids_failure_no_permissions(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_NO_PERMISSIONS'] = True
+    
+    response = client.get('store/view_bids', headers=headers, json={'store_id': store_setup})
+    assert response.status_code == 403
+
+# Use-Case: show store bids 2.2.5.2.11.d
+def test_show_store_bids_failure_store_worker_suspended(app, clean, client, owner_token, store_setup):
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    bid_data = {
+        'store_id': store_setup,
+        'product_id': 0,
+        'proposed_price': 20.0
+    }
+    client.post('user/offer_bid', headers=headers, json=bid_data)
+    
+    app.config['TEST_STORE_WORKER_SUSPENDED'] = True
+    
+    response = client.get('store/view_bids', headers=headers, json={'store_id': store_setup})
+    assert response.status_code == 403
+
+
 
 '''
 def test_user_bid_offer(client12, init_store, user_token, clean11):
