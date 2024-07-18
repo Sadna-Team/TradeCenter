@@ -1,5 +1,6 @@
 import pytest
 from backend import create_app, clean_data
+from backend.database import clear_database
 import json
 import threading
 import queue
@@ -68,14 +69,15 @@ def app():
     yield app
 
     clean_data()
+    clear_database()
 
     app_context.pop()
 
 
 @pytest.fixture
 def clean(app):
-    yield
     with app.app_context():
+        clear_database()
         clean_data()
     
 
@@ -140,7 +142,9 @@ def init_store(app, client1, owner_token):
     print(response.data)
     assert response.status_code == 200
 
-    data = {"store_id": 0, 
+    store_id = response.json['storeId']
+
+    data = {"store_id": store_id,
             "product_name": "test_product", 
             "description": "test_description",
             "price": 10.0,
@@ -151,7 +155,7 @@ def init_store(app, client1, owner_token):
     response = client1.post('store/add_product', headers=headers, json=data)
     assert response.status_code == 200
 
-    data = {"store_id": 0, 
+    data = {"store_id": store_id,
         "product_name": "funny", 
         "description": "test_description",
         "price": 10.0,
@@ -240,7 +244,7 @@ def test_register(app, client1, token1):
     
 
 
-def test_register_failed_duplicate_username(app, client1, token1, token2):
+def test_register_failed_duplicate_username(app,clean, client1, token1, token2):
     headers = {
         'Authorization': 'Bearer ' + token1
     }
@@ -279,7 +283,7 @@ def test_register_failed_missing_data(app, client1, token1):
     
 
 
-def test_login(app, client1, token1):
+def test_login(app, clean, client1, token1):
     # register user
     headers = {
         'Authorization': 'Bearer ' + token1
@@ -334,7 +338,7 @@ def test_login_failed_wrong_password(app, client1, token1):
     
 
 
-def test_login_failed_already_logged_in(app, client1, token1, user_token):
+def test_login_failed_already_logged_in(app,clean, client1, token1, user_token):
     data = {
         'username': 'test',
         'password': 'test'
@@ -347,7 +351,7 @@ def test_login_failed_already_logged_in(app, client1, token1, user_token):
     assert response.status_code == 401
     
     
-def test_logout(app, client1, user_token):
+def test_logout(app,clean, client1, user_token):
     data = {
         'username': 'test',
         'password': 'test'
@@ -382,7 +386,7 @@ def test_logout_guest(app, client1, token1):
     assert response.status_code == 200 
 
 
-def test_show_notifications(app, client1, user_token):
+def test_show_notifications(app,clean, client1, user_token):
     response = client1.get('/user/notifications', headers={
         'Authorization': f'Bearer {user_token}'
     })
@@ -404,14 +408,16 @@ def test_show_notifications_failed_not_logged_in(app, client1, token1):
     
 
 
-def test_add_product_to_basket(app, client2, user_token, client1, owner_token):
+def test_add_product_to_basket(app,clean, client2, user_token, client1, owner_token):
     data = {'store_name': 'test_store', 'address': 'test_address', 'city': 'test_city', 'state': 'test_state', 'country': 'test_country', 'zip_code': '12345'}
     headers = {'Authorization': 'Bearer ' + owner_token}
     response = client1.post('store/add_store', headers=headers, json=data)
     print(response.data)
     assert response.status_code == 200
 
-    data = {"store_id": 0, 
+    store_id = response.json['storeId']
+
+    data = {"store_id": store_id,
             "product_name": "test_product", 
             "description": "test_description",
             "price": 10.0,
@@ -424,7 +430,7 @@ def test_add_product_to_basket(app, client2, user_token, client1, owner_token):
     response = client2.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
-        'store_id': 1,
+        'store_id': store_id,
         'product_id': 0,
         'quantity': 1
     })
@@ -434,7 +440,7 @@ def test_add_product_to_basket(app, client2, user_token, client1, owner_token):
     
 
 
-def test_add_product_to_basket_failed_amount_exceeds(app, client1, user_token):
+def test_add_product_to_basket_failed_amount_exceeds(app,clean, client1, user_token):
     response = client1.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
@@ -448,7 +454,7 @@ def test_add_product_to_basket_failed_amount_exceeds(app, client1, user_token):
     
 
 
-def test_add_product_to_basket_store_not_exists(app, client1, user_token):
+def test_add_product_to_basket_store_not_exists(app, clean, client1, user_token):
     response = client1.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
@@ -460,7 +466,7 @@ def test_add_product_to_basket_store_not_exists(app, client1, user_token):
     assert response.status_code == 400
 
 
-def test_add_product_to_basket_product_not_exists(app, client1, user_token):
+def test_add_product_to_basket_product_not_exists(app, clean, client1, user_token):
     response = client1.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
@@ -474,7 +480,7 @@ def test_add_product_to_basket_product_not_exists(app, client1, user_token):
     
 
 
-def test_remove_product_from_basket(app, client1, user_token):
+def test_remove_product_from_basket(app, clean, client1, user_token):
     response = client1.post('/user/remove_from_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
@@ -502,7 +508,7 @@ def test_remove_product_from_basket_failed_not_logged_in(app, client1, token1):
     
 
 
-def test_remove_product_from_basket_failed_store_not_exists(app, client1, user_token):
+def test_remove_product_from_basket_failed_store_not_exists(app, clean, client1, user_token):
     response = client1.post('/user/remove_from_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
@@ -516,7 +522,7 @@ def test_remove_product_from_basket_failed_store_not_exists(app, client1, user_t
     
 
 
-def test_remove_product_from_basket_failed_product_not_exists(app, client1, user_token):
+def test_remove_product_from_basket_failed_product_not_exists(app, clean, client1, user_token):
     response = client1.post('/user/remove_from_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
@@ -530,7 +536,7 @@ def test_remove_product_from_basket_failed_product_not_exists(app, client1, user
     
 
 
-def test_remove_product_from_basket_failed_quantity_exceeds(app, client1, user_token):
+def test_remove_product_from_basket_failed_quantity_exceeds(app, clean, client1, user_token):
     response = client1.post('/user/remove_from_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={

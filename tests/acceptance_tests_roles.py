@@ -1,9 +1,10 @@
-from backend import create_app
+from backend.app_factory import create_app_instance
 from flask import json
 
 global token1, token2, token3
+global store_id
 
-app = create_app(mode='testing')
+app = create_app_instance('testing')
 client = app.test_client()
 
 
@@ -52,12 +53,14 @@ def test_start():
     response = client.post('/store/add_store', headers={'Authorization': 'Bearer ' + token1},
                            json={'store_name': 'test_store', 'address': 'address', 'city': 'city', 'state': 'state', 'country': 'country', 'zip_code': '12345'})
     assert response.status_code == 200
+    global store_id
+    store_id = json.loads(response.data)['storeId']
 
 
 def test_nominate_owner_acc():
-    global token1, token2
+    global token1, token2, store_id
     response = client.post('/store/add_store_owner', headers={'Authorization': 'Bearer ' + token1},
-                           json={'store_id': 0, 'username': 'test2'})
+                           json={"store_id": store_id, 'username': 'test2'})
     assert response.status_code == 200
 
     response = client.post('/user/accept_promotion', headers={'Authorization': 'Bearer ' + token2},
@@ -69,7 +72,7 @@ def test_nominate_owner_dec():
     global token1, token3
     response = client.post('/store/add_store_owner',
                            headers={'Authorization': 'Bearer ' + token1},
-                           json={'store_id': 0, 'username': 'test3'})
+                           json={"store_id": store_id, 'username': 'test3'})
 
     assert response.status_code == 200
 
@@ -84,7 +87,7 @@ def test_cancel_ownership():
     global token1, token2
     response = client.post('/store/remove_store_role',
                            headers={'Authorization': 'Bearer ' + token1},
-                           json={'store_id': 0, 'username': 'test2'})
+                           json={"store_id": store_id, 'username': 'test2'})
 
     assert response.status_code == 200
 
@@ -93,7 +96,7 @@ def test_give_up_ownership():
     global token1, token2
     response = client.post('/store/add_store_owner',
                            headers={'Authorization': 'Bearer ' + token1},
-                           json={'store_id': 0, 'username': 'test2'})
+                           json={"store_id": store_id, 'username': 'test2'})
 
     assert response.status_code == 200
 
@@ -106,7 +109,7 @@ def test_give_up_ownership():
     # nominate another owner
     response = client.post('/store/add_store_owner',
                             headers={'Authorization': 'Bearer ' + token2},
-                            json={'store_id': 0, 'username': 'test3'})
+                            json={"store_id": store_id, 'username': 'test3'})
     assert response.status_code == 200
 
     # accept the nomination
@@ -117,21 +120,21 @@ def test_give_up_ownership():
 
     response = client.post('/store/give_up_role',
                            headers={'Authorization': 'Bearer ' + token2},
-                           json={'store_id': 0})
+                           json={"store_id": store_id})
 
     assert response.status_code == 200
 
     # check if the user test3 is no longer an owner
     response = client.get('/user/is_store_owner',
                             headers={'Authorization': 'Bearer ' + token3},
-                            json={'store_id': 0})
+                            json={"store_id": store_id})
 
     assert response.status_code == 200
     # assert json.loads(response.data)['is_store_owner'] is False
 
     response = client.get('/user/is_store_owner',
                             headers={'Authorization': 'Bearer ' + token2},
-                            json={'store_id': 0})
+                            json={"store_id": store_id})
 
     assert response.status_code == 200
     # assert json.loads(response.data)['is_store_owner'] is False
@@ -166,11 +169,11 @@ def test_is_store_owner():
     global token2
     response = client.get('/user/is_store_owner',
                           headers={'Authorization': 'Bearer ' + token1},
-                          json={'store_id': 0})
+                          json={"store_id": store_id})
     assert response.status_code == 200
     assert json.loads(response.data)['is_store_owner'] is True
 
-    response = client.get('/user/is_store_owner', headers={'Authorization': 'Bearer ' + token2}, json={'store_id': 0})
+    response = client.get('/user/is_store_owner', headers={'Authorization': 'Bearer ' + token2}, json={"store_id": store_id})
     assert response.status_code == 200
     assert json.loads(response.data)['is_store_owner'] is False
 
@@ -180,14 +183,14 @@ def test_is_store_manager():
     global token2
     response = client.get('/user/is_store_manager',
                           headers={'Authorization': 'Bearer ' + token1},
-                          json={'store_id': 0})
+                          json={"store_id": store_id})
     assert response.status_code == 200
     assert json.loads(response.data)['is_store_manager'] is False
 
-    response = client.get('/user/is_store_manager', headers={'Authorization': 'Bearer ' + token2}, json={'store_id': 0})
+    response = client.get('/user/is_store_manager', headers={'Authorization': 'Bearer ' + token2}, json={"store_id": store_id})
     assert response.status_code == 200
     assert json.loads(response.data)['is_store_manager'] is False
 
     response = client.post('/store/add_store_manager', headers={'Authorization': 'Bearer ' + token1},
-                           json={'store_id': 0, 'username': 'test2'})
+                           json={"store_id": store_id, 'username': 'test2'})
     assert response.status_code == 200
