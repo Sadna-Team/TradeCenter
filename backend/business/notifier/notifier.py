@@ -110,6 +110,7 @@ class Notifier:
         from backend.app_factory import get_app
         app = get_app()
         with app.app_context():
+            from backend.business.roles.roles import RolesFacade
             all_listeners = RolesFacade().get_bid_owners_managers(store_id)
             if len(all_listeners) == 0:
                 raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
