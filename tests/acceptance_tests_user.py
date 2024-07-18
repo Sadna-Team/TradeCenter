@@ -169,45 +169,21 @@ def init_store(app, client1, owner_token):
     product_id2 = response.json['product_id']
 
     return {'store_id': store_id, 'product_id1': product_id1, 'product_id2': product_id2}
-# def create_and_login_user(username, password, email, phone, year, month, day):
-#     response = client.get('/auth/')
-#     assert response.status_code == 200
-
-#     data = json.loads(response.data)
-#     assert 'token' in data
-
-#     token1 = data['token']
-
-#     register_credentials2 = {
-#         'username': username,
-#         'email': email,
-#         'password': password,
-#         'address': 'address2',
-#         'city': 'city2',
-#         'state': 'state2',
-#         'country': 'country2',
-#         'zip_code': '12345',
-#         'year': year,
-#         'month': month,
-#         'day': day,
-#         'phone': phone
-#     }
-
-#     headers = {
-#         'Authorization': 'Bearer ' + token1
-#     }
-#     response = client.post('auth/register', headers=headers, json={'register_credentials': register_credentials2})
-#     assert response.status_code == 201
-
-#     response = client.post('/auth/login', headers=headers, json={'username': username, 'password': password})
-#     assert response.status_code == 200
-#     token1 = json.loads(response.data)['token']
-
-#     return token1
 
 
-# global token
-# global guest_token
+@pytest.fixture
+def add_product_to_basket(app, clean, client2, user_token, init_store):
+    data = {
+        'store_id': init_store['store_id'],
+        'product_id': init_store['product_id1'],
+        'quantity': 1
+    }
+    response = client2.post('/user/add_to_basket', headers={
+        'Authorization': f'Bearer {user_token}'
+    }, json=data)
+    assert response.status_code == 200
+    return init_store['store_id'], init_store['product_id1'], user_token, client2
+
 
 
 register_credentials = {
@@ -440,6 +416,8 @@ def test_add_product_to_basket(app,clean, client2, user_token, client1, owner_to
     })
 
     assert response.status_code == 200
+
+    return store_id, product_id, user_token
     
     
 
@@ -484,12 +462,13 @@ def test_add_product_to_basket_product_not_exists(app, clean, client1, user_toke
     
 
 
-def test_remove_product_from_basket(app, clean, client1, user_token, init_store):
-    response = client1.post('/user/remove_from_basket', headers={
+def test_remove_product_from_basket(app, add_product_to_basket):
+    store_id, product_id, user_token, client3 = add_product_to_basket
+    response = client3.post('/user/remove_from_basket', headers={
         'Authorization': f'Bearer {user_token}'
     }, json={
-        'store_id': init_store['store_id'],
-        'product_id': init_store['product_id1'],
+        'store_id': store_id,
+        'product_id': product_id,
         'quantity': 1
     })
 
@@ -498,7 +477,7 @@ def test_remove_product_from_basket(app, clean, client1, user_token, init_store)
     
 
 
-def test_remove_product_from_basket_failed_not_logged_in(app, client1, token1, init_store):
+def test_remove_product_from_basket_failed_not_logged_in(app, init_store, client1, token1):
     response = client1.post('/user/remove_from_basket', headers={
         'Authorization': f'Bearer {token1}'
     }, json={
