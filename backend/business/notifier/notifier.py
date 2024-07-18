@@ -165,6 +165,7 @@ class Notifier:
                             self._notify_real_time(listener, message)
                         else:
                             self._notify_delayed(listener, message)
+
     # Notify on a new bid  --- for store owner
     def notify_new_bid(self, store_id: int, user_id: int, users_to_notify: list[int], bid_id: int) -> None:
         """
