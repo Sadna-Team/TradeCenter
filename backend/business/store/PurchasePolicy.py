@@ -505,7 +505,8 @@ class AndPurchasePolicy(PurchasePolicy):
         if self.store_id != basket.store_id:
             return True
         
-        return self._policy_left.check_constraint(basket) and self._policy_right.check_constraint(basket)
+        
+        return self.policy_left.check_constraint(basket) and self.policy_right.check_constraint(basket)
 
 
     def set_predicate(self, predicate: Constraint):
@@ -545,7 +546,7 @@ class OrPurchasePolicy(PurchasePolicy):
     def __init__(self, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
         super().__init__(store_id, policy_name, None)
         self.policy_left = policy_left
-        selfpolicy_right = policy_right
+        self.policy_right = policy_right
         logger.info("[OrPurchasePolicy] Or Purchase Policy created successfully!")
     
 
@@ -553,7 +554,7 @@ class OrPurchasePolicy(PurchasePolicy):
         if self.store_id != basket.store_id:
             return True
         
-        return self._policy_left.check_constraint(basket) or self._policy_right.check_constraint(basket)
+        return self.policy_left.check_constraint(basket) or self.policy_right.check_constraint(basket)
 
 
     def set_predicate(self, predicate: Constraint):
@@ -601,8 +602,8 @@ class ConditioningPurchasePolicy(PurchasePolicy):
         if self.store_id != basket.store_id:
             return True
         
-        if self._policy_left.check_constraint(basket):
-            return self._policy_right.check_constraint(basket)
+        if self.policy_left.check_constraint(basket):
+            return self.policy_right.check_constraint(basket)
         else:
             return True
 

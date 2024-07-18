@@ -373,7 +373,7 @@ def test_store_reject_offer(bid_purchase):
 def test_store_accept_offer(bid_purchase):
     bid_purchase.store_owner_manager_accept_offer(default_user_id)
     assert bid_purchase.store_accept_offer([default_user_id]) == True
-    assert bid_purchase.status == PurchaseStatus.accepted
+    assert bid_purchase.status == PurchaseStatus.approved
 
 
 def test_store_counter_offer(bid_purchase):
@@ -435,27 +435,24 @@ def test_complete_bid_purchase(accepted_bid_purchase):
     assert accepted_bid_purchase.status == PurchaseStatus.completed
 
 
-#purchaseFacade tests:
+#PurchaseFacade tests:
 
 def test_create_bid_purchase(purchase_facade):
     num = len(db.session.query(BidPurchase).all())
     create_bid_purchase_default(purchase_facade)
     assert len(db.session.query(BidPurchase).all()) == num + 1
-    #assert len(purchase_facade._purchases) == 1
 
 
 def test_store_owner_manager_accept_offer_facade(purchase_facade):
     p_id = create_bid_purchase_default(purchase_facade)
     purchase_facade.store_owner_manager_accept_offer(p_id, default_user_id)
     assert default_user_id in db.session.query(BidPurchase).get(p_id).list_of_store_owners_managers_that_accepted_offer
-    #assert default_user_id in purchase_facade._purchases[0].list_of_store_owners_managers_that_accepted_offer
 
 
 def test_store_reject_offer_facade(purchase_facade):
     p_id = create_bid_purchase_default(purchase_facade)
     user_id = purchase_facade.store_reject_offer(p_id, default_user_id)
     assert db.session.query(BidPurchase).get(p_id).status == PurchaseStatus.offer_rejected
-    # assert purchase_facade._purchases[0].status == PurchaseStatus.offer_rejected
     assert user_id == default_user_id
 
 
@@ -463,15 +460,13 @@ def test_store_accept_offer_facade(purchase_facade):
     p_id = create_bid_purchase_default(purchase_facade)
     purchase_facade.store_owner_manager_accept_offer(p_id, default_user_id)
     assert purchase_facade.store_accept_offer(p_id, [default_user_id])
-    assert db.session.query(BidPurchase).get(p_id).status == PurchaseStatus.accepted
-    # assert purchase_facade._purchases[0].status == PurchaseStatus.accepted
+    assert db.session.query(BidPurchase).get(p_id).status == PurchaseStatus.approved
 
 
 def test_store_counter_offer_facade(purchase_facade):
     p_id = create_bid_purchase_default(purchase_facade)
     purchase_facade.store_counter_offer(p_id, default_user_id, default_price + 10)
     assert db.session.query(BidPurchase).get(p_id).proposed_price == default_price + 10
-    #assert purchase_facade._purchases[0].proposed_price == default_price + 10
 
 
 def test_user_accept_counter_offer_facade(purchase_facade):
@@ -479,7 +474,6 @@ def test_user_accept_counter_offer_facade(purchase_facade):
     purchase_facade.store_counter_offer(p_id, default_user_id, default_price + 10)
     purchase_facade.user_accept_counter_offer(p_id, default_user_id)
     assert db.session.query(BidPurchase).get(p_id).is_offer_to_store == True
-    #assert purchase_facade._purchases[0].is_offer_to_store == True
 
 
 def test_user_reject_counter_offer_facade(purchase_facade):
@@ -487,7 +481,6 @@ def test_user_reject_counter_offer_facade(purchase_facade):
     purchase_facade.store_counter_offer(p_id, default_user_id, default_price + 10)
     purchase_facade.user_reject_counter_offer(p_id, default_user_id)
     assert db.session.query(BidPurchase).get(p_id).status == PurchaseStatus.offer_rejected
-    #assert purchase_facade._purchases[0].status == PurchaseStatus.offer_rejected
 
 
 def test_user_counter_offer_facade(purchase_facade):
@@ -497,9 +490,6 @@ def test_user_counter_offer_facade(purchase_facade):
     assert db.session.query(BidPurchase).get(p_id).proposed_price == default_price + 15
     assert db.session.query(BidPurchase).get(p_id).is_offer_to_store
     assert db.session.query(BidPurchase).get(p_id).list_of_store_owners_managers_that_accepted_offer == []
-    # assert purchase_facade._purchases[0].proposed_price == default_price + 15
-    # assert purchase_facade._purchases[0].is_offer_to_store
-    # assert purchase_facade._purchases[0].list_of_store_owners_managers_that_accepted_offer == []
 
 
 def test_get_bid_purchases_of_user(purchase_facade):
@@ -518,7 +508,6 @@ def test_accept_bid_purchase_facade(purchase_facade):
     p_id = create_bid_purchase_default(purchase_facade)
     purchase_facade.accept_purchase(p_id, datetime.now() + timedelta(days=1))
     assert db.session.query(BidPurchase).get(p_id).status == PurchaseStatus.accepted
-    #assert purchase_facade._purchases[0].status == PurchaseStatus.accepted
 
 
 def test_complete_bid_purchase_facade(purchase_facade):
@@ -526,8 +515,12 @@ def test_complete_bid_purchase_facade(purchase_facade):
     purchase_facade.accept_purchase(p_id, datetime.now() + timedelta(days=1))
     purchase_facade.complete_purchase(p_id)
     assert db.session.query(BidPurchase).get(p_id).status == PurchaseStatus.completed
-    #assert purchase_facade._purchases[0].status == PurchaseStatus.completed
 
+
+def test_view_all_bids_of_system(purchase_facade):
+    create_bid_purchase_default(purchase_facade)
+    bids = purchase_facade.view_all_bids_of_system()
+    assert len(bids) > 0
 
 def clean_data():
     PurchaseFacade().clean_data()
