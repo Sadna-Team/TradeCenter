@@ -19,7 +19,7 @@ store_service = StoreService()
 
 '''
 
-@store_bp.route('/add_discount', methods=['POST'])
+@store_bp.route('/_discount', methods=['POST'])
 @jwt_required()
 def add_discount():
     """

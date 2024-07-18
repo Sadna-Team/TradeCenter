@@ -132,7 +132,7 @@ def user_token(client2, token2):
     manager_credentials['username'] = 'store_owner'
     response = client2.post('auth/register', headers=headers, json=data)
     data = { "username": "test", "password": "test" }
-    assert response.status_code == 200
+    assert response.status_code == 201
     response = client2.post('auth/login', json=data, headers=headers)
     data = json.loads(response.data)
     return data['token']
@@ -156,7 +156,7 @@ def init_store(client1, owner_token):
     response = client1.post('store/add_product', headers=headers, json=data)
     product_id1 = json.loads(response.data)['product_id']
 
-    data = {"store_id": 0, 
+    data = {"store_id": storeId,
         "product_name": "funny", 
         "description": "test_description",
         "price": 10.0,
