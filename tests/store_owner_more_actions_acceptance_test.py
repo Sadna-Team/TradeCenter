@@ -21,6 +21,7 @@ register_credentials1= {
         'day': 1,
         'phone': '054-1238567' }
 
+
 default_payment_method = {'payment method': 'bogo'}
 
 default_supply_method = "bogo"
@@ -61,8 +62,8 @@ def app():
 
 
 @pytest.fixture
-def client11(app1):
-    return app1.test_client()
+def client11(app):
+    return app.test_client()
 
 @pytest.fixture
 def new_token(client11):
@@ -87,16 +88,16 @@ def clean11():
     clean_data()
     
 @pytest.fixture
-def client12(app1):
-    return app1.test_client()
+def client12(app):
+    return app.test_client()
 
 @pytest.fixture
-def client22(app1):
-    return app1.test_client()
+def client22(app):
+    return app.test_client()
 
 @pytest.fixture
-def client33(app1):
-    return app1.test_client()
+def client33(app):
+    return app.test_client()
 
 @pytest.fixture
 def token11(client12):
