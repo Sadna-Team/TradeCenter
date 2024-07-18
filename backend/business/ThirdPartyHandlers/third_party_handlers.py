@@ -119,12 +119,11 @@ class PaymentHandler(db.Model):
 
     __instance: ClassVar['PaymentHandler'] = None
 
-    def __new__(cls):
+    @classmethod
+    def get_instance(cls):
         if cls.__instance is None:
-            cls.__instance = super(PaymentHandler, cls).__new__(cls)
             with db.session() as session:
                 instance = session.query(cls).first()
-                logger.info(f"Instance: {instance}")
                 if instance is None:
                     instance = cls()
                     session.add(instance)
@@ -313,9 +312,9 @@ class SupplyHandler(db.Model):
 
     __instance: ClassVar['SupplyHandler'] = None
 
-    def __new__(cls):
+    @classmethod
+    def get_instance(cls):
         if cls.__instance is None:
-            cls.__instance = super(SupplyHandler, cls).__new__(cls)
             with db.session() as session:
                 instance = session.query(cls).first()
                 if instance is None:
@@ -335,27 +334,18 @@ class SupplyHandler(db.Model):
         db.session.commit()
 
     def _validate_supply_method(self, method_name: str, address: dict) -> bool:
-        """
-        Validate the supply method for the given address.
-        """
         logger.info(f"Validating supply method {method_name} for address {address}")
         return method_name in self.supply_config
 
     def get_delivery_time(self, package_details: Dict, address: Dict) -> datetime:
-        """
-        Get the estimated delivery time for a package.
-        """
         if not self._validate_supply_method(package_details.get("supply method"), address):
             raise ThirdPartyHandlerError(f"supply method not supported for address: {address}",
                                          ThirdPartyHandlerErrorTypes.supply_method_not_supported)
-        time = datetime.now() + timedelta(seconds=5)
+        time = datetime.now() + timedelta(hours=1)
         logger.info(f"Estimated delivery time: {time} - for package {package_details} to address {address}")
         return time
 
     def _resolve_supply_strategy(self, package_details: Dict):
-        """
-        Resolve the supply strategy based on the package details.
-        """
         method = package_details.get("supply method")
         if method not in self.supply_config:
             raise ThirdPartyHandlerError("supply method not supported",
@@ -376,9 +366,6 @@ class SupplyHandler(db.Model):
             raise ThirdPartyHandlerError("Invalid supply method", ThirdPartyHandlerErrorTypes.invalid_supply_method)
 
     def process_supply(self, package_details: Dict, user_id: int, on_arrival: Callable[[int], None]) -> int:
-        """
-        Process the supply using the SupplyHandler's SupplyAdapter object.
-        """
         if "supply method" not in package_details:
             raise ThirdPartyHandlerError("Missing supply method in package details",
                                          ThirdPartyHandlerErrorTypes.missing_supply_method)
@@ -397,16 +384,10 @@ class SupplyHandler(db.Model):
         return order_id
 
     def process_supply_cancel(self, package_details: Dict, order_id: int) -> int:
-        """
-        Cancel the supply using the SupplyHandler's SupplyAdapter object.
-        """
         return (self._resolve_supply_strategy(package_details)
                 .cancel_order(order_id))
 
     def edit_supply_method(self, method_name: str, editing_data: Dict) -> None:
-        """
-        Edit a supply method.
-        """
         if method_name not in self.supply_config:
             raise ThirdPartyHandlerError("supply method not supported",
                                          ThirdPartyHandlerErrorTypes.supply_method_not_supported)
@@ -415,9 +396,6 @@ class SupplyHandler(db.Model):
         db.session.flush()
 
     def add_supply_method(self, method_name: str, config: Dict) -> None:
-        """
-        Add a new supply method.
-        """
         if method_name in self.supply_config:
             raise ThirdPartyHandlerError("supply method already supported",
                                          ThirdPartyHandlerErrorTypes.supply_method_already_supported)
@@ -426,9 +404,6 @@ class SupplyHandler(db.Model):
         db.session.flush()
 
     def remove_supply_method(self, method_name: str) -> None:
-        """
-        Remove a supply method.
-        """
         if method_name not in self.supply_config:
             raise ThirdPartyHandlerError("supply method not supported",
                                          ThirdPartyHandlerErrorTypes.supply_method_not_supported)
@@ -437,13 +412,7 @@ class SupplyHandler(db.Model):
         db.session.flush()
 
     def get_supply_methods(self) -> List[str]:
-        """
-        Get the list of supported supply methods.
-        """
         return self.EXISTING_SUPPLY_METHODS
 
     def get_active_supply_methods(self) -> List[str]:
-        """
-        Get the active supply methods.
-        """
         return list(self.supply_config.keys())

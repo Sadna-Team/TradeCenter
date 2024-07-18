@@ -404,7 +404,7 @@ class UserFacade:
         user = User.query.filter_by(id=user_id).first()
         if not user:
             raise UserError("User not found", UserErrorTypes.user_not_found)
-            user.change_suspend(True, date)
+        user.change_suspend(True, date)
 
     def unsuspend_user(self, user_id: int):
         """
@@ -420,7 +420,9 @@ class UserFacade:
     def get_user(self, user_id: int) -> User:
         user = User.query.filter_by(id=user_id).first()
         if not user:
-            raise UserError("User not found", UserErrorTypes.user_not_found)
+            user = User.query.filter_by(member_id=user_id).first()
+            if not user:
+                raise UserError("User not found", UserErrorTypes.user_not_found)
         return user
 
     def get_userDTO(self, user_id: int, role: str = None) -> UserDTO:

@@ -232,9 +232,9 @@ class StoreService:
             Add a store to the system and set the user as the store owner
         """
         try:
-            self.__market_facade.add_store(user_id, address, city, state, country, zip_code, store_name)
+            storeid = self.__market_facade.add_store(user_id, address, city, state, country, zip_code, store_name)
             logger.info('store was added successfully')
-            return jsonify({'message': 'store was added successfully'}), 200
+            return jsonify({'message': 'store was added successfully', 'storeId': storeid}), 200
         except Exception as e:
             logger.error('store was not added')
             return jsonify({'message': str(e)}), 400
