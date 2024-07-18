@@ -21,7 +21,7 @@ logger = logging.getLogger("Purchase Policy Logger")
 constraint_types = {
         'age': AgeConstraint,
         'location' : LocationConstraint,
-        'time': TimeConstraint,
+        'time,': TimeConstraint,
         'day_of_month': DayOfMonthConstraint,
         'day_of_week': DayOfWeekConstraint,
         'season': SeasonConstraint,
@@ -55,8 +55,8 @@ def parse_constraint_string(constraint_str):
             return s
 
     def parse(s):
-        tokens = re.sub(r'[()]', '', s).strip().split()
-        return [convert_to_number(token) for token in tokens]
+        tokens = re.sub(r'[()]', '', s).strip().split(',')
+        return [convert_to_number(token.strip()) for token in tokens]
 
     clean_str = re.sub(r'\s+', ' ', constraint_str).strip()
     return parse(clean_str)
