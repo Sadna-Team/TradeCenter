@@ -67,6 +67,9 @@ const BidsOfSystem = () => {
             <p><strong>Product ID:</strong> {bid.product_id}</p>
             <p><strong>Proposed Price:</strong> {bid.proposed_price}</p>
             <p><strong>Status:</strong> {bid.status}</p>
+            {bid.status === 'offer_rejected' && (
+              <p><strong>User who Rejected bid:</strong> {bid.user_who_rejected_id}</p>
+            )}
           </div>
         )}
       </div>
