@@ -354,7 +354,7 @@ class PurchasePolicy(db.Model):
         if predicate is None:
             self._predicate = None
         else:
-            self._predicate = predicate.get_constraint_info_as_string()
+            self._predicate = predicate.get_constraint_string()
         db.session.commit()
 
     @abstractmethod
