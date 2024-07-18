@@ -42,6 +42,7 @@ class AppFactory:
 def get_app():
     return AppFactory().get_app()
 
+
 def set_app(app):
     AppFactory().set_app(app)
 
