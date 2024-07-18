@@ -222,7 +222,7 @@ class UserService:
             logger.error('is_store_manager - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def has_add_product_permission(self, user_id: int, store_id: int):
+    def has_add_product_permissions(self, user_id: int, store_id: int):
         """
             Check if the user has permission to add a product to the store
 
@@ -240,7 +240,7 @@ class UserService:
             logger.error('has_add_product_permission - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def has_change_purchase_policy_permission(self, user_id: int, store_id: int):
+    def has_change_purchase_policy_permissions(self, user_id: int, store_id: int):
         """
             Check if the user has permission to change the purchase policy of the store
 
@@ -258,7 +258,7 @@ class UserService:
             logger.error('has_change_purchase_policy_permission - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def has_change_purchase_types_permission(self, user_id: int, store_id: int):
+    def has_change_purchase_types_permissions(self, user_id: int, store_id: int):
         """
             Check if the user has permission to change the purchase types of the store
 
@@ -276,7 +276,7 @@ class UserService:
             logger.error('has_change_purchase_types_permission - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def has_change_discount_policy_permission(self, user_id: int, store_id: int):
+    def has_change_discount_policy_permissions(self, user_id: int, store_id: int):
         """
             Check if the user has permission to change the discount policy of the store
 
@@ -294,7 +294,7 @@ class UserService:
             logger.error('has_change_discount_policy_permission - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def has_change_discount_types_permission(self, user_id: int, store_id: int):
+    def has_change_discount_types_permissions(self, user_id: int, store_id: int):
         """
             Check if the user has permission to change the discount types of the store
 
@@ -312,7 +312,7 @@ class UserService:
             logger.error('has_change_discount_types_permission - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def has_add_manager_permission(self, user_id: int, store_id: int):
+    def has_add_manager_permissions(self, user_id: int, store_id: int):
         """
             Check if the user has permission to add a manager to the store
 
@@ -330,7 +330,7 @@ class UserService:
             logger.error('has_add_manager_permission - ' + str(e))
             return jsonify({'message': str(e)}), 400
 
-    def has_get_bid_permission(self, user_id: int, store_id: int):
+    def has_get_bid_permissions(self, user_id: int, store_id: int):
         """
             Check if the user has permission to get a bid from the store
 

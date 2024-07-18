@@ -287,7 +287,7 @@ def is_store_manager():
 
 @user_bp.route('/has_add_product_permission', methods=['POST', 'GET'])
 @jwt_required()
-def has_add_product_permission():
+def has_add_product_permissions():
     logger.info('received request to check if the user has add product permission')
     try:
         user_id = get_jwt_identity()
@@ -297,12 +297,12 @@ def has_add_product_permission():
         logger.error(('has_add_product_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return user_service.has_add_product_permission(user_id, store_id)
+    return user_service.has_add_product_permissions(user_id, store_id)
 
 
 @user_bp.route('/has_change_purchase_policy_permission', methods=['POST', 'GET'])
 @jwt_required()
-def has_change_purchase_policy_permission():
+def has_change_purchase_policy_permissions():
     logger.info('received request to check if the user has change purchase policy permission')
     try:
         user_id = get_jwt_identity()
@@ -312,12 +312,12 @@ def has_change_purchase_policy_permission():
         logger.error(('has_change_purchase_policy_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return user_service.has_change_purchase_policy_permission(user_id, store_id)
+    return user_service.has_change_purchase_policy_permissions(user_id, store_id)
 
 
 @user_bp.route('/has_change_purchase_types_permission', methods=['POST', 'GET'])
 @jwt_required()
-def has_change_purchase_types_permission():
+def has_change_purchase_types_permissions():
     logger.info('received request to check if the user has change purchase types permission')
     try:
         user_id = get_jwt_identity()
@@ -327,12 +327,12 @@ def has_change_purchase_types_permission():
         logger.error(('has_change_purchase_types_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return user_service.has_change_purchase_types_permission(user_id, store_id)
+    return user_service.has_change_purchase_types_permissions(user_id, store_id)
 
 
 @user_bp.route('/has_change_discount_policy_permission', methods=['POST', 'GET'])
 @jwt_required()
-def has_change_discount_policy_permission():
+def has_change_discount_policy_permissions():
     logger.info('received request to check if the user has change discount policy permission')
     try:
         user_id = get_jwt_identity()
@@ -342,12 +342,12 @@ def has_change_discount_policy_permission():
         logger.error(('has_change_discount_policy_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return user_service.has_change_discount_policy_permission(user_id, store_id)
+    return user_service.has_change_discount_policy_permissions(user_id, store_id)
 
 
 @user_bp.route('/has_change_discount_types_permission', methods=['POST', 'GET'])
 @jwt_required()
-def has_change_discount_types_permission():
+def has_change_discount_types_permissions():
     logger.info('received request to check if the user has change discount types permission')
     try:
         user_id = get_jwt_identity()
@@ -357,12 +357,12 @@ def has_change_discount_types_permission():
         logger.error(('has_change_discount_types_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return user_service.has_change_discount_types_permission(user_id, store_id)
+    return user_service.has_change_discount_types_permissions(user_id, store_id)
 
 
 @user_bp.route('/has_add_manager_permission', methods=['POST', 'GET'])
 @jwt_required()
-def has_add_manager_permission():
+def has_add_manager_permissions():
     logger.info('received request to check if the user has add manager permission')
     try:
         user_id = get_jwt_identity()
@@ -372,12 +372,12 @@ def has_add_manager_permission():
         logger.error(('has_add_manager_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return user_service.has_add_manager_permission(user_id, store_id)
+    return user_service.has_add_manager_permissions(user_id, store_id)
 
 
 @user_bp.route('/has_get_bid_permission', methods=['POST', 'GET'])
 @jwt_required()
-def has_get_bid_permission():
+def has_get_bid_permissions():
     logger.info('received request to check if the user has get bid permission')
     try:
         user_id = get_jwt_identity()
@@ -387,7 +387,7 @@ def has_get_bid_permission():
         logger.error(('has_get_bid_permission - ', str(e)))
         return jsonify({'message': str(e)}), 400
 
-    return user_service.has_get_bid_permission(user_id, store_id)
+    return user_service.has_get_bid_permissions(user_id, store_id)
 
 
 @user_bp.route('/add_system_manager', methods=['GET'])

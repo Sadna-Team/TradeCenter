@@ -98,7 +98,7 @@ class PurchaseService:
             return jsonify({'message': str(e)}), 400
         
         
-    def get_store_role(self, user_id: int, store_id: int):
+    def get_store_roles(self, user_id: int, store_id: int):
         """
             Get the roles of a user in a store
         """

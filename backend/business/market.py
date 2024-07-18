@@ -1923,6 +1923,7 @@ class MarketFacade:
         db.session.commit()
 
     def get_store_role(self, user_id: int, store_id: int) -> str:
+        logger.info(f"Getting role of user {user_id} in store {store_id}")
         return self.roles_facade.get_store_role(user_id, store_id)
 
     def get_user_stores(self, user_id: int) -> List[int]:

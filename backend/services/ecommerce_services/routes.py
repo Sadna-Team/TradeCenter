@@ -1056,7 +1056,7 @@ def handle_ongoing_lotteries():
 
 @market_bp.route('/get_store_role', methods=['POST'])
 @jwt_required()
-def get_store_role():
+def get_store_roles():
     logger.info('recieved request to get the role of a store')
     try:
         user_id = get_jwt_identity()
@@ -1065,7 +1065,7 @@ def get_store_role():
     except Exception as e:
         logger.error('get_store_role - ', str(e))
         return jsonify({'message': str(e)}), 400
-    return purchase_service.get_store_role(user_id, store_id)
+    return purchase_service.get_store_roles(user_id, store_id)
 
 @market_bp.route('/get_user_stores', methods=['GET'])
 @jwt_required()
