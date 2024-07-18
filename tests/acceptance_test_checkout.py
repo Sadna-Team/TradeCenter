@@ -128,9 +128,11 @@ def owner_token(client1, token1):
 def user_token(client2, token2):
     headers = { 'Authorization': 'Bearer ' + token2 }
     data = {"register_credentials": register_credentials}
+    manager_credentials = register_credentials.copy()
+    manager_credentials['username'] = 'store_owner'
     response = client2.post('auth/register', headers=headers, json=data)
     data = { "username": "test", "password": "test" }
-    assert response.status_code == 200
+    assert response.status_code == 201
     response = client2.post('auth/login', json=data, headers=headers)
     data = json.loads(response.data)
     return data['token']
@@ -154,7 +156,7 @@ def init_store(client1, owner_token):
     response = client1.post('store/add_product', headers=headers, json=data)
     product_id1 = json.loads(response.data)['product_id']
 
-    data = {"store_id": 0, 
+    data = {"store_id": storeId,
         "product_name": "funny", 
         "description": "test_description",
         "price": 10.0,
@@ -167,7 +169,7 @@ def init_store(client1, owner_token):
     hello = {"store_id": storeId, "product_id1": product_id1, 'product_id2': product_id2}
     return hello
 
-def test_user_checkout_success(client2, user_token, init_store, clean):
+def test_user_checkout_success(app, clean, client2, user_token, init_store):
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
@@ -180,7 +182,7 @@ def test_user_checkout_success(client2, user_token, init_store, clean):
     print(response.data)
     assert response.status_code == 200
 
-def test_user_checkout_extended_payment_success(client2, user_token, init_store, clean):
+def test_user_checkout_extended_payment_success(app, clean, client2, user_token, init_store):
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
@@ -194,7 +196,7 @@ def test_user_checkout_extended_payment_success(client2, user_token, init_store,
     print(response.data)
     assert response.status_code == 200
 
-def test_user_checkout_extended_supply_success(client2, user_token, init_store, clean):
+def test_user_checkout_extended_supply_success(app, clean, client2, user_token, init_store):
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
@@ -208,7 +210,7 @@ def test_user_checkout_extended_supply_success(client2, user_token, init_store, 
     print(response.data)
     assert response.status_code == 200
 
-def test_user_checkout_extended_all_success(client2, user_token, init_store, clean):
+def test_user_checkout_extended_all_success(app, clean, client2, user_token, init_store):
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
@@ -223,7 +225,7 @@ def test_user_checkout_extended_all_success(client2, user_token, init_store, cle
     print(response.data)
     assert response.status_code == 200
 
-def test_guest_checkout_success(client3, init_store, guest_token , clean):
+def test_guest_checkout_success(app, clean, client3, init_store, guest_token):
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + guest_token}
     response = client3.post('user/add_to_basket', headers=headers, json=data)
@@ -235,7 +237,7 @@ def test_guest_checkout_success(client3, init_store, guest_token , clean):
     response = client3.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 200
 
-def test_checkout_fail_store_closed(client1, client2, owner_token, user_token, init_store, clean):
+def test_checkout_fail_store_closed(app, clean, client1, client2, owner_token, user_token, init_store):
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
@@ -250,7 +252,7 @@ def test_checkout_fail_store_closed(client1, client2, owner_token, user_token, i
     response = client2.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 400
 
-def test_checkout_fail_product_unavailable(client2, client3, init_store, user_token, guest_token, clean):
+def test_checkout_fail_product_unavailable(app, clean,client2, client3, init_store, user_token, guest_token):
     guest_headers = {'Authorization': 'Bearer ' + guest_token}
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 7}
     response = client3.post('user/add_to_basket', headers=guest_headers, json=data)
@@ -270,7 +272,7 @@ def test_checkout_fail_product_unavailable(client2, client3, init_store, user_to
     assert response.status_code == 400
 
 
-def test_checkout_failed_policy_not_met(client1, client2, init_store, owner_token, user_token, clean):
+def test_checkout_failed_policy_not_met(app, clean,client1, client2, init_store, owner_token, user_token):
 
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
@@ -294,7 +296,7 @@ def test_checkout_failed_policy_not_met(client1, client2, init_store, owner_toke
     response = client2.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 400
 
-def test_checkout_failed_payment_method_invalid(client2, user_token, init_store, clean):
+def test_checkout_failed_payment_method_invalid(app, clean,client2, user_token, init_store):
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
@@ -305,7 +307,7 @@ def test_checkout_failed_payment_method_invalid(client2, user_token, init_store,
     response = client2.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 400
 
-def test_checkout_failed_empty_cart(client2, user_token, clean):
+def test_checkout_failed_empty_cart(app, clean,client2, user_token):
     data = {"payment_details": default_payment_method,
             "supply_method": default_supply_method,
             "address": default_address_checkout}
@@ -313,7 +315,7 @@ def test_checkout_failed_empty_cart(client2, user_token, clean):
     response = client2.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 400
 
-def test_checkout_failed_supply_method_invalid(client2, user_token, init_store, clean):
+def test_checkout_failed_supply_method_invalid(app, clean,client2, user_token, init_store):
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)
@@ -324,7 +326,7 @@ def test_checkout_failed_supply_method_invalid(client2, user_token, init_store, 
     response = client2.post('market/checkout', headers=headers, json=data)
     assert response.status_code == 400
 
-def test_checkout_failed_address_invalid(client2, user_token, init_store, clean):
+def test_checkout_failed_address_invalid(app, clean,client2, user_token, init_store):
     data = {"store_id": init_store['store_id'], "product_id": init_store['product_id1'], "quantity": 1}
     headers = {'Authorization': 'Bearer ' + user_token}
     response = client2.post('user/add_to_basket', headers=headers, json=data)

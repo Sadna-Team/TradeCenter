@@ -206,7 +206,7 @@ class Notifier:
         * This function notifies the store owner(s) of a new purchase in the store.
         """
         msg = f"User {user_id} has cancelled bid purchase {bid_id}"
-        self._notify_multiple_bid(store_id, msg, user_id, users_to_notify)
+        self._notify_multiple_bid(store_id, msg, users_to_notify)
 
     def notify_bid_counter_offer(self, store_id: int, user_id: int, users_to_notify: list[int], proposed_price: float) -> None:
         """
