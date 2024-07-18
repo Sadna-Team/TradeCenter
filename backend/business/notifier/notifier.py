@@ -1,5 +1,5 @@
 from .. import UserFacade
-from typing import Dict
+from typing import Dict, List
 from datetime import datetime
 from .. import NotificationDTO
 from threading import Lock
@@ -9,6 +9,7 @@ from flask import jsonify
 from backend.business.authentication.authentication import Authentication
 from backend.error_types import *
 from flask import current_app
+# from backend.business.roles.roles import RolesFacade
 
 # Database related imports
 from sqlalchemy.exc import SQLAlchemyError
@@ -105,6 +106,21 @@ class Notifier:
         self.send_real_time_notification(user_id, notification)
 
 
+    # def _notify_multiple_bid(self, store_id: int, message: str) -> None:
+    #     from backend.app_factory import get_app
+    #     app = get_app()
+    #     with app.app_context():
+    #         all_listeners = RolesFacade().get_bid_owners_managers(store_id)
+    #         if len(all_listeners) == 0:
+    #             raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+    #
+    #         for listener in all_listeners:
+    #             logger.info(f"send bid message to user {listener}")
+    #             if self._authentication.is_logged_in(listener):
+    #                 self._notify_real_time(listener, message)
+    #             else:
+    #                 self._notify_delayed(listener, message)
+
     def _notify_multiple(self, store_id: int, message: str, send_by = None) -> None:
         """
         * Parameters: store_id: int, message: str
@@ -165,6 +181,7 @@ class Notifier:
                             self._notify_real_time(listener, message)
                         else:
                             self._notify_delayed(listener, message)
+
     # Notify on a new bid  --- for store owner
     def notify_new_bid(self, store_id: int, user_id: int, users_to_notify: list[int], bid_id: int) -> None:
         """
@@ -206,6 +223,7 @@ class Notifier:
         """
         msg = f"User {user_id} has accepted bid purchase {bid_id}"
         self._notify_multiple_bid(store_id, msg, user_id, users_to_notify)
+
 
     def notify_general_listeners(self, store_id: int, message: str) -> None:
         """

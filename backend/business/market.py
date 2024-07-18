@@ -1260,7 +1260,7 @@ class MarketFacade:
                 for store_id, products in cart.items():
                     for product_id in products:
                         amount = products[product_id]
-                        self.add_product_amount(store_id, product_id, amount)
+                        self.add_product_amount(user_id, store_id, product_id, amount)
             if purchase_accepted:
                 self.purchase_facade.cancel_accepted_purchase(bid_id)
             # check if payment_id is defined
@@ -1269,7 +1269,7 @@ class MarketFacade:
             if "supply_id" in locals() and supply_id != -1:
                 SupplyHandler().process_supply_cancel(supply_details, supply_id)
             raise e
-
+    
     def user_bid_offer(self, user_id: int, proposed_price: float, store_id: int, product_id: int) -> int:
         """
         Parameters: userId, proposedPrice, storeId, productId
@@ -1409,6 +1409,7 @@ class MarketFacade:
 
         self.notifier.notify_bid_counter_offer(self.purchase_facade.get_bid_purchase_by_id(bid_id).store_id, user_id, users_to_notify, counter_price)
         logger.info(f"User {user_id} has counter offered a counter bid")
+
 
     def show_user_bids(self, system_manager_id: int, user_id: int) -> List[BidPurchaseDTO]:
         """

@@ -152,6 +152,8 @@ def init_store(client12, owner_token11, client11, admin_token):
     headers = {'Authorization': 'Bearer ' + owner_token11}
     response = client12.post('store/add_store', headers=headers, json=data)
 
+    store_id = json.loads(response.data)['storeId']
+
     data = {"store_id": 0, 
             "product_name": "test_product", 
             "description": "test_description",
@@ -161,7 +163,7 @@ def init_store(client12, owner_token11, client11, admin_token):
             "amount": 10}
     
     response = client12.post('store/add_product', headers=headers, json=data)
-
+    product_id1 = json.loads(response.data)['product_id']
     data = {"store_id": 0, 
         "product_name": "funny", 
         "description": "test_description",
@@ -171,11 +173,16 @@ def init_store(client12, owner_token11, client11, admin_token):
         "amount": 10}
 
     response = client12.post('store/add_product', headers=headers, json=data)
+    product_id2 = json.loads(response.data)['product_id']
     headers = {'Authorization': 'Bearer ' + admin_token}
     
     data = {"category_name": "test_category"}
 
     response = client11.post('store/add_category', headers=headers, json=data)
+    category_id = json.loads(response.data)['category_id']
+
+    data = {'store_id': store_id, 'product_id1': product_id1, 'product_id2': product_id2, 'category_id': category_id}
+    return data
     
     
 
