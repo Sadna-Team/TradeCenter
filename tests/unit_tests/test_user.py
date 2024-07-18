@@ -245,7 +245,7 @@ class TestUserFacade(unittest.TestCase):
             UserFacade().clean_data()
 
     def setUp(self):
-        self.facade = UserFacade().new_instance()
+        self.facade = UserFacade()
         self.connection = db.engine.connect()
         self.transaction = self.connection.begin()
 
