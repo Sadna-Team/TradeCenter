@@ -275,7 +275,12 @@ class RolesFacade:
             self.__creation_lock = Lock()
             self.__stores_locks: Dict[int, Lock] = {}
             self.__system_managers_lock = Lock()
+            self.__load_locks_from_db()
 
+    def __load_locks_from_db(self):
+        stores = db.session.query(TreeNode.store_id).distinct().all()
+        for store in stores:
+            self.__stores_locks[store.store_id] = Lock()
     def __load_trees_from_db(self) -> Dict[int, Tree]:
         trees = {}
         root_nodes = db.session.query(TreeNode).filter_by(is_root=True).all()
