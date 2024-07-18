@@ -1,25 +1,319 @@
 # --------------- imports ---------------#
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Optional
+from typing import Dict, Optional, Tuple
 
 from backend.business.DTOs import BasketInformationForConstraintDTO, CategoryDTO
-from backend.business.store.constraints import Constraint
+from backend.business.store.constraints import *
 from backend.error_types import *
+from backend.database import db
+import re
 
 
 # -------------logging configuration----------------
 import logging
-
-
-logger = logging.getLogger('myapp')
-
+logging.basicConfig(level=logging.INFO, filename='app.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger('Discount Logger')
 # ---------------------------------------------------
 DATE_FORMAT = '%Y-%m-%d'
 
+constraint_types = {
+        'age': AgeConstraint,
+        'location' : LocationConstraint,
+        'time': TimeConstraint,
+        'day_of_month': DayOfMonthConstraint,
+        'day_of_week': DayOfWeekConstraint,
+        'season': SeasonConstraint,
+        'holidays_of_country': HolidaysOfCountryConstraint,
+        'price_basket': PriceBasketConstraint,
+        'price_product': PriceProductConstraint,
+        'price_category': PriceCategoryConstraint,
+        'weight_basket': WeightBasketConstraint,
+        'weight_product': WeightProductConstraint,
+        'weight_category': WeightCategoryConstraint,
+        'amount_basket': AmountBasketConstraint,
+        'amount_product': AmountProductConstraint,
+        'amount_category': AmountCategoryConstraint,
+        'and': AndConstraint,
+        'or': OrConstraint,
+        'xor': XorConstraint,
+        'implies': ImpliesConstraint
+    }
+
+
+def parse_constraint_string(constraint_str):
+    split_regex = r'[\s,]+'
+
+    def convert_to_number(s):
+        try:
+            if '.' in s:
+                return float(s)
+            else:
+                return int(s)
+        except ValueError:
+            return s
+
+    def parse(s):
+        tokens = re.sub(r'[()]', '', s).strip().split()
+        return [convert_to_number(token) for token in tokens]
+
+    clean_str = re.sub(r'\s+', ' ', constraint_str).strip()
+    return parse(clean_str)
+
+simple_components = [
+    'age', 'time', 'location', 'day_of_month', 'day_of_week', 'season', 
+    'holidays_of_country', 'price_basket', 'price_product', 'price_category', 
+    'amount_basket', 'amount_product', 'amount_category', 
+    'weight_category', 'weight_basket', 'weight_product'
+]
+composite_components = ['and', 'or', 'xor', 'implies']
+
+def build_nested_array(parsed_composite, index=0):
+    properties = []
+    constraint_type = ''
+    i = index
+    while i < len(parsed_composite):
+        if parsed_composite[i] in composite_components:
+            left, new_index = build_nested_array(parsed_composite, i + 1)
+            right, new_index = build_nested_array(parsed_composite, new_index + 1)
+            return ([parsed_composite[i], left, right], new_index)
+        elif parsed_composite[i] in simple_components:
+            if constraint_type == '':
+                constraint_type = parsed_composite[i]
+            else:
+                return ([constraint_type] + properties, i - 1)
+        else:
+            properties.append(parsed_composite[i])
+        i += 1
+    return ([constraint_type] + properties, len(parsed_composite))
+
+def discount_predicate_builder(self, predicate_properties: Tuple) -> Optional[Constraint]:
+        """
+        * Parameters: predicate_properties
+        * this function recursively creates a predicate for a discount
+        * NOTE: the following are examples: (and,  
+                                                (age, 18), 
+                                                (or 
+                                                    (location, {address: "bla", city: "bla", state: "bla", country: "bla", zip_code: "bla"}),
+                                                    (time, 10, 00, 20, 00)
+                                                ) 
+                                            )
+        * Returns: the predicated
+        """
+        if predicate_properties[0] not in self.constraint_types:
+            logger.warning(f'[DiscountBuilder] invalid predicate type: {predicate_properties[0]}')
+            raise DiscountAndConstraintsError(f'Invalid predicate type: {predicate_properties[0]}', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+        
+        predicate_type = self.constraint_types[predicate_properties[0]]
+    
+        if not isinstance(predicate_type, Constraint):
+            logger.warning(f'[DiscountBuilder] invalid predicate type: {predicate_type}')
+            
+        if predicate_type == AndConstraint or predicate_type == OrConstraint or predicate_type == XorConstraint or predicate_type == ImpliesConstraint:
+            if len(predicate_properties) < 3 and not isinstance(predicate_properties[1], tuple) and not isinstance(predicate_properties[2], tuple):
+                logger.warning('[DiscountBuilder] not enough sub predicates to create a composite predicate')
+                raise DiscountAndConstraintsError('Not enough sub predicates to create a composite predicate', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+            predicate_left = self.assign_predicate_helper(predicate_properties[1])
+            predicate_right = self.assign_predicate_helper(predicate_properties[2])
+            return predicate_type(predicate_left, predicate_right)
+        
+        if predicate_type == AgeConstraint:
+            if isinstance(predicate_properties[1], int):
+                if predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] age is a negative value')
+                    raise DiscountAndConstraintsError('Age is a negative value', DiscountAndConstraintsErrorTypes.invalid_age_limit)
+                return predicate_type(predicate_properties[1])
+            else:
+                logger.warning('[DiscountBuilder] age is not an integer')
+                raise DiscountAndConstraintsError('Age is not an integer', DiscountAndConstraintsErrorTypes.invalid_age_limit)
+        elif predicate_type == LocationConstraint:
+            if isinstance(predicate_properties[1], Dict):
+                if 'address' not in predicate_properties[1] or 'city' not in predicate_properties[1] or 'state' not in predicate_properties[1] or 'country' not in predicate_properties[1] or 'zip_code' not in predicate_properties[1]:
+                    logger.warning('[DiscountBuilder] location is missing fields')
+                    raise DiscountAndConstraintsError('Location is missing fields', DiscountAndConstraintsErrorTypes.invalid_location)
+                address = AddressDTO(predicate_properties[1]['address'], predicate_properties[1]['city'], predicate_properties[1]['state'], predicate_properties[1]['country'], predicate_properties[1]['zip_code'])
+                return predicate_type(address)
+            else:
+                logger.warning('[DiscountBuilder] location is not a dictionary')
+                raise DiscountAndConstraintsError('Location is not a dictionary', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+        elif predicate_type == TimeConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if predicate_properties[1] < 0 or predicate_properties[1] > 23 or predicate_properties[2] < 0 or predicate_properties[2] > 59 or predicate_properties[3] < 0 or predicate_properties[3] > 23 or predicate_properties[4] < 0 or predicate_properties[4] > 59:
+                    logger.warning('[DiscountBuilder] time is not valid')
+                    raise DiscountAndConstraintsError('Time is not valid', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+                starting_time = time(predicate_properties[1], predicate_properties[2],0)
+                ending_time = time(predicate_properties[3], predicate_properties[4],0)
+                if starting_time >= ending_time:
+                    logger.warning('[DiscountBuilder] starting time is greater than ending time')
+                    raise DiscountAndConstraintsError('Starting time is greater than ending time', DiscountAndConstraintsErrorTypes.invalid_time_constraint)
+                return predicate_type(starting_time, ending_time)
+            else:
+                logger.warning('[DiscountBuilder] starting time or ending time is not a datetime.time')
+                raise DiscountAndConstraintsError('Starting time or ending time is not a datetime.time', DiscountAndConstraintsErrorTypes.invalid_time_constraint)
+        elif predicate_type == DayOfMonthConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
+                if predicate_properties[1] < 1 or predicate_properties[1] > 31 or predicate_properties[2] < 1 or predicate_properties[2] > 31:
+                    logger.warning('[DiscountBuilder] day of month is not valid')
+                    raise DiscountAndConstraintsError('Day of month is not valid', DiscountAndConstraintsErrorTypes.invalid_day_of_month)
+                return predicate_type(predicate_properties[1], predicate_properties[2])
+            else:
+                logger.warning('[DiscountBuilder] day of month is not an integer')
+                raise DiscountAndConstraintsError('Day of month is not an integer', DiscountAndConstraintsErrorTypes.invalid_day_of_month)
+        elif predicate_type == DayOfWeekConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int):
+                if predicate_properties[1] < 1 or predicate_properties[1] > 7 or predicate_properties[2] < 1 or predicate_properties[2] > 7:
+                    logger.warning('[DiscountBuilder] day of week is not valid')
+                    raise DiscountAndConstraintsError('Day of week is not valid', DiscountAndConstraintsErrorTypes.invalid_day_of_week)
+                return predicate_type(predicate_properties[1], predicate_properties[2])
+            else:
+                logger.warning('[DiscountBuilder] day of week is not an integer')
+                raise DiscountAndConstraintsError('Day of week is not an integer', DiscountAndConstraintsErrorTypes.invalid_day_of_week)
+        elif predicate_type == SeasonConstraint:
+            if isinstance(predicate_properties[1], str):
+                return predicate_type(predicate_properties[1])
+            else:
+                logger.warning('[DiscountBuilder] season is not an integer')
+                raise DiscountAndConstraintsError('Season is not an integer', DiscountAndConstraintsErrorTypes.invalid_season)
+        elif predicate_type == HolidaysOfCountryConstraint:
+            if isinstance(predicate_properties[1], str):
+                return predicate_type(predicate_properties[1])
+            else:
+                logger.warning('[DiscountBuilder] country is not a string')
+                raise DiscountAndConstraintsError('Country is not a string', DiscountAndConstraintsErrorTypes.predicate_creation_error)
+        elif predicate_type == PriceCategoryConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[1] != -1 and predicate_properties[2] > predicate_properties[1]) or predicate_properties[2] < 0:
+                    logger.warning('[DiscountBuilder] min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
+            else:
+                logger.warning('[DiscountBuilder] min price, max price or category id is not valid')
+                raise DiscountAndConstraintsError('Min price, max price or category id is not valid', DiscountAndConstraintsErrorTypes.invalid_price)
+        elif predicate_type == PriceProductConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3], predicate_properties[4])
+            else:
+                logger.warning('[DiscountBuilder] min price, max price, product id or store id is not valid')
+                raise DiscountAndConstraintsError('Min price, max price, product id or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_price)
+        elif predicate_type == PriceBasketConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min price is greater than max price')
+                    raise DiscountAndConstraintsError('Min price is greater than max price', DiscountAndConstraintsErrorTypes.invalid_price)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
+            else:
+                logger.warning('[DiscountBuilder] min price, max price or store id is not valid')
+                raise DiscountAndConstraintsError('Min price, max price or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_price)
+        elif predicate_type == WeightCategoryConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
+            else:
+                logger.warning('[DiscountBuilder] min weight, max weight or category id is not valid')
+                raise DiscountAndConstraintsError('Min weight, max weight or category id is not valid', DiscountAndConstraintsErrorTypes.invalid_weight)
+        elif predicate_type == WeightProductConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3], predicate_properties[4])
+            else:
+                logger.warning('[DiscountBuilder] min weight, max weight, product id or store id is not valid')
+                raise DiscountAndConstraintsError('Min weight, max weight, product id or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_weight)
+        elif predicate_type == WeightBasketConstraint:
+            if isinstance(predicate_properties[1], float) and isinstance(predicate_properties[2], float) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            elif isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if (predicate_properties[2] != -1 and predicate_properties[1] > predicate_properties[2]) or predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min weight is greater than max weight')
+                    raise DiscountAndConstraintsError('Min weight is greater than max weight', DiscountAndConstraintsErrorTypes.invalid_weight)
+                return predicate_type(float(predicate_properties[1]), float(predicate_properties[2]), predicate_properties[3])
+            else:
+                logger.warning('[DiscountBuilder] min weight, max weight or store id is not valid')
+                raise DiscountAndConstraintsError('Min weight, max weight or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_weight)
+        elif predicate_type == AmountCategoryConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min amount is a negative value')
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.invalid_amount)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            else:
+                logger.warning('[DiscountBuilder] min amount or category id is not valid')
+                raise DiscountAndConstraintsError('Min amount or category id is not valid', DiscountAndConstraintsErrorTypes.invalid_amount)
+        elif predicate_type == AmountProductConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int) and isinstance(predicate_properties[4], int):
+                if predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min amount is a negative value')
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.invalid_amount)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3], predicate_properties[4])
+            else:
+                logger.warning('[DiscountBuilder] min amount, product id or store id is not valid')
+                raise DiscountAndConstraintsError('Min amount, product id or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_amount)
+        elif predicate_type == AmountBasketConstraint:
+            if isinstance(predicate_properties[1], int) and isinstance(predicate_properties[2], int) and isinstance(predicate_properties[3], int):
+                if predicate_properties[1] < 0:
+                    logger.warning('[DiscountBuilder] min amount is a negative value')
+                    raise DiscountAndConstraintsError('Min amount is a negative value', DiscountAndConstraintsErrorTypes.invalid_amount)
+                return predicate_type(predicate_properties[1], predicate_properties[2], predicate_properties[3])
+            else:
+                logger.warning('[DiscountBuilder] min amount or store id is not valid')
+                raise DiscountAndConstraintsError('Min amount or store id is not valid', DiscountAndConstraintsErrorTypes.invalid_amount)
+        return None
+
+
 # --------------- Discount base ---------------#
-class Discount(ABC):
-    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+class Discount(db.Model):
+    __tablename__ = 'discounts'
+
+    discount_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    _store_id = db.Column(db.Integer, nullable=False)
+    _discount_description = db.Column(db.String(200), nullable=True)
+    _starting_date = db.Column(db.DateTime, nullable=False)
+    _ending_date = db.Column(db.DateTime, nullable=False)
+    _percentage = db.Column(db.Float, nullable=False)
+    _predicate = db.Column(db.String(250), nullable=True)
+
+    type = db.Column(db.String(50), nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'discount',
+        'polymorphic_on': 'type'
+    }
+
+    def __init__(self, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint]):
         if isinstance(starting_date,str):
             starting_date = datetime.strptime(starting_date, DATE_FORMAT)
@@ -31,42 +325,49 @@ class Discount(ABC):
         if (percentage < 0 or percentage > 1) and percentage!=-1:
             logger.error("[Discount] Invalid percentage")
             raise DiscountAndConstraintsError("Invalid percentage", DiscountAndConstraintsErrorTypes.invalid_percentage)
-        self.__discount_id = discount_id
-        self.__store_id = store_id
-        self.__discount_description = discount_description
-        self.__starting_date = starting_date
-        self.__ending_date = ending_date
-        self.__percentage = percentage
-        self.__predicate = predicate
-        logger.info("[Discount] Discount with id: " + str(discount_id) + " created successfully!")
+        self._store_id = store_id
+        self._discount_description = discount_description
+        self._starting_date = starting_date
+        self._ending_date = ending_date
+        self._percentage = percentage
+        self._predicate = predicate
+        logger.info("[Discount] Discount created successfully!")
 
-    @property
-    def discount_id(self):
-        return self.__discount_id
     
     @property 
     def store_id(self):
-        return self.__store_id
+        return self._store_id
     
     @property
     def discount_description(self):
-        return self.__discount_description
+        return self._discount_description
     
     @property
     def starting_date(self):
-        return self.__starting_date
+        return self._starting_date
     
     @property
     def ending_date(self):
-        return self.__ending_date
+        return self._ending_date
     
     @property
     def percentage(self):
-        return self.__percentage
+        return self._percentage
     
     @property
-    def predicate(self):
-        return self.__predicate
+    def predicate(self) -> Optional[Constraint]:
+        if self._predicate is None or self._predicate == "":
+            return None
+        parsed = parse_constraint_string(self._predicate)
+        predicate_builder = None
+        if parsed[0] in ['and', 'or', 'xor', 'implies']:
+            predicate_builder = build_nested_array(parsed)
+            logger.info("[Discount] Predicate: " + str(predicate_builder))
+            return discount_predicate_builder(predicate_builder)
+        else: 
+            predicate_builder = constraint_types[parsed[0]](*parsed[1:])
+            logger.info("[Discount] Predicate: " + str(predicate_builder))
+            return predicate_builder
 
     @abstractmethod
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
@@ -81,41 +382,54 @@ class Discount(ABC):
             logger.error("[Discount] Invalid percentage")
             raise DiscountAndConstraintsError("Invalid percentage", DiscountAndConstraintsErrorTypes.invalid_percentage)
         logger.info("[Discount] Discount percentage changed to: " + str(new_percentage))
-        self.__percentage = new_percentage        
+        self._percentage = new_percentage
+        db.session.commit()        
 
 
     def change_discount_description(self, new_description: str) -> None:
-        self.__discount_description = new_description
+        self._discount_description = new_description
+        db.session.commit()
 
     def is_simple_discount(self) -> bool:
-        if self.__predicate is None:
+        if self._predicate is None:
             return True
         return False        
     
     def change_predicate(self, new_predicate: Constraint) -> None:
-        self.__predicate = new_predicate
+        self._predicate = new_predicate.get_constraint_string()
+        db.session.commit()
 
 
 
 # --------------- Category Discount ---------------#
 class CategoryDiscount(Discount):
+    __tablename__ = 'category_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    _category_id = db.Column(db.Integer, nullable=False)
+    _applied_to_subcategories = db.Column(db.Boolean, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'category_discount',
+    }
+
     """
     * This class is responsible for creating a discount that is applied to a specific category.
     """
-    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint], category_id: int, applied_to_subcategories: bool):
-        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, predicate)
-        self.__category_id = category_id
-        self.__applied_to_subcategories = applied_to_subcategories
-        logger.info("[CategoryDiscount] Category discount with id: " + str(discount_id) + " created successfully!")
+        super().__init__(store_id, discount_description, starting_date, ending_date, percentage, predicate)
+        self._category_id = category_id
+        self._applied_to_subcategories = applied_to_subcategories
+        logger.info("[CategoryDiscount] Category discount with id: created successfully!")
 
     @property
     def category_id(self) -> int:
-        return self.__category_id
+        return self._category_id
     
     @property
     def applied_to_subcategories(self) -> bool:
-        return self.__applied_to_subcategories
+        return self._applied_to_subcategories
     
 
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
@@ -133,9 +447,9 @@ class CategoryDiscount(Discount):
         
         discount_reduction = 0.0
         for category in basket_information.categories:
-            if category.category_id == self.__category_id:
+            if category.category_id == self._category_id:
                 products_of_category = set(category.products)
-                if self.__applied_to_subcategories:
+                if self._applied_to_subcategories:
                     for subcategory in category.sub_categories:
                         products_of_category.update(set(subcategory.products))
                     
@@ -163,13 +477,21 @@ class CategoryDiscount(Discount):
 
 # --------------- Store Discount ---------------#
 class StoreDiscount(Discount):
+    __tablename__ = 'store_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'store_discount',
+    }
+
     """
     * This class is responsible for creating a discount that is applied to a specific store.
     """
-    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint], store_id: int):
-        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, predicate)
-        logger.info("[StoreDiscount] Store discount with id: " + str(discount_id) + " created successfully!")
+        super().__init__(store_id, discount_description, starting_date, ending_date, percentage, predicate)
+        logger.info("[StoreDiscount] Store discount with id: created successfully!")
 
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
@@ -208,16 +530,25 @@ class StoreDiscount(Discount):
 
 # --------------- Product Discount ---------------#
 class ProductDiscount(Discount):
+    __tablename__ = 'product_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    _product_id = db.Column(db.Integer, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'product_discount',
+    }
+
     # class responsible for returning the total price of the product discount.
-    def __init__(self, discount_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, predicate: Optional[Constraint], product_id: int, store_id: int):
-        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, predicate)
-        self.__product_id = product_id
-        logger.info("[ProductDiscount] Product discount with id: " + str(discount_id) + " created successfully!")
+        super().__init__(store_id, discount_description, starting_date, ending_date, percentage, predicate)
+        self._product_id = product_id
+        logger.info("[ProductDiscount] Product discount with id: created successfully!")
 
     @property
     def product_id(self) -> int:
-        return self.__product_id
+        return self._product_id
     
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
@@ -238,7 +569,7 @@ class ProductDiscount(Discount):
 
         discount_reduction = 0.0
         for product in basket_information.products:
-            if product.product_id == self.__product_id and product.store_id == self.store_id:
+            if product.product_id == self._product_id and product.store_id == self.store_id:
                 discount_reduction += product.price * product.amount * self.percentage
         logger.info("[ProductDiscount] Discount calculated to be: " + str(discount_reduction))
         return discount_reduction
@@ -260,51 +591,80 @@ class ProductDiscount(Discount):
 
 # --------------- And Discount ---------------#
 class AndDiscount(Discount):
+    __tablename__ = 'and_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    discount1_id = db.Column(db.Integer)
+    discount2_id = db.Column(db.Integer)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'and_discount',
+    }
+
     """
     * This class is responsible for creating a discount composite that is applied when both discounts are applicable.
     """
-    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, discount1: Discount, discount2: Discount):
-        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
-        self.__discount1 = discount1
-        self.__discount2 = discount2
+        super().__init__(store_id, discount_description, starting_date, ending_date, percentage, None)
+        self.discount1_id = discount1.discount_id
+        self.discount2_id = discount2.discount_id
         logger.info("[AndDiscount] And discount created successfully!")
+
+    def find_all():
+        discount 
 
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
         * Parameters: basket_information in BasketInformationForConstraintDTO
         * This function is responsible for calculating the discount based on the basket information. It is only applied when both discounts have satisfied predicates and returns the sum of the discounts
         """
-        if self.__discount1.predicate is not None and self.__discount2.predicate is not None:
-            if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
+        # get discount from db
+        __discount1 = db.session.query(Discount).filter_by(discount_id=self.discount1_id).first()
+        if __discount1 is None:
+            logger.error("[AndDiscount] Discount 1 not found")
+            return 0.0
+        __discount2 = db.session.query(Discount).filter_by(discount_id=self.discount2_id).first()
+        if __discount2 is None:
+            logger.error("[AndDiscount] Discount 2 not found")
+            return 0.0
+        if __discount1.predicate is not None and __discount2.predicate is not None:
+            if __discount1.predicate.is_satisfied(basket_information) and __discount2.predicate.is_satisfied(basket_information):
                 logger.info("[AndDiscount] Both predicates satisfied, applying discounts")
-                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+                return __discount1.calculate_discount(basket_information) + __discount2.calculate_discount(basket_information)
             else:
                 return 0.0
         else:
-            if self.__discount1.predicate is not None and self.__discount2.predicate is None:
-                if self.__discount1.predicate.is_satisfied(basket_information):
+            if __discount1.predicate is not None and __discount2.predicate is None:
+                if __discount1.predicate.is_satisfied(basket_information):
                     logger.info("[AndDiscount] Discount predicates satisfied, applying discounts")
-                    return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+                    return __discount1.calculate_discount(basket_information) + __discount2.calculate_discount(basket_information)
                 else:
                     return 0.0
-            elif self.__discount1.predicate is None and self.__discount2.predicate is not None:
+            elif __discount1.predicate is None and __discount2.predicate is not None:
                 if self.__discount2.predicate.is_satisfied(basket_information):
                     logger.info("[AndDiscount] Discount predicates satisfied, applying discounts")
-                    return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+                    return __discount1.calculate_discount(basket_information) + __discount2.calculate_discount(basket_information)
                 else:
                     return 0.0
             else:
                 logger.info("[AndDiscount] Both discounts applicable, applying discounts")
-                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+                return __discount1.calculate_discount(basket_information) + __discount2.calculate_discount(basket_information)
     
     def change_predicate(self, new_predicate: Constraint) -> None:
         pass # we don't want to change the predicate of the composite discount
 
     def get_discount_info_as_dict(self) -> dict:
-
-        dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
-        dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
+        __discount1 = db.session.query(Discount).filter_by(discount_id=self.discount1_id).first()
+        if __discount1 is None:
+            logger.error("[AndDiscount] Discount 1 not found")
+            return {}
+        __discount2 = db.session.query(Discount).filter_by(discount_id=self.discount2_id).first()
+        if __discount2 is None:
+            logger.error("[AndDiscount] Discount 2 not found")
+            return {}
+        dict_of_disc1 = __discount1.get_discount_info_as_dict()
+        dict_of_disc2 = __discount2.get_discount_info_as_dict() 
 
         return {
             "discount_type": "andDiscount",
@@ -320,14 +680,24 @@ class AndDiscount(Discount):
 
 # --------------- Or Discount ---------------#
 class OrDiscount(Discount):
+    __tablename__ = 'or_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    discount1_id = db.Column(db.Integer)
+    discount2_id = db.Column(db.Integer)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'or_discount',
+    }
+
     """
     * This class is responsible for creating a discount composite that is applied when at least one of the discounts is applicable.
     """
-    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, discount1: Discount, discount2: Discount): # add decision rule
-        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
-        self.__discount1 = discount1
-        self.__discount2 = discount2
+        super().__init__(store_id, discount_description, starting_date, ending_date, percentage, None)
+        self.discount1_id = discount1.discount_id
+        self.discount2_id = discount2.discount_id
 
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
@@ -335,33 +705,42 @@ class OrDiscount(Discount):
         * This function is responsible for calculating the discount based on the basket information. It is only applied when at least one of the discounts have satisfied predicates and returns the sum of the discounts
         * NOTE: for simplicity, we assume that if both discounts are applicable, we would use both, but if only one is applicable, we would use only that one.
         """
-        if self.__discount1.predicate is None and self.__discount2.predicate is None:
+        __discount1 = db.session.query(Discount).filter_by(discount_id=self.discount1_id).first()
+        if __discount1 is None:
+            logger.error("[OrDiscount] Discount 1 not found")
+            return 0.0
+        
+        __discount2 = db.session.query(Discount).filter_by(discount_id=self.discount2_id).first()
+        if __discount2 is None:
+            logger.error("[OrDiscount] Discount 2 not found")
+            return 0.0
+        if __discount1.predicate is None and __discount2.predicate is None:
             logger.info("[OrDiscount] Both discounts applicable, applying discounts")
-            return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
-        elif self.__discount1.predicate is None and self.__discount2.predicate is not None:
-            if self.__discount2.predicate.is_satisfied(basket_information):
+            return __discount1.calculate_discount(basket_information) + __discount2.calculate_discount(basket_information)
+        elif __discount1.predicate is None and __discount2.predicate is not None:
+            if __discount2.predicate.is_satisfied(basket_information):
                 logger.info("[OrDiscount] Both discounts applicable, applying discounts")
-                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+                return __discount1.calculate_discount(basket_information) + __discount2.calculate_discount(basket_information)
             else:
                 logger.info("[OrDiscount] Discount 1 applicable, applying discount 1")
-                return self.__discount1.calculate_discount(basket_information)
-        elif self.__discount1.predicate is not None and self.__discount2.predicate is None:
+                return __discount1.calculate_discount(basket_information)
+        elif __discount1.predicate is not None and __discount2.predicate is None:
             if self.__discount1.predicate.is_satisfied(basket_information):
                 logger.info("[OrDiscount] Both discounts applicable, applying discounts")
-                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+                return __discount1.calculate_discount(basket_information) + __discount2.calculate_discount(basket_information)
             else:
                 logger.info("[OrDiscount] Discount 2 applicable, applying discount 2")
-                return self.__discount2.calculate_discount(basket_information)
+                return __discount2.calculate_discount(basket_information)
         else:
-            if self.__discount1.predicate.is_satisfied(basket_information) and self.__discount2.predicate.is_satisfied(basket_information):
+            if __discount1.predicate.is_satisfied(basket_information) and __discount2.predicate.is_satisfied(basket_information):
                 logger.info("[OrDiscount] Both discounts applicable, applying discounts")
-                return self.__discount1.calculate_discount(basket_information) + self.__discount2.calculate_discount(basket_information)
+                return __discount1.calculate_discount(basket_information) + __discount2.calculate_discount(basket_information)
             elif self.__discount1.predicate.is_satisfied(basket_information):
                 logger.info("[OrDiscount] Discount 1 applicable, applying discount 1")
-                return self.__discount1.calculate_discount(basket_information)
-            elif self.__discount2.predicate.is_satisfied(basket_information):
+                return __discount1.calculate_discount(basket_information)
+            elif __discount2.predicate.is_satisfied(basket_information):
                 logger.info("[OrDiscount] Discount 2 applicable, applying discount 2")
-                return self.__discount2.calculate_discount(basket_information)
+                return __discount2.calculate_discount(basket_information)
             else:
                 return 0.0
             
@@ -371,8 +750,18 @@ class OrDiscount(Discount):
 
 
     def get_discount_info_as_dict(self) -> dict:
-        dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
-        dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
+        __discount1 = db.session.query(Discount).filter_by(discount_id=self.discount1_id).first()
+        if __discount1 is None:
+            logger.error("[OrDiscount] Discount 1 not found")
+            return {}
+        
+        __discount2 = db.session.query(Discount).filter_by(discount_id=self.discount2_id).first()
+        if __discount2 is None:
+            logger.error("[OrDiscount] Discount 2 not found")
+            return {}
+        
+        dict_of_disc1 = __discount1.get_discount_info_as_dict()
+        dict_of_disc2 = __discount2.get_discount_info_as_dict() 
 
         return {
             "discount_type": "orDiscount",
@@ -387,11 +776,20 @@ class OrDiscount(Discount):
 
 # --------------- Xor Discount ---------------#
 class XorDiscount(Discount):
-    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    __tablename__ = 'xor_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    discount1_id = db.Column(db.Integer)
+    discount2_id = db.Column(db.Integer)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'xor_discount',
+    }
+    def __init__(self, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, discount1: Discount, discount2: Discount): # add decision rule
-        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
-        self.__discount1 = discount1
-        self.__discount2 = discount2
+        super().__init__(store_id, discount_description, starting_date, ending_date, percentage, None)
+        self.discount1_id = discount1.discount_id
+        self.discount2_id = discount2.discount_id
         logger.info("[XorDiscount] Xor discount created successfully!")
 
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
@@ -400,34 +798,53 @@ class XorDiscount(Discount):
         * This function is responsible for calculating the discount based on the basket information.
         * Returns: float of the amount the discount will deduce from the total price.
         """
-        if self.__discount1.predicate is not None and self.__discount2.predicate is not None:    
-            if self.__discount1.predicate.is_satisfied(basket_information):
+        __discount1 = db.session.query(Discount).filter_by(discount_id=self.discount1_id).first()
+        if __discount1 is None:
+            logger.error("[XorDiscount] Discount 1 not found")
+            return 0.0
+        
+        __discount2 = db.session.query(Discount).filter_by(discount_id=self.discount2_id).first()
+        if __discount2 is None:
+            logger.error("[XorDiscount] Discount 2 not found")
+            return 0.0
+        
+        if __discount1.predicate is not None and __discount2.predicate is not None:    
+            if __discount1.predicate.is_satisfied(basket_information):
                 logger.info("[XorDiscount] Discount 1 applicable, applying discount 1")
-                return self.__discount1.calculate_discount(basket_information)
-            elif self.__discount2.predicate.is_satisfied(basket_information):
+                return __discount1.calculate_discount(basket_information)
+            elif __discount2.predicate.is_satisfied(basket_information):
                 logger.info("[XorDiscount] Discount 2 applicable, applying discount 2")
-                return self.__discount2.calculate_discount(basket_information)
+                return __discount2.calculate_discount(basket_information)
             else:
                 return 0.0
-        elif self.__discount1.predicate is not None and self.__discount2.predicate is None:
-            if self.__discount1.predicate.is_satisfied(basket_information):
+        elif __discount1.predicate is not None and __discount2.predicate is None:
+            if __discount1.predicate.is_satisfied(basket_information):
                 logger.info("[XorDiscount] Discount 1 applicable, applying discount 1")
-                return self.__discount1.calculate_discount(basket_information)
+                return __discount1.calculate_discount(basket_information)
             else:
                 logger.info("[XorDiscount] discount 2 applicable, applying discount 2")
-                return self.__discount2.calculate_discount(basket_information)
+                return __discount2.calculate_discount(basket_information)
         else:
             logger.info("[XorDiscount] Both discounts applicable, applying discount 1")
-            return self.__discount1.calculate_discount(basket_information) 
+            return __discount1.calculate_discount(basket_information) 
         
     
     def change_predicate(self, new_predicate: Constraint) -> None:
         pass # we don't want to change the predicate of the composite discount
 
     def get_discount_info_as_dict(self) -> dict:
-
-        dict_of_disc1 = self.__discount1.get_discount_info_as_dict()
-        dict_of_disc2 = self.__discount2.get_discount_info_as_dict() 
+        __discount1 = db.session.query(Discount).filter_by(discount_id=self.discount1_id).first()
+        if __discount1 is None:
+            logger.error("[XorDiscount] Discount 1 not found")
+            return {}
+        
+        __discount2 = db.session.query(Discount).filter_by(discount_id=self.discount2_id).first()
+        if __discount2 is None:
+            logger.error("[XorDiscount] Discount 2 not found")
+            return {}
+        
+        dict_of_disc1 = __discount1.get_discount_info_as_dict()
+        dict_of_disc2 = __discount2.get_discount_info_as_dict() 
         return {
             "discount_type": "xorDiscount",
             "discount_id": self.discount_id,
@@ -441,12 +858,31 @@ class XorDiscount(Discount):
 
 # --------------- Max Discount classes ---------------#
 class MaxDiscount(Discount):
+    __tablename__ = 'max_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    _discounts = db.Column(db.String, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'max_discount',
+    }
+
     # class responsible for returning the total price of the maximum discount.
-    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, ListDiscount: list[Discount]):
-        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
-        self.__ListDiscount = ListDiscount
+        super().__init__(store_id, discount_description, starting_date, ending_date, percentage, None)
+        self._discounts = '#'.join([str(discount.discount_id) for discount in ListDiscount])
         logger.info("[maxDiscount] Max discount created successfully!")
+
+    @property
+    def __ListDiscount(self) -> list[Discount]:
+        discount_ids = self._discounts.split('#')
+        discounts = []
+        for discount_id in discount_ids:
+            discount = db.session.query(Discount).filter_by(discount_id=int(discount_id)).first()
+            if discount is not None:
+                discounts.append(discount)
+        return discounts
 
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """
@@ -479,12 +915,31 @@ class MaxDiscount(Discount):
 
 # --------------- Additive Discount classes ---------------#
 class AdditiveDiscount(Discount):
+    __tablename__ = 'additive_discounts'
+
+    discount_id = db.Column(db.Integer, db.ForeignKey('discounts.discount_id'), primary_key=True)
+    _discounts = db.Column(db.String, nullable=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'additive_discount',
+    }
+
     # class responsible for returning the total price of the maximum discount.
-    def __init__(self, discount_id: int, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
+    def __init__(self, store_id: int, discount_description: str, starting_date: datetime, ending_date: datetime,
                  percentage: float, ListDiscount: list[Discount]):
-        super().__init__(discount_id, store_id, discount_description, starting_date, ending_date, percentage, None)
-        self.__ListDiscount = ListDiscount
+        super().__init__(store_id, discount_description, starting_date, ending_date, percentage, None)
+        self._discounts = '#'.join([str(discount.discount_id) for discount in ListDiscount])
         logger.info("[additiveDiscount] Additive discount created successfully!")
+
+    @property
+    def __ListDiscount(self) -> list[Discount]:
+        discount_ids = self._discounts.split('#')
+        discounts = []
+        for discount_id in discount_ids:
+            discount = db.session.query(Discount).filter_by(discount_id=int(discount_id)).first()
+            if discount is not None:
+                discounts.append(discount)
+        return discounts
 
     def calculate_discount(self, basket_information: BasketInformationForConstraintDTO) -> float:
         """

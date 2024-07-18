@@ -31,21 +31,28 @@ export default function SearchByName() {
 
         console.log("product name: ", name);
         console.log("store id: ", store_id);
+        
+        try{
+            const makeCall = async (data) => {
+                const response = await api.post('/market/search_products_by_name', data);
+                return response;
+            };
 
-        const makeCall = async (data) => {
-            const response = await api.post('/market/search_products_by_name', data);
-            return response;
-        };
-
-        const response = (storeName ? await makeCall({ name, store_id }) : await makeCall({ name }));
-        if (response.status === 200) {
-            setResults(response.data.message);
-            if (initialSearch) {
-                setInitialSearch(false);
+            const response = (storeName ? await makeCall({ name, store_id }) : await makeCall({ name }));
+            if (response.status === 200) {
+                setResults(response.data.message);
+                if (initialSearch) {
+                    setInitialSearch(false);
+                }
+                setErrorMessage(null);
+            } else {
+                console.error('Failed to fetch search results', response);
+                setErrorMessage('Failed to fetch search results');
+                setResults({});
             }
-            setErrorMessage(null);
-        } else {
-            console.error('Failed to fetch search results', response);
+        }
+        catch (error) {
+            console.error('Failed to fetch search results', error);
             setErrorMessage('Failed to fetch search results');
             setResults({});
         }
