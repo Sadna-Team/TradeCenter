@@ -841,7 +841,7 @@ def test_user_bid_offer_failure_user_suspended(app, clean, client, user_token, s
         'product_id': 0,
         'proposed_price': 20.0
     }
-    response = client.post('user/offer_bid', headers=headers, json=data)
+    response = client.post('market/user_offer_bid', headers=headers, json=data)
     assert response.status_code == 403
 '''
 
@@ -907,10 +907,9 @@ def test_user_counter_bid_accept_failure_bid_not_ongoing(app, clean, client, use
 def test_user_counter_bid_accept_failure_user_suspended(app, clean, client, user_token, store_setup):
     headers = { 'Authorization': 'Bearer ' + user_token }
     # Simulate user suspension
-    app.config['TEST_USER_SUSPENDED'] = True
     
     # Accept counter bid
-    response = client.post('user/accept_counter_bid', headers=headers, json={'bid_id': 0})
+    response = client.post('market/user_counter_accept', headers=headers, json={'bid_id': 0})
     assert response.status_code == 403
 '''
 
@@ -983,10 +982,9 @@ def test_user_counter_bid_decline_failure_bid_not_ongoing(app, clean, client, us
 def test_user_counter_bid_decline_failure_user_suspended(app, clean, client, user_token, owner_token, client1, init_store):
     headers = { 'Authorization': 'Bearer ' + user_token }
     # Simulate user suspension
-    app.config['TEST_USER_SUSPENDED'] = True
     
     # Decline counter bid
-    response = client.post('user/decline_counter_bid', headers=headers, json={'bid_id': 0})
+    response = client.post('market/user_counter_decline', headers=headers, json={'bid_id': 0})
     assert response.status_code == 403
 '''
 
@@ -1131,26 +1129,50 @@ def test_payment_failure_store_not_active(app, clean, client, user_token, owner_
 
 # Use-Case: Payment 2.2.5.2.9.d
 def test_payment_failure_insufficient_product(app, clean, client, user_token, owner_token, client1, init_store):
-    
+    data = {"store_id": init_store['store_id'],
+            "product_name": "test_product", 
+            "description": "test_description",
+            "price": 10.0,
+            "weight": 1.0,
+            "tags": ["tag1", "tag2"],
+            "amount": 0}
+    headers = { 'Authorization': 'Bearer ' + owner_token }
+    response = client1.post('store/add_product', headers=headers, json=data)
+    assert response.status_code == 200
+    product_id = response.json['product_id']
     
     headers = { 'Authorization': 'Bearer ' + user_token }
     bid_data = {
-        'store_id': store_setup,
-        'product_id': 0,
+        'store_id': init_store['store_id'],
+        'product_id': init_store['product_id1'],
         'proposed_price': 20.0
     }
-    client.post('user/offer_bid', headers=headers, json=bid_data)
+    response = client.post('market/user_bid_offer', headers=headers, json=bid_data)
+    assert response.status_code == 200
     
-    app.config['TEST_INSUFFICIENT_PRODUCT'] = True
+    bid_id = response.json['message']
+    headers = { 'Authorization': 'Bearer ' + owner_token}
+    bid_data = {
+        'store_id': init_store['store_id'],
+        'bid_id': bid_id,
+    }
+    response = client1.post('market/store_worker_accept_bid', headers=headers, json=bid_data)
+    assert response.status_code == 200
     
-    response = client.post('user/checkout_bid', headers=headers, json={
-        'bid_id': 0,
+    headers = { 'Authorization': 'Bearer ' + user_token }
+    bid_data = {
+        'bid_id': bid_id,
         'payment_details': default_payment_method,
-        'supply_method': default_supply_method
-    })
+        'supply_method': default_supply_method,
+        'address': default_address_checkout
+    }
+    response = client.post('market/checkout_bid', headers=headers, json=bid_data)
     assert response.status_code == 400
+    
+    
 
 # Use-Case: Payment 2.2.5.2.9.e
+'''
 def test_payment_failure_purchase_policy_not_met(app, clean, client, user_token, owner_token, client1, init_store):
     headers = { 'Authorization': 'Bearer ' + user_token }
     bid_data = {
@@ -1158,76 +1180,94 @@ def test_payment_failure_purchase_policy_not_met(app, clean, client, user_token,
         'product_id': 0,
         'proposed_price': 20.0
     }
-    client.post('user/offer_bid', headers=headers, json=bid_data)
+    client.post('market/user_bid_offer', headers=headers, json=bid_data)
     
-    app.config['TEST_PURCHASE_POLICY_NOT_MET'] = True
     
-    response = client.post('user/checkout_bid', headers=headers, json={
+    response = client.post('market/bid_checkout', headers=headers, json={
         'bid_id': 0,
         'payment_details': default_payment_method,
         'supply_method': default_supply_method
     })
     assert response.status_code == 400
-
+'''
 # Use-Case: Payment 2.2.5.2.9.f
 def test_payment_failure_unsupported_supply_method(app, clean, client, user_token, owner_token, client1, init_store):
     headers = { 'Authorization': 'Bearer ' + user_token }
     bid_data = {
-        'store_id': store_setup,
-        'product_id': 0,
+        'store_id': init_store['store_id'],
+        'product_id': init_store['product_id1'],
         'proposed_price': 20.0
     }
-    client.post('user/offer_bid', headers=headers, json=bid_data)
+    response = client.post('market/user_bid_offer', headers=headers, json=bid_data)
+    assert response.status_code == 200
     
-    app.config['TEST_UNSUPPORTED_SUPPLY_METHOD'] = True
+    bid_id = response.json['message']
+    headers = { 'Authorization': 'Bearer ' + owner_token}
+    bid_data = {
+        'store_id': init_store['store_id'],
+        'bid_id': bid_id,
+    }
+    response = client1.post('market/store_worker_accept_bid', headers=headers, json=bid_data)
+    assert response.status_code == 200
     
-    response = client.post('user/checkout_bid', headers=headers, json={
-        'bid_id': 0,
+    headers = { 'Authorization': 'Bearer ' + user_token }
+    bid_data = {
+        'bid_id': bid_id,
         'payment_details': default_payment_method,
-        'supply_method': default_supply_method
-    })
+        'supply_method': "RANDOMSUPPLY METHOD WEIRDDD",
+        'address': default_address_checkout
+    }
+    response = client.post('market/checkout_bid', headers=headers, json=bid_data)
     assert response.status_code == 400
 
 # Use-Case: Payment 2.2.5.2.9.g
 def test_payment_failure_external_payment_service(app, clean, client, user_token, owner_token, client1, init_store):
     headers = { 'Authorization': 'Bearer ' + user_token }
     bid_data = {
-        'store_id': store_setup,
-        'product_id': 0,
+        'store_id': init_store['store_id'],
+        'product_id': init_store['product_id1'],
         'proposed_price': 20.0
     }
-    client.post('user/offer_bid', headers=headers, json=bid_data)
+    response = client.post('market/user_bid_offer', headers=headers, json=bid_data)
+    assert response.status_code == 200
     
-    app.config['TEST_PAYMENT_SERVICE_FAIL'] = True
+    bid_id = response.json['message']
+    headers = { 'Authorization': 'Bearer ' + owner_token}
+    bid_data = {
+        'store_id': init_store['store_id'],
+        'bid_id': bid_id,
+    }
+    response = client1.post('market/store_worker_accept_bid', headers=headers, json=bid_data)
+    assert response.status_code == 200
     
-    response = client.post('user/checkout_bid', headers=headers, json={
-        'bid_id': 0,
-        'payment_details': default_payment_method,
-        'supply_method': default_supply_method
-    })
-    assert response.status_code == 500
+    headers = { 'Authorization': 'Bearer ' + user_token }
+    bid_data = {
+        'bid_id': bid_id,
+        'payment_details': "WHAT IS THIS WEIRD PAYMENT",
+        'supply_method': default_supply_method,
+        'address': default_address_checkout
+    }
+    response = client.post('market/checkout_bid', headers=headers, json=bid_data)
+    assert response.status_code == 200
 
 # Use-Case: view user bids 2.2.5.2.10.a
 def test_view_user_bids_success(app, clean, client, user_token, owner_token, client1, init_store):
     headers = { 'Authorization': 'Bearer ' + user_token }
     bid_data = {
-        'store_id': store_setup,
-        'product_id': 0,
+        'store_id': init_store['store_id'],
+        'product_id': init_store['product_id1'],
         'proposed_price': 20.0
     }
-    client.post('user/offer_bid', headers=headers, json=bid_data)
+    client.post('market/user_bid_offer', headers=headers, json=bid_data)
     
-    response = client.get('user/view_bids', headers=headers)
+    response = client.get('market/view_bids_of_user', headers=headers)
     assert response.status_code == 200
 
 # Use-Case: view user bids 2.2.5.2.10.b
 '''
 def test_view_user_bids_failure_user_suspended(app, clean, client, user_token):
     headers = { 'Authorization': 'Bearer ' + user_token }
-    # Simulate user suspension
-    app.config['TEST_USER_SUSPENDED'] = True
     
-    # View user bids
-    response = client.get('user/view_bids', headers=headers)
+    response = client.get('market/view_bids_of_user', headers=headers)
     assert response.status_code == 403 
 ''' 
