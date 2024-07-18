@@ -1064,10 +1064,10 @@ def test_remove_tag_from_product_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_tags_of_product2(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
-    store_facade.add_tag_to_product(0, 0, 'tag2')
-    assert store_facade.get_tags_of_product(0, 0) == ['tag', 'tag2']
+    store_id=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id=store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
+    store_facade.add_tag_to_product(store_id, product_id, 'tag2')
+    assert store_facade.get_tags_of_product(store_id, product_id) == ['tag', 'tag2']
 
 def test_get_tags_of_product_fail2(store_facade):
     with pytest.raises(StoreError) as e:
@@ -1075,8 +1075,8 @@ def test_get_tags_of_product_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_add_store(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    assert store_facade._StoreFacade__get_store_by_id(0).store_name == 'store'
+    store_id=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    assert store_facade._StoreFacade__get_store_by_id(store_id).store_name == 'store'
 
 def test_close_store2(store_facade):
     id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
@@ -1089,8 +1089,8 @@ def test_close_store_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_store_by_id(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    assert store_facade._StoreFacade__get_store_by_id(0).store_name == 'store'
+    store_id=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    assert store_facade._StoreFacade__get_store_by_id(store_id).store_name == 'store'
 
 def test_get_store_by_id_fail(store_facade):
     with pytest.raises(StoreError) as e:
@@ -1098,13 +1098,13 @@ def test_get_store_by_id_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_total_price_before_discount2(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_store(default_location, store_name='store2', store_founder_id=0)
-    store_facade.add_product_to_store(0, 'product', 'description', 10.0, 21.0, ['tag'])
-    store_facade.add_product_to_store(0, 'product2', 'description', 20.0, 21.0, ['tag'])
-    store_facade.add_product_to_store(1, 'product', 'description', 10.0, 21.0, ['tag'])
-    store_facade.add_product_to_store(1, 'product2', 'description', 20.0, 21.0, ['tag'])
-    assert store_facade.get_total_price_before_discount({0: {0:1, 1:1}, 1: {0:1, 1:1}}) == 60.0
+    store_id1=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    store_id2=store_facade.add_store(default_location, store_name='store2', store_founder_id=0)
+    product_id1 = store_facade.add_product_to_store(store_id1, 'product', 'description', 10.0, 21.0, ['tag'])
+    product_id2= store_facade.add_product_to_store(store_id1, 'product2', 'description', 20.0, 21.0, ['tag'])
+    product_id3=store_facade.add_product_to_store(store_id2, 'product', 'description', 10.0, 21.0, ['tag'])
+    product_id4=store_facade.add_product_to_store(store_id2, 'product2', 'description', 20.0, 21.0, ['tag'])
+    assert store_facade.get_total_price_before_discount({store_id1: {product_id1:1, product_id2:1}, store_id2: {product_id3:1, product_id4:1}}) == 60.0
 
 def test_get_total_price_before_discount_fail(store_facade):
     with pytest.raises(StoreError) as e:
@@ -1112,17 +1112,17 @@ def test_get_total_price_before_discount_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_store_product_information(store_facade, product_dto, product_dto2):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
-    store_facade.add_product_to_store(0, product_dto2.name, product_dto2.description, product_dto2.price, product_dto.weight, product_dto2.tags)
-    out = store_facade.get_store_product_information(0, 0)
+    store_id=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product1=store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
+    product2=store_facade.add_product_to_store(store_id, product_dto2.name, product_dto2.description, product_dto2.price, product_dto.weight, product_dto2.tags)
+    out = store_facade.get_store_product_information(0, store_id)
     out0, out1 = out[0], out[1]
-    assert out0.product_id == 0
+    assert out0.product_id == product1
     assert out0.name == product_dto.name
     assert out0.description == product_dto.description
     assert out0.price == product_dto.price
     assert out0.tags == product_dto.tags
-    assert out1.product_id == 1
+    assert out1.product_id == product2
     assert out1.name == product_dto2.name
     assert out1.description == product_dto2.description
     assert out1.price == product_dto2.price
@@ -1141,25 +1141,25 @@ def test_check_product_availability_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_store_info(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    out = store_facade.get_store_info(0)
-    assert out.store_id == 0
+    store_id=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    out = store_facade.get_store_info(store_id)
+    assert out.store_id == store_id
     assert out.store_name == 'store'
     assert out.store_founder_id == 0
     assert out.address == default_location
     assert out.is_active
 
 def test_search_by_category(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_category('category')
-    store_facade.add_category('sub_category')
-    store_facade.add_category('subsub_category')
-    store_facade.assign_sub_category_to_category(1, 0)
-    store_facade.assign_sub_category_to_category(2, 1)
-    store_facade.add_product_to_store(0, 'product', 'description', 10.0, 21.0, ['tag'])
-    store_facade.assign_product_to_category(0, 0, 0)
-    out = store_facade.search_by_category(0)
-    assert out[0][0].product_id == 0
+    store_id=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    category0=store_facade.add_category('category')
+    category1=store_facade.add_category('sub_category')
+    category2=store_facade.add_category('subsub_category')
+    store_facade.assign_sub_category_to_category(category1, category0)
+    store_facade.assign_sub_category_to_category(category2, category1)
+    product=store_facade.add_product_to_store(store_id, 'product', 'description', 10.0, 21.0, ['tag'])
+    store_facade.assign_product_to_category(category0, product)
+    out = store_facade.search_by_category(category0)
+    assert out[0][0].product_id == product
 
 def test_search_by_category_fail(store_facade):
     with pytest.raises(StoreError) as e:
@@ -1167,28 +1167,28 @@ def test_search_by_category_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_search_by_tags(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, 'product', 'description', 10.0, 10.0, ['tag'])
+    store=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product=store_facade.add_product_to_store(store, 'product', 'description', 10.0, 10.0, ['tag'])
     out = store_facade.search_by_tags(['tag'])
-    assert out[0][0].product_id == 0
+    assert out[0][0].product_id == product
 
 def test_search_by_name(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, 'product', 'description', 10.0, 10.0, ['tag'])
+    store=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product=store_facade.add_product_to_store(store, 'product', 'description', 10.0, 10.0, ['tag'])
     out = store_facade.search_by_name('product')
-    assert out[0][0].product_id == 0
+    assert out[0][0].product_id == product
 
 def test_search_in_store_by_category(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_category('category')
-    store_facade.add_category('sub_category')
-    store_facade.add_category('subsub_category')
-    store_facade.assign_sub_category_to_category(1, 0)
-    store_facade.assign_sub_category_to_category(2, 1)
-    store_facade.add_product_to_store(0, 'product', 'description', 10.0, 21.0, ['tag'])
-    store_facade.assign_product_to_category(0, 0, 0)
-    out = store_facade.search_by_category(0, 0)
-    assert out[0][0].product_id == 0
+    store=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    category0=store_facade.add_category('category')
+    category1=store_facade.add_category('sub_category')
+    category2=store_facade.add_category('subsub_category')
+    store_facade.assign_sub_category_to_category(category1, category0)
+    store_facade.assign_sub_category_to_category(category2, category1)
+    product=store_facade.add_product_to_store(store, 'product', 'description', 10.0, 21.0, ['tag'])
+    store_facade.assign_product_to_category(category0, product)
+    out = store_facade.search_by_category(category0)
+    assert out[0][0].product_id == product
 
 def test_search_in_store_by_category_fail(store_facade):
     with pytest.raises(StoreError) as e:
@@ -1196,16 +1196,16 @@ def test_search_in_store_by_category_fail(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_search_in_store_by_tags(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, 'product', 'description', 10.0, 10.0, ['tag'])
-    out = store_facade.search_by_tags(['tag'], 0)
-    assert out[0][0].product_id == 0
+    store=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product=store_facade.add_product_to_store(store, 'product', 'description', 10.0, 10.0, ['tag'])
+    out = store_facade.search_by_tags(['tag'], product)
+    assert out[0][0].product_id == product
 
 def test_search_in_store_by_name(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, 'product', 'description', 10.0, 10.0, ['tag'])
-    out = store_facade.search_by_name('product', 0)
-    assert out[0][0].product_id == 0
+    store=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product=store_facade.add_product_to_store(store, 'product', 'description', 10.0, 10.0, ['tag'])
+    out = store_facade.search_by_name('product', product)
+    assert out[0][0].product_id == product
 
 
 def test_add_purchase_policy(store, category2):
