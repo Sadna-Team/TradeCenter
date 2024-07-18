@@ -256,9 +256,9 @@ def test_assign_predicate_to_discount_fail(store_facade):
 def test_apply_milk_category_discount(store_facade):
     store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     product_id=store_facade.get_store_by_id(store_id).add_product('product', 'very good product', product_price_10, ['tag'], 30.0)
-    store_facade.get_store_by_id(store_id).restock_product(0, 10)
+    store_facade.get_store_by_id(store_id).restock_product(product_id, 10)
     category_id = store_facade.add_category('milk')
-    store_facade.assign_product_to_category(0, 0,0)
+    store_facade.assign_product_to_category(category_id, store_id,product_id)
     store_facade.add_discount('discount1',store_id, datetime(2020, 1, 1), datetime(2030, 1, 2), product_per_05,category_id,None,False)
     shopping_basket= {product_id:3}
     total_price_of_basket= shopping_basket[product_id]*product_price_10
@@ -697,53 +697,57 @@ def test_add_product(store, product_dto):
     assert len(store.store_products) == 1
     
 def test_remove_product(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
-    store.remove_product(0)
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
+    store.remove_product(product_id)
     assert len(store.store_products) == 0
 
 def test_remove_product_fail(store):
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
-        store.remove_product(0)
+        store.remove_product(product_id+1)
     assert e.value.store_error_type == StoreErrorTypes.product_not_found
 
 def test_get_product_by_id(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
-    product = store.get_product_by_id(0)
-    assert product.product_id == 0
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
+    product = store.get_product_by_id(product_id)
+    assert product.product_id == product_id
     assert product.product_name == product_dto.name
     assert product.description == product_dto.description
     assert product.price == product_dto.price
     assert product.tags == product_dto.tags
 
 def test_get_product_by_id_fail(store):
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
-        store.get_product_by_id(0)
+        store.get_product_by_id(product_id+5)
     assert e.value.store_error_type == StoreErrorTypes.product_not_found
 
 def test_get_product_dto_by_id(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
-    product_dto = store.get_product_dto_by_id(0)
-    assert product_dto.product_id == 0
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
+    product_dto = store.get_product_dto_by_id(product_id)
+    assert product_dto.product_id == product_id
     assert product_dto.name == product_dto.name
     assert product_dto.description == product_dto.description
     assert product_dto.price == product_dto.price
     assert product_dto.tags == product_dto.tags
 
 def test_get_product_dto_by_id_fail(store):
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
-        store.get_product_dto_by_id(0)
+        store.get_product_dto_by_id(product_id+1000)
     assert e.value.store_error_type == StoreErrorTypes.product_not_found
 
 def test_get_total_price_of_basket_before_discount(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
-    store.add_product(product_dto.name, product_dto.description, product_dto.price + 10, product_dto.tags, product_dto.weight, product_dto.amount)
-    assert store.get_total_price_of_basket_before_discount({0:1, 1:1}) == 30.0
-    assert store.get_total_price_of_basket_before_discount({0:2}) == 20.0
-    assert store.get_total_price_of_basket_before_discount({0:1, 1:2}) == 50.0
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
+    product_id2= store.add_product(product_dto.name, product_dto.description, product_dto.price + 10, product_dto.tags, product_dto.weight, product_dto.amount)
+    assert store.get_total_price_of_basket_before_discount({product_id:1, product_id2:1}) == 30.0
+    assert store.get_total_price_of_basket_before_discount({product_id:2}) == 20.0
+    assert store.get_total_price_of_basket_before_discount({product_id:1, product_id2:2}) == 50.0
 
 def test_get_total_price_of_basket_before_discount_fail(store):
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
-        store.get_total_price_of_basket_before_discount({0:1})
+        store.get_total_price_of_basket_before_discount({product_id+1000:1})
     assert e.value.store_error_type == StoreErrorTypes.product_not_found
 
 def test_create_store_dto(store):
@@ -763,84 +767,90 @@ def test_get_store_information(store):
     assert dto.is_active == store.is_active
 
 def test_restock_product(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
-    store.restock_product(0, 10)
-    assert store.has_amount_of_product(0, 10)
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
+    store.restock_product(product_id, 10)
+    assert store.has_amount_of_product(product_id, 10)
 
 def test_restock_product_fail(store):
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
-        store.restock_product(0, 10)
+        store.restock_product(product_id+1000, 10)
     assert e.value.store_error_type== StoreErrorTypes.product_not_found
 
 def test_remove_product_amount(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
-    store.restock_product(0, 10)
-    store.remove_product_amount(0, 5)
-    assert store.has_amount_of_product(0, 5)
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
+    store.restock_product(product_id, 10)
+    store.remove_product_amount(product_id, 5)
+    assert store.has_amount_of_product(product_id, 5)
 
 def test_remove_product_amount_fail_missing(store):
+    product_id = store.add_product('product', 'description', 10.0, ['tag'], 30.0, 5)
     with pytest.raises(StoreError) as e:
-        store.remove_product_amount(0, 5)
+        store.remove_product_amount(product_id+1000, 5)
     assert e.value.store_error_type== StoreErrorTypes.product_not_found
 
 def test_remove_product_amount_fail_not_enough(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
-    store.restock_product(0, 5)
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
+    store.restock_product(product_id, 5)
     with pytest.raises(StoreError) as e:
-        store.remove_product_amount(0, 10)
+        store.remove_product_amount(product_id, 10)
     assert e.value.store_error_type== StoreErrorTypes.invalid_amount
 
 def test_change_description_of_product(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
-    store.change_description_of_product(0, 'new description')
-    assert store.get_product_by_id(0).description == 'new description'
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
+    store.change_description_of_product(product_id, 'new description')
+    assert store.get_product_by_id(product_id).description == 'new description'
 
 def test_change_description_of_product_fail(store):
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
-        store.change_description_of_product(0, 'new description')
+        store.change_description_of_product(product_id+1000, 'new description')
     assert e.value.store_error_type== StoreErrorTypes.product_not_found
 
 def test_change_price_of_product(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
-    store.change_price_of_product(0, 20.0)
-    assert store.get_product_by_id(0).price == 20.0
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
+    store.change_price_of_product(product_id, 20.0)
+    assert store.get_product_by_id(product_id).price == 20.0
 
 def test_change_price_of_product_fail(store):
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
-        store.change_price_of_product(0, 20.0)
+        store.change_price_of_product(product_id+1000, 20.0)
     assert e.value.store_error_type== StoreErrorTypes.product_not_found
 
 def test_add_tag_to_product(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
-    store.add_tag_to_product(0, 'tag2')
-    assert 'tag2' in store.get_product_by_id(0).tags
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
+    store.add_tag_to_product(product_id, 'tag2')
+    assert 'tag2' in store.get_product_by_id(product_id).tags
 
 def test_add_tag_to_product_fail(store):
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
-        store.add_tag_to_product(0, 'tag2')
+        store.add_tag_to_product(product_id+1000, 'tag2')
     assert e.value.store_error_type== StoreErrorTypes.product_not_found
 
 def test_remove_tag_from_product(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
-    store.add_tag_to_product(0, 'tag2')
-    store.remove_tag_from_product(0, 'tag2')
-    assert 'tag2' not in store.get_product_by_id(0).tags
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
+    store.add_tag_to_product(product_id, 'tag2')
+    store.remove_tag_from_product(product_id, 'tag2')
+    assert 'tag2' not in store.get_product_by_id(product_id).tags
 
 def test_remove_tag_from_product_fail_missing_product(store):
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
-        store.remove_tag_from_product(0, 'tag2')
+        store.remove_tag_from_product(product_id, 'tag2')
     assert e.value.store_error_type == StoreErrorTypes.product_not_found
 
 def test_remove_tag_from_product_fail_missing_tag(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
-        store.remove_tag_from_product(0, 'tag2')
+        store.remove_tag_from_product(product_id, 'idkrandomtagwhichdefoisntinproduct')
     assert e.value.store_error_type== StoreErrorTypes.tag_not_found
 
 def test_get_tags_of_product(store, product_dto):
-    store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
-    store.add_tag_to_product(0, 'tag2')
-    assert store.get_tags_of_product(0) == ['tag', 'tag2']
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, 'tag', product_dto.weight)
+    store.add_tag_to_product(product_id, 'tag2')
+    assert store.get_tags_of_product(product_id) == ['tag', 'tag2']
 
 def test_get_tags_of_product_fail(store):
     with pytest.raises(StoreError) as e:
@@ -854,149 +864,176 @@ def test_has_amount_of_product(store, product_dto):
     assert not store.has_amount_of_product(0, 6)
 
 def test_has_amount_of_product_fail(store):
-    assert not store.has_amount_of_product(0, 5)
+    product_id = store.add_product('product', 'description', 10.0, ['tag'], 30.0)
+    assert not store.has_amount_of_product(product_id, 5)
   
 
 def test_get_category_by_id(store_facade, category):
-    store_facade.add_category(category.category_name)
-    assert store_facade.get_category_by_id(0).category_name == category.category_name
+    category_id = store_facade.add_category(category.category_name)
+    assert store_facade.get_category_by_id(category_id).category_name == category.category_name
 
 def test_get_category_by_id_fail(store_facade):
+    category_id = store_facade.add_category(category.category_name)
+
     with pytest.raises(StoreError) as e:
-        store_facade.get_category_by_id(0)
+        store_facade.get_category_by_id(category_id+1000)
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_add_category(store_facade, category):
-    store_facade.add_category(category.category_name)
-    assert store_facade.get_category_by_id(0).category_name == category.category_name
+    category_id = store_facade.add_category(category.category_name)
+    assert store_facade.get_category_by_id(category_id).category_name == category.category_name
 
 def test_remove_category(store_facade, category):
-    store_facade.add_category(category.category_name)
-    store_facade.remove_category(0)
+    category_id = store_facade.add_category(category.category_name)
+    store_facade.remove_category(category_id)
     with pytest.raises(StoreError) as e:
-        store_facade.get_category_by_id(0)
+        store_facade.get_category_by_id(category_id)
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_remove_category_fail(store_facade):
+    category_id = store_facade.add_category(category.category_name)
     with pytest.raises(StoreError) as e:
-        store_facade.remove_category(0)
+        store_facade.remove_category(category_id+1000)
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_assign_sub_category_to_category(store_facade, category, sub_category):
-    store_facade.add_category(category.category_name)
-    store_facade.add_category(sub_category.category_name)
-    store_facade.assign_sub_category_to_category(1, 0)
-    assert store_facade.get_category_by_id(0).sub_categories[0].category_name == sub_category.category_name
+    category_id = store_facade.add_category(category.category_name)
+    sub = store_facade.add_category(sub_category.category_name)
+    store_facade.assign_sub_category_to_category(sub, category_id)
+    assert store_facade.get_category_by_id(category_id).sub_categories[0].category_name == sub_category.category_name
 
 def test_assign_sub_category_to_category_fail(store_facade):
+    category_id = store_facade.add_category(category.category_name)
+    sub = store_facade.add_category(sub_category.category_name)
+    
     with pytest.raises(StoreError) as e:
-        store_facade.assign_sub_category_to_category(1, 0)
+        store_facade.assign_sub_category_to_category(sub, category_id+1000)
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_delete_sub_category_from_category(store_facade, category, sub_category):
-    store_facade.add_category(category.category_name)
-    store_facade.add_category(sub_category.category_name)
-    store_facade.assign_sub_category_to_category(1, 0)
-    store_facade.delete_sub_category_from_category(0, 1)
-    assert len(store_facade.get_category_by_id(0).sub_categories) == 0
+    category_id = store_facade.add_category(category.category_name)
+    sub = store_facade.add_category(sub_category.category_name)
+    store_facade.assign_sub_category_to_category(sub, category_id)
+    store_facade.delete_sub_category_from_category(category_id, sub)
+    assert len(store_facade.get_category_by_id(category_id).sub_categories) == 0
 
 def test_delete_sub_category_from_category_fail(store_facade):
+    category_id = store_facade.add_category(category.category_name)
+    sub = store_facade.add_category(sub_category.category_name)
     with pytest.raises(StoreError) as e:
-        store_facade.delete_sub_category_from_category(0, 1)
+        store_facade.delete_sub_category_from_category(category_id, sub)
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_assign_product_to_category(store_facade, category, product_dto):
-    store_facade.add_category(category.category_name)
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade._StoreFacade__get_store_by_id(0).add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
-    store_facade.assign_product_to_category(0, 0, 0)
+    category_id = store_facade.add_category(category.category_name)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade._StoreFacade__get_store_by_id(store_id).add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
+    store_facade.assign_product_to_category(category_id, store_id, product_id)
+    with pytest.raises(StoreError) as e:
+        store_facade.assign_product_to_category(category_id, store_id, product_id)
+    assert e.value.store_error_type== StoreErrorTypes.product_already_exists
 
 def test_assign_product_to_category_fail(store_facade):
+    category_id = store_facade.add_category("category")
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade._StoreFacade__get_store_by_id(store_id).add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
-        store_facade.assign_product_to_category(0, 0, 0)
+        store_facade.assign_product_to_category(category_id+1, store_id, product_id)
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_remove_product_from_category2(store_facade, category, product_dto):
-    store_facade.add_category(category.category_name)
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade._StoreFacade__get_store_by_id(0).add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
-    store_facade.assign_product_to_category(0, 0, 0)
-    store_facade.remove_product_from_category(0, 0, 0)
-    assert len(store_facade.get_category_by_id(0).category_products) == 0
+    category_id = store_facade.add_category(category.category_name)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade._StoreFacade__get_store_by_id(store_id).add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
+    store_facade.assign_product_to_category(category_id, store_id, product_id)
+    store_facade.remove_product_from_category(category_id, store_id, product_id)
+    assert len(store_facade.get_category_by_id(category_id).category_products) == 0
 
-def test_remove_product_from_category_fail2(store_facade):
+def test_remove_product_from_category_fail2(store_facade, category):
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade._StoreFacade__get_store_by_id(store_id).add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
-        store_facade.remove_product_from_category(0, 0, 0)
+        store_facade.remove_product_from_category(category.category_id-1, store_id, product_id)
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_add_product_to_store(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
 
-    assert len(store_facade._StoreFacade__get_store_by_id(0).store_products) == 1
+    assert len(store_facade._StoreFacade__get_store_by_id(store_id).store_products) == 1
 
 def test_add_product_to_store_fail_store_id(store_facade, product_dto):
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
+
     with pytest.raises(StoreError) as e:
-        store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.tags)
+        store_facade.add_product_to_store(store_id+1000, product_dto.name, product_dto.description, product_dto.price, product_dto.tags)
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
     
 def test_add_product_to_store_fail_product_name(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     with pytest.raises(StoreError) as e:
-        store_facade.add_product_to_store(0, '', product_dto.description, product_dto.price, product_dto.tags)
+        store_facade.add_product_to_store(store_id, '', product_dto.description, product_dto.price, product_dto.tags)
     assert e.value.store_error_type== StoreErrorTypes.invalid_product_name
 
 def test_add_product_to_store_fail_price(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
     with pytest.raises(StoreError) as e:
-        store_facade.add_product_to_store(0, product_dto.name, product_dto.description, -1, 30.0, product_dto.tags)
+        store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, -1, 30.0, product_dto.tags)
     assert e.value.store_error_type== StoreErrorTypes.invalid_price
 
 def test_remove_product_from_store(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
-    store_facade.remove_product_from_store(0, 0)
-    assert len(store_facade._StoreFacade__get_store_by_id(0).store_products) == 0
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
+    store_facade.remove_product_from_store(store_id, product_id)
+    assert len(store_facade._StoreFacade__get_store_by_id(store_id).store_products) == 0
 
 def test_remove_product_from_store_fail(store_facade):
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight, product_dto.tags)
     with pytest.raises(StoreError) as e:
-        store_facade.remove_product_from_store(0, 0)
+        store_facade.remove_product_from_store(store_id+1100, product_id)
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_add_product_amount(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
-    store_facade.add_product_amount(0, 0, 10)
-    assert store_facade._StoreFacade__get_store_by_id(0).has_amount_of_product(0, 10)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
+    store_facade.add_product_amount(store_id, product_id, 10)
+    assert store_facade.get_store_by_id(store_id).has_amount_of_product(product_id, 10)
 
 def test_add_product_amount_fail(store_facade):
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
+    
     with pytest.raises(StoreError) as e:
-        store_facade.add_product_amount(0, 0, 10)
+        store_facade.add_product_amount(store_id+1, product_id, 10)
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_remove_product_amount2(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
-    store_facade.add_product_amount(0, 0, 10)
-    store_facade.remove_product_amount(0, 0, 5)
-    assert store_facade._StoreFacade__get_store_by_id(0).has_amount_of_product(0, 5)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
+    store_facade.add_product_amount(store_id, product_id, 10)
+    store_facade.remove_product_amount(store_id, product_id, 5)
+    assert store_facade.get_store_by_id(store_id).has_amount_of_product(product_id, 5)
 
 def test_change_description_of_product2(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
-    store_facade.change_description_of_product(0, 0, 'new description')
-    assert store_facade._StoreFacade__get_store_by_id(0).get_product_by_id(0).description == 'new description'
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
+    store_facade.change_description_of_product(store_id, product_id, 'new description')
+    assert store_facade.get_store_by_id(store_id).get_product_by_id(product_id).description == 'new description'
 
 def test_change_description_of_product_fail2(store_facade):
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
     with pytest.raises(StoreError) as e:
-        store_facade.change_description_of_product(0, 0, 'new description')
+        store_facade.change_description_of_product(store_id+1000, product_id, 'new description')
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_change_price_of_product2(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
-    store_facade.change_price_of_product(0, 0, 20.0)
-    assert store_facade._StoreFacade__get_store_by_id(0).get_product_by_id(0).price == 20.0
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price,product_dto.weight, product_dto.tags)
+    store_facade.change_price_of_product(store_id, product_id, 20.0)
+    assert store_facade._StoreFacade__get_store_by_id(store_id).get_product_by_id(product_id).price == 20.0
 
 def test_change_price_of_product_fail2(store_facade):
     with pytest.raises(StoreError) as e:
@@ -1004,10 +1041,10 @@ def test_change_price_of_product_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_add_tag_to_product2(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
-    store_facade.add_tag_to_product(0, 0, 'tag2')
-    assert 'tag2' in store_facade._StoreFacade__get_store_by_id(0).get_product_by_id(0).tags
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
+    store_facade.add_tag_to_product(store_id, product_id, 'tag2')
+    assert 'tag2' in store_facade._StoreFacade__get_store_by_id(store_id).get_product_by_id(product_id).tags
 
 def test_add_tag_to_product_fail2(store_facade):
     with pytest.raises(StoreError) as e:
@@ -1015,11 +1052,11 @@ def test_add_tag_to_product_fail2(store_facade):
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_remove_tag_from_product2(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
-    store_facade.add_tag_to_product(0, 0, 'tag2')
-    store_facade.remove_tag_from_product(0, 0, 'tag2')
-    assert 'tag2' not in store_facade._StoreFacade__get_store_by_id(0).get_product_by_id(0).tags
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
+    store_facade.add_tag_to_product(store_id, product_id, 'tag2')
+    store_facade.remove_tag_from_product(store_id, product_id, 'tag2')
+    assert 'tag2' not in store_facade._StoreFacade__get_store_by_id(store_id).get_product_by_id(product_id).tags
 
 def test_remove_tag_from_product_fail(store_facade):
     with pytest.raises(StoreError) as e:
@@ -1092,11 +1129,11 @@ def test_get_store_product_information(store_facade, product_dto, product_dto2):
     assert out1.tags == product_dto2.tags
 
 def test_check_product_availability(store_facade, product_dto):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.add_product_to_store(0, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
-    store_facade.add_product_amount(0, 0, 10)
-    assert store_facade.check_product_availability(0, 0, 10)
-    assert not store_facade.check_product_availability(0, 0, 11)
+    store_id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product_id = store_facade.add_product_to_store(store_id, product_dto.name, product_dto.description, product_dto.price, product_dto.weight,product_dto.tags)
+    store_facade.add_product_amount(store_id, product_id, 10)
+    assert store_facade.check_product_availability(store_id, product_id, 10)
+    assert not store_facade.check_product_availability(store_id, product_id, 11)
 
 def test_check_product_availability_fail(store_facade):
     with pytest.raises(StoreError) as e:

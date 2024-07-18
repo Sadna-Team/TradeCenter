@@ -564,6 +564,7 @@ class BidPurchase(Purchase):
                 "user id is invalid",
                 self.id)
             raise PurchaseError("User id is invalid", PurchaseErrorTypes.invalid_user_id)
+        logger.info("[BidPurchase] user accepted counter offer of bid purchase with purchase id: %s", self.id)
         self._is_offer_to_store = True
 
     #NOTE: in the case of the user rejecting the offer, the purchase will be rejected and the store will be notified
@@ -1320,7 +1321,9 @@ class PurchaseFacade:
         Returns: none
         """
         purchase = self.__get_purchase_by_id(purchase_id)
+        logger.info(f'[PurchaseFacade] purchase: {purchase.status}')
         if isinstance(purchase, BidPurchase):
+            logger.info(f'[PurchaseFacade] purchase is bid purchase')
             purchase.user_accept_counter_offer(user_id)
         else:
             raise PurchaseError("Purchase is not a bid purchase", PurchaseErrorTypes.purchase_not_bid_purchase)
@@ -1422,7 +1425,9 @@ class PurchaseFacade:
         """
         purchases: List[dict] = []
         for purchase in db.session.query(BidPurchase).all():
+            logger.info(f'[PurchaseFacade] purchase: {purchase}')
             if isinstance(purchase, BidPurchase):
+                logger.info(f'[PurchaseFacade] found that purchase is bid, the store id stored is: {purchase.store_id}')
                 if purchase.store_id == store_id:
                     purchases.append(purchase.get_bid_purchase_dto())
         return purchases
