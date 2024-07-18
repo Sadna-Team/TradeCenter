@@ -749,9 +749,9 @@ class RolesFacade:
             roles = db.session.query(StoreRole).filter_by(store_id=store_id).all()
             for role in roles:
                 if isinstance(role, StoreOwner):
-                    owners_managers.append(role.user_id)
+                    owners_managers.append(int(role.user_id))
                 elif isinstance(role, StoreManager) and role.permissions.get_bid:
-                    owners_managers.append(role.user_id)
+                    owners_managers.append(int(role.user_id))
             return owners_managers
 
     def get_role(self, store_id: int, user_id: int) -> StoreRole:

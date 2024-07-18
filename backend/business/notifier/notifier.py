@@ -9,6 +9,7 @@ from flask import jsonify
 from backend.business.authentication.authentication import Authentication
 from backend.error_types import *
 from flask import current_app
+from backend.business.roles.roles import RolesFacade
 
 # Database related imports
 from sqlalchemy.exc import SQLAlchemyError
@@ -104,13 +105,29 @@ class Notifier:
         notification = NotificationDTO(self._generate_notification_id(), message, datetime.now())
         self.send_real_time_notification(user_id, notification)
 
+
+    def _notify_multiple_bid(self, store_id: int, message: str) -> None:
+        from backend.app_factory import get_app
+        app = get_app()
+        with app.app_context():
+            all_listeners = RolesFacade().get_bid_owners_managers(store_id)
+            if len(all_listeners) == 0:
+                raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+
+            for listener in all_listeners:
+                logger.info(f"send bid message to user {listener}")
+                if self._authentication.is_logged_in(listener):
+                    self._notify_real_time(listener, message)
+                else:
+                    self._notify_delayed(listener, message)
+
     def _notify_multiple(self, store_id: int, message: str, send_by = None) -> None:
         """
         * Parameters: store_id: int, message: str
         * This function sends a message to multiple users.
         """
-        from backend.app_factory import create_app_instance
-        app = create_app_instance()
+        from backend.app_factory import get_app
+        app = get_app()
         with app.app_context():
             all_listeners = db.session.query(Listeners).filter_by(store_id=store_id).all()
             if len(all_listeners) == 0:
