@@ -275,7 +275,12 @@ class RolesFacade:
             self.__creation_lock = Lock()
             self.__stores_locks: Dict[int, Lock] = {}
             self.__system_managers_lock = Lock()
+            self.__load_locks_from_db()
 
+    def __load_locks_from_db(self):
+        stores = db.session.query(TreeNode.store_id).distinct().all()
+        for store in stores:
+            self.__stores_locks[store.store_id] = Lock()
     def __load_trees_from_db(self) -> Dict[int, Tree]:
         trees = {}
         root_nodes = db.session.query(TreeNode).filter_by(is_root=True).all()
@@ -681,8 +686,11 @@ class RolesFacade:
         return stores
 
     def get_store_role(self, user_id: int, store_id: int) -> str:
+        logger.info(f'[RolesFacade] get_store_role: user_id={user_id}, store_id={store_id}')
         with self.__stores_locks[store_id]:
+            logger.info("ERROR NOT IN LOCK")
             role = db.session.query(StoreRole).filter_by(store_id=store_id, user_id=user_id).one_or_none()
+            logger.info(f'[RolesFacade] get_store_role: role={role}')
             if role:
                 if self.is_root(store_id, user_id):
                     return "Founder"

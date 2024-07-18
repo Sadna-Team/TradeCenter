@@ -554,7 +554,7 @@ def test_remove_product_from_basket_failed_quantity_exceeds(app, clean, client1,
     
 
 
-def test_show_cart(app, client1, user_token):
+def test_show_cart(app, clean, client1, user_token):
     response = client1.get('/user/cart', headers={
         'Authorization': f'Bearer {user_token}'
     })
@@ -574,7 +574,7 @@ def test_search_by_category(app, client1, user_token, init_store):
     
 
 
-def test_search_by_category_failed_store_not_exists(app, client1, user_token):
+def test_search_by_category_failed_store_not_exists(app, clean, client1, user_token):
     data = {"store_id": init_store['store_id']+100, "category_id": 0}
     response = client1.post('/market/search_products_by_category', headers={
         'Authorization': f'Bearer {user_token}'
@@ -584,7 +584,7 @@ def test_search_by_category_failed_store_not_exists(app, client1, user_token):
     
 
 
-def test_search_by_category_failed_category_not_exists(app, client1, user_token):
+def test_search_by_category_failed_category_not_exists(app,clean, client1, user_token):
     data = {"store_id": 0, "category_id": 100}
     response = client1.post('/market/search_products_by_category', headers={
         'Authorization': f'Bearer {user_token}'
@@ -594,7 +594,7 @@ def test_search_by_category_failed_category_not_exists(app, client1, user_token)
     
 
 
-def test_search_by_tags(app, client1, user_token):
+def test_search_by_tags(app, clean, client1, user_token):
     data = {"store_id": 0, "tags": ["tag1"]}
     response = client1.post('/market/search_products_by_tags', headers={
         'Authorization': f'Bearer {user_token}'
@@ -604,7 +604,7 @@ def test_search_by_tags(app, client1, user_token):
     
 
 
-def test_search_by_tags_failed_store_not_exists(app, client1, user_token):
+def test_search_by_tags_failed_store_not_exists(app,clean, client1, user_token):
     data = {"store_id": 100, "tags": ["tag1"]}
     response = client1.post('/market/search_products_by_tags', headers={
         'Authorization': f'Bearer {user_token}'
@@ -614,7 +614,7 @@ def test_search_by_tags_failed_store_not_exists(app, client1, user_token):
     
 
 
-def test_search_by_name(app, client1, user_token):
+def test_search_by_name(app,clean, client1, user_token):
     data = {"store_id": 0, "name": "test_product"}
     response = client1.post('/market/search_products_by_name', headers={
         'Authorization': f'Bearer {user_token}'
@@ -624,7 +624,7 @@ def test_search_by_name(app, client1, user_token):
     
 
 
-def test_search_by_name_failed_store_not_exists(app, client1, user_token):
+def test_search_by_name_failed_store_not_exists(app,clean, client1, user_token):
     data = {"store_id": 100, "name": "test_product"}
     response = client1.post('/market/search_products_by_name', headers={
         'Authorization': f'Bearer {user_token}'
@@ -634,7 +634,7 @@ def test_search_by_name_failed_store_not_exists(app, client1, user_token):
     
 
 
-def test_information_about_stores(app, client1, user_token):
+def test_information_about_stores(app,clean, client1, user_token):
     response = client1.get('/store/store_info', headers={
         'Authorization': f'Bearer {user_token}'
     })
@@ -644,7 +644,7 @@ def test_information_about_stores(app, client1, user_token):
 
 
 
-def test_information_about_stores_failed_store_not_exists(app, client1, user_token):
+def test_information_about_stores_failed_store_not_exists(app,clean, client1, user_token):
     response = client1.get('/store/store_info', headers={
         'Authorization': f'Bearer {user_token}'
     })
@@ -654,7 +654,7 @@ def test_information_about_stores_failed_store_not_exists(app, client1, user_tok
 
 
 
-def test_add_store(app, client1, owner_token):
+def test_add_store(app,clean, client1, owner_token):
     data = {
         'store_name': 'test_store',
         'address': 'test_address',
@@ -673,7 +673,7 @@ def test_add_store(app, client1, owner_token):
     
 
 
-def test_add_store_failed_user_not_a_member(app, client1, token1):
+def test_add_store_failed_user_not_a_member(app,clean, client1, token1):
     data = {
         'store_name': 'test_store',
         'address': 'test_address',
@@ -700,7 +700,7 @@ default_address_checkout = {'address': 'randomstreet 34th',
                             'country': 'Wakanda', 
                             'zip_code': '12345'}
 
-def test_show_purchase_history_of_user(app, client1, user_token):
+def test_show_purchase_history_of_user(app,clean, client1, user_token):
     #adding a product to the basket
     response = client1.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {user_token}'
@@ -730,7 +730,7 @@ def test_show_purchase_history_of_user(app, client1, user_token):
     
 
 
-def test_show_purchase_history_of_user_failed_is_not_logged_in(app, client1, guest_token):
+def test_show_purchase_history_of_user_failed_is_not_logged_in(app,clean, client1, guest_token):
     #adding a product to the basket
     response = client1.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {guest_token}'
@@ -757,7 +757,7 @@ def test_show_purchase_history_of_user_failed_is_not_logged_in(app, client1, gue
     
 
 
-def test_show_purchase_history_of_user_in_store(app, client1, user_token):
+def test_show_purchase_history_of_user_in_store(app,clean, client1, user_token):
     #adding a product to the basket
     response = client1.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {user_token}'
@@ -785,7 +785,7 @@ def test_show_purchase_history_of_user_in_store(app, client1, user_token):
     
 
 
-def test_show_purchase_history_of_user_in_store_failed_is_not_logged_in(app, client1, guest_token):
+def test_show_purchase_history_of_user_in_store_failed_is_not_logged_in(app,clean, client1, guest_token):
     #adding a product to the basket
     response = client1.post('/user/add_to_basket', headers={
         'Authorization': f'Bearer {guest_token}'
