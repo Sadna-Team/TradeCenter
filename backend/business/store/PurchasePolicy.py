@@ -351,7 +351,10 @@ class PurchasePolicy(db.Model):
         pass
     
     def set_predicate(self, predicate: Constraint):
-        self._predicate = predicate.get_constraint_string()
+        if predicate is None:
+            self._predicate = None
+        else:
+            self._predicate = predicate.get_constraint_info_as_string()
         db.session.commit()
 
     @abstractmethod
