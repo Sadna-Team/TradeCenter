@@ -13,7 +13,11 @@ export const SocketProvider = ({ children }) => {
       console.log('Socket already exists:', socket.connected);
       return socket;
     }
-    const socketInstance = io('http://localhost:5000', {
+
+    const url = new URL(window.location.href);
+    const ip = url.hostname; // Get the IP address or hostname from the URL
+
+    const socketInstance = io('http://${ip}:5000', {
       autoConnect: false,
       extraHeaders: {
         Authorization: 'Bearer ' + token,

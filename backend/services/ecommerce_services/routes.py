@@ -494,6 +494,7 @@ def show_store_bids():
         store_owner_id = get_jwt_identity()
         data = request.get_json()
         store_id = int(data['store_id'])
+        logger.info(f'the store id we got to get their bids from is: {store_id}')
     except Exception as e:
         logger.error('show_store_bids - ', str(e))
         return jsonify({'message': str(e)}), 400

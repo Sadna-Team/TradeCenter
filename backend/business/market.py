@@ -1278,9 +1278,9 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
-        pur_id = self.purchase_facade.create_bid_purchase(user_id, proposed_price, product_id, store_id)
-        self.notifier.notify_new_bid(store_id, pur_id)
-        logger.info(f"User {user_id} has created a bid purchase")
+        pur_id = self.purchase_facade.create_bid_purchase(user_id, proposed_price, store_id, product_id)
+        self.notifier.notify_new_bid(store_id, user_id)
+        logger.info(f"User {user_id} has created a bid purchase with id {pur_id}")
         return pur_id
 
     def store_worker_accept_bid(self, store_id: int, store_worker_id: int, bid_id: int) -> None:
@@ -1356,6 +1356,7 @@ class MarketFacade:
         Returns None
         """
         if self.user_facade.suspended(user_id):
+            logger.info(f'User {user_id} is suspended')
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.purchase_facade.user_accept_counter_offer(bid_id, user_id)
         self.notifier.notify_bid_accepted(bid_id, user_id)
@@ -1429,8 +1430,10 @@ class MarketFacade:
         Returns a list of bids
         """
         if self.user_facade.suspended(user_id):
+            logger.info(f"User {user_id} is suspended")
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         if not self.roles_facade.has_get_bid_permission(store_id, user_id):
+            logger.info(f'User {user_id} does not have the necessary permissions to get the bids of the store')
             raise UserError("User does not have the necessary permissions to get the bids of the store", UserErrorTypes.user_does_not_have_necessary_permissions)
         return self.purchase_facade.get_bid_purchases_of_store(store_id)
     

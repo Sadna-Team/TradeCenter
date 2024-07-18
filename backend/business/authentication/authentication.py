@@ -137,8 +137,7 @@ class Authentication:
                 self.user_facade.remove_user(user_id)
 
     def is_logged_in(self, user_id):
-        set = self.logged_in
-        ans = user_id in set
+        ans = int(user_id) in self.logged_in
 
         logger.info(f'User {user_id} is logged in: {ans}')
         return ans

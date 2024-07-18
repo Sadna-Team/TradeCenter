@@ -431,8 +431,8 @@ class UserFacade:
 
     def create_user(self, currency: str = "USD") -> int:
         with UserFacade.__create_lock:
-            id = UserFacade.__id_serializer
-            UserFacade.__id_serializer += 1
+            id = db.session.query(User).count()
+            # UserFacade.__id_serializer += 1
         user = User(id, currency)
         logger.info(f"User {id} created")
         db.session.add(user)

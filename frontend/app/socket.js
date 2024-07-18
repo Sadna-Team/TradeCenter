@@ -6,7 +6,10 @@ class SocketSingleton {
     static instance = null;
   constructor(token) {
     if (!SocketSingleton.instance) {
-      this.socket = io('http://localhost:5000', {
+      const url = new URL(window.location.href);
+      const ip = url.hostname; // Get the IP address or hostname from the URL
+
+      this.socket = io(`http://${ip}:5000`, {
         autoConnect: false,
         extraHeaders: {
           Authorization: 'Bearer ' + token,
