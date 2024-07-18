@@ -120,6 +120,8 @@ class Notifier:
                     raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
 
                 for listener in listeners.get_listeners.split(','):
+                    listener = int(listener)
+                    logger.info(f"send message to user {listener}")
                     if self._authentication.is_logged_in(listener):
                         self._notify_real_time(listener, message)
                     else:

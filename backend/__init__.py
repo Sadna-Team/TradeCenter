@@ -113,6 +113,8 @@ def create_app(mode='development'):
             from backend.services.store_services.routes import store_bp
             from backend.services.third_party_services.routes import third_party_bp
 
+            # make that get command to root -> get /auth
+
             app.register_blueprint(auth_bp, url_prefix='/auth')
             app.register_blueprint(user_bp, url_prefix='/user')
             app.register_blueprint(market_bp, url_prefix='/market')
