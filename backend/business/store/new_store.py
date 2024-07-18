@@ -609,7 +609,7 @@ class Store(db.Model):
     # id of store is storeId. It is unique for each store
     __tablename__ = 'stores'
 
-    store_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    store_id = db.Column(db.Integer, primary_key=True)#, autoincrement=True)
     _store_name = db.Column(db.String(100))
     _store_founder_id = db.Column(db.Integer)
     _is_active = db.Column(db.Boolean)

@@ -1042,9 +1042,9 @@ def test_add_store(store_facade):
     assert store_facade._StoreFacade__get_store_by_id(0).store_name == 'store'
 
 def test_close_store2(store_facade):
-    store_facade.add_store(default_location, store_name='store', store_founder_id=0)
-    store_facade.close_store(0, 0)
-    assert not store_facade._StoreFacade__get_store_by_id(0).is_active
+    id = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    store_facade.close_store(id, 0)
+    assert not store_facade._StoreFacade__get_store_by_id(id).is_active
 
 def test_close_store_fail2(store_facade):
     with pytest.raises(StoreError) as e:

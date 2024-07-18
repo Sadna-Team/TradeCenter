@@ -389,7 +389,7 @@ class UserFacade:
         user = User.query.filter_by(id=user_id).first()
         if not user:
             raise UserError("User not found", UserErrorTypes.user_not_found)
-            user.change_suspend(True, None)
+        user.change_suspend(True, None)
 
     def suspend_user_temporarily(self, user_id: int, date_details: dict, time_details: dict):
         """

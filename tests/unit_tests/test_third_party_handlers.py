@@ -58,9 +58,16 @@ user_id = 1
 
 
 @pytest.fixture
-def payment_handler():
-    PaymentHandler().reset()
-    return PaymentHandler()
+def app():
+    from backend.app_factory import create_app_instance
+    return create_app_instance("testing")
+@pytest.fixture
+def payment_handler(app):
+    with app.app_context():
+        PaymentHandler().reset()
+    app.app_context().push()
+    yield PaymentHandler()
+    # app.app_context().pop()
 
 @pytest.fixture
 def payment_handler_extended(payment_handler):
@@ -68,8 +75,9 @@ def payment_handler_extended(payment_handler):
     return payment_handler
 
 @pytest.fixture
-def supply_handler():
-    SupplyHandler().reset()
+def supply_handler(app):
+    with app.app_context():
+        SupplyHandler().reset()
     return SupplyHandler()
 
 @pytest.fixture

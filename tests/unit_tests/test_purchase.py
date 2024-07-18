@@ -52,7 +52,7 @@ def app():
 
     PurchaseFacade().clean_data()
 
-    app_context.pop()
+    # app_context.pop()
 
 
 @pytest.fixture(scope='function', autouse=True)

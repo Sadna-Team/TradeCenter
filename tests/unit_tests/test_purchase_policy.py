@@ -139,31 +139,31 @@ basketInformationForDiscountDTO2= BasketInformationForConstraintDTO(default_stor
 #creating the policies:
 
 #ProductSpecificPurchasePolicy
-productSpecificPurchasePolicy1 = ProductSpecificPurchasePolicy(default_policy_id1, default_store_id, default_policy_name, default_product_id, default_predicate)
-productSpecificPurchasePolicy2 = ProductSpecificPurchasePolicy(default_policy_id2, default_store_id, default_policy_name, 1, default_AmountProductConstraint)
-productSpecificPurchasePolicy3 = ProductSpecificPurchasePolicy(default_policy_id3, default_store_id, default_policy_name, default_product_id, default_season_constraint)
-productSpecificPurchasePolicy4 = ProductSpecificPurchasePolicy(default_policy_id4, default_store_id, default_policy_name, default_product_id, default_season_constraint_wrong)
+productSpecificPurchasePolicy1 = ProductSpecificPurchasePolicy(default_store_id, default_policy_name, default_product_id, default_predicate)
+productSpecificPurchasePolicy2 = ProductSpecificPurchasePolicy(default_store_id, default_policy_name, 1, default_AmountProductConstraint)
+productSpecificPurchasePolicy3 = ProductSpecificPurchasePolicy(default_store_id, default_policy_name, default_product_id, default_season_constraint)
+productSpecificPurchasePolicy4 = ProductSpecificPurchasePolicy(default_store_id, default_policy_name, default_product_id, default_season_constraint_wrong)
 
 #CategorySpecificPurchasePolicy
-categorySpecificPurchasePolicy1 = CategorySpecificPurchasePolicy(default_policy_id3, default_store_id, default_policy_name, default_category_2, default_AgeConstraint)
+categorySpecificPurchasePolicy1 = CategorySpecificPurchasePolicy(default_store_id, default_policy_name, default_category_2, default_AgeConstraint)
 
 
 #BasketSpecificPurchasePolicy
-basketSpecificPurchasePolicy1 = BasketSpecificPurchasePolicy(default_policy_id5, default_store_id, default_policy_name, default_predicate)
+basketSpecificPurchasePolicy1 = BasketSpecificPurchasePolicy(default_store_id, default_policy_name, default_predicate)
 
 
 #andPurchasePolicy
-andPurchasePolicy1 = AndPurchasePolicy(default_policy_id6, default_store_id, default_policy_name, productSpecificPurchasePolicy3, productSpecificPurchasePolicy2, default_predicate) # good
-andPurchasePolicy2 = AndPurchasePolicy(default_policy_id7, default_store_id, default_policy_name, productSpecificPurchasePolicy4, productSpecificPurchasePolicy2, default_predicate) # bad
+andPurchasePolicy1 = AndPurchasePolicy(default_store_id, default_policy_name, productSpecificPurchasePolicy3, productSpecificPurchasePolicy2, default_predicate) # good
+andPurchasePolicy2 = AndPurchasePolicy(default_store_id, default_policy_name, productSpecificPurchasePolicy4, productSpecificPurchasePolicy2, default_predicate) # bad
 
 
 #OrPurchasePolicy
-orPurchasePolicy = OrPurchasePolicy(default_policy_id7, default_store_id, default_policy_name, productSpecificPurchasePolicy4, productSpecificPurchasePolicy2, default_predicate) # good
+orPurchasePolicy = OrPurchasePolicy(default_store_id, default_policy_name, productSpecificPurchasePolicy4, productSpecificPurchasePolicy2, default_predicate) # good
 
 
 #conditioningPurchasePolicy
-conditioningPurchasePolicy1 = ConditioningPurchasePolicy(default_policy_id8, default_store_id, default_policy_name, productSpecificPurchasePolicy2, productSpecificPurchasePolicy3, default_predicate) # good
-conditioningPurchasePolicy2 = ConditioningPurchasePolicy(default_policy_id9, default_store_id, default_policy_name, productSpecificPurchasePolicy2, productSpecificPurchasePolicy4, default_predicate) # bad
+conditioningPurchasePolicy1 = ConditioningPurchasePolicy(default_store_id, default_policy_name, productSpecificPurchasePolicy2, productSpecificPurchasePolicy3, default_predicate) # good
+conditioningPurchasePolicy2 = ConditioningPurchasePolicy(default_store_id, default_policy_name, productSpecificPurchasePolicy2, productSpecificPurchasePolicy4, default_predicate) # bad
 
 
 #Purchase Policy tests:

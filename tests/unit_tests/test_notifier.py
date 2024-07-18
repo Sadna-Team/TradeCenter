@@ -2,14 +2,14 @@ import unittest
 from unittest.mock import MagicMock
 from backend.business.notifier import Notifier
 from backend.error_types import StoreError, StoreErrorTypes, UserError, UserErrorTypes
-from backend import create_app
+from backend.app_factory import create_app_instance
 
 
 class TestNotifier(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = create_app(mode='testing')
+        cls.app = create_app_instance("testing")
         from backend import app as app2
         app2.app = cls.app
 

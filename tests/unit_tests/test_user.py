@@ -23,9 +23,11 @@ class TestShoppingBasket(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        from backend.database import clear_database
+        clear_database()
         UserFacade().clean_data()
         app_context = app.app_context()
-        app_context.pop()
+        # app_context.pop()
 
     def setUp(self):
         self.facade = UserFacade()
@@ -101,7 +103,7 @@ class TestNotification(unittest.TestCase):
     def tearDownClass(cls):
         UserFacade().clean_data()
         app_context = app.app_context()
-        app_context.pop()
+        # app_context.pop()
 
     def setUp(self):
         self.facade = UserFacade()
@@ -128,9 +130,11 @@ class TestUser(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        from backend.database import clear_database
+        clear_database()
         UserFacade().clean_data()
         app_context = app.app_context()
-        app_context.pop()
+        # app_context.pop()
 
     def setUp(self):
         self.facade = UserFacade()
@@ -226,9 +230,15 @@ class TestUserFacade(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        global app
+        from backend.database import clear_database
+        with app.app_context():
+            clear_database()
         UserFacade().clean_data()
         app_context = app.app_context()
-        app_context.pop()
+        # app_context.pop()
+
+
 
     def setUp(self):
         self.facade = UserFacade()
@@ -272,7 +282,7 @@ class TestUserFacade(unittest.TestCase):
         self.facade.suspend_user_permanently(user_id=user)
         assert self.facade.get_user(user).is_suspended()
 
-    def test_notify_user(self):
+    def test_notify_user(self,):
         user = self.facade.create_user()
         self.facade.register_user(user, email="test@mail.com", username="testuser", password="password", year=2000, month=1, day=1, phone="1234567890")
         self.assertEqual(self.facade.get_notifications(user_id=user), [])
