@@ -662,6 +662,10 @@ class BidPurchase(Purchase):
         self._total_price_after_discounts = self._proposed_price
         self._date_of_purchase = datetime.now()
 
+    #for testing purposes
+    def approve(self):
+        self._status = PurchaseStatus.approved
+    
     def complete(self):
         if self._status != PurchaseStatus.accepted:
             logger.warn(f"[BidPurchase] purchase with purchase id: {self.id} could not be completed since it is not accepted")

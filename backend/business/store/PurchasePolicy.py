@@ -330,6 +330,10 @@ class PurchasePolicy(db.Model):
         return self._policy_name
     
     @property
+    def policy_id(self):
+        return self.purchase_policy_id
+    
+    @property
     def predicate(self):
         if self._predicate is None or self._predicate == "":
             return None
@@ -391,7 +395,7 @@ class ProductSpecificPurchasePolicy(PurchasePolicy):
     def get_policy_info_as_dict(self) -> dict:
         return {
             "policy_type": "productSpecificPolicy",
-            "policy_id": self.purchase_policy_id,
+            "policy_id": self.policy_id,
             "policy_name": self.policy_name,
             "product_id": self.product_id,
             "store_id": self.store_id,
@@ -435,7 +439,7 @@ class CategorySpecificPurchasePolicy(PurchasePolicy):
     def get_policy_info_as_dict(self) -> dict:
         return {
             "policy_type": "categorySpecificPolicy",
-            "policy_id": self.purchase_policy_id,
+            "policy_id": self.policy_id,
             "policy_name": self.policy_name,
             "store_id": self.store_id,
             "category_id": self._category_id,
@@ -469,7 +473,7 @@ class BasketSpecificPurchasePolicy(PurchasePolicy):
     def get_policy_info_as_dict(self) -> dict:
         return {
             "policy_type": "basketSpecificPolicy",
-            "policy_id": self.purchase_policy_id,
+            "policy_id": self.policy_id,
             "policy_name": self.policy_name,
             "store_id": self.store_id,
             "predicate": self.predicate.get_constraint_info_as_string() if self.predicate is not None else "None"
@@ -505,7 +509,8 @@ class AndPurchasePolicy(PurchasePolicy):
         if self.store_id != basket.store_id:
             return True
         
-        return self._policy_left.check_constraint(basket) and self._policy_right.check_constraint(basket)
+        
+        return self.policy_left.check_constraint(basket) and self.policy_right.check_constraint(basket)
 
 
     def set_predicate(self, predicate: Constraint):
@@ -517,7 +522,7 @@ class AndPurchasePolicy(PurchasePolicy):
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {
             "policy_type": "andPolicy",
-            "policy_id": self.purchase_policy_id,
+            "policy_id": self.policy_id,
             "policy_name": self.policy_name,
             "store_id": self.store_id,
             "policy_left": policy_left,
@@ -545,7 +550,7 @@ class OrPurchasePolicy(PurchasePolicy):
     def __init__(self, store_id: int, policy_name: str, policy_left: PurchasePolicy, policy_right: PurchasePolicy, predicate: Optional[Constraint] = None):
         super().__init__(store_id, policy_name, None)
         self.policy_left = policy_left
-        selfpolicy_right = policy_right
+        self.policy_right = policy_right
         logger.info("[OrPurchasePolicy] Or Purchase Policy created successfully!")
     
 
@@ -553,7 +558,7 @@ class OrPurchasePolicy(PurchasePolicy):
         if self.store_id != basket.store_id:
             return True
         
-        return self._policy_left.check_constraint(basket) or self._policy_right.check_constraint(basket)
+        return self.policy_left.check_constraint(basket) or self.policy_right.check_constraint(basket)
 
 
     def set_predicate(self, predicate: Constraint):
@@ -565,7 +570,7 @@ class OrPurchasePolicy(PurchasePolicy):
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {
             "policy_type": "orPolicy",
-            "policy_id": self.purchase_policy_id,
+            "policy_id": self.policy_id,
             "policy_name": self.policy_name,
             "store_id": self.store_id,
             "policy_left": policy_left,
@@ -601,8 +606,8 @@ class ConditioningPurchasePolicy(PurchasePolicy):
         if self.store_id != basket.store_id:
             return True
         
-        if self._policy_left.check_constraint(basket):
-            return self._policy_right.check_constraint(basket)
+        if self.policy_left.check_constraint(basket):
+            return self.policy_right.check_constraint(basket)
         else:
             return True
 
@@ -616,7 +621,7 @@ class ConditioningPurchasePolicy(PurchasePolicy):
         policy_right = self.policy_right.get_policy_info_as_dict()
         return {
             "policy_type": "conditionalPolicy",
-            "policy_id": self.purchase_policy_id,
+            "policy_id": self.policy_id,
             "policy_name": self.policy_name,
             "store_id": self.store_id,
             "policy_left": policy_left,

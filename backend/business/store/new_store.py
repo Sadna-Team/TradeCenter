@@ -615,7 +615,7 @@ class Store(db.Model):
     _is_active = db.Column(db.Boolean)
     _product_id_counter = db.Column(db.Integer)
     _founded_date = db.Column(db.DateTime)
-    #_purchase_policy_id_counter = db.Column(db.Integer)
+    #_policy_id_counter = db.Column(db.Integer)
 
     _address = db.relationship('StoreAddress', uselist=False, backref='store')
     _store_products = db.relationship('Product', backref='store', lazy=True)
@@ -633,7 +633,7 @@ class Store(db.Model):
         self._product_id_lock = threading.Lock() # lock for product id
         #self._purchase_policy: Dict[int, PurchasePolicy] = {} # purchase policy
         self._founded_date = datetime.now()
-        #self._purchase_policy_id_counter = 0  # purchase policy Id
+        #self._policy_id_counter = 0  # purchase policy Id
 
     # ---------------------getters and setters---------------------#
 
@@ -792,16 +792,16 @@ class Store(db.Model):
         if category_id is None and product_id is None:
             basket_policy_to_add = BasketSpecificPurchasePolicy(self.store_id, policy_name)
             db.session.add(basket_policy_to_add)
-            #self._purchase_policy[self._purchase_policy_id_counter] = basket_policy_to_add
-            policy_id = basket_policy_to_add.purchase_policy_id
-            #self._purchase_policy_id_counter += 1
+            #self._purchase_policy[self._policy_id_counter] = basket_policy_to_add
+            policy_id = basket_policy_to_add.policy_id
+            #self._policy_id_counter += 1
 
         elif category_id is not None and product_id is None:
             category_policy_to_add = CategorySpecificPurchasePolicy(self.store_id, policy_name, category_id)
             db.session.add(category_policy_to_add)
-            #self._purchase_policy[self._purchase_policy_id_counter] = category_policy_to_add
-            policy_id = category_policy_to_add.purchase_policy_id
-            #self._purchase_policy_id_counter += 1
+            #self._purchase_policy[self._policy_id_counter] = category_policy_to_add
+            policy_id = category_policy_to_add.policy_id
+            #self._policy_id_counter += 1
         
         elif category_id is None and product_id is not None:
             if db.session.query(Product).filter(Product.product_id == product_id).count() == 0:
@@ -809,9 +809,9 @@ class Store(db.Model):
                 raise StoreError('Product is not found', StoreErrorTypes.product_not_found)
             product_policy_to_add = ProductSpecificPurchasePolicy(self.store_id, policy_name, product_id)
             db.session.add(product_policy_to_add)
-            policy_id = product_policy_to_add.purchase_policy_id
-            # self._purchase_policy[self._purchase_policy_id_counter] = product_policy_to_add
-            # self._purchase_policy_id_counter += 1
+            policy_id = product_policy_to_add.policy_id
+            # self._purchase_policy[self._policy_id_counter] = product_policy_to_add
+            # self._policy_id_counter += 1
 
         else:
             logger.warning('[Store] Invalid input when trying to add a purchase policy to store with id: {self.__store_id}')
@@ -833,9 +833,10 @@ class Store(db.Model):
         * Returns: the purchase policy with the given ID
         """
         try:
-            pur = db.session.query(PurchasePolicy).filter(PurchasePolicy.purchase_policy_id == policy_id).one()
+            pur = db.session.query(PurchasePolicy).filter(PurchasePolicy.policy_id == policy_id).one()
             if pur.store_id != self.store_id:
                 raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
+            return pur
         except Exception:
             raise StoreError('Purchase policy is not found', StoreErrorTypes.policy_not_found)
 
@@ -850,7 +851,7 @@ class Store(db.Model):
         # self._purchase_policy.pop(policy_id)
         self.__get_purchase_policy_by_id(policy_id) # check for existance
         
-        db.session.query(PurchasePolicy).filter(PurchasePolicy.purchase_policy_id == policy_id).delete()
+        db.session.query(PurchasePolicy).filter(PurchasePolicy.policy_id == policy_id).delete()
         db.session.commit()
 
         logger.info('[Store] successfully removed purchase policy from store with id: {self.__store_id}')
@@ -880,9 +881,9 @@ class Store(db.Model):
         # right_policy = self._purchase_policy[policy_id_right]
         if type_of_composite == 1:
             and_composite_policy = AndPurchasePolicy(self.store_id, policy_name, left_policy, right_policy)
-            # self._purchase_policy[self._purchase_policy_id_counter] = and_composite_policy
-            new_policy_id = and_composite_policy.purchase_policy_id
-            # self._purchase_policy_id_counter += 1
+            # self._purchase_policy[self._policy_id_counter] = and_composite_policy
+            new_policy_id = and_composite_policy.policy_id
+            # self._policy_id_counter += 1
             
             # #we will now remove the two policies that were used to create the composite policy
             # self._purchase_policy.pop(policy_id_left)
@@ -891,9 +892,9 @@ class Store(db.Model):
 
         elif type_of_composite == 2:
             or_composite_policy = OrPurchasePolicy(self.store_id, policy_name, left_policy, right_policy)
-            # self._purchase_policy[self._purchase_policy_id_counter] = or_composite_policy
-            new_policy_id = or_composite_policy.purchase_policy_id
-            # self._purchase_policy_id_counter += 1
+            # self._purchase_policy[self._policy_id_counter] = or_composite_policy
+            new_policy_id = or_composite_policy.policy_id
+            # self._policy_id_counter += 1
 
             # #we will now remove the two policies that were used to create the composite policy
             # self._purchase_policy.pop(policy_id_left)
@@ -902,9 +903,9 @@ class Store(db.Model):
 
         elif type_of_composite == 3:
             conditional_composite_policy = ConditioningPurchasePolicy(self.store_id, policy_name, left_policy, right_policy)
-            # self._purchase_policy[self._purchase_policy_id_counter] = conditional_composite_policy
-            new_policy_id = conditional_composite_policy.purchase_policy_id
-            # self._purchase_policy_id_counter += 1
+            # self._purchase_policy[self._policy_id_counter] = conditional_composite_policy
+            new_policy_id = conditional_composite_policy.policy_id
+            # self._policy_id_counter += 1
 
             # #we will now remove the two policies that were used to create the composite policy
             # self._purchase_policy.pop(policy_id_left)
@@ -917,8 +918,8 @@ class Store(db.Model):
             raise StoreError('Failed to create composite policy in store with id: {self.__store_id}', StoreErrorTypes.unexpected_error)
         
         # remove left and right policies
-        db.session.query(PurchasePolicy).filter(PurchasePolicy.purchase_policy_id == policy_id_left).delete()
-        db.session.query(PurchasePolicy).filter(PurchasePolicy.purchase_policy_id == policy_id_right).delete()
+        db.session.query(PurchasePolicy).filter(PurchasePolicy.policy_id == policy_id_left).delete()
+        db.session.query(PurchasePolicy).filter(PurchasePolicy.policy_id == policy_id_right).delete()
 
         db.session.add(new_policy)
         db.session.commit()
