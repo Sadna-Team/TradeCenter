@@ -1279,7 +1279,8 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         pur_id = self.purchase_facade.create_bid_purchase(user_id, proposed_price, store_id, product_id)
-        self.notifier.notify_new_bid(store_id, user_id)
+        users_to_notify = self.roles_facade.get_bid_owners_managers(store_id)
+        self.notifier.notify_new_bid(store_id, user_id, users_to_notify, pur_id)
         logger.info(f"User {user_id} has created a bid purchase with id {pur_id}")
         return pur_id
 
@@ -1318,7 +1319,9 @@ class MarketFacade:
             rejected = self.purchase_facade.store_reject_offer(bid_id, store_worker_id)
             logger.info(f"Store worker {store_worker_id} has declined a bid")
             user_id = self.purchase_facade.get_bid_purchase_by_id(bid_id).user_id
-            self.notifier.notify_bid_cancelled(store_id, store_worker_id)
+            users_to_notify = self.roles_facade.get_bid_owners_managers(store_id)
+            users_to_notify.remove(store_worker_id)
+            self.notifier.notify_bid_cancelled_by_store_worker(store_id, store_worker_id, users_to_notify, bid_id)
             self.notifier.notify_general_message(user_id, "Store has declined the bid")
             return rejected
         else:
@@ -1359,7 +1362,8 @@ class MarketFacade:
             logger.info(f'User {user_id} is suspended')
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.purchase_facade.user_accept_counter_offer(bid_id, user_id)
-        self.notifier.notify_bid_accepted(bid_id, user_id)
+        users_to_notify = self.roles_facade.get_bid_owners_managers(self.purchase_facade.get_bid_purchase_by_id(bid_id).store_id)
+        self.notifier.notify_bid_accepted(self.purchase_facade.get_bid_purchase_by_id(bid_id).store_id, user_id, users_to_notify, bid_id)
         logger.info(f"User {user_id} has accepted a counter bid")
 
     def user_counter_bid_decline(self, user_id: int, bid_id: int) -> None:
@@ -1370,8 +1374,9 @@ class MarketFacade:
         """
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
+        users_to_notify = self.roles_facade.get_bid_owners_managers(self.purchase_facade.get_bid_purchase_by_id(bid_id).store_id)
         self.purchase_facade.user_reject_counter_offer(bid_id, user_id)
-        self.notifier.notify_bid_cancelled_by_user(bid_id, user_id)
+        self.notifier.notify_bid_cancelled_by_user(self.purchase_facade.get_bid_purchase_by_id(bid_id).store_id, user_id, users_to_notify, bid_id)
 
         logger.info(f"User {user_id} has declined a counter bid")
 
@@ -1385,6 +1390,8 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.purchase_facade.cancel_bid(bid_id, user_id)
+        users_to_notify = self.roles_facade.get_bid_owners_managers(self.purchase_facade.get_bid_purchase_by_id(bid_id).store_id)
+        self.notifier.notify_bid_cancelled_by_user(self.purchase_facade.get_bid_purchase_by_id(bid_id).store_id, user_id, users_to_notify, bid_id)
         logger.info(f"User {user_id} has cancelled a bid")
         
         
@@ -1398,7 +1405,9 @@ class MarketFacade:
         if self.user_facade.suspended(user_id):
             raise UserError("User is suspended", UserErrorTypes.user_suspended)
         self.purchase_facade.user_counter_offer(bid_id, user_id, counter_price)
-        self.notifier.notify_bid_counter_offer(bid_id, user_id)
+        users_to_notify = self.roles_facade.get_bid_owners_managers(self.purchase_facade.get_bid_purchase_by_id(bid_id).store_id)
+
+        self.notifier.notify_bid_counter_offer(self.purchase_facade.get_bid_purchase_by_id(bid_id).store_id, user_id, users_to_notify, counter_price)
         logger.info(f"User {user_id} has counter offered a counter bid")
 
     def show_user_bids(self, system_manager_id: int, user_id: int) -> List[BidPurchaseDTO]:

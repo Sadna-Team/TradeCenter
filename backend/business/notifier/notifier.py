@@ -9,7 +9,6 @@ from flask import jsonify
 from backend.business.authentication.authentication import Authentication
 from backend.error_types import *
 from flask import current_app
-from backend.business.roles.roles import RolesFacade
 
 # Database related imports
 from sqlalchemy.exc import SQLAlchemyError
@@ -106,21 +105,6 @@ class Notifier:
         self.send_real_time_notification(user_id, notification)
 
 
-    def _notify_multiple_bid(self, store_id: int, message: str) -> None:
-        from backend.app_factory import get_app
-        app = get_app()
-        with app.app_context():
-            all_listeners = RolesFacade().get_bid_owners_managers(store_id)
-            if len(all_listeners) == 0:
-                raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
-
-            for listener in all_listeners:
-                logger.info(f"send bid message to user {listener}")
-                if self._authentication.is_logged_in(listener):
-                    self._notify_real_time(listener, message)
-                else:
-                    self._notify_delayed(listener, message)
-
     def _notify_multiple(self, store_id: int, message: str, send_by = None) -> None:
         """
         * Parameters: store_id: int, message: str
@@ -162,47 +146,66 @@ class Notifier:
         msg = "New purchase in store: " + str(store_id) + "\n purchase ID: " + str(purchase_id)  # + "With the info:"
         self._notify_multiple(store_id, msg)
 
+    def _notify_multiple_bid(self, store_id: int, message: str, send_to = list[int], send_by = None) -> None:
+        from backend.app_factory import get_app
+        app = get_app()
+        with app.app_context():
+            all_listeners = db.session.query(Listeners).filter_by(store_id=store_id).all()
+            if len(all_listeners) == 0:
+                raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+            for listeners in all_listeners:
+                if listeners.get_listeners == '':
+                    raise StoreError(f"No listenerss for the store with ID: {store_id}", StoreErrorTypes.no_listeners_for_store)
+
+                for listener in listeners.get_listeners.split(','):
+                    listener = int(listener)
+                    if listener in send_to:
+                        logger.info(f"send message to user {listener}")
+                        if self._authentication.is_logged_in(listener):
+                            self._notify_real_time(listener, message)
+                        else:
+                            self._notify_delayed(listener, message)
     # Notify on a new bid  --- for store owner
-    def notify_new_bid(self, store_id: int, user_id: int) -> None:
+    def notify_new_bid(self, store_id: int, user_id: int, users_to_notify: list[int], bid_id: int) -> None:
         """
         * Parameters: store_id: int, user_id(Who created a bid purchase): int
         * This function notifies the store owner(s) of a new purchase in the store.
         """
-        msg = f"User {user_id} has created a bid purchase"
-        self._notify_multiple(store_id, msg)
+        msg = f"User {user_id} has created a bid purchase with id {bid_id}"
+        self._notify_multiple_bid(store_id, msg, users_to_notify)
 
 
-    def notify_bid_cancelled_by_store_worker(self, store_id: int, user_id: int) -> None:
+    def notify_bid_cancelled_by_store_worker(self, store_id: int, user_id: int, users_to_notify: list[int], bid_id: int) -> None:
         """
         * Parameters: store_id: int, user_id(Who created a bid purchase): int
         * This function notifies the store owner(s) of a new purchase in the store.
         """
-        msg = f"User {user_id} has cancelled a bid purchase"
-        self._notify_multiple(store_id, msg, user_id)
+        msg = f"Store worker {user_id} has cancelled bid purchase {bid_id}"
+        self._notify_multiple_bid(store_id, msg, user_id, users_to_notify)
 
-    def notify_bid_cancelled_by_user(self, store_id: int, user_id: int) -> None:
+    def notify_bid_cancelled_by_user(self, store_id: int, user_id: int, users_to_notify: list[int], bid_id:int) -> None:
         """
         * Parameters: store_id: int, user_id(Who created a bid purchase): int
         * This function notifies the store owner(s) of a new purchase in the store.
         """
-        msg = f"User {user_id} has cancelled a bid purchase"
-        self._notify_multiple(store_id, msg)
+        msg = f"User {user_id} has cancelled bid purchase {bid_id}"
+        self._notify_multiple_bid(store_id, msg, user_id, users_to_notify)
 
-    def notify_bid_counter_offer(self, store_id: int, user_id: int) -> None:
+    def notify_bid_counter_offer(self, store_id: int, user_id: int, users_to_notify: list[int], proposed_price: float) -> None:
         """
         * Parameters: store_id: int, user_id(Who created a bid purchase): int
         * This function notifies the store owner(s) of a new purchase in the store.
         """
-        msg = f"User {user_id} has created a counter offer"
-        self._notify_multiple(store_id, msg)
+        msg = f"User {user_id} has created a counter offer with proposed price {proposed_price}"
+        self._notify_multiple_bid(store_id, msg, user_id, users_to_notify)
 
-    def notify_bid_accepted(self, store_id: int, user_id: int) -> None:
+    def notify_bid_accepted(self, store_id: int, user_id: int, users_to_notify: list[int], bid_id: int) -> None:
         """
         * Parameters: store_id: int, user_id(Who created a bid purchase): int
         * This function notifies the store owner(s) of a new purchase in the store.
         """
-        msg = f"User {user_id} has accepted a bid purchase"
-        self._notify_multiple(store_id, msg)
+        msg = f"User {user_id} has accepted bid purchase {bid_id}"
+        self._notify_multiple_bid(store_id, msg, user_id, users_to_notify)
 
     def notify_general_listeners(self, store_id: int, message: str) -> None:
         """

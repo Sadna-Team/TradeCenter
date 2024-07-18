@@ -1059,8 +1059,11 @@ def test_remove_tag_from_product2(store_facade, product_dto):
     assert 'tag2' not in store_facade._StoreFacade__get_store_by_id(store_id).get_product_by_id(product_id).tags
 
 def test_remove_tag_from_product_fail(store_facade):
+    store = store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+    product = store_facade.add_product_to_store(store, 'product', 'description', 10.0, 21.0, ['tag'])
+
     with pytest.raises(StoreError) as e:
-        store_facade.remove_tag_from_product(0, 0, 'tag2')
+        store_facade.remove_tag_from_product(store+1000, product, 'tag2')
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_tags_of_product2(store_facade, product_dto):
