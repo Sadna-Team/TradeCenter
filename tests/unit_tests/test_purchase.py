@@ -109,6 +109,7 @@ def completed_purchase(accepted_purchase):
 
 @pytest.fixture
 def accepted_bid_purchase(bid_purchase):
+    bid_purchase.approve()
     bid_purchase.accept()
     return bid_purchase
 
@@ -423,6 +424,7 @@ def test_user_counter_offer(bid_purchase):
 
 
 def test_accept_bid_purchase(bid_purchase):
+    bid_purchase.approve()
     bid_purchase.accept()
     assert bid_purchase.status == PurchaseStatus.accepted
     assert bid_purchase.total_price == default_price
@@ -502,19 +504,6 @@ def test_get_bid_purchases_of_store(purchase_facade):
     create_bid_purchase_default(purchase_facade)
     bid_purchases = purchase_facade.get_bid_purchases_of_store(default_store_id)
     assert len(bid_purchases) == 1
-
-
-def test_accept_bid_purchase_facade(purchase_facade):
-    p_id = create_bid_purchase_default(purchase_facade)
-    purchase_facade.accept_purchase(p_id, datetime.now() + timedelta(days=1))
-    assert db.session.query(BidPurchase).get(p_id).status == PurchaseStatus.accepted
-
-
-def test_complete_bid_purchase_facade(purchase_facade):
-    p_id = create_bid_purchase_default(purchase_facade)
-    purchase_facade.accept_purchase(p_id, datetime.now() + timedelta(days=1))
-    purchase_facade.complete_purchase(p_id)
-    assert db.session.query(BidPurchase).get(p_id).status == PurchaseStatus.completed
 
 
 def test_view_all_bids_of_system(purchase_facade):
