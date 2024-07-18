@@ -681,8 +681,11 @@ class RolesFacade:
         return stores
 
     def get_store_role(self, user_id: int, store_id: int) -> str:
+        logger.info(f'[RolesFacade] get_store_role: user_id={user_id}, store_id={store_id}')
         with self.__stores_locks[store_id]:
+            logger.info("ERROR NOT IN LOCK")
             role = db.session.query(StoreRole).filter_by(store_id=store_id, user_id=user_id).one_or_none()
+            logger.info(f'[RolesFacade] get_store_role: role={role}')
             if role:
                 if self.is_root(store_id, user_id):
                     return "Founder"
