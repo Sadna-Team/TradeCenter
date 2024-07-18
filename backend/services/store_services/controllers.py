@@ -246,9 +246,9 @@ class StoreService:
         """
         try:
             logger.info(f'adding product to store:\nuser_id: {user_id}\nstore_id: {store_id}\nproduct_name: {product_name}\ndescription: {description}\nprice: {price}\nweight: {weight}\ntags: {tags}\namount: {amount}')
-            self.__market_facade.add_product(user_id, store_id, product_name, description, price, weight, tags, amount)
+            product_id = self.__market_facade.add_product(user_id, store_id, product_name, description, price, weight, tags, amount)
             logger.info('product was added successfully')
-            return jsonify({'message': 'product was added successfully'}), 200
+            return jsonify({'message': 'product was added successfully', 'product_id': product_id}), 200
         except Exception as e:
             logger.error('product was not added')
             print(e)
@@ -371,9 +371,9 @@ class StoreService:
             Add a category to a store
         """
         try:
-            self.__market_facade.add_category(user_id, category_name)
+            category_id = self.__market_facade.add_category(user_id, category_name)
             logger.info('category was added successfully')
-            return jsonify({'message': 'category was added successfully'}), 200
+            return jsonify({'message': 'category was added successfully', 'category_id': category_id}), 200
         except Exception as e:
             logger.error('category was not added')
             return jsonify({'message': str(e)}), 400
