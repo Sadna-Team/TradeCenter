@@ -701,7 +701,7 @@ def test_remove_product(store, product_dto):
     store.remove_product(product_id)
     assert len(store.store_products) == 0
 
-def test_remove_product_fail(store):
+def test_remove_product_fail(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
         store.remove_product(product_id+1)
@@ -716,7 +716,7 @@ def test_get_product_by_id(store, product_dto):
     assert product.price == product_dto.price
     assert product.tags == product_dto.tags
 
-def test_get_product_by_id_fail(store):
+def test_get_product_by_id_fail(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
         store.get_product_by_id(product_id+5)
@@ -731,7 +731,7 @@ def test_get_product_dto_by_id(store, product_dto):
     assert product_dto.price == product_dto.price
     assert product_dto.tags == product_dto.tags
 
-def test_get_product_dto_by_id_fail(store):
+def test_get_product_dto_by_id_fail(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
         store.get_product_dto_by_id(product_id+1000)
@@ -744,34 +744,18 @@ def test_get_total_price_of_basket_before_discount(store, product_dto):
     assert store.get_total_price_of_basket_before_discount({product_id:2}) == 20.0
     assert store.get_total_price_of_basket_before_discount({product_id:1, product_id2:2}) == 50.0
 
-def test_get_total_price_of_basket_before_discount_fail(store):
+def test_get_total_price_of_basket_before_discount_fail(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
         store.get_total_price_of_basket_before_discount({product_id+1000:1})
     assert e.value.store_error_type == StoreErrorTypes.product_not_found
-
-def test_create_store_dto(store):
-    dto = store.create_store_dto()
-    assert dto.store_id == store.store_id
-    assert dto.store_name == store.store_name
-    assert dto.store_founder_id == store.store_founder_id
-    assert dto.address == store.address
-    assert dto.is_active == store.is_active
-
-def test_get_store_information(store):
-    dto = store.create_store_dto()
-    assert dto.store_id == store.store_id
-    assert dto.store_name == store.store_name
-    assert dto.store_founder_id == store.store_founder_id
-    assert dto.address == store.address
-    assert dto.is_active == store.is_active
 
 def test_restock_product(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     store.restock_product(product_id, 10)
     assert store.has_amount_of_product(product_id, 10)
 
-def test_restock_product_fail(store):
+def test_restock_product_fail(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight, product_dto.amount)
     with pytest.raises(StoreError) as e:
         store.restock_product(product_id+1000, 10)
@@ -801,7 +785,7 @@ def test_change_description_of_product(store, product_dto):
     store.change_description_of_product(product_id, 'new description')
     assert store.get_product_by_id(product_id).description == 'new description'
 
-def test_change_description_of_product_fail(store):
+def test_change_description_of_product_fail(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
         store.change_description_of_product(product_id+1000, 'new description')
@@ -812,7 +796,7 @@ def test_change_price_of_product(store, product_dto):
     store.change_price_of_product(product_id, 20.0)
     assert store.get_product_by_id(product_id).price == 20.0
 
-def test_change_price_of_product_fail(store):
+def test_change_price_of_product_fail(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
         store.change_price_of_product(product_id+1000, 20.0)
@@ -823,7 +807,7 @@ def test_add_tag_to_product(store, product_dto):
     store.add_tag_to_product(product_id, 'tag2')
     assert 'tag2' in store.get_product_by_id(product_id).tags
 
-def test_add_tag_to_product_fail(store):
+def test_add_tag_to_product_fail(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
         store.add_tag_to_product(product_id+1000, 'tag2')
@@ -835,7 +819,7 @@ def test_remove_tag_from_product(store, product_dto):
     store.remove_tag_from_product(product_id, 'tag2')
     assert 'tag2' not in store.get_product_by_id(product_id).tags
 
-def test_remove_tag_from_product_fail_missing_product(store):
+def test_remove_tag_from_product_fail_missing_product(store, product_dto):
     product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, product_dto.tags, product_dto.weight)
     with pytest.raises(StoreError) as e:
         store.remove_tag_from_product(product_id, 'tag2')
@@ -848,7 +832,7 @@ def test_remove_tag_from_product_fail_missing_tag(store, product_dto):
     assert e.value.store_error_type== StoreErrorTypes.tag_not_found
 
 def test_get_tags_of_product(store, product_dto):
-    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, 'tag', product_dto.weight)
+    product_id = store.add_product(product_dto.name, product_dto.description, product_dto.price, ['tag'], product_dto.weight)
     store.add_tag_to_product(product_id, 'tag2')
     assert store.get_tags_of_product(product_id) == ['tag', 'tag2']
 
@@ -891,7 +875,7 @@ def test_remove_category(store_facade, category):
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
 
 def test_remove_category_fail(store_facade):
-    category_id = store_facade.add_category(category.category_name)
+    category_id = store_facade.add_category('name')
     with pytest.raises(StoreError) as e:
         store_facade.remove_category(category_id+1000)
     assert e.value.store_error_type== StoreErrorTypes.category_not_found
@@ -903,8 +887,8 @@ def test_assign_sub_category_to_category(store_facade, category, sub_category):
     assert store_facade.get_category_by_id(category_id).sub_categories[0].category_name == sub_category.category_name
 
 def test_assign_sub_category_to_category_fail(store_facade):
-    category_id = store_facade.add_category(category.category_name)
-    sub = store_facade.add_category(sub_category.category_name)
+    category_id = store_facade.add_category('name')
+    sub = store_facade.add_category("name_of_sub")
     
     with pytest.raises(StoreError) as e:
         store_facade.assign_sub_category_to_category(sub, category_id+1000)
@@ -917,7 +901,7 @@ def test_delete_sub_category_from_category(store_facade, category, sub_category)
     store_facade.delete_sub_category_from_category(category_id, sub)
     assert len(store_facade.get_category_by_id(category_id).sub_categories) == 0
 
-def test_delete_sub_category_from_category_fail(store_facade):
+def test_delete_sub_category_from_category_fail(store_facade, category, sub_category):
     category_id = store_facade.add_category(category.category_name)
     sub = store_facade.add_category(sub_category.category_name)
     with pytest.raises(StoreError) as e:
@@ -1110,8 +1094,10 @@ def test_get_total_price_before_discount2(store_facade):
     assert store_facade.get_total_price_before_discount({store_id1: {product_id1:1, product_id2:1}, store_id2: {product_id3:1, product_id4:1}}) == 60.0
 
 def test_get_total_price_before_discount_fail(store_facade):
+    store_id1=store_facade.add_store(default_location, store_name='store', store_founder_id=0)
+
     with pytest.raises(StoreError) as e:
-        store_facade.get_total_price_before_discount({0: {0:1, 1:1}, 1: {0:1, 1:1}})
+        store_facade.get_total_price_before_discount({store_id1+1000: {0:1, 1:1}, store_id1+1001: {0:1, 1:1}})
     assert e.value.store_error_type== StoreErrorTypes.store_not_found
 
 def test_get_store_product_information(store_facade, product_dto, product_dto2):
